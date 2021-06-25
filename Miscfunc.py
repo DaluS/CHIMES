@@ -52,19 +52,9 @@ def TemporalLoop(y,SYS,op,pN,p):
         t_s[i]     = t*1                    # we write the time 
     return Y_s, t_s
 
-def sumexp(f,p,pN,r):
-    y=np.zeros((p['Nt'],pN['Nx']))
-    y[0]=1
-   
-    
-    if type(f)==float :
-        for i in range(p['Nt']-1): y[i+1,:]=y[i,:]*(1+f   *(r['t'][i+1]-r['t'][i]))      
-    else :
-        for i in range(p['Nt']-1): y[i+1,:]=y[i,:]+(1+f[i]*(r['t'][i+1]-r['t'][i]))
-    return y
+
 ###############################################################################
-################## MISCELLANEOUS ##############################################
-###############################################################################
+
 def getperiods(r,p,op):
     '''
     calculate period index values (index of the local maximal position on lambda)
@@ -81,7 +71,17 @@ def getperiods(r,p,op):
             id1+=1    
     return r        
             
-    
+def sumexp(f,valini,p,pN,r):
+    y=np.zeros((p['Nt'],pN['Nx']))
+    y[0]=1 
+    if type(f)==float :
+        for i in range(p['Nt']-1): y[i+1,:]=y[i,:]*(1+f   *(r['t'][i+1]-r['t'][i]))      
+    else :
+        for i in range(p['Nt']-1): y[i+1,:]=y[i,:]+(1+f[i]*(r['t'][i+1]-r['t'][i]))
+    return y
+
+################## MISCELLANEOUS ##############################################
+###############################################################################    
 def savedata(rootfold,t,Y_s,p,op):  
     date = str(datetime.now()).split(' ')[0]
     try : os.mkdir(rootfold+date)
@@ -97,4 +97,8 @@ def savedata(rootfold,t,Y_s,p,op):
     shutil.copyfile(codefolder+'/Main.py'                 ,Fold+'/Main.py' )
     print('data saved in :',Fold)
 
-
+def PrintNumericalparameters(p):
+    print("Numerical parameters ############")
+    for n,v in p.items():
+        print(n+(15-len(n))*' ',v)   
+    print(34*'#')

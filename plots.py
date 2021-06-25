@@ -7,10 +7,25 @@ Created on Wed Feb  3 12:23:59 2021
 
 import matplotlib.pyplot as plt
 import numpy as np
-import FunctionsGoodwin as FG
 import Miscfunc as M
 
+def AllUsefulVariablesSeparate(r,UsefulVarDic,j=0):
 
+    
+    Nvar = len(UsefulVarDic)
+    plt.figure('AllvariableSeparated',figsize=(15,Nvar))
+    for i,key in enumerate(UsefulVarDic.keys()):
+        infos = UsefulVarDic[key]
+        plt.subplot(int(Nvar/3)+1,3,i+1)
+        plt.title(infos['name'])
+        plt.plot(r['t'],r[key],)
+        plt.xlabel('time')
+        if infos['unit']=='no' : plt.ylabel(infos['name']) 
+        if infos['type']=='extensive' : 
+            plt.yscale("log")
+            plt.ylabel(infos['name']+'('+infos['unit']+')')
+    plt.show()
+        
 
 def PhilAndInvest(p):
     '''
@@ -80,7 +95,7 @@ def GraphesExtensive(r,p,j=0):
     plt.subplot(121)
     plt.semilogy(r['t'],r['Y'][:,j]             ,label='GDP')
     plt.plot(    r['t'],r['K'][:,j]             ,label='Kapital')
-    plt.plot(    r['t'],r['p'][:,j]             ,label='Price')
+    #plt.plot(    r['t'],r['p'][:,j]             ,label='Price')
     plt.plot(    r['t'],r['Pi'][:,j]            ,label='Profit')
     plt.plot(    r['t'],r['D'][:,j]             ,label='Debt')
     plt.plot(    r['t'],r['I'][:,j]             ,label='Investment')  
