@@ -67,6 +67,7 @@ class Test01_Run():
         # Make sure Main is loaded from the proper dir => force PYTHONPATH
         sys.path.insert(0, _PATH_PCK)
         import Main
+        Main.run()
         # clean PYTHON PATH
         sys.path.pop(0)
 
