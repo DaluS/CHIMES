@@ -2,18 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-import time                   # Time (run speed) printing
-import Parameters as Par      # All the parameters of the system
-import ClassesGoodwin as C    # Core of models
-import Miscfunc as M          # All miscellaneous functions
-import VariableDictionnary as VarD # Useful infos on variables
-import plots as plts          # Already written plot functions
-
-
-SYS    = C.GK_Reduced()#FULL()#GK_Reduced()  #GK_FULL#     # SYSTEM SOLVED 
-
-
-### WELCOME MESSAGE ################################################################################
 """
 GOODWIN-TYPE RESOLUTION ALGORITHM
 
@@ -54,43 +42,59 @@ WHAT I AM (Paul) LOOKING FOR IN FURTHER DEVELOPMENT
 """
 
 
-### PARAMETERS INITIALISATION ######################################################################
-####################################################################################################    
-
-parNum   = Par.parnum()                     # Value of numerical parameters 
-params   = Par.BasicParameters()            # Value of "Physical" parameters 
-params   = Par.Modifications (   params, parNum ) # Original modification you might want to do
-initCond = Par.initCond      (   params ,parNum ) # Values of the initial parameters
-op       = M.prepareOperators(           parNum ) # Spatial operators initialisation
-#params   = SYS.keepUsefulParams( params )   # Cleaning the params dictionnary to be lighter 
+import time                   # Time (run speed) printing
+import Parameters as Par      # All the parameters of the system
+import ClassesGoodwin as C    # Core of models
+import Miscfunc as M          # All miscellaneous functions
+import VariableDictionnary as VarD # Useful infos on variables
+import plots as plts          # Already written plot functions
 
 
-print(SYS.description)
-SYS.printParameters(params)
-M  .PrintNumericalparameters(parNum)
+def run():
 
+    eqsys = C.GK_Reduced()  #FULL() #GK_Reduced()  #GK_FULL     # SYSTEM SOLVED 
 
-tim=time.time();print('Start simulation...',end='')
-y        = SYS.initializeY(initCond,parNum)             ### The vector y containing all the state of a time t.
-Y_s, t_s = M.TemporalLoop(y,SYS,op,parNum,params) ### Calculation of all timesteps
-print('done ! elapsed time :', time.time()-tim,'s')
+    # PARAMETERS INITIALISATION #######
+    # #################################    
 
+    parNum   = Par.parnum()                     # Value of numerical parameters 
+    params   = Par.BasicParameters()            # Value of "Physical" parameters 
+    params   = Par.Modifications (   params, parNum ) # Original modification you might want to do
+    initCond = Par.initCond      (   params ,parNum ) # Values of the initial parameters
+    op       = M.prepareOperators(           parNum ) # Spatial operators initialisation
+    #params   = SYS.keepUsefulParams( params )   # Cleaning the params dictionnary to be lighter 
 
-#if p['Save'] : FG.savedata(rootfold,t,Y_s,p,op) # Save the data as a pickle file in a new folder
-### Results interpretation #########################################################################
-####################################################################################################
-"""Now that the simulation is done, we can translate its results in a more readable fashion.
-r is the expansion of Y_s into all the relevant variables we are looking for, stored as a dictionnary.
-Then, the other parts are simply plots of the result"""
-results = SYS.expandY_simple(Y_s,t_s,op,params)  # Result dictionnary 
-results = M.getperiods(results,parNum,op)      # Period measurements 
+    print(SYS.description)
+    SYS.printParameters(params)
+    M  .PrintNumericalparameters(parNum)
 
-UsefulVarDic,OrganisedVar = VarD.VariableDictionnary(results)
+    tim=time.time()
+    print('Start simulation...', end='')
 
+    # vector y contains all states of time t.
+    y = SYS.initializeY(initCond,parNum)
+    # Calculation of all timesteps
+    Y_s, t_s = M.TemporalLoop(y, SYS, op, parNum, params)
+    print('done! elapsed time :', time.time()-tim, 's')
 
-### PLOTS ##########################################################################################
-#################################################################################################### 
-#SYS.plotlitst_simple(results,parNum)
-plts.AllUsefulVariablesSeparate(results,UsefulVarDic)
-#plts.OrganisedVar(results,UsefulVarDic, OrganisedVar)
+    # Save the data as a pickle file in a new folder
+    # if p['Save']:
+    #     FG.savedata(rootfold,t,Y_s,p,op)
 
+    # Results interpretation ##########
+    # #################################
+
+    """Now the simulation is done => translate results to more readable format
+    r = expansion of Y_s into all relevant variables, as a dict
+    Then, other parts are simply plots of the result"""
+    results = SYS.expandY_simple(Y_s, t_s, op, params)  # Result dictionnary 
+    results = M.getperiods(results, parNum, op)         # Period measurements 
+
+    UsefulVarDic, OrganisedVar = VarD.VariableDictionnary(results)
+
+    # PLOTS ###########################
+    # #################################
+
+    #SYS.plotlitst_simple(results,parNum)
+    plts.AllUsefulVariablesSeparate(results, UsefulVarDic)
+    #plts.OrganisedVar(results,UsefulVarDic, OrganisedVar)
