@@ -37,7 +37,7 @@ def VariableDictionnary(result) :
                'type':'extensive',
                'unit':'technological unit'},
         'a' : {'name':'productivity', 
-               'type':'intensive',
+               'type':'extensive',
                'unit':'Technological unit per human'},       
         ### Typical rate of time
         'philips' : {'name':'Wage inflation rate', 

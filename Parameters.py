@@ -2,12 +2,16 @@
 """
 PARAMETERS FOR GOODWIN-KEEN LIKE MODELS
 """
+
+
 import numpy as np
+
 
 def Modifications(params,parnum):
     """
     FOR THE MOMENT DOES NOTHING ! """
     return params
+
 
 def parnum():
     '''
