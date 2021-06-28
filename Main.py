@@ -6,7 +6,7 @@ import Miscfunc as M          # All miscellaneous functions
 import VariableDictionnary as VarD # Useful infos on variables
 import plots as plts          # Already written plot functions
 
-SYS    = C.GK_Reduced()#FULL()#GK_Reduced()  #GK_FULL#     # SYSTEM SOLVED 
+SYS    = C.GK_FULL()#FULL()#GK_Reduced()  #GK_FULL#     # SYSTEM SOLVED 
 
 ### WELCOME MESSAGE ################################################################################
 """
@@ -80,7 +80,7 @@ UsefulVarDic,OrganisedVar = VarD.VariableDictionnary(results)
 
 ### PLOTS ##########################################################################################
 #################################################################################################### 
-#SYS.plotlitst_simple(results,parNum)
+SYS.plotlitst_simple(results,parNum)
 plts.AllUsefulVariablesSeparate(results,UsefulVarDic)
 #plts.OrganisedVar(results,UsefulVarDic, OrganisedVar)
 

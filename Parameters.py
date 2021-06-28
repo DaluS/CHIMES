@@ -15,7 +15,7 @@ def parnum():
     '''
 
     parNum={
-    'Tmax' : 100,       # Duration of simulation    
+    'Tmax' : 30,       # Duration of simulation    
     'Nx'   : 1,         # Number of similar systems evolving in parrallel
 
     'dt'   : 0.01,        # Timestep (fixed timestep method)    
@@ -36,7 +36,7 @@ def initCond(p,parNum):
                            ### an array with 1 everywhere
     ic={
     ### INTENSIVE VARIABLES 
-    'd'      : v1*1.,
+    'd'      : v1*.1,
     'omega'  : v1*p['omega0'],
     'lambda' : v1*p['lambdamax'],
     't'      : v1*0,    
@@ -48,13 +48,14 @@ def initCond(p,parNum):
     'T_ini'     : v1*0     ,
     
     ### INITIAL EXTENSIVE VARIABLES 
-    'Y' : v1*1 , # GDP
+
     'N' : v1*1 , # Population
     'a' : v1*1 , # productivity
     'p' : v1*1 , # Price
     } 
     
     ### DEDUCED FROM PREVIOUS ONES 
+    ic['Y'] = ic['lambda']*ic['a']*ic['N']
     ic['D'] = ic['d']*ic['Y']
     ic['K'] = ic['Y']*p['nu']
     ic['L'] = ic['lambda']*ic['N']
@@ -86,7 +87,7 @@ def BasicParameters():
     'r'        : .03,                      # Interest at the bank
     'etaP'     : .192,                     # Typical rate for inflation
     'muP'      : 1.3,                      # Mark-up of price
-    'gammaP'   : 1,                        # Money-illusion 
+    'gammaP'   : 0.1,                        # Money-illusion 
     
     ### FUNCTIONS AND THEIR PARAMETERS ########################################
     # PHILIPS CURVE (employement-salary increase)
