@@ -5,7 +5,6 @@ PARAMETERS FOR GOODWIN-KEEN LIKE MODELS
 
 
 import numpy as np
-import FunctionsGoodwin as FG
 
 
 _PARAMSET = 'v0'
@@ -15,26 +14,26 @@ _FLATTEN = True
 # ---------
 # NUMERICAL
 
-# -----------------
-# INITAL CONDITIONS 
-_DINIT = {
-    ### INTENSIVE VARIABLES 
-    'd'      : v1*1.,
-    'omega'  : v1*p['omega0'],
-    'lambda' : v1*p['lambdamax'],
-    't'      : v1*0,
+# # -----------------
+# # INITAL CONDITIONS 
+# _DINIT = {
+    # ### INTENSIVE VARIABLES 
+    # 'd'      : v1*1.,
+    # 'omega'  : v1*p['omega0'],
+    # 'lambda' : v1*p['lambdamax'],
+    # 't'      : v1*0,
 
-    ### INITIAL EXTENSIVE VARIABLES 
-    'Y' : v1*1 , # GDP
-    'N' : v1*1 , # Population
-    'a' : v1*1 , # productivity
-    'p' : v1*1 , # Price
-}
-### DEDUCED FROM PREVIOUS ONES 
-ic['D'] = ic['d']*ic['Y']
-ic['K'] = ic['Y']*p['nu']
-ic['L'] = ic['lambda']*ic['N']
-ic['W'] = ic['omega']*ic['a']
+    # ### INITIAL EXTENSIVE VARIABLES 
+    # 'Y' : v1*1 , # GDP
+    # 'N' : v1*1 , # Population
+    # 'a' : v1*1 , # productivity
+    # 'p' : v1*1 , # Price
+# }
+# ### DEDUCED FROM PREVIOUS ONES 
+# ic['D'] = ic['d']*ic['Y']
+# ic['K'] = ic['Y']*p['nu']
+# ic['L'] = ic['lambda']*ic['N']
+# ic['W'] = ic['omega']*ic['a']
 
 
 # ##########################################
@@ -107,7 +106,7 @@ _DEF_PARAM = {
         'group': 'Population',
     },
     'PopSat': {
-        'values': 10000,
+        'value': 10000,
         'com': 'Ratio between initial and maximal population',
         'units': None,
         'group': 'Population',
@@ -115,7 +114,7 @@ _DEF_PARAM = {
     'alpha': {
         'value': 0.02,
         'com': 'Rate of productivity increase',
-        'units':, 'y^-1',
+        'units': 'y^-1',
         'group': 'Population',
     },
 
@@ -123,29 +122,28 @@ _DEF_PARAM = {
     # Capital properties
     'delta1': {
         'value': 0.005,
-        'com': 'Rate of WORKING capital depletion'
+        'com': 'Rate of WORKING capital depletion',
         'units': 'y^-1',
         'group': 'Capital',
     },
     'delta2': {
         'value': 0.005,
-        'com': 'Rate of ALL capital depletion'
-        'units': 'y^-1'
+        'com': 'Rate of ALL capital depletion',
+        'units': 'y^-1',
         'group': 'Capital',
     },
 
     # --------------
     # Production
     'nu': {
-        'values': 3,
-        'com': 'Kapital to output ratio as in Leontiev. CAREFUL IN CES this is
-        1/A',
+        'value': 3,
+        'com': 'Kapital to output ratio (cf. Leontiev). !! IN CES its 1/A !!',
         'units': None,
         'group': 'Production',
     },
     'eta': {
         'value': 1000,
-        'com': 'CES Only eta = 1/(1+substituability)'
+        'com': 'CES Only eta = 1/(1+substituability)',
         'units': None,
         'group': 'Production',
     },
@@ -207,19 +205,19 @@ _DEF_PARAM = {
         'value': -0.0065,
         'com': '',
         'units': None,
-        'group', 'Keen',
+        'group': 'Keen',
     },
     'k1': {
         'value': np.exp(-5),
         'com': '',
         'units': None,
-        'group', 'Keen',
+        'group': 'Keen',
     },
     'k2': {
         'value': 20,
         'com': '',
         'units': None,
-        'group', 'Keen',
+        'group': 'Keen',
     },
 
     # --------------
@@ -228,13 +226,13 @@ _DEF_PARAM = {
         'value': 0.138,
         'com': 'Part of GDP as dividends when pi=0',
         'units': None,
-        'group', 'Dividends',
+        'group': 'Dividends',
     },
-    'div1':
+    'div1': {
         'value': 0.473,
         'com': 'Slope',
         'units': None,
-        'group', 'Dividends',
+        'group': 'Dividends',
     },
 
     # --------------
@@ -243,25 +241,25 @@ _DEF_PARAM = {
         'value': .0,
         'com': 'GLOBAL EFFECTS OF LAMBDA (Mean field)',
         'units': None,
-        'group', 'Coupling',
+        'group': 'Coupling',
     },
     'g2': {
         'value': .00,
         'com': 'WITH NEIGHBORS EFFECTS OF LAMBDA (field)',
         'units': None,
-        'group', 'Coupling',
+        'group': 'Coupling',
     },
     'muI': {
         'value': 0.,
         'com': '',
         'units': None,
-        'group', 'Coupling',
+        'group': 'Coupling',
     },
     'muN': {
         'value': 0.,
         'com': '',
         'units': None,
-        'group', 'Coupling',
+        'group': 'Coupling',
     },
 
     # --------------
@@ -270,25 +268,25 @@ _DEF_PARAM = {
         'value': 2.0,
         'com': 'Typical time for recruitement',
         'units': 'y',
-        'group', 'RelaxBuffer',
+        'group': 'RelaxBuffer',
     },
     'tauF': {
         'value': 0.1,
         'com': 'Typical time for firing',
         'units': 'y',
-        'group', 'RelaxBuffer',
+        'group': 'RelaxBuffer',
     },
     'tauL': {
         'value': 2.,
         'com': 'Typical time for employement information',
         'units': 'y',
-        'group', 'RelaxBuffer',
+        'group': 'RelaxBuffer',
     },
     'tauK': {
         'value': 2.,
         'com': 'Typical time on new capital integration',
         'units': 'y',
-        'group', 'RelaxBuffer',
+        'group': 'RelaxBuffer',
     },
 
     # --------------
@@ -297,65 +295,65 @@ _DEF_PARAM = {
         'value': 2.6,
         'com': 'Convexity on abattement cost function',
         'units': None,
-        'group', 'Gemmes',
+        'group': 'Gemmes',
     },
     'dsigma': {
         'value': -0.001,
         'com': 'Variation rate of the growth of emission intensity',
         'units': None,
-        'group', 'Gemmes',
+        'group': 'Gemmes',
     },
     'dPBS': {
         'value': -0.005,
         'com': 'Growth rate of back-stop technology price',
         'units': None,
-        'group', 'Gemmes',
+        'group': 'Gemmes',
     },
     'dPc': {
         'value': 0.,    # [CORRECT]
         'com': 'Growth rate of back-stop technology price',
         'units': None,
-        'group', 'Gemmes',
+        'group': 'Gemmes',
     },
     'dEland': {
         'value': -0.022,
         'com': 'Growth rate of land use change in CO2 emission',
         'units': None,
-        'group', 'Gemmes',
+        'group': 'Gemmes',
     },
 
     # --------------
     # Damage function (on GDP)
-    '''D = 1 - (1 + p['pi1']*T + p['pi2']*T**2 + p['pi3']*T**p['zeta'] )**(-1)'''
+    # D = 1 - (1 + p['pi1']*T + p['pi2']*T**2 + p['pi3']*T**p['zeta'] )**(-1)
     'pi1': {
         'value': 0.,
         'com': 'Linear temperature impact',
         'units': None,
-        'group', 'Damage',
+        'group': 'Damage',
     },
     'pi2': {
         'value': .00236,
         'com': 'Quadratic temperature impact',
         'units': None,
-        'group', 'Damage',
+        'group': 'Damage',
     },
     'pi3' : {
         'value': .00000507,
         'com': 'Weitzmann Damage temperature impact',
         'units': None,
-        'group', 'Damage',
+        'group': 'Damage',
     },
     'zeta': {
         'value': 6.754,
         'com': 'Weitzmann impact',
         'units': None,
-        'group', 'Damage',
+        'group': 'Damage',
     },
     'fk': {
         'value': 1/3,   # Dangerous not to put points 1./3. (Python 2 vis 3)
         'com': 'Fraction of environmental damage',
         'units': None,
-        'group', 'Damage',
+        'group': 'Damage',
     },
                                 # allocated to the stock of capital
     # --------------
@@ -364,56 +362,56 @@ _DEF_PARAM = {
         'value': .024,
         'com': 'Transfer of carbon from atmosphere to biosphere',
         'units': None,
-        'group', 'Climate',
+        'group': 'Climate',
     },
     'Phi23': {
         'value': .001,
         'com': 'Transfer from biosphere to stock',
         'units': None,
-        'group', 'Climate',
+        'group': 'Climate',
     },
     'C': {
         'value': 1/.098,
         'com': 'Heat capacity of fast-paced climate',
         'units': None,
-        'group', 'Climate',
+        'group': 'Climate',
     },
     'C0': {
         'value': 3.52,
         'com': 'Heat capacity of inertial component of climate',
         'units': None,
-        'group', 'Climate',
+        'group': 'Climate',
     },
     'gamma': {
         'value': 0.0176,
         'com': 'Heat exchange coefficient between layer',
         'units': None,
-        'group', 'Climate',
+        'group': 'Climate',
     },
     'Tsens': {
         'value': 3.1,
         'com': 'Climate sensitivity',
         'units': None,
-        'group', 'Climate',
+        'group': 'Climate',
     },
 
     'dFexo': {
         'value': 0,
         'com': '',
         'units': None,
-        'group', 'Climate',
+        'group': 'Climate',
     },
     'FexoMax': {
         'value': 0,
         'com': '',
         'units': None,
-        'group', 'Climate',
+        'group': 'Climate',
     },
     'F2CO2': {
         'value': 3.681,
         'com': 'doubling CO2 impact on forced radiations',
         'units': 'W/m2',
-        'group', 'Climate',
+        'group': 'Climate',
     },
 
     # --------------
@@ -463,7 +461,7 @@ _DEF_PARAM_OLD = {
     'economy': {
 
         # SET OF EQUATIONS ########################################################
-        'EquationSet': FG.f_reduced,    # The system of equation to solve
+        # 'EquationSet': FG.f_reduced,    # The system of equation to solve
 
         ### Numerical PARAMETERS ##################################################
         # Time Discretisation ###
@@ -570,9 +568,9 @@ def get_params(paramset=None):
     param = {k0: dict(v0) for k0, v0 in _DPARAM[paramset].items()}
 
     # ------------
-    # Complement with dynamical paremeters
+    # Complement with dynamical parameters
     param['Tstore']['value'] = param['dt']['value']
     param['Nt']['value'] = int(param['Tmax']['value']/param['dt']['value'])
-    param['Ns'] = int(parNum['Tmax']['value']/parNum['Tstore']['value'])+1
+    param['Ns']['value'] = int(param['Tmax']['value']/param['Tstore']['value'])+1
 
     return param
