@@ -56,9 +56,11 @@ import VariableDictionnary as VarD # Useful infos on variables
 import plots as plts            # Already written plot functions
 
 
+# Default parameter values
 _PLOT = True
+_TIMEIT = True
 _SAVE = 'None'
-_SAVEPATH = os.path.dirname(__file__)
+_SAVEPATH = os.path.dirname(__file__)   # Not hard-coded, platform-independent
 
 
 # #############################################################################
@@ -91,22 +93,32 @@ def _str2boolNone(arg):
         raise argparse.ArgumentTypeError('Boolean value expected!')
 
 
+def _check_bool(var=None, varname=None, vardef=None):
+    """ Check conformity of bool argument """
+    if var is None:
+        var = vardef
+    c0 = isinstance(var, bool)
+    if not c0:
+        msg = (
+            "Arg {} must bea bool!\n".format(varname)
+            + "You provided:\n\t{}".format(var)
+        )
+        raise Exception(msg)
+    return var
+
+
 def _check_inputs(
     plot=None,
+    timeit=None,
     save=None,
     savepath=None,
 ):
 
     # plot
-    if plot is None:
-        plot = _PLOT
-    c0 = isinstance(plot, bool)
-    if not c0:
-        msg = (
-            "Arg plot must bea bool!\n"
-            + "You provided:\n\t{}".format(plot)
-        )
-        raise Exception(msg)
+    plot = _check_bool(var=plot, varname='plot', vardef=_PLOT)
+
+    # timeit
+    timeit = _check_bool(var=timeit, varname='timeit', vardef=_TIMEIT)
 
     # save
     if save is None:
@@ -115,7 +127,7 @@ def _check_inputs(
     if not c0:
         msg = (
             "Arg save must be:\n"
-            + "\t- None: falls back to param['Save']\n"
+            + "\t- 'None': falls back to param['Save']\n"
             + "\t- True: save data\n"
             + "\t- False: don't save data\n"
             + "You provided:\n\t{}".format(save)
@@ -133,7 +145,7 @@ def _check_inputs(
         )
         raise Exception(msg)
 
-    return plot, save, savepath
+    return plot, timeit, save, savepath
 
 
 # #############################################################################
@@ -144,6 +156,7 @@ def _check_inputs(
 
 def run(
     plot=None,
+    timeit=None,
     save=None,
     savepath=None,
 ):
@@ -155,6 +168,10 @@ def run(
     ----------
     plot:       bool
         Flag indicating whether to plot figure
+    timeit:       bool
+        Flag indicating whether to time the simulation
+    save:       bool
+        Flag indicating whether to save output
     savepath:   str
         Path where to save data
 
@@ -164,8 +181,9 @@ def run(
     #  check inputs ###################
     # #################################    
 
-    plot, save, savepath = _check_inputs(
+    plot, timeit, save, savepath = _check_inputs(
         plot=plot,
+        timeit=timeit,
         save=save,
         savepath=savepath,
     )
@@ -180,23 +198,27 @@ def run(
 
     parNum   = Par.parnum()                     # Value of numerical parameters 
     params   = Par.BasicParameters()            # Value of "Physical" parameters 
-    params   = Par.Modifications (   params, parNum ) # Original modification you might want to do
-    initCond = Par.initCond      (   params ,parNum ) # Values of the initial parameters
-    op       = M.prepareOperators(           parNum ) # Spatial operators initialisation
+    params   = Par.Modifications (params, parNum) # Original modification you might want to do
+    initCond = Par.initCond(params ,parNum)     # Values of the initial parameters
+    op       = M.prepareOperators(parNum)       # Spatial operators initialisation
     #params   = eqsys.keepUsefulParams( params )   # Cleaning the params dictionnary to be lighter 
 
     print(eqsys.description)
     eqsys.printParameters(params)
     M.PrintNumericalparameters(parNum)
 
-    tim=time.time()
-    print('Start simulation...', end='')
+    if timeit is True:
+        tim = time.time()
+        print('Start simulation...', end='')
 
     # vector y contains all states of time t.
-    y = eqsys.initializeY(initCond,parNum)
+    y = eqsys.initializeY(initCond, parNum)
     # Calculation of all timesteps
     Y_s, t_s = M.TemporalLoop(y, eqsys, op, parNum, params)
-    print('done! elapsed time :', time.time()-tim, 's')
+
+    if timeit is True:
+        time_ellasped = time.time()-tim
+        print('done! elapsed time: {} s'.format(time_ellasped))
 
     # Save the data as a pickle file in a new folder
     # if p['Save']:
@@ -243,6 +265,14 @@ if __name__ ==  '__main__':
         type=_str2bool,
         help='flag indicating whether to plot figures',
         default=_PLOT,
+        required=False,
+    )
+    parser.add_argument(
+        '-t',
+        '--timeit',
+        type=_str2bool,
+        help='flag indicating whether to time the computation',
+        default=_TIMEIT,
         required=False,
     )
     parser.add_argument(
