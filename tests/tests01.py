@@ -90,6 +90,7 @@ class Test01_Run():
         # list of entry parameters to try
         dpar = {
             'plot': [False],
+            'timeit': [True, False],
             'save': [False],
         }
 
@@ -100,7 +101,8 @@ class Test01_Run():
             cmd = [
                 os.path.join(_PATH_PCK, 'Main.py'),
                 '--plot', str(comb[0]),
-                "--save", str(comb[1]),
+                '--timeit', str(comb[1]),
+                "--save", str(comb[2]),
             ]
             assert comb[0] is False, "Only plot = False allowed here!"
             process = subprocess.Popen(
