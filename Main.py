@@ -42,15 +42,119 @@ WHAT I AM (Paul) LOOKING FOR IN FURTHER DEVELOPMENT
 """
 
 
-import time                   # Time (run speed) printing
-import Parameters as Par      # All the parameters of the system
-import ClassesGoodwin as C    # Core of models
-import Miscfunc as M          # All miscellaneous functions
+# Built-in
+import os
+import time                     # Time (run speed) printing
+
+
+# Library-specific
+import Parameters as Par        # All the parameters of the system
+import ClassesGoodwin as C      # Core of models
+import Miscfunc as M            # All miscellaneous functions
 import VariableDictionnary as VarD # Useful infos on variables
-import plots as plts          # Already written plot functions
+import plots as plts            # Already written plot functions
 
 
-def run():
+_PLOT = True
+_SAVE = None
+_SAVEPATH = os.path.dirname(__file__)
+
+
+# #############################################################################
+# #############################################################################
+#                   Ulities
+# #############################################################################
+
+
+def _str2bool(arg):
+    if isinstance(arg, bool):
+        return arg
+    elif arg.lower() in ['yes', 'true', 'y', 't', '1']:
+        return True
+    elif arg.lower() in ['no', 'false', 'n', 'f', '0']:
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected!')
+
+
+def _str2boolNone(arg):
+    if isinstance(arg, bool):
+        return arg
+    elif arg.lower() in ['yes', 'true', 'y', 't', '1']:
+        return True
+    elif arg.lower() in ['no', 'false', 'n', 'f', '0']:
+        return False
+    elif arg.lower() in ['none']:
+        return None
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected!')
+
+
+def _check_inputs(
+    plot=None,
+    save=None,
+    savepath=None,
+):
+
+    # plot
+    if plot is None:
+        plot = _PLOT
+
+    # save
+    c0 = save in [None, True, False]
+    if not c0:
+        msg = (
+            "Arg save must be:\n"
+            + "\t- None: falls back to param['Save']\n"
+            + "\t- True: save data\n"
+            + "\t- False: don't save data\n"
+            + "You provided:\n\t{}".format(save)
+        )
+        raise Exception(msg)
+
+    # savepath
+    if savepath is None:
+        savepath = _SAVEPATH
+
+    return plot, save, savepath
+
+
+# #############################################################################
+# #############################################################################
+#                   Main function
+# #############################################################################
+
+
+def run(
+    plot=None,
+    save=None,
+    savepath=None,
+):
+    """ Run the simulation
+
+    Details
+
+    parameters
+    ----------
+    plot:       bool
+        Flag indicating whether to plot figure
+    savepath:   str
+        Path where to save data
+
+
+    """
+
+    #  check inputs ###################
+    # #################################    
+
+    plot, save, savepath = _check_inputs(
+        plot=plot,
+        save=save,
+        savepath=savepath,
+    )
+
+    #  Initialize system of equations #
+    # #################################    
 
     eqsys = C.GK_Reduced()  #FULL() #GK_Reduced()  #GK_FULL     # SYSTEM SOLVED 
 
@@ -62,19 +166,19 @@ def run():
     params   = Par.Modifications (   params, parNum ) # Original modification you might want to do
     initCond = Par.initCond      (   params ,parNum ) # Values of the initial parameters
     op       = M.prepareOperators(           parNum ) # Spatial operators initialisation
-    #params   = SYS.keepUsefulParams( params )   # Cleaning the params dictionnary to be lighter 
+    #params   = eqsys.keepUsefulParams( params )   # Cleaning the params dictionnary to be lighter 
 
-    print(SYS.description)
-    SYS.printParameters(params)
-    M  .PrintNumericalparameters(parNum)
+    print(eqsys.description)
+    eqsys.printParameters(params)
+    M.PrintNumericalparameters(parNum)
 
     tim=time.time()
     print('Start simulation...', end='')
 
     # vector y contains all states of time t.
-    y = SYS.initializeY(initCond,parNum)
+    y = eqsys.initializeY(initCond,parNum)
     # Calculation of all timesteps
-    Y_s, t_s = M.TemporalLoop(y, SYS, op, parNum, params)
+    Y_s, t_s = M.TemporalLoop(y, eqsys, op, parNum, params)
     print('done! elapsed time :', time.time()-tim, 's')
 
     # Save the data as a pickle file in a new folder
@@ -87,7 +191,7 @@ def run():
     """Now the simulation is done => translate results to more readable format
     r = expansion of Y_s into all relevant variables, as a dict
     Then, other parts are simply plots of the result"""
-    results = SYS.expandY_simple(Y_s, t_s, op, params)  # Result dictionnary 
+    results = eqsys.expandY_simple(Y_s, t_s, op, params)  # Result dictionnary 
     results = M.getperiods(results, parNum, op)         # Period measurements 
 
     UsefulVarDic, OrganisedVar = VarD.VariableDictionnary(results)
@@ -95,6 +199,7 @@ def run():
     # PLOTS ###########################
     # #################################
 
-    #SYS.plotlitst_simple(results,parNum)
-    plts.AllUsefulVariablesSeparate(results, UsefulVarDic)
-    #plts.OrganisedVar(results,UsefulVarDic, OrganisedVar)
+    if plot is True:
+        # eqsys.plotlitst_simple(results,parNum)
+        plts.AllUsefulVariablesSeparate(results, UsefulVarDic)
+        # plts.OrganisedVar(results,UsefulVarDic, OrganisedVar)
