@@ -6,41 +6,60 @@ import numpy as np
 
 
 # Library-specific
-import _def_parameters
 import _utils
+import _class_checks
 
 
 class Solver():
     """ Generic class
     """
 
-    _paramset = 'v0'
-
+    _PARAMSET = 'v0'
 
     def __init__(self):
-        pass
+        self.__dinput = {}
 
-    def update_dinput(self):
+    def set_dinput(self, dinput=None, key=None, value=None):
+        """ Set the dict of input parameters (dinput) or a single param """
 
-        # Update dynamical parameters                                  
-        self.__dinput['Tstore']['value'] = self.__dinput['dt']['value']
-        self.__dinput['Nt']['value'] = int(
-            self.__dinput['Tmax']['value']/self.__dinput['dt']['value']
-        )
-        self.__dinput['Ns']['value'] = int(
-            self.__dinput['Tmax']['value']/self.__dinput['Tstore']['value']
-        ) + 1
+        # If all None => set to self._PARAMSET
+        c0 = dinput is None and key is None and value is None
+        if c0 is True:
+            dinput = self._PARAMSET
 
-    def set_dinput(self, dinput=None):
+        # Check input: dinput xor (key, value)
+        lc = [
+            dinput is not None,
+            key is not None and value is not None,
+        ]
+        if np.sum(lc) != 1:
+            lstr = [
+                '\t- {}: {}'.format(kk, vv)
+                for kk, vv in [
+                    ('dinput', dinput), ('key', key), ('value', value)
+                ]
+            ]
+            msg = (
+                "Please provide dinput xor (key, value)!\n"
+                + "You provided:\n"
+                + "\n".format(lstr)
+            )
+            raise Exception(msg)
 
-        if dinput is None:
-            dinput = self._paramset
+        # set dinput or update desired key
+        if dinput is not None:
+            self.__dinput = _class_checks.check_dinput(dinput=dinput)
+        else:
+            if key not in self.__dinput.keys():
+                msg = (
+                    "key {} is not identified!\n".format(key)
+                    + "See get_dinput() method"
+                )
+                raise Exception(msg)
+            self.__dinput[key]['value'] = value
 
-        if isinstance(dinput, str):
-            # In this case, dinput is the name of a parameters preset
-            self.__dinput = _def_parameters.get_params(paramset=dinput)
-
-        self.update_dinput()
+        # Update to check consistency
+        _class_checks.update_dinput(dinput=self.__dinput)
 
     def get_dinput(self, verb=None, returnas=None):
         """ Return a copy of the input parameters dict

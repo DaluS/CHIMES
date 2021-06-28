@@ -567,10 +567,4 @@ def get_params(paramset=None):
     # Dictionnary of parameters (copy to avoid modifying the original)
     param = {k0: dict(v0) for k0, v0 in _DPARAM[paramset].items()}
 
-    # ------------
-    # Complement with dynamical parameters
-    param['Tstore']['value'] = param['dt']['value']
-    param['Nt']['value'] = int(param['Tmax']['value']/param['dt']['value'])
-    param['Ns']['value'] = int(param['Tmax']['value']/param['Tstore']['value'])+1
-
     return param
