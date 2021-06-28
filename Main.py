@@ -45,6 +45,7 @@ WHAT I AM (Paul) LOOKING FOR IN FURTHER DEVELOPMENT
 # Built-in
 import os
 import time                     # Time (run speed) printing
+import argparse
 
 
 # Library-specific
@@ -56,7 +57,7 @@ import plots as plts            # Already written plot functions
 
 
 _PLOT = True
-_SAVE = None
+_SAVE = 'None'
 _SAVEPATH = os.path.dirname(__file__)
 
 
@@ -99,9 +100,18 @@ def _check_inputs(
     # plot
     if plot is None:
         plot = _PLOT
+    c0 = isinstance(plot, bool)
+    if not c0:
+        msg = (
+            "Arg plot must bea bool!\n"
+            + "You provided:\n\t{}".format(plot)
+        )
+        raise Exception(msg)
 
     # save
-    c0 = save in [None, True, False]
+    if save is None:
+        save = _SAVE
+    c0 = save in ['None', True, False]
     if not c0:
         msg = (
             "Arg save must be:\n"
@@ -115,6 +125,13 @@ def _check_inputs(
     # savepath
     if savepath is None:
         savepath = _SAVEPATH
+    c0 = isinstance(savepath, str) and os.path.isdir(savepath)
+    if not c0:
+        msg = (
+            "Arg savepath must be a path to a valid directory!\n"
+            + "You provided:\n\t{}".format(savepath)
+        )
+        raise Exception(msg)
 
     return plot, save, savepath
 
@@ -203,3 +220,48 @@ def run(
         # eqsys.plotlitst_simple(results,parNum)
         plts.AllUsefulVariablesSeparate(results, UsefulVarDic)
         # plts.OrganisedVar(results,UsefulVarDic, OrganisedVar)
+
+
+# #############################################################################
+# #############################################################################
+#                   Handle bash
+# #############################################################################
+
+
+if __name__ ==  '__main__':
+
+    # executable help
+    msg = """Thus function does this and that"""
+
+    # Instanciate parser                                                        
+    parser = argparse.ArgumentParser(description=msg)
+
+    # Define input arguments                                                                                 
+    parser.add_argument(
+        '-p',
+        '--plot',
+        type=_str2bool,
+        help='flag indicating whether to plot figures',
+        default=_PLOT,
+        required=False,
+    )
+    parser.add_argument(
+        '-s',
+        '--save',
+        type=_str2boolNone,
+        help='flag indicating whether to save data',
+        default=_SAVE,
+        required=False,
+    )
+    parser.add_argument(
+        '-sp',
+        '--savepath',
+        type=str,
+        help='path where to save data',
+        default=_SAVEPATH,
+        required=False,
+    )
+    kwdargs = dict(parser.parse_args()._get_kwargs())
+
+    # Call function                                                             
+    run(**kwdargs)
