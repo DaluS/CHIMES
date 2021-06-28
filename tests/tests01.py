@@ -6,6 +6,7 @@ This module contains tests for tofu.geom in its structured version
 # Built-in
 import os
 import sys
+import itertools as itt
 
 
 # Standard
@@ -16,11 +17,14 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 
-# library-specific
-
-
 _PATH_HERE = os.path.abspath(os.path.dirname(__file__))
 _PATH_PCK = os.path.dirname(_PATH_HERE)
+
+
+# library-specific
+sys.path.insert(0, _PATH_PCK)   # ensure Main comes from .. => add PYTHONPATH
+import Main
+sys.path.pop(0)                 # clean PYTHONPATH
 
 
 #######################################################
@@ -64,12 +68,16 @@ class Test01_Run():
 
     def test01_run(self):
 
-        # Make sure Main is loaded from the proper dir => force PYTHONPATH
-        sys.path.insert(0, _PATH_PCK)
-        import Main
-        Main.run()
-        # clean PYTHON PATH
-        sys.path.pop(0)
+        # list of entry parameters to try
+        lplot = [None, True, False]
+        lsave = [None, True, False]
+
+        # loop to test all combinations
+        for comb in itt.product(lplot, lsave):
+            Main.run(
+                plot=comb[0],
+                save=comb[1],
+            )
 
         # Close figures
         plt.close('all')
