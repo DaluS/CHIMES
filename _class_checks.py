@@ -2,18 +2,19 @@
 
 
 import _def_parameters
+import _def_variables
 
 
 # #############################################################################
 # #############################################################################
-#                       dinput checks
+#                       dparam checks
 # #############################################################################
 
 
-def _check_dinput(dinput=None):
+def _check_dparam(dparam=None):
 
     c0 = (
-        isinstance(dinput, dict)
+        isinstance(dparam, dict)
         and all([
             isinstance(kk, str)
             and isinstance(vv, dict)
@@ -24,50 +25,104 @@ def _check_dinput(dinput=None):
             ])
             and all([ss in vv.keys() for ss in ['value', 'group']])
             and isinstance(vv['group'], str)
-            for kk, vv in dinput.items()
+            for kk, vv in dparam.items()
         ])
         and all([isinstance(vv)])
     )
     if not c0:
         msg = (
-            "Arg dinput is not conform!\n"
+            "Arg dparam is not conform!\n"
             + "{key0: {\n"
             + "    'value': v0, 'units': 's', 'com': 'bla', 'group': 'time'\n"
             + "},\n"
             + " key1: {\n"
             + "    'value': v1, 'units': 's', 'com': 'bla', 'group': 'time'\n"
             + "},}\n"
-            + "You provided:\n{}".format(dinput)
+            + "You provided:\n{}".format(dparam)
         )
         raise Exception(msg)
 
-    for k0, v0 in dinput.items():
+    for k0, v0 in dparam.items():
         if v0.get('com') is None:
-            dinput[k0]['com'] = ''
+            dparam[k0]['com'] = ''
         if v0.get('units') is None:
-            dinput[k0]['units'] = 'unknown'
-    return dinput
+            dparam[k0]['units'] = 'unknown'
+    return dparam
 
 
-def check_dinput(dinput=None):
-    if isinstance(dinput, str):
-        # In this case, dinput is the name of a parameters preset
-        dinput = _def_parameters.get_params(paramset=dinput)
+def check_dparam(dparam=None):
+    pramset = None
+    if isinstance(dparam, str):
+        # In this case, dparam is the name of a parameters preset
+        paramset = dparam
+        dparam = _def_parameters.get_params(paramset=dparam)
     else:
-        _check_dinput(dinput)
-    return dinput
+        dparam = _check_dparam(dparam)
+    return dparam, paramset
 
 
-def update_dinput(dinput=None):
+
+def update_dparam(dparam=None):
 
     # Update numerical group
-    c0 = all([ss in dinput.keys() for ss in ['dt', 'Nt', 'Tmax']])
+    c0 = all([ss in dparam.keys() for ss in ['dt', 'Nt', 'Tmax']])
     if c0 is True:
-        dinput['Tstore']['value'] = dinput['dt']['value']
-        dinput['Nt']['value'] = int(
-            dinput['Tmax']['value']/dinput['dt']['value']
+        dparam['Tstore']['value'] = dparam['dt']['value']
+        dparam['Nt']['value'] = int(
+            dparam['Tmax']['value']/dparam['dt']['value']
         )
-        dinput['Ns']['value'] = int(
-            dinput['Tmax']['value']/dinput['Tstore']['value']
+        dparam['Ns']['value'] = int(
+            dparam['Tmax']['value']/dparam['Tstore']['value']
         ) + 1
 
+
+# #############################################################################
+# #############################################################################
+#                       dvar checks
+# #############################################################################
+
+
+def _check_dvar(dvar=None):
+
+    c0 = (
+        isinstance(dvar, dict)
+        and all([
+            isinstance(kk, str)
+            and isinstance(vv, dict)
+            and all([
+                isinstance(vv, str)
+                and vv in ['value', 'com', 'units']
+                for ss in vv.keys()
+            ])
+            and all([ss in vv.keys() for ss in ['value']])
+            and isinstance(vv['group'], str)
+            for kk, vv in dvar.items()
+        ])
+        and all([isinstance(vv)])
+    )
+    if not c0:
+        msg = (
+            "Arg dvar is not conform!\n"
+            + "{key0: {'value': v0, 'units': 's', 'com': 'bla'},\n"
+            + " key1: {'value': v1, 'units': 's', 'com': 'bla'},\n"
+            + "You provided:\n{}".format(dvar)
+        )
+        raise Exception(msg)
+
+    for k0, v0 in dvar.items():
+        if v0.get('com') is None:
+            dvar[k0]['com'] = ''
+        if v0.get('units') is None:
+            dvar[k0]['units'] = 'unknown'
+    return dvar
+
+
+def check_dvar(dvar=None):
+    varset = None
+    if isinstance(dvar, str):
+        # In this case, dparam is the name of a parameters preset
+        varset = dvar
+        dvar = _def_variables.get_variables(varset=dvar)
+    else:
+        dvar = _check_dvar(dvar)
+    return dvar, varset
