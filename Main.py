@@ -41,7 +41,6 @@ WHAT I AM (Paul) LOOKING FOR IN FURTHER DEVELOPMENT
 * As Iloveclim and Dymends are not in python, prepare some bindings
 """
 
-
 # Built-in
 import os
 import time                     # Time (run speed) printing

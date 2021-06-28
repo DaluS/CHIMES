@@ -45,11 +45,11 @@ def TemporalLoop(y,SYS,op,pN,p):
     p['dt']=pN['dt']
     t=0 
     
-    for i in range(pN['Nt']+1):
+    for i in range(pN['Nt']):
         y += rk4(SYS.f,y,op,p)                       # The vector y is dynamically updated 
         t += pN['dt']
-        Y_s[:,i,:] = np.copy(y)             # we write it in the "book" Y_s
-        t_s[i]     = t*1                    # we write the time 
+        Y_s[:,i+1,:] = np.copy(y)             # we write it in the "book" Y_s
+        t_s[i+1]     = t*1                    # we write the time 
     return Y_s, t_s
 
 
