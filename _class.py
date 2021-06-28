@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 
 
+# Common
+import numpy as np
 
+
+# Library-specific
 import _def_parameters
 import _utils
 
@@ -52,30 +56,45 @@ class Solver():
 
         """
 
-        if verb is True or returnas is str:
-            lcol = ['key', 'value', 'units', 'group', 'comment']
-            lar = [
-                tuple([
-                    k0,
-                    str(v0['value']),
-                    str(v0['units']),
-                    v0['group'],
-                    v0['com'],
-                ])
-                for k0, v0 in self.__dinput.items()
-            ]
-            msg = _utils._get_summary(
-                lar=[lar],
-                lcol=[lcol],
-                verb=verb,
-                returnas=returnas,
-            )
-            if returnas is str:
-                return msg
+        lcol = ['key', 'value', 'units', 'group', 'comment']
+        lar = [
+            tuple([
+                k0,
+                str(v0['value']),
+                str(v0['units']),
+                v0['group'],
+                v0['com'],
+            ])
+            for k0, v0 in self.__dinput.items()
+        ]
+        msg = _utils._get_summary(
+            lar=[lar],
+            lcol=[lcol],
+            verb=verb,
+            returnas=str,
+        )
+        if returnas is str:
+            return msg
         elif returnas is dict:
             # return a copy of the dict
             return {k0: dict(v0) for k0, v0 in self.__dinput.items()}
-
+        elif returnas in [np.ndarray, 'DataFrame']:
+            lk = list(self.__dinput.keys())
+            out = {
+                'key': np.array(lk, dtype=str),
+                'value': np.array([
+                    np.nan if self.__dinput[k0]['value'] is None
+                    else self.__dinput[k0]['value']
+                    for k0 in lk
+                ]),
+                'com': np.array([self.__dinput[k0]['com'] for k0 in lk]),
+                'units': np.array([
+                    str(self.__dinput[k0]['units']) for k0 in lk
+                ]),
+            }
+            if returnas == 'DataFrame':
+                import pandas as pd
+                return pd.DataFrame.from_dict(out)
 
     def initialize(self):
         pass

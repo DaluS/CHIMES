@@ -75,7 +75,7 @@ def _get_summary(
     if returnas is not False:
         if returnas is True:
             out = lar, lmsg
-        elif returnas is np.ndarray:
+        elif returnas is list:
             out = lar
         elif returnas is str:
             out = table_sep.join(lmsg)
