@@ -470,23 +470,11 @@ _DEF_PARAM_OLD = {
         ### EACH MODULES AND VALUES ###############################################
         # Capital properties
         'pK': 0,                        # Price consumption of capital
-        'eta': 10000,                   # CES Only 1/(1+substituability)
-
-        # INTEREST / Price
-        'eta': .192,                    # Typical rate for inflation
-        'mu': 1.3,                      # Mark-up of price
-        'gamma': 1,                     # Money-illusion
 
         ### FUNCTIONS AND THEIR PARAMETERS ########################################
         # PHILIPS CURVE (employement-salary increase)
         'phiType': 'divergent',         # 'divergent' , 'linear' modes
         'phislope': 2,                  # slope in a linear model (power in a diverging model)         
-    },
-
-    # ----------
-    # Climate
-    'climate': {
-        'gamma': 0.0176,                # Heat exchange coef between layer !!CONFLICT?!
     },
 }
 
