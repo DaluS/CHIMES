@@ -6,7 +6,8 @@ This module contains tests for tofu.geom in its structured version
 # Built-in
 import os
 import sys
-import itertools as itt
+import itertools as itt     # for iterating on parameters combinations
+import subprocess           # for handling bash commands
 
 
 # Standard
@@ -67,10 +68,11 @@ class Test01_Run():
         pass
 
     def test01_run(self):
+        """ Make sure the main function runs from a python console """
 
         # list of entry parameters to try
-        lplot = [None, True, False]
-        lsave = [None, True, False]
+        lplot = [True, False]
+        lsave = ['None', True, False]
 
         # loop to test all combinations
         for comb in itt.product(lplot, lsave):
@@ -81,3 +83,46 @@ class Test01_Run():
 
         # Close figures
         plt.close('all')
+
+    def test02_run_as_exec(self):
+        """ Make sure the main function runs as executable from terminal """
+
+        # list of entry parameters to try
+        dpar = {
+            'plot': [False],
+            'save': [False],
+        }
+
+        # loop to test all combinations
+        lpar = list(dpar.keys())
+        lcomb = [dpar[kk] for kk in lpar]
+        for ii, comb in enumerate(itt.product(*lcomb)):
+            cmd = [
+                os.path.join(_PATH_PCK, 'Main.py'),
+                '--plot', str(comb[0]),
+                "--save", str(comb[1]),
+            ]
+            assert comb[0] is False, "Only plot = False allowed here!"
+            process = subprocess.Popen(
+                cmd,
+                stdin=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                text=True,
+            )
+
+            # Catch error if any
+            out, err = process.communicate()
+            if err != '':
+                lstr = [
+                    '-\t {}: {}'.format(lpar[jj], comb[jj])
+                    for jj in range(len(lpar))
+                ]
+                msg = (
+                    str(err)
+                    + "\n\nInput comb. {} failed (see above):\n".format(ii)
+                    + '\n'.join(lstr)
+                )
+                raise Exception(msg)
+            process.wait()
+
