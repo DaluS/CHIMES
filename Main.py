@@ -174,7 +174,6 @@ def run(
     savepath:   str
         Path where to save data
 
-
     """
 
     #  check inputs ###################
