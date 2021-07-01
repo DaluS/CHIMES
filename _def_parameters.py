@@ -45,7 +45,7 @@ _DEF_PARAM = {
     'Tmax': {
         'value': 100,
         'com': 'Duration of simulation',
-        'units': 'time steps',
+        'units': 't',
         'group': 'Numerical',
     },
     'Nx': {
@@ -57,7 +57,7 @@ _DEF_PARAM = {
     'dt': {
         'value': 0.01,
         'com': 'Timestep (fixed timestep method)',
-        'units': None,
+        'units': 't',
         'group': 'Numerical',
     },
     'Tstore': {
@@ -105,12 +105,6 @@ _DEF_PARAM = {
         'units': 'y^-1',
         'group': 'Population',
     },
-    'PopSat': {
-        'value': 10000,
-        'com': 'Ratio between initial and maximal population',
-        'units': None,
-        'group': 'Population',
-    },
     'alpha': {
         'value': 0.02,
         'com': 'Rate of productivity increase',
@@ -120,15 +114,9 @@ _DEF_PARAM = {
 
     # --------------
     # Capital properties
-    'delta1': {
+    'delta': {
         'value': 0.005,
-        'com': 'Rate of WORKING capital depletion',
-        'units': 'y^-1',
-        'group': 'Capital',
-    },
-    'delta2': {
-        'value': 0.005,
-        'com': 'Rate of ALL capital depletion',
+        'com': 'Rate of capital depletion',
         'units': 'y^-1',
         'group': 'Capital',
     },
@@ -137,8 +125,8 @@ _DEF_PARAM = {
     # Production
     'nu': {
         'value': 3,
-        'com': 'Kapital to output ratio (cf. Leontiev). !! IN CES its 1/A !!',
-        'units': None,
+        'com': 'Kapital to output ratio !! IN CES its 1/A !!',
+        'units': 'Kapital/Output',
         'group': 'Production',
     },
     'eta': {
@@ -155,7 +143,7 @@ _DEF_PARAM = {
     },
     'z': {
         'value': 1,
-        'com': 'Markup on salary estimation',
+        'com': 'Markup on salary estimation by employer',
         'units': None,
         'group': 'Production',
     },
@@ -165,13 +153,13 @@ _DEF_PARAM = {
     'r': {
         'value': .03,
         'com': 'Interest at the bank',
-        'units': None,
+        'units': 't^{-1}',
         'group': 'Prices',
     },
     'etaP': {
         'value': .192,
         'com': 'Typical rate for inflation',
-        'units': None,
+        'units': 't^{-1}',
         'group': 'Prices',
     },
     'muP': {
@@ -252,13 +240,13 @@ _DEF_PARAM = {
     'muI': {
         'value': 0.,
         'com': '',
-        'units': None,
+        'units': "NOTDONEYET",
         'group': 'Coupling',
     },
     'muN': {
         'value': 0.,
         'com': '',
-        'units': None,
+        'units': "NOTDONEYET",
         'group': 'Coupling',
     },
 
@@ -267,25 +255,25 @@ _DEF_PARAM = {
     'tauR': {
         'value': 2.0,
         'com': 'Typical time for recruitement',
-        'units': 'y',
+        'units': 't',
         'group': 'RelaxBuffer',
     },
     'tauF': {
         'value': 0.1,
         'com': 'Typical time for firing',
-        'units': 'y',
+        'units': 't',
         'group': 'RelaxBuffer',
     },
     'tauL': {
         'value': 2.,
         'com': 'Typical time for employement information',
-        'units': 'y',
+        'units': 't',
         'group': 'RelaxBuffer',
     },
     'tauK': {
         'value': 2.,
         'com': 'Typical time on new capital integration',
-        'units': 'y',
+        'units': 't',
         'group': 'RelaxBuffer',
     },
 
@@ -300,25 +288,19 @@ _DEF_PARAM = {
     'dsigma': {
         'value': -0.001,
         'com': 'Variation rate of the growth of emission intensity',
-        'units': None,
+        'units': 't^{-1}',
         'group': 'Gemmes',
     },
     'dPBS': {
         'value': -0.005,
         'com': 'Growth rate of back-stop technology price',
-        'units': None,
-        'group': 'Gemmes',
-    },
-    'dPc': {
-        'value': 0.,    # [CORRECT]
-        'com': 'Growth rate of back-stop technology price',
-        'units': None,
+        'units': 't^{-1}',
         'group': 'Gemmes',
     },
     'dEland': {
         'value': -0.022,
         'com': 'Growth rate of land use change in CO2 emission',
-        'units': None,
+        'units': 't^{-1}',
         'group': 'Gemmes',
     },
 
@@ -328,19 +310,19 @@ _DEF_PARAM = {
     'pi1': {
         'value': 0.,
         'com': 'Linear temperature impact',
-        'units': None,
+        'units': 'T^{-1}',
         'group': 'Damage',
     },
     'pi2': {
         'value': .00236,
         'com': 'Quadratic temperature impact',
-        'units': None,
+        'units': 'T^{-2}',
         'group': 'Damage',
     },
     'pi3' : {
         'value': .00000507,
         'com': 'Weitzmann Damage temperature impact',
-        'units': None,
+        'units': 'T^{-zeta}',
         'group': 'Damage',
     },
     'zeta': {
@@ -350,7 +332,7 @@ _DEF_PARAM = {
         'group': 'Damage',
     },
     'fk': {
-        'value': 1/3,   # Dangerous not to put points 1./3. (Python 2 vis 3)
+        'value': 1./3.,   # Dangerous not to put points 1./3. (Python 2 vis 3)
         'com': 'Fraction of environmental damage',
         'units': None,
         'group': 'Damage',
@@ -373,16 +355,16 @@ _DEF_PARAM = {
     'C': {
         'value': 1/.098,
         'com': 'Heat capacity of fast-paced climate',
-        'units': None,
+        'units': "SI",
         'group': 'Climate',
     },
     'C0': {
         'value': 3.52,
         'com': 'Heat capacity of inertial component of climate',
-        'units': None,
+        'units': "SI",
         'group': 'Climate',
     },
-    'gamma': {
+    'gammaHEAT': {
         'value': 0.0176,
         'com': 'Heat exchange coefficient between layer',
         'units': None,
@@ -390,21 +372,15 @@ _DEF_PARAM = {
     },
     'Tsens': {
         'value': 3.1,
-        'com': 'Climate sensitivity',
-        'units': None,
+        'com': 'Climate sensitivity (deltaT/log2CO2)',
+        'units': 'T',
         'group': 'Climate',
     },
 
-    'dFexo': {
-        'value': 0,
-        'com': '',
-        'units': None,
-        'group': 'Climate',
-    },
     'FexoMax': {
-        'value': 0,
-        'com': '',
-        'units': None,
+        'value': 0.7,
+        'com': 'Maximal exougenous radiative forcing',
+        'units': 'W M^{-2}',
         'group': 'Climate',
     },
     'F2CO2': {
@@ -414,68 +390,13 @@ _DEF_PARAM = {
         'group': 'Climate',
     },
 
-    # --------------
-    # CLIMATE VARIABLES FOR MINIMODEL - Initialization
-    'CO2at_ini': {
-        'value': 851,
-        'com': '',
-        'units': None,
-        'group': 'Climate',
+    'PopSat': {
+        'value': 12,
+        'com': 'Maximal population (billions)',
+        'units': 'Pop',
+        'group': 'Population',
     },
-    'CO2up_ini': {
-        'value': 460,
-        'com': '',
-        'units': None,
-        'group': 'Climate',
-    },
-    'CO2lo_ini': {
-        'value': 1740,
-        'com': '',
-        'units': None,
-        'group': 'Climate',
-    },
-    'T_ini': {
-        'value': 0,
-        'com': '',
-        'units': None,
-        'group': 'Climate',
-    },
-}
 
-
-# #############################################################################
-# #############################################################################
-#                       Default dict of parameters 
-#                           OLD - DEPRECATED
-# #############################################################################
-
-# ###########################################
-# Default parameter dict, inc. all parameters
-
-
-# DEPRECATED BY KEPT FOR CONFLICT SOLVING
-_DEF_PARAM_OLD = {
-
-    # ----------
-    # Economy
-    'economy': {
-
-        # SET OF EQUATIONS ########################################################
-        # 'EquationSet': FG.f_reduced,    # The system of equation to solve
-
-        ### Numerical PARAMETERS ##################################################
-        # Time Discretisation ###
-        'time_safety': 30,              # Factor of time increment reduction. The system calculate an increment dtmax, then divide it by this value
-
-        ### EACH MODULES AND VALUES ###############################################
-        # Capital properties
-        'pK': 0,                        # Price consumption of capital
-
-        ### FUNCTIONS AND THEIR PARAMETERS ########################################
-        # PHILIPS CURVE (employement-salary increase)
-        'phiType': 'divergent',         # 'divergent' , 'linear' modes
-        'phislope': 2,                  # slope in a linear model (power in a diverging model)         
-    },
 }
 
 

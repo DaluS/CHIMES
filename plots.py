@@ -10,7 +10,6 @@ import numpy as np
 import Miscfunc as M
 
 def AllUsefulVariablesSeparate(r,UsefulVarDic,j=0):
-
     
     Nvar = len(UsefulVarDic)
     plt.figure('AllvariableSeparated',figsize=(15,Nvar))
