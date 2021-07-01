@@ -42,7 +42,7 @@ def initCond(p,parNum):
         ### INTENSIVE VARIABLES 
         'd'      : v1*0.1,           # relative debt
         'omega'  : v1*p['omega0'],   # wage share
-        'lambda' : v1*p['lambdamax'],# employement
+        'lambda' : v1*.96,            # employement
         't'      : v1*0,             # initial time 
 
         ### INITIAL EXTENSIVE VARIABLES 
@@ -58,7 +58,7 @@ def initCond(p,parNum):
     
     ### DEDUCED FROM PREVIOUS ONES 
     ic['L'] = ic['lambda']*ic['N']  # Labor 
-    ic['K'] = ic['a2']*ic['L']      # Capital 
+    ic['K'] = ic['a2']*ic['L']*p['nu']      # Capital 
     ic['Y'] = ic['K']/p['nu']      # Output 
     ic['D'] = ic['d']*ic['Y']       # Debt 
     ic['W'] = ic['omega']*ic['a']   # Salary

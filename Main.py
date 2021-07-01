@@ -181,7 +181,7 @@ def run(
 
     #  Initialize system of equations #
     # #################################    
-    eqsys = C.GK_Reduced()  
+    eqsys = C.GK_NOINFLATION()  
 
     # PARAMETERS INITIALISATION #######
     # #################################    
@@ -231,9 +231,8 @@ def run(
     # #################################
 
     if plot is True:
-        # eqsys.plotlitst_simple(results,parNum)
+        #eqsys.plotlitst_simple(results,parNum)
         plts.AllUsefulVariablesSeparate(results, UsefulVarDic)
-        # plts.OrganisedVar(results,UsefulVarDic, OrganisedVar)
 
 
 # #############################################################################
