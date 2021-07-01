@@ -181,7 +181,7 @@ def run(
 
     #  Initialize system of equations #
     # #################################    
-    eqsys = C.GK_FULL()  
+    eqsys = C.GK_Reduced()  
 
     # PARAMETERS INITIALISATION #######
     # #################################    

@@ -44,40 +44,26 @@ def initCond(p,parNum):
         'lambda' : v1*p['lambdamax'],# employement
         't'      : v1*0,             # initial time 
 
-        ### CLIMATE VARIABLES FOR MINIMODEL
-        'CO2at' : v1*851   ,
-        'CO2up' : v1*460   ,
-        'CO2lo' : v1*1740  ,
-        
-        'T'     : v1*0     , # TEMPERATURE ATMOSPHERE/BIOSPHERE/UPPER OCEAN
-        'T0'    : v1*.0068 , # TEMPERATURE OF DEEP OCEAN
-        'E_ind' : v1*35.85 , # INDUSTRIAL CO2 EMISSION
-        '''
-        'E_land': v1
-        'F_exo' : v1
-        'g_sigma': v1            
-        'p'     : v1
-        'p_bs'  : v1*
-        'n'     : v1*
-        'N'     : v1*
-        '''
         ### INITIAL EXTENSIVE VARIABLES 
         'N' : v1*1 ,                # Population
         'a' : v1*1 ,                # productivity
         'p' : v1*1 ,                # Price
     }
     
-    ### DEDUCED FROM PREVIOUS ONES 
-
-    ic['L'] = ic['lambda']*ic['N']  # Labor 
-    ic['K'] = ic['a2']*ic['L']      # Capital 
-    ic['Y'] = ic['K']/ic['nu']      # Output 
-    ic['D'] = ic['d']*ic['Y']       # Debt 
-    ic['W'] = ic['omega']*ic['a']   # Salary
- 
+    
     ### GREGOIRE 
     ic['Xh']= v1*1000
     ic['a2']= ic['a']
+    
+    ### DEDUCED FROM PREVIOUS ONES 
+    ic['L'] = ic['lambda']*ic['N']  # Labor 
+    ic['K'] = ic['a2']*ic['L']      # Capital 
+    ic['Y'] = ic['K']/p['nu']      # Output 
+    ic['D'] = ic['d']*ic['Y']       # Debt 
+    ic['W'] = ic['omega']*ic['a']   # Salary
+ 
+ 
+
     
     return ic
 
@@ -105,7 +91,7 @@ def BasicParameters():
         'r'        : .03,                      # Interest at the bank
         'etaP'     : .192,                     # Typical rate for inflation
         'muP'      : 1.3,                      # Mark-up of price
-        'gammaP'   : 0,                        # Money-illusion 
+        'gammaP'   : 1,                        # Money-illusion 
 
         ### FUNCTIONS AND THEIR PARAMETERS ########################################
         # PHILIPS CURVE (employement-salary increase)
