@@ -94,6 +94,9 @@ class Test01_Run():
             'save': [False],
         }
 
+        # Invoke via the shell for windows only
+        shell = True if sys.platform.lower().startswith('win') else False
+
         # loop to test all combinations
         lpar = list(dpar.keys())
         lcomb = [dpar[kk] for kk in lpar]
@@ -111,6 +114,7 @@ class Test01_Run():
                 stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE,
                 text=True,
+                shell=shell,
             )
 
             # Catch error if any
