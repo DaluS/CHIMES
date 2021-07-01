@@ -52,13 +52,15 @@ def initCond(p,parNum):
         'T'     : v1*0     , # TEMPERATURE ATMOSPHERE/BIOSPHERE/UPPER OCEAN
         'T0'    : v1*.0068 , # TEMPERATURE OF DEEP OCEAN
         'E_ind' : v1*35.85 , # INDUSTRIAL CO2 EMISSION
-        'E_land': v1*
-        'F_exo' : v1*
-        'g_sigma': v1*            
-        'p'     : v1*
+        '''
+        'E_land': v1
+        'F_exo' : v1
+        'g_sigma': v1            
+        'p'     : v1
         'p_bs'  : v1*
         'n'     : v1*
         'N'     : v1*
+        '''
         ### INITIAL EXTENSIVE VARIABLES 
         'N' : v1*1 ,                # Population
         'a' : v1*1 ,                # productivity
@@ -142,11 +144,10 @@ def BasicParameters():
         'pi2' : .00236    ,                # Quadratic temperature impact
         'pi3' : .00000507 ,                # Weitzmann Damage temperature impact 
         'zeta': 6.754     ,                # Weitzmann impact 
+        
         'fk'  : 1/3       ,                # Fraction of environmental damage 
                                            # allocated to the stock of capital
-        # Climate model
-        'Phi12'   : .024 ,#Transfer of carbon from atmosphere to biosphere
-        'Phi23'   : .001 ,#Transfer from biosphere to stock
+  
 
         'C'     : 1/.098 ,# Heat capacity of fast-paced climate
         'C0'    : 3.52   ,# Heat capacity of inertial component of climate
