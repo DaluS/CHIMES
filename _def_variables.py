@@ -139,8 +139,9 @@ _DVAR = {
             'value': -0.0152,
             'com': 'Growth rate of the emission intensity of the economy',
             'units': 't^{-1}',
-        },   
-    }
+            },   
+        },
+    },
 }
 
 # #############################################################################
