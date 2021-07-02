@@ -38,7 +38,9 @@ def VariableDictionnary(result) :
                'unit':'technological unit'},
         'a' : {'name':'productivity', 
                'type':'extensive',
-               'unit':'Technological unit per human'},       
+               'unit':'Technological unit per human'},  
+        
+        ######################################################################
         ### Typical rate of time
         'philips' : {'name':'Wage inflation rate', 
                      'type':'extensive',
@@ -51,7 +53,6 @@ def VariableDictionnary(result) :
                    'unit':'$t^{-1}$'},        
         
         ### INTENSIVE VARIABLES     
-
         'lambda': {'name':'employement rate', 
                    'type':'intensive',
                    'unit':'no'},
@@ -67,6 +68,39 @@ def VariableDictionnary(result) :
         'd'     : {'name':'Relative debt', 
                    'type':'intensive',
                    'unit':'no'},
+        'nu'    :  {'name':'$\nu$', 
+                   'type':'intensive',
+                   'unit':'Kapital per output'},   
+
+        ###### GREGOIRES'S VARIABLES #########################################
+        'Xh': {'name':'Ressources',
+               'type':'extensive',
+               'unit':'moles'},
+        'G': {'name':'Ressources',
+               'type':'extensive',
+               'unit':'moles'},    
+        'muH': {'name':'HighPotential',
+               'type':'extensive',
+               'unit':'moles'},    
+        'muL': {'name':'LowPotential',
+               'type':'extensive',
+               'unit':'moles'},    
+        'Deltamu': {'name':'Deltamu',
+               'type':'extensive',
+               'unit':'moles'},
+        'PsiH':{'name':'PsiH',
+               'type':'extensive',
+               'unit':'Moles/s'},   
+        'PsiL':{'name':'PsiL',
+               'type':'extensive',
+               'unit':'Moles/s'},  
+        'J': {'name':'Intensity',
+               'type':'extensive',
+               'unit':'Something'},   
+        'a2' : {'name':'productivity', 
+               'type':'extensive',
+               'unit':'Technological unit per human'}, 
+
         }
 
     Result_keys = result.keys()

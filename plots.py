@@ -10,8 +10,6 @@ import numpy as np
 import Miscfunc as M
 
 def AllUsefulVariablesSeparate(r,UsefulVarDic,j=0):
-
-    
     Nvar = len(UsefulVarDic)
     plt.figure('AllvariableSeparated',figsize=(15,Nvar))
     for i,key in enumerate(UsefulVarDic.keys()):
@@ -24,6 +22,8 @@ def AllUsefulVariablesSeparate(r,UsefulVarDic,j=0):
         if infos['type']=='extensive' : 
             plt.yscale("log")
             plt.ylabel(infos['name']+'('+infos['unit']+')')
+        if infos['type']=='intensive' :
+            plt.ylim([0,1])
     plt.show()
         
 

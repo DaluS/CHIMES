@@ -1,17 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 """
-GOODWIN-TYPE RESOLUTION ALGORITHM
-
 This python code has been created to simulate Goodwin-Keen simulations, with all the variants to it.
 Do not worry about the number of section : the architecture is thought to be user-friendly and coder-friendly
 
-WHAT ARE THE SPECIFICITIES OF THIS CODE ?
-* The algorithm solve parNum['Nx'] system in parrallel : the idea is that later we will couple the systems altogether ("spatial/network properties").
-* For now, there is no much coupling, but you can use it to test many initial conditions and array of parameters values
-* The steps are :
+The algorithm solve parNum['Nx'] system in parrallel : the idea is that later we will couple the systems altogether ("spatial/network properties").
+
+For now, there is no much coupling, but you can use it to test many initial conditions and array of parameters values
+
+The steps are :
     - Creation of the parameters dictionnaries
         * params   : The physical parameters
         * parNum   : The numerical parameters
@@ -54,19 +52,15 @@ import Miscfunc as M            # All miscellaneous functions
 import VariableDictionnary as VarD # Useful infos on variables
 import plots as plts            # Already written plot functions
 
-
 # Default parameter values
 _PLOT = True
 _TIMEIT = True
 _SAVE = 'None'
 _SAVEPATH = os.path.dirname(__file__)   # Not hard-coded, platform-independent
 
-
 # #############################################################################
+#                   Uilities In ArgParsing
 # #############################################################################
-#                   Ulities
-# #############################################################################
-
 
 def _str2bool(arg):
     if isinstance(arg, bool):
@@ -146,7 +140,6 @@ def _check_inputs(
 
     return plot, timeit, save, savepath
 
-
 # #############################################################################
 # #############################################################################
 #                   Main function
@@ -188,8 +181,7 @@ def run(
 
     #  Initialize system of equations #
     # #################################    
-
-    eqsys = C.GK_Reduced()  #FULL() #GK_Reduced()  #GK_FULL     # SYSTEM SOLVED 
+    eqsys = C.GK_NOINFLATION()  
 
     # PARAMETERS INITIALISATION #######
     # #################################    
@@ -199,28 +191,29 @@ def run(
     params   = Par.Modifications (params, parNum) # Original modification you might want to do
     initCond = Par.initCond(params ,parNum)     # Values of the initial parameters
     op       = M.prepareOperators(parNum)       # Spatial operators initialisation
-    #params   = eqsys.keepUsefulParams( params )   # Cleaning the params dictionnary to be lighter 
+    params   = eqsys.keepUsefulParams( params )   # Cleaning the params dictionnary to be lighter 
 
-    print(eqsys.description)
-    eqsys.printParameters(params)
-    M.PrintNumericalparameters(parNum)
+    # VERBATIM FOR THE USER ###########
+    ###################################
+    if parNum['verb']:
+        print(eqsys.description)
+        eqsys.printParameters(params)
+        M.PrintNumericalparameters(parNum)
 
+
+    # TIME RESOLUTION #################
+    ###################################
     if timeit is True:
         tim = time.time()
         print('Start simulation...', end='')
 
-    # vector y contains all states of time t.
-    y = eqsys.initializeY(initCond, parNum)
-    # Calculation of all timesteps
-    Y_s, t_s = M.TemporalLoop(y, eqsys, op, parNum, params)
+    y = eqsys.initializeY(initCond, parNum) # vector y contains all states of time t.
+    Y_s, t_s = M.TemporalLoop(y, eqsys, op, parNum, params) # Calculation of all timesteps
 
     if timeit is True:
-        time_ellasped = time.time()-tim
-        print('done! elapsed time: {} s'.format(time_ellasped))
+        time_elasped = time.time()-tim
+        print('done! elapsed time: {} s'.format(time_elasped))
 
-    # Save the data as a pickle file in a new folder
-    # if p['Save']:
-    #     FG.savedata(rootfold,t,Y_s,p,op)
 
     # Results interpretation ##########
     # #################################
@@ -233,13 +226,13 @@ def run(
 
     UsefulVarDic, OrganisedVar = VarD.VariableDictionnary(results)
 
+
     # PLOTS ###########################
     # #################################
 
     if plot is True:
-        # eqsys.plotlitst_simple(results,parNum)
+        #eqsys.plotlitst_simple(results,parNum)
         plts.AllUsefulVariablesSeparate(results, UsefulVarDic)
-        # plts.OrganisedVar(results,UsefulVarDic, OrganisedVar)
 
 
 # #############################################################################
