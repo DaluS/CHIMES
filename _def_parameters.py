@@ -125,19 +125,19 @@ _DEF_PARAM = {
     # Production
     'nu': {
         'value': 3,
-        'com': 'Kapital to output ratio !! IN CES its 1/A !!',
-        'units': 'Kapital/Output',
+        'com': 'Kapital to output ratio', #' !! IN CES its 1/A !!',
+        'units': None,
         'group': 'Production',
     },
     'eta': {
         'value': 1000,
-        'com': 'CES Only eta = 1/(1+substituability)',
+        'com': '1/(1+substituability)', #CES parameter 
         'units': None,
         'group': 'Production',
     },
     'b': {
-        'value': 5,
-        'com': 'CES parameter : capital part of the production',
+        'value': .5,
+        'com': 'capital part of the production', #CES parameter 
         'units': None,
         'group': 'Production',
     },
@@ -153,13 +153,13 @@ _DEF_PARAM = {
     'r': {
         'value': .03,
         'com': 'Interest at the bank',
-        'units': 't^{-1}',
+        'units': 'y^{-1}',
         'group': 'Prices',
     },
     'etaP': {
         'value': .192,
         'com': 'Typical rate for inflation',
-        'units': 't^{-1}',
+        'units': 'y^{-1}',
         'group': 'Prices',
     },
     'muP': {
@@ -255,25 +255,25 @@ _DEF_PARAM = {
     'tauR': {
         'value': 2.0,
         'com': 'Typical time for recruitement',
-        'units': 't',
+        'units': 'y',
         'group': 'RelaxBuffer',
     },
     'tauF': {
         'value': 0.1,
         'com': 'Typical time for firing',
-        'units': 't',
+        'units': 'y',
         'group': 'RelaxBuffer',
     },
     'tauL': {
         'value': 2.,
         'com': 'Typical time for employement information',
-        'units': 't',
+        'units': 'y',
         'group': 'RelaxBuffer',
     },
     'tauK': {
         'value': 2.,
         'com': 'Typical time on new capital integration',
-        'units': 't',
+        'units': 'y',
         'group': 'RelaxBuffer',
     },
 
@@ -288,19 +288,19 @@ _DEF_PARAM = {
     'dsigma': {
         'value': -0.001,
         'com': 'Variation rate of the growth of emission intensity',
-        'units': 't^{-1}',
+        'units': 'y^{-1}',
         'group': 'Gemmes',
     },
     'dPBS': {
         'value': -0.005,
         'com': 'Growth rate of back-stop technology price',
-        'units': 't^{-1}',
+        'units': 'y^{-1}',
         'group': 'Gemmes',
     },
     'dEland': {
         'value': -0.022,
         'com': 'Growth rate of land use change in CO2 emission',
-        'units': 't^{-1}',
+        'units': 'y^{-1}',
         'group': 'Gemmes',
     },
 
@@ -393,7 +393,7 @@ _DEF_PARAM = {
     'PopSat': {
         'value': 12,
         'com': 'Maximal population (billions)',
-        'units': 'Pop',
+        'units': 'Humans',
         'group': 'Population',
     },
 

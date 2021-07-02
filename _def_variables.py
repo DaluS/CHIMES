@@ -13,12 +13,12 @@ _DVAR = {
         'a': {
             'value': None,
             'com': 'productivity per worker',
-            'units': 'Output Workers^{-1}',
+            'units': 'Output Humans^{-1}',
         },
         'N': {
             'value': None,
             'com': 'Population',
-            'units': 'Population',
+            'units': 'Humans',
         },
         'K': {
             'value': None,
@@ -108,7 +108,7 @@ _DVAR = {
             'com': 'employement rate',
             'units': '',
         },
-        'Y': {
+        'Yn': {                         #PUT Yn for Nominal output
             'value': 59.74,
             'com': 'GDP',
             'units': '10^{12} Dollars',
@@ -116,7 +116,7 @@ _DVAR = {
         'N': {
             'value': 4.83,
             'com': 'Population',
-            'units': '10^{9} Population',
+            'units': '10^{9} Humans',
         },
         'omega': {
             'value': .578,
