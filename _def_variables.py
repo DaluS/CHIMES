@@ -13,27 +13,27 @@ _DVAR = {
         'a': {
             'value': None,
             'com': 'productivity per worker',
-            'units': 'Output per person',
+            'units': 'Output Workers^{-1}',
         },
         'N': {
             'value': None,
             'com': 'Population',
-            'units': 'pop',
+            'units': 'Population',
         },
         'K': {
             'value': None,
             'com': 'Capital',
-            'units': 'Capital',
+            'units': 'Technological Unit',
         },
         'W': {
             'value': None,
             'com': 'Salary',
-            'units': 'dollars',
+            'units': 'Dollars',
         },
         'D': {
             'value': None,
             'com': 'Absolute private debt',
-            'units': 'dollars',
+            'units': 'Dollars',
         },
     },
     'GK_Reduced': {
@@ -59,38 +59,38 @@ _DVAR = {
         'CO2at': {
             'value': 851,
             'com': 'atmosphere carbon concentration',
-            'units': '10^{12} C',
+            'units': 'GtC',
         },
         'CO2up': {
             'value': 460,
             'com': 'Upper layer carbon concentration',
-            'units': '10^{12} C',
+            'units': 'GtC',
         },
         'CO2lo': {
             'value': 1740,
             'com': 'deep ocean carbon concentration',
-            'units': '10^{12} C',
+            'units': 'GtC',
         },
         'T': {
             'value': .85,
             'com': 'Atmosphere temperature',
-            'units': '',
+            'units': '+T (C)',
         },
         'T0': {
             'value': .0068,
             'com': 'Deep ocean temperature',
-            'units': '',
+            'units': '+T (C)',
         },
         ### EMISSIONS AND FORCING 
         'E_ind': {
             'value': 35.85,
             'com'  : 'Industrial CO2 emission per year',
-            'units': '10^{12} C t^{-1}',
+            'units': 'GtC Y^{-1}',
         },
         'E_land': {
             'value': 2.6,
             'com'  : 'Land CO2 emission per year',
-            'units': '10^{12} C t^{-1}',
+            'units': 'GtC Y^{-1}',
         'F_exo': {
             'value': 0.5,
             'com'  : 'Exogeneous radiative forcing',
@@ -111,12 +111,12 @@ _DVAR = {
         'Y': {
             'value': 59.74,
             'com': 'GDP',
-            'units': '10^{12} dollars',
+            'units': '10^{12} Dollars',
         },
         'N': {
             'value': 4.83,
             'com': 'Population',
-            'units': '10^{9} pop',
+            'units': '10^{9} Population',
         },
         'omega': {
             'value': .578,
@@ -125,20 +125,20 @@ _DVAR = {
         },
         'p': {
             'value': 1,
-            'com': 'Price level',
-            'units': 'dollars',
+            'com': 'indicative Price level',
+            'units': 'Dollars',
         },        
         
         ### COUPLING ECONOMY-CLIMATE
         'p_bs': {
             'value': 574.22,
             'com': 'Price backstop technology',
-            'units': 'dollars',
+            'units': 'Dollars',
         },   
         'g_sigma': {
             'value': -0.0152,
             'com': 'Growth rate of the emission intensity of the economy',
-            'units': 't^{-1}',
+            'units': 'Y^{-1}',
             },   
         },
     },
