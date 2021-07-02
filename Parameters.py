@@ -3,13 +3,13 @@
 PARAMETERS FOR GOODWIN-KEEN LIKE MODELS
 """
 
-
 import numpy as np
 
 
 def Modifications(params,parnum):
     """
-    FOR THE MOMENT DOES NOTHING ! """
+    FOR THE MOMENT DOES NOTHING ! 
+    """
     return params
 
 
@@ -21,8 +21,8 @@ def parnum():
     parNum={
         'Tmax' : 100,       # Duration of simulation    
         'Nx'   : 1,         # Number of similar systems evolving in parrallel
-
-        'dt'   : 0.01,        # Timestep (fixed timestep method)    
+        'dt'   : 0.01,        # Timestep (fixed timestep method)  
+        'verb' : True,      # Printing elements
     }
 
     ### INTERMEDIARY VALUES 
@@ -40,30 +40,32 @@ def initCond(p,parNum):
                            ### an array with 1 everywhere
     ic = {
         ### INTENSIVE VARIABLES 
-        'd'      : v1*1.,
-        'omega'  : v1*p['omega0'],
-        'lambda' : v1*p['lambdamax'],
-        't'      : v1*0,
-
-        ### CLIMATE VARIABLES FOR MINIMODEL
-        'CO2at_ini' : v1*851   ,
-        'CO2up_ini' : v1*460   ,
-        'CO2lo_ini' : v1*1740  ,
-        'T_ini'     : v1*0     ,
+        'd'      : v1*0.1,           # relative debt
+        'omega'  : v1*p['omega0'],   # wage share
+        'lambda' : v1*.96,            # employement
+        't'      : v1*0,             # initial time 
 
         ### INITIAL EXTENSIVE VARIABLES 
-        'Y' : v1*1 , # GDP
-        'N' : v1*1 , # Population
-        'a' : v1*1 , # productivity
-        'p' : v1*1 , # Price
+        'N' : v1*1 ,                # Population
+        'a' : v1*1 ,                # productivity
+        'p' : v1*1 ,                # Price
     }
-
+    
+    
+    ### GREGOIRE 
+    ic['Xh']= v1*1000
+    ic['a2']= ic['a']
+    
     ### DEDUCED FROM PREVIOUS ONES 
-    ic['D'] = ic['d']*ic['Y']
-    ic['K'] = ic['Y']*p['nu']
-    ic['L'] = ic['lambda']*ic['N']
-    ic['W'] = ic['omega']*ic['a']
+    ic['L'] = ic['lambda']*ic['N']  # Labor 
+    ic['K'] = ic['a2']*ic['L']*p['nu']      # Capital 
+    ic['Y'] = ic['K']/p['nu']      # Output 
+    ic['D'] = ic['d']*ic['Y']       # Debt 
+    ic['W'] = ic['omega']*ic['a']   # Salary
+ 
+ 
 
+    
     return ic
 
 def BasicParameters():
@@ -78,7 +80,7 @@ def BasicParameters():
         'alpha'  : 0.02,                       # Rate of productivity increase (y^-1)
 
         # Capital properties
-        'delta1' : 0.005,                      # Rate of WORKING capital depletion (y^-1)
+        'delta' : 0.005,                      # Rate of WORKING capital depletion (y^-1)
 
         # Production 
         'nu'    : 3,                           # Kapital to output ratio as in Leontiev. CAREFUL IN CES this is 1/A
@@ -125,30 +127,36 @@ def BasicParameters():
         'dEland' : - 0.022,               # Growth rate of land use change in CO2 emission
 
         # Damage function (on GDP)
-        '''D = 1 - (1 + p['pi1']*T + p['pi2']*T**2 + p['pi3']*T**p['zeta'] )**(-1)'''
         'pi1' : 0         ,                # Linear temperature impact
         'pi2' : .00236    ,                # Quadratic temperature impact
         'pi3' : .00000507 ,                # Weitzmann Damage temperature impact 
         'zeta': 6.754     ,                # Weitzmann impact 
+        
         'fk'  : 1/3       ,                # Fraction of environmental damage 
                                            # allocated to the stock of capital
-        # Climate model
-        'Phi12'   : .024 ,#Transfer of carbon from atmosphere to biosphere
-        'Phi23'   : .001 ,#Transfer from biosphere to stock
+  
 
         'C'     : 1/.098 ,# Heat capacity of fast-paced climate
         'C0'    : 3.52   ,# Heat capacity of inertial component of climate
         'gamma' : 0.0176 ,# Heat exchange coefficient between layer
         'Tsens' : 3.1    ,# Climate sensibility
 
-        'dFexo' : 0,
+        'dFexo'   : 0,
         'FexoMax' : 0 ,
-        'F2CO2'   : 3.681 # W/M2, doubling CO2 impact on forced radiations
-    }
-
+        'F2CO2'   : 3.681, # W/M2, doubling CO2 impact on forced radiations
+     
+        # GREGOIRE'S MODEL        
+        'z0'  : 1 ,
+        'c'   : 1 ,
+        'mu0' : 0.01 ,
+        'RT'  : 2479 ,
+        'Xsh' : 10**5 ,
+        'chi' : 1/75
+     }  
+    
     params['omega0']     = 1-params['nu']*(params['alpha']+
                                            params['beta']+
-                                           params['delta1'])  # Solow point of a classic goodwin system          
+                                           params['delta'])  # Solow point of a classic goodwin system          
     params['phi0']       = params['phinul']    / (1- params['phinul']**2)          # Based on Phinul value
     params['phi1']       = params['phinul']**(3) / (1- params['phinul']**2)        # Based on Phinul value
     params['lambdamin']  = 1- np.sqrt( params['phi1']/(params['alpha']+
