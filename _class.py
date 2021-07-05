@@ -129,6 +129,12 @@ class Solver():
     # ##############
     # functions
 
+    def set_dfunc(self, dfunc=None):
+        """ Set the dict of functions """
+        if dfunc is None:
+            dfunc = self._FUNCSET
+        self.__dfunc, self.__funcset = _class_checks.check_dfunc(dfunc=dfunc)
+
     # ##############
     # show summary
 
