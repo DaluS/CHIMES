@@ -109,7 +109,6 @@ class Solver():
             else:
                 return out
 
-
     # ##############
     # variables
 
@@ -129,7 +128,6 @@ class Solver():
 
     # ##############
     # functions
-
 
     # ##############
     # show summary
@@ -199,7 +197,3 @@ class Solver():
             verb=True,
             returnas=False,
         )
-
-
-
-
