@@ -434,7 +434,7 @@ _DEF_PARAM = {
         'dimension': 'time rate',
         'units': 'y^{-1}',
         'type': 'intensive',
-        'symbol': r'$\delta\sigma$',
+        'symbol': r'$\delta_{\sigma}$',
         'group': 'Gemmes',
     },
     'dPBS': {
@@ -444,7 +444,7 @@ _DEF_PARAM = {
         'dimension': 'time rate',
         'units': 'y^{-1}',
         'type': 'intensive',
-        'symbol': None,
+        'symbol': r'$\delta_{PBS}$',
         'group': 'Gemmes',
     },
     'dEland': {
@@ -454,7 +454,7 @@ _DEF_PARAM = {
         'dimension': 'time rate',
         'units': 'y^{-1}',
         'type': 'intensive',
-        'symbol': None,
+        'symbol': r'$\delta_{Eland}$',
         'group': 'Gemmes',
     },
 
@@ -533,7 +533,7 @@ _DEF_PARAM = {
         'dimension': None,
         'units': None,
         'type': 'intensive',
-        'symbol': None,
+        'symbol': r'$\phi_{2\rightarrow3}$',
         'group': 'Climate',
     },
     'C': {
@@ -543,7 +543,7 @@ _DEF_PARAM = {
         'dimension': None,
         'units': "SI",
         'type': 'intensive',
-        'symbol': r'$\phi_{1\rightarrow2}$',
+        'symbol': r'$C$',
         'group': 'Climate',
     },
     'C0': {
