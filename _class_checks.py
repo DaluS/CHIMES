@@ -61,7 +61,6 @@ def check_dparam(dparam=None):
     return dparam, paramset
 
 
-
 def update_dparam(dparam=None):
 
     # Update numerical group
@@ -69,10 +68,10 @@ def update_dparam(dparam=None):
     if c0 is True:
         dparam['Tstore']['value'] = dparam['dt']['value']
         dparam['Nt']['value'] = int(
-            dparam['Tmax']['value']/dparam['dt']['value']
+            dparam['Tmax']['value'] / dparam['dt']['value']
         )
         dparam['Ns']['value'] = int(
-            dparam['Tmax']['value']/dparam['Tstore']['value']
+            dparam['Tmax']['value'] / dparam['Tstore']['value']
         ) + 1
 
 
@@ -126,3 +125,55 @@ def check_dvar(dvar=None):
     else:
         dvar = _check_dvar(dvar)
     return dvar, varset
+
+
+# #############################################################################
+# #############################################################################
+#                       dfunc checks
+# #############################################################################
+
+
+def _check_dfunc(dfunc=None):
+
+    c0 = (
+        isinstance(dfunc, dict)
+        and all([
+            isinstance(kk, str)
+            and isinstance(vv, dict)
+            and all([
+                isinstance(vv, str)
+                and vv in ['value', 'com', 'units']
+                for ss in vv.keys()
+            ])
+            and all([ss in vv.keys() for ss in ['value']])
+            and isinstance(vv['group'], str)
+            for kk, vv in dfunc.items()
+        ])
+        and all([isinstance(vv)])
+    )
+    if not c0:
+        msg = (
+            "Arg dfunc is not conform!\n"
+            + "{key0: {'value': v0, 'units': 's', 'com': 'bla'},\n"
+            + " key1: {'value': v1, 'units': 's', 'com': 'bla'},\n"
+            + "You provided:\n{}".format(dfunc)
+        )
+        raise Exception(msg)
+
+    for k0, v0 in dfunc.items():
+        if v0.get('com') is None:
+            dfunc[k0]['com'] = ''
+        if v0.get('units') is None:
+            dfunc[k0]['units'] = 'unknown'
+    return dvar
+
+
+def check_dfunc(dvar=None):
+    funcset = None
+    if isinstance(dfunc, str):
+        # In this case, dfunc is the name of a functions preset
+        funcset = dfunc
+        dfunc = _def_variables.get_variables(funcset=dfunc)
+    else:
+        dfunc = _check_dvar(dfunc)
+    return dfunc, funcset
