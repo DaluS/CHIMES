@@ -17,7 +17,7 @@ _FLATTEN = True
 # # -----------------
 # # INITAL CONDITIONS
 # _DINIT = {
-# ### INTENSIVE VARIABLES 
+# ### INTENSIVE VARIABLES
 # 'd'      : v1*1.,
 # 'omega'  : v1*p['omega0'],
 # 'lambda' : v1*p['lambdamax'],
