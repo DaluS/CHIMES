@@ -15,21 +15,21 @@ _FLATTEN = True
 # NUMERICAL
 
 # # -----------------
-# # INITAL CONDITIONS 
+# # INITAL CONDITIONS
 # _DINIT = {
-    # ### INTENSIVE VARIABLES 
-    # 'd'      : v1*1.,
-    # 'omega'  : v1*p['omega0'],
-    # 'lambda' : v1*p['lambdamax'],
-    # 't'      : v1*0,
+# ### INTENSIVE VARIABLES 
+# 'd'      : v1*1.,
+# 'omega'  : v1*p['omega0'],
+# 'lambda' : v1*p['lambdamax'],
+# 't'      : v1*0,
 
-    # ### INITIAL EXTENSIVE VARIABLES 
-    # 'Y' : v1*1 , # GDP
-    # 'N' : v1*1 , # Population
-    # 'a' : v1*1 , # productivity
-    # 'p' : v1*1 , # Price
+# ### INITIAL EXTENSIVE VARIABLES
+# 'Y' : v1*1 , # GDP
+# 'N' : v1*1 , # Population
+# 'a' : v1*1 , # productivity
+# 'p' : v1*1 , # Price
 # }
-# ### DEDUCED FROM PREVIOUS ONES 
+# ### DEDUCED FROM PREVIOUS ONES
 # ic['D'] = ic['d']*ic['Y']
 # ic['K'] = ic['Y']*p['nu']
 # ic['L'] = ic['lambda']*ic['N']
@@ -41,9 +41,8 @@ _DALLOWED = {
 }
 
 
-
 # ##########################################
-# PARAMETERS PARAMETERS 
+# PARAMETERS PARAMETERS
 _DEF_PARAM = {
 
     # --------------
@@ -140,7 +139,7 @@ _DEF_PARAM = {
     },
 
     # --------------
-    # Population evolution 
+    # Population evolution
     'beta': {
         'value': 0.025,
         'name': None,
@@ -180,7 +179,7 @@ _DEF_PARAM = {
     'nu': {
         'value': 3,
         'name': None,
-        'com': 'Kapital to output ratio', #' !! IN CES its 1/A !!',
+        'com': 'Kapital to output ratio',   # !! IN CES its 1/A !!',
         'dimension': None,
         'units': None,
         'type': 'intensive',
@@ -190,7 +189,7 @@ _DEF_PARAM = {
     'eta': {
         'value': 1000,
         'name': None,
-        'com': '1/(1+substituability)', #CES parameter 
+        'com': '1/(1+substituability)',     # CES parameter
         'dimension': None,
         'units': None,
         'type': 'intensive',
@@ -200,7 +199,7 @@ _DEF_PARAM = {
     'b': {
         'value': .5,
         'name': None,
-        'com': 'capital part of the production', #CES parameter 
+        'com': 'capital part of the production',    # CES parameter
         'dimension': None,
         'units': None,
         'type': 'intensive',
@@ -308,7 +307,7 @@ _DEF_PARAM = {
     },
 
     # --------------
-    # LINEAR DIVIDENT PROFITS 
+    # LINEAR DIVIDENT PROFITS
     'div0': {
         'value': 0.138,
         'name': None,
@@ -482,7 +481,7 @@ _DEF_PARAM = {
         'symbol': r'$\pi_2$',
         'group': 'Damage',
     },
-    'pi3' : {
+    'pi3': {
         'value': .00000507,
         'name': None,
         'com': 'Weitzmann Damage temperature impact',
@@ -503,7 +502,7 @@ _DEF_PARAM = {
         'group': 'Damage',
     },
     'fk': {
-        'value': 1./3.,   # Dangerous not to put points 1./3. (Python 2 vis 3)
+        'value': 1. / 3.,
         'name': None,
         'com': 'Fraction of environmental damage',
         'dimension': None,
@@ -512,7 +511,9 @@ _DEF_PARAM = {
         'symbol': r'$f_K$',
         'group': 'Damage',
     },
-                                # allocated to the stock of capital
+
+    # allocated to the stock of capital
+
     # --------------
     # Climate model
     'Phi12': {
@@ -536,7 +537,7 @@ _DEF_PARAM = {
         'group': 'Climate',
     },
     'C': {
-        'value': 1/.098,
+        'value': 1 / .098,
         'name': None,
         'com': 'Heat capacity of fast-paced climate',
         'dimension': None,
@@ -671,7 +672,7 @@ _DPARAM[v0]['eta'] = 0.192
 
 # #############################################################################
 # #############################################################################
-#                       Utilities 
+#                       Utilities
 # #############################################################################
 
 
@@ -695,7 +696,7 @@ def _check_inputs(paramset=None):
 
 # #############################################################################
 # #############################################################################
-#           Choose which version of the dict of parameters to use 
+#           Choose which version of the dict of parameters to use
 # #############################################################################
 
 

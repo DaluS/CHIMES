@@ -61,7 +61,6 @@ def check_dparam(dparam=None):
     return dparam, paramset
 
 
-
 def update_dparam(dparam=None):
 
     # Update numerical group
@@ -69,10 +68,10 @@ def update_dparam(dparam=None):
     if c0 is True:
         dparam['Tstore']['value'] = dparam['dt']['value']
         dparam['Nt']['value'] = int(
-            dparam['Tmax']['value']/dparam['dt']['value']
+            dparam['Tmax']['value'] / dparam['dt']['value']
         )
         dparam['Ns']['value'] = int(
-            dparam['Tmax']['value']/dparam['Tstore']['value']
+            dparam['Tmax']['value'] / dparam['Tstore']['value']
         ) + 1
 
 
