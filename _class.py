@@ -109,7 +109,6 @@ class Solver():
             else:
                 return out
 
-
     # ##############
     # variables
 
@@ -130,7 +129,6 @@ class Solver():
     # ##############
     # functions
 
-
     # ##############
     # show summary
 
@@ -141,9 +139,22 @@ class Solver():
         """
 
         # ----------
-        # parameters
-        col0 = ['parameter', 'value', 'units', 'group', 'comment']
+        # Numerical parameters
+        col0 = ['Numerical param.', 'value', 'units', 'comment']
         ar0 = [
+            tuple([
+                k0,
+                str(v0['value']),
+                str(v0['units']),
+                v0['com'],
+            ])
+            for k0, v0 in self.__dparam.items() if v0['group'] == 'Numerical'
+        ]
+
+        # ----------
+        # parameters
+        col1 = ['Model param.', 'value', 'units', 'group', 'comment']
+        ar1 = [
             tuple([
                 k0,
                 str(v0['value']),
@@ -151,13 +162,13 @@ class Solver():
                 v0['group'],
                 v0['com'],
             ])
-            for k0, v0 in self.__dparam.items()
+            for k0, v0 in self.__dparam.items() if v0['group'] != 'Numerical'
         ]
 
         # ----------
         # variables
-        col1 = ['variable', 'shape', 'units', 'comment']
-        ar1 = [
+        col2 = ['variable', 'shape', 'units', 'comment']
+        ar2 = [
             tuple([
                 k0,
                 'None' if v0['value'] is None else str(v0['value'].shape),
@@ -169,8 +180,8 @@ class Solver():
 
         # ----------
         # functions
-        col2 = ['function', 'comment']
-        ar2 = [
+        col3 = ['function', 'comment']
+        ar3 = [
             tuple([
                 k0,
                 v0['com'],
@@ -181,12 +192,8 @@ class Solver():
         # ----------
         # format output
         return _utils._get_summary(
-            lar=[ar0, ar1, ar2],
-            lcol=[col0, col1, col2],
+            lar=[ar0, ar1, ar2, ar3],
+            lcol=[col0, col1, col2, col3],
             verb=True,
             returnas=False,
         )
-
-
-
-
