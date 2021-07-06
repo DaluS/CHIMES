@@ -1,6 +1,36 @@
 # -*- coding: utf-8 -*-
 """
-PARAMETERS FOR GOODWIN-KEEN LIKE MODELS
+PARAMETER POOL FOR SIMULATIONS 
+
+All the parameters are stocked in _DPARAM. 
+None is the default value if the key has no meaning for the parameter
+    Each parameter is a dictionary, with the following keys :
+    'NAME': {                           # KEY THE CODE WILL USE TO CALL IT
+        'value': 100,                   # NUMERICAL VALUE
+        'name': 'time steps',           
+        'com': 'Duration of simulation',# Commentary about what it means 
+        'dimension': 'time',            # Physical dimension if relevant 
+        'units': 'y',                   # Physical units if relevant
+        'type': None,                   # Intensive or extensive 
+        'symbol': None,                 # Plot-friendly name
+        'group': 'Numerical',           # For practical regroupment of variables
+    },       
+
+###############################
+
+PARAMETERS : 
+    _PARAMSET    : Name of the set of default parameter set taken by the system. 
+    _FLATTEN     : !!! UNUSED FOR THE MOMENT
+    _DALLOWED    : List of types and dimensions accepted by the system (with None)
+    _DEF_PARAM   : All the informations about useful parameters
+    _dfail       : Parameters that couldn't get loaded because incomplete
+    _lkeys       : List of attributes necessary for a parameter to be added
+    _DPARAM      : Presets of parameters !!! NOT CODED FOR THE MOMENT
+
+FUNCTIONS :    
+    _check_inputs: Check if the the input of the user is in term of format
+    get_params   : Description linked to the function
+    
 """
 
 
