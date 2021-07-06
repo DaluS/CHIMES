@@ -71,26 +71,85 @@ class Solver():
         # Update to check consistency
         _class_checks.update_dparam(dparam=self.__dparam)
 
-    def get_dparam(self, returnas=None):
+    def get_dparam(self, verb=None, returnas=None, **kwdargs):
         """ Return a copy of the input parameters dict
 
         Return as:
             - dict: dict
             - 'DataGFrame': a pandas DataFrame
             - np.ndarray: a dict of np.ndarrays
+            - False: return nothing (useful of verb=True)
+
+        verb:
+            - True: pretty-print the chosen parameters
+            - False: print nothing
         """
 
+        # ----------------------
         # check input
+
         if returnas is None:
             returnas = dict
+        if verb is None:
+            verb = returnas is False
 
-        # return
+        # ----------------------
+        # select relevant parameters
+
+        if len(kwdargs) > 0:
+            # isolate relevant criteria
+            dcrit = {
+                k0: v0 for k0, v0 in kwdargs.items()
+                if k0 in ['dimension', 'units', 'type', 'group']
+            }
+
+            # select param keys matching all critera
+            lk = [
+                k0 for k0 in self.__dparam.keys()
+                if all([
+                    self.__dparam[k0][k1] == dcrit[k1]
+                    for k1 in dcrit.keys()
+                ])
+            ]
+        else:
+            lk = list(self.__dparam.keys())
+
+        # ----------------------
+        # Optional print
+
+        if verb is True:
+            col0 = [
+                'parameter', 'value', 'units', 'dim.', 'symbol',
+                'type', 'group', 'comment',
+            ]
+            ar0 = [
+                tuple([
+                    k0,
+                    str(self.__dparam[k0]['value']),
+                    str(self.__dparam[k0]['units']),
+                    str(self.__dparam[k0]['dimension']),
+                    str(self.__dparam[k0]['symbol']),
+                    str(self.__dparam[k0]['type']),
+                    self.__dparam[k0]['group'],
+                    self.__dparam[k0]['com'],
+                ])
+                for k0 in lk
+            ]
+            _utils._get_summary(
+                lar=[ar0],
+                lcol=[col0],
+                verb=True,
+                returnas=False,
+            )
+
+        # ----------------------
+        # return as dict or array
+
         if returnas is dict:
             # return a copy of the dict
-            return {k0: dict(v0) for k0, v0 in self.__dparam.items()}
+            return {k0: dict(self.__dparam[k0]) for k0 in lk}
 
         elif returnas in [np.ndarray, 'DataFrame']:
-            lk = list(self.__dparam.keys())
             out = {
                 'key': np.array(lk, dtype=str),
                 'value': np.array([
