@@ -8,6 +8,13 @@ import numpy as np
 # Library-specific
 import _utils
 import _class_checks
+import _class_utility
+
+
+# #############################################################################
+# #############################################################################
+#                       Main class
+# #############################################################################
 
 
 class Solver():
@@ -85,88 +92,24 @@ class Solver():
             - False: print nothing
         """
 
-        # ----------------------
-        # check input
+        # list of criteria on which the user can discriminate
+        lcrit = ['dimension', 'units', 'type', 'group']
 
-        if returnas is None:
-            returnas = dict
-        if verb is None:
-            verb = returnas is False
+        # list of fields to be printed if verb = True
+        lprint = [
+            'value', 'units', 'dimension', 'symbol',
+            'type', 'group', 'com',
+        ]
 
-        # ----------------------
-        # select relevant parameters
-
-        if len(kwdargs) > 0:
-            # isolate relevant criteria
-            dcrit = {
-                k0: v0 for k0, v0 in kwdargs.items()
-                if k0 in ['dimension', 'units', 'type', 'group']
-            }
-
-            # select param keys matching all critera
-            lk = [
-                k0 for k0 in self.__dparam.keys()
-                if all([
-                    self.__dparam[k0][k1] == dcrit[k1]
-                    for k1 in dcrit.keys()
-                ])
-            ]
-        else:
-            lk = list(self.__dparam.keys())
-
-        # ----------------------
-        # Optional print
-
-        if verb is True:
-            col0 = [
-                'parameter', 'value', 'units', 'dim.', 'symbol',
-                'type', 'group', 'comment',
-            ]
-            ar0 = [
-                tuple([
-                    k0,
-                    str(self.__dparam[k0]['value']),
-                    str(self.__dparam[k0]['units']),
-                    str(self.__dparam[k0]['dimension']),
-                    str(self.__dparam[k0]['symbol']),
-                    str(self.__dparam[k0]['type']),
-                    self.__dparam[k0]['group'],
-                    self.__dparam[k0]['com'],
-                ])
-                for k0 in lk
-            ]
-            _utils._get_summary(
-                lar=[ar0],
-                lcol=[col0],
-                verb=True,
-                returnas=False,
-            )
-
-        # ----------------------
-        # return as dict or array
-
-        if returnas is dict:
-            # return a copy of the dict
-            return {k0: dict(self.__dparam[k0]) for k0 in lk}
-
-        elif returnas in [np.ndarray, 'DataFrame']:
-            out = {
-                'key': np.array(lk, dtype=str),
-                'value': np.array([
-                    np.nan if self.__dparam[k0]['value'] is None
-                    else self.__dparam[k0]['value']
-                    for k0 in lk
-                ]),
-                'com': np.array([self.__dparam[k0]['com'] for k0 in lk]),
-                'units': np.array([
-                    str(self.__dparam[k0]['units']) for k0 in lk
-                ]),
-            }
-            if returnas == 'DataFrame':
-                import pandas as pd
-                return pd.DataFrame.from_dict(out)
-            else:
-                return out
+        return _class_utility._get_dict_subset(
+            indict=self.__dparam,
+            verb=verb,
+            returnas=returnas,
+            lcrit=lcrit,
+            lprint=lprint,
+            keyname='parameter key',
+            **kwdargs,
+        )
 
     # ##############
     # variables
@@ -184,6 +127,36 @@ class Solver():
         nx = self.__dparam['Nx']['value']
         for k0 in self.__dvar.keys():
             self.__dvar[k0]['value'] = np.full((nt, nx), np.nan)
+
+    def get_dvar(self, verb=None, returnas=None, **kwdargs):
+        """ Return a copy of the variables dict
+
+        Return as:
+            - dict: dict
+            - 'DataGFrame': a pandas DataFrame
+            - np.ndarray: a dict of np.ndarrays
+            - False: return nothing (useful of verb=True)
+
+        verb:
+            - True: pretty-print the chosen parameters
+            - False: print nothing
+        """
+
+        # list of criteria on which the user can discriminate
+        lcrit = ['shape', 'units', 'dimension']
+
+        # list of fields to be printed if verb = True
+        lprint = ['shape', 'units', 'dimension', 'symbol', 'type', 'com']
+
+        return _class_utility._get_dict_subset(
+            indict=self.__dvar,
+            verb=verb,
+            returnas=returnas,
+            lcrit=lcrit,
+            lprint=lprint,
+            keyname='variable key',
+            **kwdargs,
+        )
 
     # ##############
     # functions
