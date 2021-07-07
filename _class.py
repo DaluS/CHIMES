@@ -21,14 +21,29 @@ class Solver():
     """ Generic class
     """
 
-    _MODEL = 'v0'
-    _PARAMSET = _MODEL
-    _VARSET = 'GK'
+    _MODEL = 'GK'
 
-    def __init__(self):
+    def __init__(self, model=None):
         self.__dparam = {}
         self.__dvar = {}
         self.__dfunc = {}
+        if model is not None:
+            self.set_model(model)
+
+    # ##############
+    # model
+
+    def set_model(self, model=None):
+        """ Set the parameters, variables and functions for desired model """
+
+        # Set to default if None
+        if model is None:
+            model = self._MODEL
+
+        # set parameters, variables and functions
+        self.set_dparam(model)
+        self.set_dvar(model)
+        self.set_dfunc(model)
 
     # ##############
     # parameters
@@ -39,7 +54,7 @@ class Solver():
         # If all None => set to self._PARAMSET
         c0 = dparam is None and key is None and value is None
         if c0 is True:
-            dparam = self._PARAMSET
+            dparam = self._MODEL
 
         # Check input: dparam xor (key, value)
         lc = [
@@ -117,12 +132,19 @@ class Solver():
     def set_dvar(self, dvar=None):
         """ Set the dict of variables """
         if dvar is None:
-            dvar = self._VARSET
+            dvar = self._MODEL
         self.__dvar, self.__varset = _class_checks.check_dvar(dvar=dvar)
         self._initialize_var()
 
     def _initialize_var(self):
         """ Create numpy arrays for each variable, full of nans """
+
+        # Check parameters are set
+        if any([ss not in self.__dparam.keys() for ss in ['Nt', 'Nx']]):
+            msg = "Variables cannot be initialized => set parameters first"
+            raise Exception(msg)
+
+        # initialize variables
         nt = self.__dparam['Nt']['value']
         nx = self.__dparam['Nx']['value']
         for k0 in self.__dvar.keys():
@@ -164,8 +186,10 @@ class Solver():
     def set_dfunc(self, dfunc=None):
         """ Set the dict of functions """
         if dfunc is None:
-            dfunc = self._FUNCSET
-        self.__dfunc, self.__funcset = _class_checks.check_dfunc(dfunc=dfunc)
+            dfunc = self._MODEL
+        self.__dfunc, self.__funcset = _class_checks.check_dfunc(
+            dfunc=dfunc, dparam=self.__dparam, dvar=self.__dvar,
+        )
 
     # ##############
     # show summary
@@ -218,10 +242,16 @@ class Solver():
 
         # ----------
         # functions
-        col3 = ['function', 'comment']
+        col3 = ['function', 'args', 'units', 'comment']
         ar3 = [
             tuple([
                 k0,
+                'f(({}), ({}), ({}))'.format(
+                    ', '.join(v0['args_param']),
+                    ', '.join(v0['args_var']),
+                    ', '.join(v0['args_func']),
+                ),
+                v0['units'],
                 v0['com'],
             ])
             for k0, v0 in self.__dfunc.items()
