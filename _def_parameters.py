@@ -62,6 +62,7 @@ _PARAMSET = 'v0'
 # ic['L'] = ic['lambda']*ic['N']
 # ic['W'] = ic['omega']*ic['a']
 
+
 _DALLOWED = {
     'dimension': ['time', 'time rate', 'temperature rate'],
     'type': ['intensive', 'extensive'],
@@ -69,7 +70,9 @@ _DALLOWED = {
 
 
 # ##########################################
-# PARAMETERS PARAMETERS
+# PARAMETERS
+
+
 _DEF_PARAM = {
 
     # --------------
@@ -592,6 +595,7 @@ _DEF_PARAM = {
 #       _DEF_PARAM: Fill in default values and check conformity
 # #############################################################################
 
+
 _dfail = {}
 _lkeys = [
     'value', 'com', 'dimension', 'units', 'type', 'symbol', 'group',
@@ -627,16 +631,12 @@ if len(_dfail) > 0:
 
 
 _DPARAM = {
-    'v0': {k0: dict(v0) for k0, v0 in _DEF_PARAM.items()},
-    'v1': {k0: dict(v0) for k0, v0 in _DEF_PARAM.items()},
-    'GreatAuthor2019': {k0: dict(v0) for k0, v0 in _DEF_PARAM.items()},
+    'GK': {k0: dict(v0) for k0, v0 in _DEF_PARAM.items()},
+    'GK-reduced': {k0: dict(v0) for k0, v0 in _DEF_PARAM.items()},
 }
 
 
-# Modify
-v0 = 'GreatAuthor2019'
-_DPARAM[v0]['b'] = 0.
-_DPARAM[v0]['eta'] = 0.192
+# Modify if necessary
 
 
 # #############################################################################
