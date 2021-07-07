@@ -8,20 +8,42 @@ import numpy as np
 # Library-specific
 import _utils
 import _class_checks
+import _class_utility
+
+
+# #############################################################################
+# #############################################################################
+#                       Main class
+# #############################################################################
 
 
 class Solver():
     """ Generic class
     """
 
-    _MODEL = 'v0'
-    _PARAMSET = _MODEL
-    _VARSET = 'GK'
+    _MODEL = 'GK'
 
-    def __init__(self):
+    def __init__(self, model=None):
         self.__dparam = {}
         self.__dvar = {}
         self.__dfunc = {}
+        if model is not None:
+            self.set_model(model)
+
+    # ##############
+    # model
+
+    def set_model(self, model=None):
+        """ Set the parameters, variables and functions for desired model """
+
+        # Set to default if None
+        if model is None:
+            model = self._MODEL
+
+        # set parameters, variables and functions
+        self.set_dparam(model)
+        self.set_dvar(model)
+        self.set_dfunc(model)
 
     # ##############
     # parameters
@@ -32,7 +54,7 @@ class Solver():
         # If all None => set to self._PARAMSET
         c0 = dparam is None and key is None and value is None
         if c0 is True:
-            dparam = self._PARAMSET
+            dparam = self._MODEL
 
         # Check input: dparam xor (key, value)
         lc = [
@@ -85,88 +107,24 @@ class Solver():
             - False: print nothing
         """
 
-        # ----------------------
-        # check input
+        # list of criteria on which the user can discriminate
+        lcrit = ['dimension', 'units', 'type', 'group']
 
-        if returnas is None:
-            returnas = dict
-        if verb is None:
-            verb = returnas is False
+        # list of fields to be printed if verb = True
+        lprint = [
+            'value', 'units', 'dimension', 'symbol',
+            'type', 'group', 'com',
+        ]
 
-        # ----------------------
-        # select relevant parameters
-
-        if len(kwdargs) > 0:
-            # isolate relevant criteria
-            dcrit = {
-                k0: v0 for k0, v0 in kwdargs.items()
-                if k0 in ['dimension', 'units', 'type', 'group']
-            }
-
-            # select param keys matching all critera
-            lk = [
-                k0 for k0 in self.__dparam.keys()
-                if all([
-                    self.__dparam[k0][k1] == dcrit[k1]
-                    for k1 in dcrit.keys()
-                ])
-            ]
-        else:
-            lk = list(self.__dparam.keys())
-
-        # ----------------------
-        # Optional print
-
-        if verb is True:
-            col0 = [
-                'parameter', 'value', 'units', 'dim.', 'symbol',
-                'type', 'group', 'comment',
-            ]
-            ar0 = [
-                tuple([
-                    k0,
-                    str(self.__dparam[k0]['value']),
-                    str(self.__dparam[k0]['units']),
-                    str(self.__dparam[k0]['dimension']),
-                    str(self.__dparam[k0]['symbol']),
-                    str(self.__dparam[k0]['type']),
-                    self.__dparam[k0]['group'],
-                    self.__dparam[k0]['com'],
-                ])
-                for k0 in lk
-            ]
-            _utils._get_summary(
-                lar=[ar0],
-                lcol=[col0],
-                verb=True,
-                returnas=False,
-            )
-
-        # ----------------------
-        # return as dict or array
-
-        if returnas is dict:
-            # return a copy of the dict
-            return {k0: dict(self.__dparam[k0]) for k0 in lk}
-
-        elif returnas in [np.ndarray, 'DataFrame']:
-            out = {
-                'key': np.array(lk, dtype=str),
-                'value': np.array([
-                    np.nan if self.__dparam[k0]['value'] is None
-                    else self.__dparam[k0]['value']
-                    for k0 in lk
-                ]),
-                'com': np.array([self.__dparam[k0]['com'] for k0 in lk]),
-                'units': np.array([
-                    str(self.__dparam[k0]['units']) for k0 in lk
-                ]),
-            }
-            if returnas == 'DataFrame':
-                import pandas as pd
-                return pd.DataFrame.from_dict(out)
-            else:
-                return out
+        return _class_utility._get_dict_subset(
+            indict=self.__dparam,
+            verb=verb,
+            returnas=returnas,
+            lcrit=lcrit,
+            lprint=lprint,
+            keyname='parameter key',
+            **kwdargs,
+        )
 
     # ##############
     # variables
@@ -174,16 +132,53 @@ class Solver():
     def set_dvar(self, dvar=None):
         """ Set the dict of variables """
         if dvar is None:
-            dvar = self._VARSET
+            dvar = self._MODEL
         self.__dvar, self.__varset = _class_checks.check_dvar(dvar=dvar)
         self._initialize_var()
 
     def _initialize_var(self):
         """ Create numpy arrays for each variable, full of nans """
+
+        # Check parameters are set
+        if any([ss not in self.__dparam.keys() for ss in ['Nt', 'Nx']]):
+            msg = "Variables cannot be initialized => set parameters first"
+            raise Exception(msg)
+
+        # initialize variables
         nt = self.__dparam['Nt']['value']
         nx = self.__dparam['Nx']['value']
         for k0 in self.__dvar.keys():
             self.__dvar[k0]['value'] = np.full((nt, nx), np.nan)
+
+    def get_dvar(self, verb=None, returnas=None, **kwdargs):
+        """ Return a copy of the variables dict
+
+        Return as:
+            - dict: dict
+            - 'DataGFrame': a pandas DataFrame
+            - np.ndarray: a dict of np.ndarrays
+            - False: return nothing (useful of verb=True)
+
+        verb:
+            - True: pretty-print the chosen parameters
+            - False: print nothing
+        """
+
+        # list of criteria on which the user can discriminate
+        lcrit = ['shape', 'units', 'dimension']
+
+        # list of fields to be printed if verb = True
+        lprint = ['shape', 'units', 'dimension', 'symbol', 'type', 'com']
+
+        return _class_utility._get_dict_subset(
+            indict=self.__dvar,
+            verb=verb,
+            returnas=returnas,
+            lcrit=lcrit,
+            lprint=lprint,
+            keyname='variable key',
+            **kwdargs,
+        )
 
     # ##############
     # functions
@@ -191,8 +186,10 @@ class Solver():
     def set_dfunc(self, dfunc=None):
         """ Set the dict of functions """
         if dfunc is None:
-            dfunc = self._FUNCSET
-        self.__dfunc, self.__funcset = _class_checks.check_dfunc(dfunc=dfunc)
+            dfunc = self._MODEL
+        self.__dfunc, self.__funcset = _class_checks.check_dfunc(
+            dfunc=dfunc, dparam=self.__dparam, dvar=self.__dvar,
+        )
 
     # ##############
     # show summary
@@ -245,10 +242,16 @@ class Solver():
 
         # ----------
         # functions
-        col3 = ['function', 'comment']
+        col3 = ['function', 'args', 'units', 'comment']
         ar3 = [
             tuple([
                 k0,
+                'f(({}), ({}), ({}))'.format(
+                    ', '.join(v0['args_param']),
+                    ', '.join(v0['args_var']),
+                    ', '.join(v0['args_func']),
+                ),
+                v0['units'],
                 v0['com'],
             ])
             for k0, v0 in self.__dfunc.items()
