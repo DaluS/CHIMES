@@ -1,13 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Built-in
-import inspect
 
-
-# libray-specific
 import _def_parameters
 import _def_variables
-import _def_functions
 
 
 # #############################################################################
@@ -24,8 +19,8 @@ def _check_dparam(dparam=None):
             isinstance(kk, str)
             and isinstance(vv, dict)
             and all([
-                isinstance(ss, str)
-                and ss in ['value', 'com', 'units', 'group']
+                isinstance(vv, str)
+                and vv in ['value', 'com', 'units', 'group']
                 for ss in vv.keys()
             ])
             and all([ss in vv.keys() for ss in ['value', 'group']])
@@ -94,8 +89,8 @@ def _check_dvar(dvar=None):
             isinstance(kk, str)
             and isinstance(vv, dict)
             and all([
-                isinstance(ss, str)
-                and ss in ['value', 'com', 'units']
+                isinstance(vv, str)
+                and vv in ['value', 'com', 'units']
                 for ss in vv.keys()
             ])
             and all([ss in vv.keys() for ss in ['value']])
@@ -138,30 +133,24 @@ def check_dvar(dvar=None):
 # #############################################################################
 
 
-def _check_dfunc(dfunc=None, dparam=None, dvar=None):
+def _check_dfunc(dfunc=None):
 
-    # list allowed keys
-    largs = ['args_param', 'args_var', 'args_func']
-    lkok = ['func', 'com', 'dimension', 'units', 'type', 'symbol'] + largs
-
-    # check conformity of all keys / values
     c0 = (
         isinstance(dfunc, dict)
         and all([
             isinstance(kk, str)
             and isinstance(vv, dict)
             and all([
-                isinstance(ss, str)
-                and ss in lkok
+                isinstance(vv, str)
+                and vv in ['value', 'com', 'units']
                 for ss in vv.keys()
             ])
-            and all([ss in vv.keys() for ss in ['func']])
-            and hasattr(vv['func'], '__call__')
+            and all([ss in vv.keys() for ss in ['value']])
+            and isinstance(vv['group'], str)
             for kk, vv in dfunc.items()
         ])
+        and all([isinstance(vv)])
     )
-
-    # raise Excepion of non-conformity
     if not c0:
         msg = (
             "Arg dfunc is not conform!\n"
@@ -171,27 +160,20 @@ def _check_dfunc(dfunc=None, dparam=None, dvar=None):
         )
         raise Exception(msg)
 
-    # Automatically get arguments and classify by parameter / variable / func
-    if dparam is not None and dvar is not None:
-        for k0, v0 in dfunc.items():
-            if v0.get('com') is None:
-                dfunc[k0]['com'] = ''
-            if v0.get('units') is None:
-                dfunc[k0]['units'] = 'unknown'
-            if any([v0.get(ss) is None for ss in largs]):
-                # bruteforce determination of input args
-                kargs = set(inspect.getfullargspec(v0['func']).args)
-                dfunc[k0]['args_param'] = list(kargs.intersection(dparam.keys()))
-                dfunc[k0]['args_var'] = list(kargs.intersection(dvar.keys()))
-                dfunc[k0]['args_func'] = list(kargs.intersection(dfunc.keys()))
-    return dfunc
+    for k0, v0 in dfunc.items():
+        if v0.get('com') is None:
+            dfunc[k0]['com'] = ''
+        if v0.get('units') is None:
+            dfunc[k0]['units'] = 'unknown'
+    return dvar
 
 
-def check_dfunc(dfunc=None, dparam=None, dvar=None):
+def check_dfunc(dvar=None):
     funcset = None
     if isinstance(dfunc, str):
         # In this case, dfunc is the name of a functions preset
         funcset = dfunc
-        dfunc = _def_functions.get_functions(funcset=dfunc)
-    dfunc = _check_dfunc(dfunc=dfunc, dparam=dparam, dvar=dvar)
+        dfunc = _def_variables.get_variables(funcset=dfunc)
+    else:
+        dfunc = _check_dvar(dfunc)
     return dfunc, funcset

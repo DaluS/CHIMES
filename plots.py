@@ -7,7 +7,6 @@ Created on Wed Feb  3 12:23:59 2021
 
 import matplotlib.pyplot as plt
 import numpy as np
-import Miscfunc as M
 
 def AllUsefulVariablesSeparate(r,UsefulVarDic,j=0):
     Nvar = len(UsefulVarDic)
@@ -25,22 +24,7 @@ def AllUsefulVariablesSeparate(r,UsefulVarDic,j=0):
         if infos['type']=='intensive' :
             plt.ylim([0,1])
     plt.show()
-        
-
-def PhilAndInvest(p):
-    '''
-    Show behavior functions 
-    '''
-    plt.figure('Behaviors Function')
-    ax1=plt.subplot(121)
-    ax2=plt.subplot(122)
-    plt.title('Behavior functions')
-    x = np.arange(0,1,0.01)
-    ax1.plot(x,M.philips(x,p));ax1.set_xlabel('$\lambda$');ax1.set_ylabel('$\Phi(\lambda)$')
-    ax2.semilogy(x,M.fk(x,p)     );ax2.set_xlabel('$\pi$');ax2.set_ylabel('$\kappa(\pi)$')
-    plt.show()
-    
-    
+            
 def GoodwinKeenTypical(r,p,title=''):  
     '''
     Typical 3-Dimension phase-plot
@@ -87,7 +71,6 @@ def GraphesIntensive(r,p):
     plt.subplot(325);plt.plot(r['t'],r['i']    ,);plt.xlabel('time');plt.ylabel('inflation')    
     plt.subplot(326);plt.plot(r['t'],r['g']    ,);plt.xlabel('time');plt.ylabel('growth')
     plt.show()
-
 
 def GraphesExtensive(r,p,j=0):   
     plt.figure('IntensiveVariable',figsize=(10,5))
