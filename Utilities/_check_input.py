@@ -125,7 +125,7 @@ def _check_inputs(
         
 
     return {'SystemOfEquation' : SystemOfEquation,
-            #InitialDictionnary,
+            'InitialDictionnary' : InitialDictionnary,
             'Value_Changes' : Value_Changes,
             'plot' : plot,
             'timeit' : timeit,

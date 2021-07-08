@@ -31,7 +31,7 @@ def parnum(Changes):
     
     return parNum
 
-def initCond(p,parNum):
+def initCond(p,parNum,Changes):
     '''
     Determine the initial conditions that are used by the system to iterate on
     '''
@@ -63,12 +63,14 @@ def initCond(p,parNum):
     ic['D'] = ic['d']*ic['Y']       # Debt 
     ic['W'] = ic['omega']*ic['a']   # Salary
  
- 
+    c = Changes['Initial conditions']
+    for k,v in c.items():
+        ic[k] = v 
 
     
     return ic
 
-def BasicParameters(Changes):
+def BasicParameters(Initialdic,Changes):
     """
     Create a dictionnary containing all the "phyiscal" parameters necessary 
     for the simulation. Their description is in comment here. 
@@ -162,4 +164,9 @@ def BasicParameters(Changes):
     params['lambdamin']  = 1- np.sqrt( params['phi1']/(params['alpha']+
                                                        params['phi0'])) # Same
     params['lambdamax']  = .98
+    
+    c = Changes['Parameters']
+    for k,v in c.items():
+        params[k] = v 
+        
     return params

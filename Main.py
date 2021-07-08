@@ -86,12 +86,12 @@ def run(
 
     """
 
-    # CHECKING OF INITIAL VALUES  ###################
+    # CHECK OF USER WILL  ###################
     '''
     Looks at the input ( _DEFAULTPARAMETERS, or through argparser, or through 
     '''
 
-    #!#!#!#! MOST CHECKS ARE NOT DONE
+    #!#!#!#! MOST CHECKS ARE NOT DONE IN THIS VERSION
     MainParameters = CheckInput._check_inputs(
         _DEFAULTPARAMETERS,
         SystemOfEquation    ,
@@ -106,23 +106,27 @@ def run(
     )
 
 
-    # LOAD #####################  
+
+    # LOAD #############################  
     parNum   = Par.parnum         (MainParameters['Value_Changes'])     # Value of numerical parameters 
-    params   = Par.BasicParameters(MainParameters['Value_Changes'])     # Value of "Physical" parameters 
-    initCond = Par.initCond(params ,parNum)                             # Value of the initial parameters
+    params   = Par.BasicParameters(MainParameters['InitialDictionnary'],
+                                   MainParameters['Value_Changes'])     # Value of "Physical" parameters 
+    initCond = Par.initCond(params ,
+                            parNum,
+                            MainParameters['Value_Changes'])            # Value of the initial parameters 
+
+
+    # PREPARE ##########################                      
     CORE     = C.CORE(MainParameters['SystemOfEquation'],params,parNum) # The core of the system for resolution and parameters
     
-    # ANNOUNCEMENT #####################
-    if parNum['verb']: print(CORE.description)
     
-    # VERBATIM FOR THE USER ###########
-    ###################################
-    if parNum['verb']:
+    # ANNOUNCEMENT #####################
+    if parNum['verb']: 
+        print(CORE.description)
         CORE.printParameters()
 
 
-    # TIME RESOLUTION #################
-    ###################################
+    # COMPUTATION #######################
     if timeit is True:
         tim = time.time()
         print('Start simulation...', end='')
@@ -135,26 +139,28 @@ def run(
         print('done! elapsed time: {} s'.format(time_elasped))
 
 
-    # Results interpretation ##########
-    # #################################
-
-    """Now the simulation is done => translate results to more readable format
-    r = expansion of Y_s into all relevant variables, as a dict
-    Then, other parts are simply plots of the result"""
+    # RESULT EXPANSION ################
     results = CORE.expandY_simple(Y_s, t_s)  # Result dictionnary 
     #results = M.getperiods(results, parNum)         # Period measurements 
-
     UsefulVarDic, OrganisedVar = VarD.VariableDictionnary(results)
 
-
-    # PLOTS ###########################
-    # #################################
-
-    if plot is True:
+    if MainParameters['plot']:
         #eqsys.plotlitst_simple(results,parNum)
         plts.AllUsefulVariablesSeparate(results, UsefulVarDic)
 
+    # OUTPUT ###########################
+    if MainParameters['returnALL']: 
+        CORE.results=results 
+        CORE.Comments = MainParameters['Comments']
+        return CORE
 
+    if MainParameters['save']:
+        Savefold = MainParameters['savepath']
+        
+        
+        
+        
+        
 # #############################################################################
 # #############################################################################
 #                   Handle bash
