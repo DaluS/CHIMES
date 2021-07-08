@@ -21,16 +21,15 @@ import Utilities._check_input as CheckInput # Verify the argparsed elements
 # IMPORTATION OF ALL THE SYSTEM OF EQUATIONS 
 #!#!#! FOR THE MOMENT ONLY ONE SYSTEM IS IMPORTED 
 import SystemOfEquations.GK_Noinflation as GK_Noinflation
-
+import SystemOfEquations.G_Reduced as G_Reduced
 
 # Default parameter values for main control
 _DEFAULTPARAMETERS = {
-            'SystemOfEquation'  : GK_Noinflation.MODEL(),
+            'SystemOfEquation'  : G_Reduced.MODEL(),
             'InitialDictionnary': None,
             'Value_Changes'     :{'NumParameters'      : {},
                                   'Initial conditions' : {},
                                   'Parameters'         : {},
-                                  'ParNum'             : {},
                                   'TypeOfArrays'       : 'lin' #log
                                   },
             'plot'              : True,
@@ -39,7 +38,7 @@ _DEFAULTPARAMETERS = {
             'savepath'          : os.path.dirname(__file__),
             'returnAll'         : False,
             'Comments'          : "",
-                    }
+                     }
 
 
 # #############################################################################
@@ -131,7 +130,7 @@ def run(
         tim = time.time()
         print('Start simulation...', end='')
 
-    y = CORE.initializeY(initCond) # vector y contains all states of time t.
+    y = CORE.initializeY(initCond) # vector y contains all states at time t.
     Y_s, t_s = CORE.TemporalLoop(y) # Calculation of all timesteps
 
     if timeit is True:
