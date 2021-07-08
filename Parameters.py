@@ -5,22 +5,16 @@ PARAMETERS FOR GOODWIN-KEEN LIKE MODELS
 
 import numpy as np
 
-
-def Modifications(params,parnum):
-    """
-    FOR THE MOMENT DOES NOTHING ! 
-    """
-    return params
-
-
-def parnum():
+def parnum(Changes):
     '''
     Contains all numerical parameters needed for temporal and spatial resolution
     '''
-
+    #!#!#!#!#! OVERRIDE Nx IF NECESSARY
+    
+    
     parNum={
         'Tmax' : 100,       # Duration of simulation    
-        'Nx'   : 1,         # Number of similar systems evolving in parrallel
+        'Nx'   : 10,         # Number of similar systems evolving in parrallel
         'dt'   : 0.01,        # Timestep (fixed timestep method)  
         'verb' : True,      # Printing elements
     }
@@ -29,9 +23,15 @@ def parnum():
     parNum['Tstore']     = parNum['dt']                         # Time between two storage (if StorageMode=full, it goes to dt)
     parNum['Nt']         = int(parNum['Tmax']/parNum['dt'])         # Number of temporal iteration          
     parNum['Ns']         = int(parNum['Tmax']/parNum['Tstore'])+1   # Number of elements stored
+    
+    ################### TAKING INTO ACCOUNT CHANGES ###########################
+    c = Changes['ParNum']
+    for k,v in c.items():
+        parNum[k] = v 
+    
     return parNum
 
-def initCond(p,parNum):
+def initCond(p,parNum,Changes):
     '''
     Determine the initial conditions that are used by the system to iterate on
     '''
@@ -63,12 +63,14 @@ def initCond(p,parNum):
     ic['D'] = ic['d']*ic['Y']       # Debt 
     ic['W'] = ic['omega']*ic['a']   # Salary
  
- 
+    c = Changes['Initial conditions']
+    for k,v in c.items():
+        ic[k] = v 
 
     
     return ic
 
-def BasicParameters():
+def BasicParameters(Initialdic,Changes):
     """
     Create a dictionnary containing all the "phyiscal" parameters necessary 
     for the simulation. Their description is in comment here. 
@@ -162,4 +164,9 @@ def BasicParameters():
     params['lambdamin']  = 1- np.sqrt( params['phi1']/(params['alpha']+
                                                        params['phi0'])) # Same
     params['lambdamax']  = .98
+    
+    c = Changes['Parameters']
+    for k,v in c.items():
+        params[k] = v 
+        
     return params
