@@ -16,16 +16,14 @@ _DPARAM = {
 
     # ---------
     # Fixed-value parameters
-    'r': {'value': None},
-    'k0': {'value': None},
-    'k1': {'value': None},
-    'k2': {'value': None},
-    'alpha': {'value': None},
-    'delta': {'value': None},
-    'beta': {'value': None},
-    'nu': {'value': None},
-    'phi0': {'value': None},
-    'phi1': {'value': None},
+    'r': None,
+    'k0': None,
+    'k1': None,
+    'k2': None,
+    'alpha': None,
+    'delta': None,
+    'beta': None,
+    'nu': None,
 
     # ---------
     # functions
@@ -34,20 +32,20 @@ _DPARAM = {
     'a': {
         'value': lambda alpha=0, a=0: alpha * a,
         'com': 'Exogenous technical progress as an exponential',
-        'type': 'differential',
+        'eqtype': 'differential',
     },
     'N': {
-        'value': lambda beta=0, N=0 : beta*N,
+        'value': lambda beta=0, N=0: beta*N,
         'com': 'Exogenous population as an exponential',
-        'type': 'differential',
+        'eqtype': 'differential',
     },
     'K': {
         'value': lambda I=0, K=0, delta=0: I - K*delta,
         'com' : 'Capital evolution from investment and depreciation',
-        'type': 'differential',
+        'eqtype': 'differential',
     },
     'W': {
-        'value': lambda W=0, philips=0 : W * philips,
+        'value': lambda W=0, philips=0: W * philips,
         'com': 'Wage evolution through philips curve',
         'type': 'differential',
     },
@@ -57,7 +55,7 @@ _DPARAM = {
         'type': 'differential',
     },
 
-    # Intermediary
+    # Intermediary computed but not stored
     'Y': {
         'value': lambda K=0, nu=0: K / nu,
         'type': 'intermediary',
@@ -70,7 +68,7 @@ _DPARAM = {
         'value': lambda Y=0, W=0, L=0, r=0, D=0: Y - W*L - r*D,
         'type': 'intermediary',
     },
-    'lamb': {
+    'lambda': {
         'value': lambda L=0, N=0: L / N,
         'type': 'intermediary',
     },
@@ -79,7 +77,7 @@ _DPARAM = {
         'type': 'intermediary',
     },
     'philips': {
-        'value': lambda phi0=0,  phi1=0, lambd=0: -phi0 + phi1 / (1-lambd)**2,
+        'value': lambda phi0=0,  phi1=0, lamb=0: -phi0 + phi1 / (1-lamb)**2,
         'type': 'intermediary',
     },
     'kappa': {
@@ -90,6 +88,8 @@ _DPARAM = {
         'value': lambda Y=0, kappa=0: Y * kappa,
         'type': 'intermediary',
     },
+
+    # auxiliary, not computed, but can be retrieved at the end
     'g': {
         'value': lambda omega=0, nu=0, delta=0: (1-omega) / nu - delta,
         'type': 'auxilliary',
@@ -106,4 +106,20 @@ _DPARAM = {
         'value': lambda Y=0: Y*0,
         'type': 'auxilliary',
     },
+    'phi0': {
+        'value': lambda phinull=0: phinul / (1- phinul**2),
+        'type': 'auxilliary',
+    },
+    'phi1': {
+        'value': lambda phinull=0: phinul**3 / (1- phinul**2),
+        'type': 'auxilliary',
+    },
 }
+
+
+# #############################################################################
+# #############################################################################
+#                       Add set of pre-defined parameter values
+# #############################################################################
+
+

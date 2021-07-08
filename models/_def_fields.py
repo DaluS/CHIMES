@@ -233,6 +233,24 @@ _DFIELDS = {
         'symbol': r'$\phi_0$',
         'group': 'Philips',
     },
+    'phi0': {
+        'value': None,
+        'com': '',
+        'dimension': None,
+        'units': None,
+        'type': '',
+        'symbol': r'$\phi_0$',
+        'group': 'Philips',
+    },
+    'phi1': {
+        'value': None,
+        'com': '',
+        'dimension': None,
+        'units': None,
+        'type': '',
+        'symbol': r'$\phi_0$',
+        'group': 'Philips',
+    },
 
     # --------------
     # KEEN INVESTMENT FUNCTION (profit-investment function)
@@ -595,7 +613,7 @@ _DFIELDS = {
         'symbol': r'$\omega$',
         'group': 'Economy',
     },
-    'lambda': {
+    'lamb': {
         'value': .675,
         'com': 'employment rate',
         'dimension': '',
@@ -798,6 +816,43 @@ _DFIELDS = {
         'type': '',
         'symbol': r'$\kappa$',
         'group': 'Economy',
+    },
+    # Missing
+    'Y': {
+        'value': None,
+        'com': '',
+        'dimension': '',
+        'units': '',
+        'type': '',
+        'symbol': r'$Y$',
+        'group': 'Missing',
+    },
+    'L': {
+        'value': None,
+        'com': '',
+        'dimension': '',
+        'units': '',
+        'type': '',
+        'symbol': r'$L$',
+        'group': 'Missing',
+    },
+    'i': {
+        'value': None,
+        'com': '',
+        'dimension': '',
+        'units': '',
+        'type': '',
+        'symbol': r'$i$',
+        'group': 'Missing',
+    },
+    'I': {
+        'value': None,
+        'com': '',
+        'dimension': '',
+        'units': '',
+        'type': '',
+        'symbol': r'$I$',
+        'group': 'Missing',
     },
 }
 
