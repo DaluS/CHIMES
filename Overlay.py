@@ -5,17 +5,20 @@ THIS CODE IS AN OVERLAY ON GEMMES TO CONTROL WHAT HAPPENS IN THE CODE
 THIS CODE SHOULD BE USED IN AN IPYTHON INTERFACE TO CONTROL IT
 """
 
+
 import Main
 import os 
+
 
 ########################### THE TYPICAL VARIABLES #############################
 SystemOfEquation   = None
 InitialDictionnary = None
-Value_Changes      = { 'Initial conditions' : {},
-                       'Parameters'         : {},
-                       'ParNum'             : {},
-                       'TypeOfArrays'       : 'lin' #log
-                     }
+Value_Changes      = {
+    'Initial conditions' : {},
+    'Parameters'         : {},
+    'ParNum'             : {},
+    'TypeOfArrays'       : 'lin' #log
+}
 plot               = True # True or False
 verb               = True 
 timeit             = True # True or False
@@ -41,7 +44,6 @@ Value_Changes = { 'NumParameters'      : {},
                   }
 
 
-
 Result = Main.run(SystemOfEquation,   
                   InitialDictionnary,
                   Value_Changes,     
@@ -53,17 +55,7 @@ Result = Main.run(SystemOfEquation,
                   Comments,)          
 
 
-
-
-
-
-
-
-
-
-
-
-
+# functions
 
 
 def ListAvailableSystemOfEquation():
