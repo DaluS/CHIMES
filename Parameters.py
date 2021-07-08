@@ -42,7 +42,7 @@ def initCond(p,parNum,Changes):
         ### INTENSIVE VARIABLES 
         'd'      : v1*0.1,           # relative debt
         'omega'  : v1*p['omega0'],   # wage share
-        'lambda' : v1*.97,            # employement
+        'lambda' : v1*.96,            # employement
         't'      : v1*0,             # initial time 
 
         ### INITIAL EXTENSIVE VARIABLES 

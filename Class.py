@@ -139,8 +139,7 @@ HAS A METHOD #######################
             y[k0]=self.intermediaryfuncs[k0](y,p)
         
         #III## CALCULATE EVOLUTION OF DYNAMIC VARIABLES  
-        dy = {k0: v0(y,p) for k0, v0 in self.variables.items() }
-        
+        dy = {k0: v0(y,p) for k0, v0 in self.variables.items() } 
         return np.array([dy[j]*p['dt'] for j in self.variables])
  
     

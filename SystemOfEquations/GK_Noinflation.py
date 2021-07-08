@@ -10,11 +10,18 @@ class MODEL():
     """
     MODEL : GOODWIN-KEEN NO INFLATION
     
-    DESCRIPTION : Extensive variable dynamics of a simple Goodwin-Keen model.  
-    
-    LINKTOARTICLE : 
+    Extensive variable dynamics of a simple Goodwin-Keen model.  
+    Ingredients :
+        * Leontiev Function
+        * Instant labor optimization 
+        * Philips curve negociation 
+        * Instant capital creation 
+        * No-behavior bank, investment of profit
+        * Say's Law 
+        * Exogeneous population growth
+        * Exogeneous worker productivity
     """
-    
+
     def __init__(self):            
         self.EQUATIONS = { 
             ### DYNAMICALLY-DEFINED ELEMENTS     
