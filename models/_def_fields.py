@@ -224,7 +224,7 @@ _DFIELDS = {
 
     # --------------
     # PHILIPS CURVE (employement-salary increase)
-    'phinul': {
+    'phinull': {
         'value': 0.04,
         'com': 'Unemployment rate that stops salary increase (no inflation)',
         'dimension': None,
@@ -613,7 +613,7 @@ _DFIELDS = {
         'symbol': r'$\omega$',
         'group': 'Economy',
     },
-    'lamb': {
+    'lambda': {
         'value': .675,
         'com': 'employment rate',
         'dimension': '',
