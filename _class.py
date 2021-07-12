@@ -15,14 +15,22 @@ class Solver():
 
     _MODEL = 'GK'
 
-    def __init__(self):
+    def __init__(self, model=None):
         self.__dparam = {}
-        self.__dfunc = {}
+        self.__func_order = None
+        if model is not None:
+            self.set_dparam(dparam=model)
 
     # ##############
     # parameters
 
-    def set_dparam(self, dparam=None, key=None, value=None):
+    def set_dparam(
+        self,
+        dparam=None,
+        key=None, value=None,
+        func_order=None,
+        reset=None,
+    ):
         """ Set the dict of input parameters (dparam) or a single param """
 
         # If all None => set to self._PARAMSET
@@ -32,7 +40,7 @@ class Solver():
 
         # Check input: dparam xor (key, value)
         lc = [
-            dparam is not None,
+            dparam is not None or func_order is not None,
             key is not None and value is not None,
         ]
         if np.sum(lc) != 1:
@@ -43,30 +51,73 @@ class Solver():
                 ]
             ]
             msg = (
-                "Please provide dparam xor (key, value)!\n"
+                "Please provide dparam/func_order xor (key, value)!\n"
                 + "You provided:\n"
                 + "\n".format(lstr)
             )
             raise Exception(msg)
 
         # set dparam or update desired key
-        if dparam is not None:
-            self.__dparam, self.__model = _class_checks.check_dparam(
-                dparam=dparam,
-            )
-        else:
-            if key not in self.__dparam.keys():
+        if dparam is None:
+            if func_order is not None:
+                dparam = self.__dparam
+            elif key not in self.__dparam.keys():
                 msg = (
                     "key {} is not identified!\n".format(key)
                     + "See get_dparam() method"
                 )
                 raise Exception(msg)
-            self.__dparam[key]['value'] = value
+            dparam = dict(self.__dparam)
+            dparam[key]['value'] = value
+
+        # func_order as previous if not provided
+        if func_order is None:
+            func_order = self.__func_order
 
         # Update to check consistency
-        self.__dparam, self.__lfunc = _class_checks.update_dparam(
-            dparam=self.__dparam,
+        (
+            self.__dparam,
+            self.__model,
+            self.__func_order,
+        ) = _class_checks.check_dparam(
+            dparam=dparam, func_order=func_order,
         )
+
+        # reset variable
+        if reset is None:
+            reset = True
+
+    # #############
+    # Read-only properties
+
+    @property
+    def lfunc(self):
+        return [
+            k0 for k0, v0 in self.__dparam.items()
+            if v0.get('eqtype') is not None
+        ]
+
+    @property
+    def func_order(self):
+        return self.__func_order
+
+    # #############
+    # reset
+
+    def reset(self):
+        """ Re-initializes all variables
+
+        Only the first time step (initial values) is preserved
+        All other time steps are set to nan
+        """
+
+        # reset ode variables
+        for k0 in self.lfunc:
+            if self.__dparam[k0]['eqtype'] == 'ode':
+                self.__dparam[k0]['value'][0, :] = self.__dparam[k0]['initial']
+                self.__dparam[k0]['value'][1:, :] = np.nan
+            else:
+                self.__dparam[k0]['value'][:, :] = np.nan
 
     def get_dparam(self, verb=None, returnas=None, **kwdargs):
         """ Return a copy of the input parameters dict
@@ -97,14 +148,14 @@ class Solver():
             # isolate relevant criteria
             dcrit = {
                 k0: v0 for k0, v0 in kwdargs.items()
-                if k0 in ['dimension', 'units', 'type', 'group']
+                if k0 in ['dimension', 'units', 'type', 'group', 'eqtype']
             }
 
             # select param keys matching all critera
             lk = [
                 k0 for k0 in self.__dparam.keys()
                 if all([
-                    self.__dparam[k0][k1] == dcrit[k1]
+                    self.__dparam[k0].get(k1) == dcrit[k1]
                     for k1 in dcrit.keys()
                 ])
             ]
@@ -168,19 +219,42 @@ class Solver():
     # ##############
     # variables
 
-    def set_dvar(self, dvar=None):
-        """ Set the dict of variables """
-        if dvar is None:
-            dvar = self._VARSET
-        self.__dvar, self.__varset = _class_checks.check_dvar(dvar=dvar)
-        self._initialize_var()
+    def get_variables_compact(self, eqtype=None):
+        """ Return a compact numpy arrays containing all variable
 
-    def _initialize_var(self):
-        """ Create numpy arrays for each variable, full of nans """
-        nt = self.__dparam['Nt']['value']
-        nx = self.__dparam['Nx']['value']
-        for k0 in self.__dvar.keys():
-            self.__dvar[k0]['value'] = np.full((nt, nx), np.nan)
+        Return
+            - compact np.ndarray of all variables
+            - list of variable names, in the same order
+            - array of indices
+        """
+        # check inputs
+        leqtype = ['ode', 'intermediary', 'auxiliary']
+        if eqtype is None:
+            eqtype = ['ode', 'intermediary']
+        if isinstance(eqtype, str):
+            eqtype = [eqtype]
+            if any([ss not in leqtype for ss in eqtype]):
+                msg = (
+                    f"eqtype must be in {leqtype}\n"
+                    f"You provided: {eqtype}"
+                )
+                raise Exception(msg)
+
+        # list of keys of variables
+        keys = np.array([
+            k0 for k0, v0 in self.__dparam.items()
+            if v0.get('eqtype') in leqtype
+        ], dtype=str)
+
+        # get compact variable array
+        variables = np.array([
+            self.__dparam[k0]['value'] for k0 in keys
+        ])
+
+        # get indices array of input arguments
+        indices = None
+
+        return keys, variables, indices
 
     # ##############
     # show summary
@@ -232,21 +306,124 @@ class Solver():
         ]
 
         # ----------
-        # functions
-        col3 = ['function', 'comment']
-        ar3 = [
-            tuple([
-                k0,
-                v0['com'],
-            ])
-            for k0, v0 in self.__dfunc.items()
-        ]
-
-        # ----------
         # format output
         return _utils._get_summary(
-            lar=[ar0, ar1, ar2, ar3],
-            lcol=[col0, col1, col2, col3],
+            lar=[ar0, ar1, ar2],
+            lcol=[col0, col1, col2],
             verb=True,
             returnas=False,
         )
+
+    # ----------
+    # run simulation
+
+    def run(self, verb=None):
+        """ Run the simulation
+
+        Compute each time step from the previous one using:
+            - parameters
+            - differentials (ode)
+            - intermediary functions in specified func_order
+
+        """
+        # ------------
+        # check inputs
+        if verb in [None, True]:
+            verb = 1
+        if verb == 1:
+            end = '\r'
+            flush = True
+        elif verb == 2:
+            end = '\n'
+            flush = False
+
+        # ------------
+        # reset variables
+        self.reset()
+
+        # time vector
+        nt = self.__dparam['nt']['value']
+
+        # ------------
+        # temporary dict of input
+        lode = list(self.get_dparam(eqtype='ode').keys())
+        linter = self.__func_order
+        dargs = {
+            k0: (
+                self.__dparam[k0]['args']['ode']
+                + self.__dparam[k0]['args']['intermediary']
+            )
+            for k0 in lode + linter
+        }
+
+        # ------------
+        # start time loop
+        for ii in range(nt):
+
+            # log if verb > 0
+            if verb > 0:
+                if ii == nt-1:
+                    end = '\n'
+                msg = (
+                    f'time step {ii+1} / {nt}'
+                )
+                print(msg, end=end, flush=flush)
+
+            # compute intermediary functions, in good order
+            for k0 in linter:
+                kwdargs = {
+                    k1: self.__dparam[k1]['value'][ii, :]
+                    for k1 in dargs[k0]
+                }
+                if 'lambda' in dargs[k0]:
+                    kwdargs['lamb'] = kwdargs['lambda']
+                    del kwdargs['lambda']
+                self.__dparam[k0]['value'][ii, :] = (
+                    self.__dparam[k0]['func'](
+                        **kwdargs
+                    )
+                )
+
+            # no need to compute ode of next step if already at last time step
+            if ii == nt-1:
+                break
+
+            # compute ode variables from ii-1, using rk4
+            for k0 in lode:
+                kwdargs = {
+                    k1: self.__dparam[k1]['value'][ii, :] for k1 in dargs[k0]
+                }
+                if 'lambda' in dargs[k0]:
+                    kwdargs['lamb'] = kwdargs['lambda']
+                    del kwdargs['lambda']
+
+                self.__dparam[k0]['value'][ii+1, :] = (
+                    self.__dparam[k0]['value'][ii, :]
+                    + self._rk4(
+                        k0=k0,
+                        y=self.__dparam[k0]['value'][ii, :],
+                        kwdargs=kwdargs,
+                    )
+                )
+
+            # update time
+            time[ii+1] = time[ii] + self.__dparam['dt']['value']
+
+    def _rk4(self, k0=None, y=None, kwdargs=None):
+        """
+        a traditional RK4 scheme, with:
+            - y = array of all variables
+            - p = parameter dictionnary
+        dt is contained within p
+        """
+        if 'itself' in self.__dparam[k0]['kargs']:
+            dy1 = self.__dparam[k0]['func'](itself=y, **kwdargs)
+            dy2 = self.__dparam[k0]['func'](itself=y+dy1/2., **kwdargs)
+            dy3 = self.__dparam[k0]['func'](itself=y+dy2/2., **kwdargs)
+            dy4 = self.__dparam[k0]['func'](itself=y+dy3, **kwdargs)
+        else:
+            dy1 = self.__dparam[k0]['func'](**kwdargs)
+            dy2 = self.__dparam[k0]['func'](**kwdargs)
+            dy3 = self.__dparam[k0]['func'](**kwdargs)
+            dy4 = self.__dparam[k0]['func'](**kwdargs)
+        return (dy1 + 2*dy2 + 2*dy3 + dy4) * self.__dparam['dt']['value']/6.
