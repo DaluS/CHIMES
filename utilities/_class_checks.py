@@ -21,16 +21,26 @@ _PATH_MODELS = os.path.join(os.path.dirname(_PATH_HERE), 'models')
 
 # #############################################################################
 # #############################################################################
-#                       dparam checks
+#                       dparam checks - low-level basis
 # #############################################################################
 
 
 _LTYPES = [int, float, np.int_, np.float_]
 _LEQTYPES = ['ode', 'intermediary', 'auxiliary']
-_LEXTRAKEYS = ['kargs', 'args']
+_LEXTRAKEYS = ['func', 'kargs', 'args', 'initial', 'source']
 
 
 def _check_dparam(dparam=None):
+    """ Check basic properties of dparam
+
+    It must be a dict
+    with only str as keys
+    with only some fields allowed for each key
+    with values that can be scalars or functions
+
+    <Missing fields are filled in from defaults values in models._DFIELDS
+
+    """
 
     # check type
     if not isinstance(dparam, dict):
@@ -68,12 +78,10 @@ def _check_dparam(dparam=None):
             if len(lk) > 0:
                 dfail[k0] = f"Invalid keys: {lk}"
                 continue
-            if 'value' not in v0.keys():
-                dfail[k0] = "dict must have key 'value'"
+            if ('value' not in v0.keys() and 'func' not in v0.keys()):
+                dfail[k0] = "dict must have key 'value' or 'func'"
                 continue
-            if v0['value'] is None or type(v0) in _LTYPES + [list, np.ndarray]:
-                pass
-            elif hasattr(v0['value'], '__call__'):
+            if v0.get('func') is not None and hasattr(v0['func'], '__call__'):
                 if 'eqtype' not in v0.keys():
                     dfail[k0] = "For a function, key 'eqtype' must be provided"
                     continue
@@ -83,16 +91,22 @@ def _check_dparam(dparam=None):
                         f"allowed: {_LEQTYPES}"
                     )
                     continue
+            elif (
+                v0['value'] is None
+                or type(v0) in _LTYPES + [list, np.ndarray]
+            ):
+                pass
 
     if len(dfail) > 0:
         lstr = [f'\t- {kk}: {vv}' for kk, vv in dfail.items()]
         msg = (
             "Arg dparam must be of the form:\n"
-            "{key0: {'value': v0}, key1: ...}\n\n"
+            "{key0: {'value': v0}, key1: {'func': lambda ...: ...}, ...}\n\n"
             "Where value can be:\n"
             "\t- scalar: int or float\n"
             "\t- array: for benchmarks\n"
-            "\t- function: will be associated to a variable\n\n"
+            "And where func is and callable "
+            "(and will be associated to a variable in 'value')\n\n"
             "The following non-conformities have been found:\n"
             + "\n".join(lstr)
         )
@@ -116,7 +130,24 @@ def _check_dparam(dparam=None):
     return dparam
 
 
-def check_dparam(dparam=None):
+# #############################################################################
+# #############################################################################
+#                       dparam checks - high-level
+# #############################################################################
+
+
+def check_dparam(dparam=None, func_order=None, method=None):
+    """ Check user-provided dparam
+
+    dparam can be:
+        - a dict of parameters / functions
+        - a str: the name of a predefined model (loaded from file)
+
+    After loading (if necessary):
+        - the dict basic conformity is checked
+        - All functions are checked, as well as the func_order
+
+    """
 
     # if str => load from file
     if isinstance(dparam, str):
@@ -138,43 +169,63 @@ def check_dparam(dparam=None):
             raise Exception(msg)
         model = {dparam: df[dparam]}
         dparam = getattr(models, dparam)._DPARAM
+        if func_order is None:
+            if hasattr(getattr(models, list(model.keys())[0]), '_FUNC_MODEL'):
+                func_order = getattr(models, model)._FUNC_ORDER
     else:
         model = 'custom'
 
     # check conformity
     dparam = _check_dparam(dparam)
-    return dparam, model
-
-
-def update_dparam(dparam=None):
 
     # Update numerical group
-    c0 = all([ss in dparam.keys() for ss in ['dt', 'Nt', 'Tmax']])
+    c0 = all([ss in dparam.keys() for ss in ['dt', 'nt', 'Tmax']])
     if c0 is True:
         dparam['Tstore']['value'] = dparam['dt']['value']
-        dparam['Nt']['value'] = int(
+        dparam['nt']['value'] = int(
             dparam['Tmax']['value'] / dparam['dt']['value']
         )
-        dparam['Ns']['value'] = int(
-            dparam['Tmax']['value'] / dparam['Tstore']['value']
-        ) + 1
 
     # Identify functions
-    dparam, lf = _check_func(dparam)
-    return dparam, lf
+    dparam, func_order = _check_func(
+        dparam,
+        func_order=func_order,
+        method=method,
+    )
+    return dparam, model, func_order
 
 
 # #############################################################################
 # #############################################################################
-#                       dfunc checks
+#                       functions checks - low-level basis
 # #############################################################################
 
 
-def _check_func(dparam=None, func_order=None):
+def _check_func(dparam=None, func_order=None, method=None):
+    """ Check basic conformity of functions
+
+    They must:
+        - have only known input arguments
+        - no circular dependency
+        - the right type (e.g.: itself in args => ode)
+        - must work with default value (to detect typos)
+        - no auxiliary function should be used for computation
+
+    Functions that depend only on fixed parameters are replaced by the computed
+    parameter value
+
+    For real functions, the dict is then completed with:
+        - a sub-dict of their input arguments, claissified by types
+        - the source
+        - a np.ndarray is created for each, to hold its time-dependent variable
+
+    If not user-provided, an order can be suggested for function execution
+
+    """
 
     # -------------------------------------
     # extract parameters that are functions 
-    lf = [k0 for k0, v0 in dparam.items() if hasattr(v0['value'], '__call__')]
+    lf = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
     lfi = list(lf)
 
     # ---------------------------------------
@@ -182,45 +233,53 @@ def _check_func(dparam=None, func_order=None):
     dfail = {}
     for k0 in lf:
         v0 = dparam[k0]
-        kargs = inspect.getfullargspec(v0['value']).args
+        kargs = inspect.getfullargspec(v0['func']).args
 
         # Replace lamb by lambda
         if 'lamb' in kargs:
             kargs[kargs.index('lamb')] = 'lambda'
 
         # check if any parameter is unknown
-        lkok = ['self'] + list(dparam.keys())
+        lkok = ['itself'] + list(dparam.keys())
         lkout = [kk for kk in kargs if kk not in lkok]
         if len(lkout) > 0:
             dfail[k0] = f"depend on unknown parameters: {lkout}"
             continue
 
         # check ode
-        if 'self' in kargs and v0['eqtype'] != 'ode':
-            dfail[k0] = f"self in args => eqtype = 'ode' ({v0['eqtype']})!"
+        if 'itself' in kargs and v0['eqtype'] != 'ode':
+            dfail[k0] = f"itself in args => eqtype = 'ode' ({v0['eqtype']})!"
             continue
+
+        # if ode => inital value necessary
+        if v0['eqtype'] == 'ode' and type(v0.get('initial')) not in _LTYPES:
+            dfail[k0] = "ode equation needs a 'initial' value"
+            continue
+
 
         # Check is there is a circular dependency
         if k0 in kargs:
-            dfail[k0] = "depends on itself (circular dependency)!"
+            dfail[k0] = "circular dependency!"
             continue
 
         # check the function is working
         try:
-            out = v0['value']()
+            out = v0['func']()
+            assert not np.any(np.isnan(out))
         except Exception as err:
             dfail[k0] = f"Function doesn't work with default values ({err})"
             continue
 
         # Identify function depending on static parameters and update
         # Replace by computed value and remove from list of functions
-        if not any([kk in lf for kk in kargs]) and 'self' not in kargs:
+        if not any([kk in lf for kk in kargs]) and 'itself' not in kargs:
             din = {kk: dparam[kk]['value'] for kk in kargs if kk != 'lambda'}
             if 'lambda' in kargs:
                 din['lamb'] = dparam['lambda']['value']
-            dparam[k0]['value'] = dparam[k0]['value'](**din)
+            dparam[k0]['value'] = dparam[k0]['func'](**din)
             lfi.remove(k0)
             del dparam[k0]['eqtype']
+            del dparam[k0]['func']
             continue
 
         # store keyword args
@@ -238,7 +297,7 @@ def _check_func(dparam=None, func_order=None):
     # check lfi is still consistent
     c0 = (
         all([
-            hasattr(dparam[k0]['value'], '__call__')
+            hasattr(dparam[k0]['func'], '__call__')
             and dparam[k0].get('eqtype') is not None
             for k0 in lfi
         ])
@@ -255,7 +314,7 @@ def _check_func(dparam=None, func_order=None):
     # --------------------------------
     # classify input args per category
     for k0 in lfi:
-        kargs = [kk for kk in dparam[k0]['kargs'] if kk != 'self']
+        kargs = [kk for kk in dparam[k0]['kargs'] if kk != 'itself']
         argsf = set(kargs).intersection(lfi)
         dparam[k0]['args'] = {
             'param': list(set(kargs).difference(lfi)),
@@ -296,20 +355,31 @@ def _check_func(dparam=None, func_order=None):
         )
         raise Exception(msg)
 
+    # --------------------------------
+    # set default values of parameters to their real values
+    # this way we don't have to feed the parameters value inside the loop
+    for k0 in lfi:
+        if len(dparam[k0]['args']) > 0:
+            defaults = list(dparam[k0]['func'].__defaults__)
+            for k1 in dparam[k0]['args']['param']:
+                defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
+            dparam[k0]['func'].__defaults__ = tuple(defaults)
+
     # -------------------------------
     # Store the source for later use (doc, saving...)
     for k0 in lfi:
-        dparam[k0]['source'] = inspect.getsource(dparam[k0]['value'])
+        dparam[k0]['source'] = inspect.getsource(dparam[k0]['func'])
 
     # -------------------------------------------
     # Create variables for all varying quantities
+    shape = (dparam['nt']['value'], dparam['nx']['value'])
     for k0 in lfi:
-        pass
+        dparam[k0]['value'] = np.full(shape, np.nan)
 
     # ----------------------------
     # Determine order of functions
     func_order = _suggest_funct_order(
-        dparam=dparam, func_order=func_order, lfunc=lfi,
+        dparam=dparam, func_order=func_order, lfunc=lfi, method=method,
     )
 
     return dparam, func_order
@@ -321,7 +391,10 @@ def _check_func(dparam=None, func_order=None):
 # #############################################################################
 
 
-def _suggest_funct_order(dparam=None, func_order=None, lfunc=None):
+def _suggest_funct_order(
+    dparam=None, func_order=None,
+    lfunc=None, method=None,
+):
     """ Propose a logical order for computing the functions
 
     Strategy:
@@ -351,111 +424,185 @@ def _suggest_funct_order(dparam=None, func_order=None, lfunc=None):
         return func_order
 
     # ---------------------------
-    # count the number of args in each category, for each function
-    nbargs = np.array([
-        (
-            len(dparam[k0]['args']['param']),
-            len(dparam[k0]['args']['intermediary']),
-            # len(dparam[k0]['args']['auxiliary']),
-            len(dparam[k0]['args']['ode']),
-        )
-        for k0 in lfunc
-    ])
-    if np.all(np.sum(nbargs[:, 1:], axis=1) > 0):
-        msg = "No sorting order of functions can be identified!"
-        raise Exception(msg)
+    # func_order is determined automatically
 
-    # first: functions that only depend on parameters and self
-    indsort = (np.sum(nbargs[:, 1:], axis=1) == 0).nonzero()[0]
-    indsort = indsort[np.argsort(nbargs[indsort, 0])]
-    lfsort = [lfunc[ii] for ii in indsort]
+    if method == 'brute force':
+        # try orders until one works
+        func_order = []
+        lfunc_inter = [
+            k0 for k0, v0 in lfunc
+            if dparam[k0]['eqtype'] == 'intermediary'
+        ]
+        y = {k : 1 for k in self.variables.keys()}                            # Dummy y just for calls
+        var_still_in_list = [k for k in self.intermediaryfuncs.keys()]  # The list of variable still to find 
+        for i in range(len(self.intermediaryfuncs)):                           # For each variable that has to be placed in order
+            for j in range(len(VariablesStillInTheList)):                      # We select one which has not been calculated
+                Templist = OrderOfIntermediaryFuncs+[VariablesStillInTheList[j]] # We add it to the list
+                try :                                                          # We try to go through calculations
+                    for k0 in Templist:
+                        y[k0]=self.intermediaryfuncs[k0](y,self.parameters)   # We calculate each variable in order
+                    func_order = Templist.copy()                 # Templist is a good begining
+                    del VariablesStillInTheList[j]                             # We removeitfromthelist
+                    break                                                      # We go to the next i element
+                except BaseException as err:                                         # If it didn't work
+                    y = { k : 1 for k in self.variables.keys()}                # We reinitialise y to be sure we don't keep error
 
-    # ---------------------------
-    # try to identify a natural sorting order
-    # i.e.: functions that only depend on the previously sorted functions
-    try:
-        while indsort.size < len(lfunc):
-            lc = [
-                (
-                    ii not in indsort,
-                    np.sum(nbargs[ii, 1:]) <= indsort.size,
-                    all([
-                        ss in lfsort for ss in (
-                            dparam[lfunc[ii]]['args']['intermediary']
-                            # + dparam[lfunc[ii]]['args']['auxiliary']
-                            + dparam[lfunc[ii]]['args']['ode']
-                        )
-                    ])
-                )
-                for ii in range(len(lfunc))
-            ]
-            indi = [ii for ii in range(len(lfunc)) if all(lc[ii])]
-            if len(indi) == 0:
-                msg = "No natural sorting order of functions "
-                raise Exception(msg)
-            indsort = np.concatenate((indsort, indi))
-            lfsort += [lfunc[ii] for ii in indi]
-
-    except Exception as err:
-        # No natural order => at least one function has to be calculated from
-        # the previous time step
-        # For each remaining function count how many other functions can be
-        # calculated from it without having to get the previous time step
-        # for this we investigate up to 2 layers of dependencies
-
-        # we work with dict of remaining function (not sorted yet)
-        dfremain = {}
-        # first layer
-        lfremain = set(lfunc).difference(lfsort)
-        for k0 in lfremain:
-            lk1 = [
-                k1 for k1 in lfremain
-                if k1 != k0
-                and set([k0]) == set(
-                    dparam[k1]['args']['intermediary']
-                    # + dparam[k1]['args']['auxiliary']
-                    + dparam[k1]['args']['ode']
-                ).difference(lfsort)
-            ]
-            if len(lk1) > 0:
-                dfremain[k0] = lk1
-
-        if len(dfremain) == 0:
-            msg = "No function identified that would allow computing others"
+    else:
+        # count the number of args in each category, for each function
+        nbargs = np.array([
+            (
+                len(dparam[k0]['args']['param']),
+                len(dparam[k0]['args']['intermediary']),
+                # len(dparam[k0]['args']['auxiliary']),
+                len(dparam[k0]['args']['ode']),
+            )
+            for k0 in lfunc
+        ])
+        if np.all(np.sum(nbargs[:, 1:], axis=1) > 0):
+            msg = "No sorting order of functions can be identified!"
             raise Exception(msg)
 
-        dfremaini = dict(dfremain)
-        while not any([len(vv) == len(lfremain) for vv in dfremaini.values()]):
-            # second layer
-            dfremainj = {}
-            for k0 in dfremaini.keys():
-                lk1 = [
-                    k1 for k1 in dfremaini.keys()
-                    if k1 not in [k0] + dfremaini[k0]
-                    and all([
-                        ss in [k0] + dfremaini[k0]
-                        for ss in set(
-                            dparam[k1]['args']['intermediary']
-                            # + dparam[k1]['args']['auxiliary']
-                            + dparam[k1]['args']['ode']
-                        ).difference(lfsort)
-                    ])
-                ]
-                if k0 == 'I':
-                    import pdb; pdb.set_trace()      # DB
-                if len(lk1) > 0:
-                    dfremainj[k0] = list(dict.fromkeys(np.concatenate(
-                        (dfremaini[k0], lk1)
-                    )))
-            import pdb; pdb.set_trace()      # DB
-            dfremaini = dict(dfremainj)
-            # TBF
-            import pdb; pdb.set_trace()      # DB
+        # first: functions that only depend on parameters and self
+        indsort = (np.sum(nbargs[:, 1:], axis=1) == 0).nonzero()[0]
+        indsort = indsort[np.argsort(nbargs[indsort, 0])]
+        lfsort = [lfunc[ii] for ii in indsort]
 
-    finally:
+        # ---------------------------
+        # try to identify a natural sorting order
+        # i.e.: functions that only depend on the previously sorted functions
+        try:
+            while indsort.size < len(lfunc):
+                lc = [
+                    (
+                        ii not in indsort,
+                        np.sum(nbargs[ii, 1:]) <= indsort.size,
+                        all([
+                            ss in lfsort
+                            for ss in (
+                                dparam[lfunc[ii]]['args']['intermediary']
+                                # + dparam[lfunc[ii]]['args']['auxiliary']
+                                # + dparam[lfunc[ii]]['args']['ode']
+                            )
+                        ])
+                    )
+                    for ii in range(len(lfunc))
+                ]
+                indi = [ii for ii in range(len(lfunc)) if all(lc[ii])]
+                if len(indi) == 0:
+                    msg = "No natural sorting order of functions "
+                    raise Exception(msg)
+                indsort = np.concatenate((indsort, indi))
+                lfsort += [lfunc[ii] for ii in indi]
+
+            # print suggested order
+            msg = (
+                'Suggested order for intermediary functions (func_order):\n'
+                f'{lfsort}'
+            )
+            print(msg)
+
+        except Exception as err:
+            # No natural order => at least one function has to be calculated from
+            # the previous time step
+            # For each remaining function count how many other functions can be
+            # calculated from it without having to get the previous time step
+            # for this we investigate up to 2 layers of dependencies
+
+            # we work with dict of remaining function (not sorted yet)
+            dfremain = {}
+            # first layer
+            lfremain = set([
+                kk for kk in lfunc if dparam[kk]['eqtype'] == 'intermediary'
+            ]).difference(lfsort)
+            for k0 in lfremain:
+                lk1 = [
+                    k1 for k1 in lfremain
+                    if k1 != k0
+                    and set([k0]) == set(
+                        dparam[k1]['args']['intermediary']
+                        # + dparam[k1]['args']['auxiliary']
+                        # + dparam[k1]['args']['ode']
+                    ).difference(lfsort)
+                ]
+                if len(lk1) > 0:
+                    dfremain[k0] = lk1
+
+            if len(dfremain) == 0:
+                msg = "No function identified that would allow computing others"
+                raise Exception(msg)
+
+            ii = 0
+            keepon, found = True, False
+            dfremaini = dict(dfremain)
+            while keepon is True:
+                dfremainj = {}
+                for k0 in dfremaini.keys():
+                    lk1 = [
+                        k1 for k1 in lfremain
+                        if k1 not in [k0] + dfremaini[k0]
+                        and all([
+                            ss in [k0] + dfremaini[k0]
+                            for ss in set(
+                                dparam[k1]['args']['intermediary']
+                                # + dparam[k1]['args']['auxiliary']
+                                # + dparam[k1]['args']['ode']
+                            ).difference(lfsort)
+                        ])
+                    ]
+                    if len(lk1) > 0:
+                        dfremainj[k0] = list(dict.fromkeys(np.concatenate(
+                            (dfremaini[k0], lk1)
+                        )))
+
+                # check finish conditions
+                llen = [len(vv) for vv in dfremainj.values()]
+                if len(llen) == 0:
+                    keepon = False
+                elif np.max(llen) == len(lfremain)-1:
+                    keepon = False
+                    dfremaini = {
+                        k0: v0 for k0, v0 in dfremainj.items()
+                        if len(v0) == len(lfremain)-1
+                    }
+                    found = True
+                else:
+                    dfremaini = dict(dfremainj)
+                    ii += 1
+
+            # found or not
+            if found is False:
+                lstr = [
+                    '\t- {}'
+                    for k0 in set(lfremain).difference(dfremainj)
+                ]
+                msg = (
+                    "No order could be identified with a unique (n-1)!\n"
+                    "functions remaining after all tries:\n"
+
+                )
+                raise Exception(msg)
+
+            # print suggested orders
+            lstr = [
+                f'\t- {k0} {v0} (chosen)' if ii == 0 else f'\t- {k0} {v0}'
+                for ii, (k0, v0) in enumerate(dfremaini.items())
+            ]
+            msg = (
+                "The following possible orders have been identified:"
+                " assuming the first term is taken from the time n-1\n"
+                + "\n".join(lstr)
+            )
+            print(msg)
+
+        # set func_order
         assert indsort.size == len(lfunc)
         assert len(set(lfsort)) == len(lfsort)
         func_order = lfsort
+
+        # only keep intermediary functions
+        func_order = [
+            kk for kk in func_order if dparam[kk]['eqtype'] == 'intermediary'
+        ]
 
     return func_order
 
