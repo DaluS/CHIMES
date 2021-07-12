@@ -38,7 +38,7 @@ _DFIELDS = {
         'symbol': None,
         'group': 'Numerical',
     },
-    'Nx': {
+    'nx': {
         'value': 1,
         'com': 'Number of similar systems evolving in parrallel',
         'dimension': None,
@@ -65,7 +65,7 @@ _DFIELDS = {
         'symbol': None,
         'group': 'Numerical',
     },
-    'Nt': {
+    'nt': {
         'value': None,  # Dynamically allocated
         'com': 'Number of temporal iteration',
         'dimension': None,
@@ -74,7 +74,7 @@ _DFIELDS = {
         'symbol': None,
         'group': 'Numerical',
     },
-    'Ns': {
+    'ns': {
         'value': None,  # Dynamically allocated
         'com': 'Number of elements stored',
         'dimension': None,
