@@ -21,7 +21,6 @@ import numpy as np
 _FUNC_ORDER = None
 
 
-
 # ---------------------------
 # user-defined model
 # contains parameters and functions of various types

@@ -12,6 +12,17 @@ All parameters can have value:
 """
 
 
+# ---------------------------
+# user-defined function order (optional)
+
+_FUNC_ORDER = None
+
+
+
+# ---------------------------
+# user-defined model
+# contains parameters and functions of various types
+
 _DPARAM = {
 
     # ---------

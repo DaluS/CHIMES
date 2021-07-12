@@ -83,15 +83,15 @@ _DFIELDS = {
         'symbol': None,
         'group': 'Numerical',
     },
-    'verb': {
-        'value': True,
-        'com': 'flag indicating whether to print intermediate info',
-        'dimension': None,
-        'units': None,
-        'type': None,
-        'symbol': None,
-        'group': 'Numerical'
-    },
+    # 'verb': {
+        # 'value': True,
+        # 'com': 'flag indicating whether to print intermediate info',
+        # 'dimension': None,
+        # 'units': None,
+        # 'type': None,
+        # 'symbol': None,
+        # 'group': 'Numerical'
+    # },
     'storage': {
         'value': 'full',
         'com': 'flag indicating which time steps to store',
@@ -109,6 +109,20 @@ _DFIELDS = {
         'type': None,
         'symbol': None,
         'group': 'Numerical'
+    },
+
+    # --------------
+    # Time vector
+    'time': {
+        'func': lambda dt=0: dt,
+        'com': 'Time vector',
+        'dimension': 'time',
+        'units': 'y',
+        'type': 'extensive',
+        'symbol': r'$t$',
+        'group': 'Time',
+        'eqtype': 'ode',
+        'initial': 0,
     },
 
     # --------------
