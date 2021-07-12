@@ -406,9 +406,6 @@ class Solver():
                     )
                 )
 
-            # update time
-            time[ii+1] = time[ii] + self.__dparam['dt']['value']
-
     def _rk4(self, k0=None, y=None, kwdargs=None):
         """
         a traditional RK4 scheme, with:

@@ -112,6 +112,10 @@ def _check_dparam(dparam=None):
         )
         raise Exception(msg)
 
+    # Add time vector if missing
+    if 'time' not in dparam.keys():
+        dparam['time'] = models._DFIELDS['time']
+
     # Fill in default fields if any missing
     for k0, v0 in dparam.items():
         for ss in models._DFIELDS[k0].keys():
@@ -153,25 +157,16 @@ def check_dparam(dparam=None, func_order=None, method=None):
     if isinstance(dparam, str):
         # In this case, dparam is the name of a model
         # Get list of available models in models/, as a dict
-        df = {
-            ff[len('_model_'):ff.index('.py')]: os.path.join(_PATH_MODELS, ff)
-            for ff in os.listdir(_PATH_MODELS)
-            if ff.startswith('_model_') and ff.endswith('.py')
-        }
-        # raise Exception if requested model does not exist 
-        if dparam not in df.keys():
-            lstr = [f'\t\t- {kk}' for kk in df.keys()]
+        if dparam not in models._DMODEL.keys():
             msg = (
-                "The requested pre-defined model does not exist yet!\n"
-                f"\t- requested: {dparam}\n"
-                + "\n".join(lstr)
+                f"Requested pre-defined model ('{dparam}') not available!\n"
+                + models.get_available_models(returnas=str, verb=False)
             )
             raise Exception(msg)
-        model = {dparam: df[dparam]}
-        dparam = getattr(models, dparam)._DPARAM
+        model = {dparam: models._DMODEL[dparam]['file']}
         if func_order is None:
-            if hasattr(getattr(models, list(model.keys())[0]), '_FUNC_MODEL'):
-                func_order = getattr(models, model)._FUNC_ORDER
+            func_order = models._DMODEL[dparam]['func_order']
+        dparam = models._DMODEL[dparam]['dparam']
     else:
         model = 'custom'
 
@@ -192,6 +187,7 @@ def check_dparam(dparam=None, func_order=None, method=None):
         func_order=func_order,
         method=method,
     )
+
     return dparam, model, func_order
 
 
@@ -256,7 +252,6 @@ def _check_func(dparam=None, func_order=None, method=None):
             dfail[k0] = "ode equation needs a 'initial' value"
             continue
 
-
         # Check is there is a circular dependency
         if k0 in kargs:
             dfail[k0] = "circular dependency!"
@@ -272,7 +267,11 @@ def _check_func(dparam=None, func_order=None, method=None):
 
         # Identify function depending on static parameters and update
         # Replace by computed value and remove from list of functions
-        if not any([kk in lf for kk in kargs]) and 'itself' not in kargs:
+        c0 = (
+            not any([kk in lf for kk in kargs])
+            and dparam[k0]['eqtype'] != 'ode'
+        )
+        if c0:
             din = {kk: dparam[kk]['value'] for kk in kargs if kk != 'lambda'}
             if 'lambda' in kargs:
                 din['lamb'] = dparam['lambda']['value']
