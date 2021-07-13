@@ -175,7 +175,9 @@ class Solver():
             ar0 = [
                 tuple([
                     k0,
-                    str(self.__dparam[k0]['value']),
+                    str(self.__dparam[k0]['value'].shape)
+                    if self.__dparam[k0].get('func') is not None
+                    else str(self.__dparam[k0]['value']),
                     str(self.__dparam[k0]['units']),
                     str(self.__dparam[k0]['dimension']),
                     str(self.__dparam[k0]['symbol']),

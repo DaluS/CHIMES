@@ -75,11 +75,21 @@ class Test01_Run():
         for model in lmodel:
             self.dsolver[model] = _class.Solver(model)
 
-    def test02_get_dparam(self):
-        pass
+    def test02_get_summary_repr(self):
+        for model in self.dsolver.keys():
+            print(self.dsolver[model])
+            self.dsolver[model].get_summary()
 
+    def test03_get_dparam(self):
+        for model in self.dsolver.keys():
+            out = self.dsolver[model].get_dparam(group='Numerical')
+            out = self.dsolver[model].get_dparam(eqtype='ode')
 
-    def test02_run_all_models(self):
+    def test04_get_variables_compact(self):
+        for model in self.dsolver.keys():
+            out = self.dsolver[model].get_variables_compact()
+
+    def test05_run_all_models(self):
         """ Make sure the main function runs as executable from terminal """
 
         # list of entry parameters to try
