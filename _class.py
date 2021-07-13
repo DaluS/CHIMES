@@ -6,7 +6,7 @@ import numpy as np
 
 
 # Library-specific
-from utilities import _utils, _class_checks
+from utilities import _utils, _class_checks, _class_utility
 
 
 class Solver():
@@ -22,8 +22,9 @@ class Solver():
             self.set_dparam(dparam=model)
         self.__run = False
 
-    # ##############
-    # parameters
+    # ##############################
+    #  Setting / getting parameters
+    # ##############################
 
     def set_dparam(
         self,
@@ -87,6 +88,34 @@ class Solver():
         # reset variable
         self.reset()
 
+    def get_dparam(self, verb=None, returnas=None, **kwdargs):
+        """ Return a copy of the input parameters dict
+
+        Return as:
+            - dict: dict
+            - 'DataGFrame': a pandas DataFrame
+            - np.ndarray: a dict of np.ndarrays
+            - False: return nothing (useful of verb=True)
+
+        verb:
+            - True: pretty-print the chosen parameters
+            - False: print nothing
+        """
+        lcrit = ['dimension', 'units', 'type', 'group', 'eqtype']
+        lprint = [
+            'parameter', 'value', 'units', 'dimension', 'symbol',
+            'type', 'eqtype', 'group', 'comment',
+        ]
+
+        return _class_utility._get_dict_subset(
+            indict=self.__dparam,
+            verb=verb,
+            returnas=returnas,
+            lcrit=lcrit,
+            lprint=lprint,
+            **kwdargs,
+        )
+
     # #############
     # Read-only properties
 
@@ -119,105 +148,6 @@ class Solver():
             else:
                 self.__dparam[k0]['value'][:, :] = np.nan
         self.__run = False
-
-    def get_dparam(self, verb=None, returnas=None, **kwdargs):
-        """ Return a copy of the input parameters dict
-
-        Return as:
-            - dict: dict
-            - 'DataGFrame': a pandas DataFrame
-            - np.ndarray: a dict of np.ndarrays
-            - False: return nothing (useful of verb=True)
-
-        verb:
-            - True: pretty-print the chosen parameters
-            - False: print nothing
-        """
-
-        # ----------------------
-        # check input
-
-        if returnas is None:
-            returnas = dict
-        if verb is None:
-            verb = returnas is False
-
-        # ----------------------
-        # select relevant parameters
-
-        if len(kwdargs) > 0:
-            # isolate relevant criteria
-            dcrit = {
-                k0: v0 for k0, v0 in kwdargs.items()
-                if k0 in ['dimension', 'units', 'type', 'group', 'eqtype']
-            }
-
-            # select param keys matching all critera
-            lk = [
-                k0 for k0 in self.__dparam.keys()
-                if all([
-                    self.__dparam[k0].get(k1) == dcrit[k1]
-                    for k1 in dcrit.keys()
-                ])
-            ]
-        else:
-            lk = list(self.__dparam.keys())
-
-        # ----------------------
-        # Optional print
-
-        if verb is True:
-            col0 = [
-                'parameter', 'value', 'units', 'dim.', 'symbol',
-                'type', 'group', 'comment',
-            ]
-            ar0 = [
-                tuple([
-                    k0,
-                    str(self.__dparam[k0]['value'].shape)
-                    if self.__dparam[k0].get('func') is not None
-                    else str(self.__dparam[k0]['value']),
-                    str(self.__dparam[k0]['units']),
-                    str(self.__dparam[k0]['dimension']),
-                    str(self.__dparam[k0]['symbol']),
-                    str(self.__dparam[k0]['type']),
-                    self.__dparam[k0]['group'],
-                    self.__dparam[k0]['com'],
-                ])
-                for k0 in lk
-            ]
-            _utils._get_summary(
-                lar=[ar0],
-                lcol=[col0],
-                verb=True,
-                returnas=False,
-            )
-
-        # ----------------------
-        # return as dict or array
-
-        if returnas is dict:
-            # return a copy of the dict
-            return {k0: dict(self.__dparam[k0]) for k0 in lk}
-
-        elif returnas in [np.ndarray, 'DataFrame']:
-            out = {
-                'key': np.array(lk, dtype=str),
-                'value': np.array([
-                    np.nan if self.__dparam[k0]['value'] is None
-                    else self.__dparam[k0]['value']
-                    for k0 in lk
-                ]),
-                'com': np.array([self.__dparam[k0]['com'] for k0 in lk]),
-                'units': np.array([
-                    str(self.__dparam[k0]['units']) for k0 in lk
-                ]),
-            }
-            if returnas == 'DataFrame':
-                import pandas as pd
-                return pd.DataFrame.from_dict(out)
-            else:
-                return out
 
     # ##############
     # variables

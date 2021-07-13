@@ -6,7 +6,7 @@ import numpy as np
 
 
 # Library-specific
-import _utils
+from . import _utils
 
 
 # #############################################################################
@@ -22,7 +22,6 @@ def _get_dict_subset(
     returnas=None,
     lcrit=None,
     lprint=None,
-    keyname=None,
     **kwdargs,
 ):
     """ Return a copy of the input parameters dict
@@ -60,7 +59,7 @@ def _get_dict_subset(
         lk = [
             k0 for k0 in indict.keys()
             if all([
-                indict[k0][k1] == dcrit[k1]
+                indict[k0].get(k1) == dcrit[k1]
                 for k1 in dcrit.keys()
             ])
         ]
@@ -70,25 +69,27 @@ def _get_dict_subset(
     # ----------------------
     # Optional print
 
-    if verb is True:
-        col0 = [keyname] + lprint
-        ar0 = [
-            tuple(
-                [k0]
-                + [
-                    str(indict[k0]['value'].shape) if ss == 'shape'
-                    else str(indict[k0][ss])
-                    for ss in lprint
-                ]
+    if verb is True or returnas in [np.ndarray, 'DataFrame']:
+        col0 = lprint
+        ar0 = [[k0] for k0 in lk]
+        for ii, k0 in enumerate(lk):
+            for ss in lprint[1:]:
+                if ss == 'value':
+                    if indict[k0].get('func') is not None:
+                        ar0[ii].append(str(indict[k0]['value'].shape))
+                    else:
+                        ar0[ii].append(str(indict[k0]['value']))
+                else:
+                    ar0[ii].append(str(indict[k0].get(ss)))
+            ar0[ii] = tuple(ar0[ii])
+
+        if verb is True:
+            _utils._get_summary(
+                lar=[ar0],
+                lcol=[col0],
+                verb=True,
+                returnas=False,
             )
-            for k0 in lk
-        ]
-        _utils._get_summary(
-            lar=[ar0],
-            lcol=[col0],
-            verb=True,
-            returnas=False,
-        )
 
     # ----------------------
     # return as dict or array
@@ -98,11 +99,10 @@ def _get_dict_subset(
         return {k0: dict(indict[k0]) for k0 in lk}
 
     elif returnas in [np.ndarray, 'DataFrame']:
-        out = {'key': np.array(lk, dtype=str)}
-        out.update({
-            k1: np.array([indict[k0][k1] for k0 in lk])
-            for k1 in indict[lk[0]].keys()
-        })
+        out = {
+            k0: np.array([ar0[jj][ii] for jj in range(len(ar0))])
+            for ii, k0 in enumerate(col0)
+        }
         if returnas == 'DataFrame':
             import pandas as pd
             return pd.DataFrame.from_dict(out)
