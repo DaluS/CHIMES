@@ -92,11 +92,11 @@ def _check_dparam(dparam=None):
                         f"allowed: {_LEQTYPES}"
                     )
                     continue
-            elif (
+            elif not (
                 v0['value'] is None
-                or type(v0) in _LTYPES + [list, np.ndarray]
+                or type(v0['value']) in _LTYPES + [list, np.ndarray]
             ):
-                pass
+                dfail[k0] = f"Invalid value type ({type(v0['value'])})"
 
     if len(dfail) > 0:
         lstr = [f'\t- {kk}: {vv}' for kk, vv in dfail.items()]

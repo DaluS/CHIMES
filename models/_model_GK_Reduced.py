@@ -30,8 +30,7 @@ _DPARAM = {
     'delta': {'value': None},
     'beta': {'value': None},
     'nu': {'value': None},
-    'phi0': {'value': None},
-    'phi1': {'value': None},
+    'phinull': None,
 
     # ---------
     # functions
@@ -40,23 +39,33 @@ _DPARAM = {
 
     # Intermediary
     'lambda': {
-        'value': lambda lamb=0, g=0, alpha=0, beta=0: lamb * (g - alpha - beta),
-        'type': 'intermediary',
+        'func': lambda itself=0, g=0, alpha=0, beta=0: itself * (g - alpha - beta),
+        'eqtype': 'ode',
+        'initial': 0.1,
     },
     'omega': {
-        'value': lambda omega=0, philips=0: omega * phillips,
-        'type': 'intermediary',
+        'func': lambda itself=0, philips=0: itself * philips,
+        'eqtype': 'ode',
+        'initial': 0.1,
     },
     'philips': {
-        'value': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
-        'type': 'intermediary',
+        'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
+        'eqtype': 'intermediary',
     },
     'g': {
-        'value': lambda omega=0, nu=0, delta=0: pi / nu - delta,
-        'type': 'auxilliary',
+        'func': lambda pi=0, nu=1, delta=0: pi / nu - delta,
+        'eqtype': 'intermediary',
     },
     'pi': {
-        'value': lambda omega=0, r=0, d=0: 1. - omega,
-        'type': 'auxilliary',
+        'func': lambda omega=0: 1. - omega,
+        'eqtype': 'intermediary',
+    },
+    'phi0': {
+        'func': lambda phinull=0: phinull / (1 - phinull**2),
+        'eqtype': 'auxiliary',
+    },
+    'phi1': {
+        'func': lambda phinull=0: phinull**3 / (1 - phinull**2),
+        'eqtype': 'auxiliary',
     },
 }

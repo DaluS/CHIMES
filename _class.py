@@ -319,7 +319,7 @@ class Solver():
 
         # ------------
         # temporary dict of input
-        lode = list(self.get_dparam(eqtype='ode').keys())
+        lode = list(self.get_dparam(eqtype='ode', returnas=dict).keys())
         linter = self.__func_order
         dargs = {
             k0: (
