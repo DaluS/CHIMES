@@ -444,7 +444,7 @@ def _suggest_funct_order(
             if v0.get('eqtype') == 'intermediary'
         }
         # The list of variable still to find
-        var_still_in_list = [k for k in lfunc_inter]
+        var_still_in_list = [kk for kk in lfunc_inter]
 
         # Initialize and loop
         func_order = []
@@ -482,7 +482,7 @@ def _suggest_funct_order(
                         if v0.get('eqtype') == 'intermediary'
                     }
                     warnings.warn(str(err))
-
+        import pdb; pdb.set_trace()     # DB
 
     elif method == 'other':
         # count the number of args in each category, for each function
@@ -507,139 +507,46 @@ def _suggest_funct_order(
         # ---------------------------
         # try to identify a natural sorting order
         # i.e.: functions that only depend on the previously sorted functions
-        try:
-            while indsort.size < len(lfunc):
-                lc = [
-                    (
-                        ii not in indsort,
-                        np.sum(nbargs[ii, 1:]) <= indsort.size,
-                        all([
-                            ss in lfsort
-                            for ss in (
-                                dparam[lfunc[ii]]['args']['intermediary']
-                                # + dparam[lfunc[ii]]['args']['auxiliary']
-                                # + dparam[lfunc[ii]]['args']['ode']
-                            )
-                        ])
-                    )
-                    for ii in range(len(lfunc))
-                ]
-                indi = [ii for ii in range(len(lfunc)) if all(lc[ii])]
-                if len(indi) == 0:
-                    msg = "No natural sorting order of functions "
-                    raise Exception(msg)
-                indsort = np.concatenate((indsort, indi))
-                lfsort += [lfunc[ii] for ii in indi]
-
-            # print suggested order
-            msg = (
-                'Suggested order for intermediary functions (func_order):\n'
-                f'{lfsort}'
-            )
-            print(msg)
-
-        except Exception as err:
-            # No natural order => at least one function has to be calculated from
-            # the previous time step
-            # For each remaining function count how many other functions can be
-            # calculated from it without having to get the previous time step
-            # for this we investigate up to 2 layers of dependencies
-
-            # we work with dict of remaining function (not sorted yet)
-            dfremain = {}
-            # first layer
-            lfremain = set([
-                kk for kk in lfunc if dparam[kk]['eqtype'] == 'intermediary'
-            ]).difference(lfsort)
-            for k0 in lfremain:
-                lk1 = [
-                    k1 for k1 in lfremain
-                    if k1 != k0
-                    and set([k0]) == set(
-                        dparam[k1]['args']['intermediary']
-                        # + dparam[k1]['args']['auxiliary']
-                        # + dparam[k1]['args']['ode']
-                    ).difference(lfsort)
-                ]
-                if len(lk1) > 0:
-                    dfremain[k0] = lk1
-
-            if len(dfremain) == 0:
-                msg = "No function identified that would allow computing others"
-                raise Exception(msg)
-
-            ii = 0
-            keepon, found = True, False
-            dfremaini = dict(dfremain)
-            while keepon is True:
-                dfremainj = {}
-                for k0 in dfremaini.keys():
-                    lk1 = [
-                        k1 for k1 in lfremain
-                        if k1 not in [k0] + dfremaini[k0]
-                        and all([
-                            ss in [k0] + dfremaini[k0]
-                            for ss in set(
-                                dparam[k1]['args']['intermediary']
-                                # + dparam[k1]['args']['auxiliary']
-                                # + dparam[k1]['args']['ode']
-                            ).difference(lfsort)
-                        ])
-                    ]
-                    if len(lk1) > 0:
-                        dfremainj[k0] = list(dict.fromkeys(np.concatenate(
-                            (dfremaini[k0], lk1)
-                        )))
-
-                # check finish conditions
-                llen = [len(vv) for vv in dfremainj.values()]
-                if len(llen) == 0:
-                    keepon = False
-                elif np.max(llen) == len(lfremain) - 1:
-                    keepon = False
-                    dfremaini = {
-                        k0: v0 for k0, v0 in dfremainj.items()
-                        if len(v0) == len(lfremain) - 1
-                    }
-                    found = True
-                else:
-                    dfremaini = dict(dfremainj)
-                    ii += 1
-
-            # found or not
-            if found is False:
-                lstr = [
-                    '\t- {}'
-                    for k0 in set(lfremain).difference(dfremainj)
-                ]
-                msg = (
-                    "No order could be identified with a unique (n-1)!\n"
-                    "functions remaining after all tries:\n"
-
+        while indsort.size < len(lfunc):
+            lc = [
+                (
+                    ii not in indsort,
+                    np.sum(nbargs[ii, 1:]) <= indsort.size,
+                    all([
+                        ss in lfsort
+                        for ss in (
+                            dparam[lfunc[ii]]['args']['intermediary']
+                            # + dparam[lfunc[ii]]['args']['auxiliary']
+                            # + dparam[lfunc[ii]]['args']['ode']
+                        )
+                    ])
                 )
-                raise Exception(msg)
-
-            # print suggested orders
-            lstr = [
-                f'\t- {k0} {v0} (chosen)' if ii == 0 else f'\t- {k0} {v0}'
-                for ii, (k0, v0) in enumerate(dfremaini.items())
+                for ii in range(len(lfunc))
             ]
-            msg = (
-                "The following possible orders have been identified:"
-                " assuming the first term is taken from the time n-1\n"
-                + "\n".join(lstr)
-            )
-            print(msg)
+            indi = [ii for ii in range(len(lfunc)) if all(lc[ii])]
+            if len(indi) == 0:
+                msg = "No natural sorting order of functions "
+                raise Exception(msg)
+            indsort = np.concatenate((indsort, indi))
+            lfsort += [lfunc[ii] for ii in indi]
+
 
         # set func_order
         assert indsort.size == len(lfunc)
         assert len(set(lfsort)) == len(lfsort)
         func_order = lfsort
 
-    # only keep intermediary functions
+    # Make sure to only keep intermediary functions
     func_order = [
         kk for kk in func_order if dparam[kk]['eqtype'] == 'intermediary'
     ]
+
+    # print suggested order
+    msg = (
+        'Suggested order for intermediary functions (func_order):\n'
+        f'{func_order}'
+    )
+    print(msg)
 
     return func_order
 
