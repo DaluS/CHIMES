@@ -57,7 +57,8 @@ _DFIELDS = {
         'group': 'Numerical',
     },
     'Tstore': {
-        'value': None,  # Dynamically allocated
+        'func': lambda dt=1: dt,  # Dynamically allocated
+        'eqtype': 'intermediary',
         'com': 'Time between storages (if StorageMode=full, it goes to dt)',
         'dimension': 'time',
         'units': None,
@@ -66,7 +67,8 @@ _DFIELDS = {
         'group': 'Numerical',
     },
     'nt': {
-        'value': None,  # Dynamically allocated
+        'func': lambda Tmax=0, dt=1: int(Tmax / dt),  # Dynamically allocated
+        'eqtype': 'intermediary',
         'com': 'Number of temporal iteration',
         'dimension': None,
         'units': None,
@@ -75,7 +77,8 @@ _DFIELDS = {
         'group': 'Numerical',
     },
     'ns': {
-        'value': None,  # Dynamically allocated
+        'func': lambda Tmax=0, dt=1: int(Tmax / dt),  # Dynamically allocated
+        'eqtype': 'intermediary',
         'com': 'Number of elements stored',
         'dimension': None,
         'units': None,

@@ -62,40 +62,78 @@ def _check_dparam(dparam=None):
         )
         raise Exception(msg)
 
+    # add numerical parameters if not included
+    lknum = [
+        k0 for k0, v0 in models._DFIELDS.items()
+        if v0['group'] == 'Numerical'
+    ]
+    for k0 in lknum:
+        if k0 not in dparam.keys():
+            dparam[k0] = models._DFIELDS[k0]
+
+    # Add time vector if missing
+    if 'time' not in dparam.keys():
+        dparam['time'] = models._DFIELDS['time']
+
     # check values
     dfail = {}
     for k0, v0 in dparam.items():
-        if v0 is None or type(v0) in _LTYPES + [list, np.ndarray]:
+
+        if v0 is None or type(v0) in _LTYPES + [list, np.ndarray, str, bool]:
             dparam[k0] = {'value': v0}
-        elif hasattr(v0, '__call__'):
+
+        if hasattr(v0, '__call__'):
             dfail[k0] = "Function must be in a dict {'value': func, 'eqtype':}"
             continue
-        elif isinstance(v0, dict):
+
+        if isinstance(dparam[k0], dict):
+
+            # set missing field to default
+            for ss in models._DFIELDS[k0].keys():
+                if dparam[k0].get(ss) is None:
+                    dparam[k0][ss] = models._DFIELDS[k0][ss]
+
+            # identify invalid keys
             lk = [
-                kk for kk in v0.keys()
+                kk for kk in dparam[k0].keys()
                 if kk != 'eqtype'
                 and kk not in _LEXTRAKEYS + list(models._DFIELDS[k0].keys())
             ]
             if len(lk) > 0:
                 dfail[k0] = f"Invalid keys: {lk}"
                 continue
-            if ('value' not in v0.keys() and 'func' not in v0.keys()):
+
+            # check value xor func
+            c0 = (
+                'value' not in dparam[k0].keys()
+                and 'func' not in v0.keys()
+            )
+            if c0:
                 dfail[k0] = "dict must have key 'value' or 'func'"
                 continue
-            if v0.get('func') is not None and hasattr(v0['func'], '__call__'):
-                if 'eqtype' not in v0.keys():
+
+            # check function or value
+            c0 = (
+                dparam[k0].get('func') is not None
+                and hasattr(dparam[k0]['func'], '__call__')
+            )
+            c1 = (
+                not c0
+                and type(dparam[k0]['value']) in _LTYPES + [
+                    list, np.ndarray, str, bool,
+                ]
+            )
+            if c0:
+                if 'eqtype' not in dparam[k0].keys():
                     dfail[k0] = "For a function, key 'eqtype' must be provided"
                     continue
-                if v0['eqtype'] not in _LEQTYPES:
+                if dparam[k0]['eqtype'] not in _LEQTYPES:
                     dfail[k0] = (
                         f"Invalid eqtype ({v0['eqtype']}), "
                         f"allowed: {_LEQTYPES}"
                     )
                     continue
-            elif not (
-                v0['value'] is None
-                or type(v0['value']) in _LTYPES + [list, np.ndarray]
-            ):
+            elif not c1:
                 dfail[k0] = f"Invalid value type ({type(v0['value'])})"
 
     if len(dfail) > 0:
@@ -112,25 +150,6 @@ def _check_dparam(dparam=None):
             + "\n".join(lstr)
         )
         raise Exception(msg)
-
-    # Add time vector if missing
-    if 'time' not in dparam.keys():
-        dparam['time'] = models._DFIELDS['time']
-
-    # Fill in default fields if any missing
-    for k0, v0 in dparam.items():
-        for ss in models._DFIELDS[k0].keys():
-            if dparam[k0].get(ss) is None:
-                dparam[k0][ss] = models._DFIELDS[k0][ss]
-
-    # add numerical parameters if not included
-    lknum = [
-        k0 for k0, v0 in models._DFIELDS.items()
-        if v0['group'] == 'Numerical'
-    ]
-    for k0 in lknum:
-        if k0 not in dparam.keys():
-            dparam[k0] = models._DFIELDS[k0]
 
     return dparam
 
@@ -173,14 +192,6 @@ def check_dparam(dparam=None, func_order=None, method=None):
 
     # check conformity
     dparam = _check_dparam(dparam)
-
-    # Update numerical group
-    c0 = all([ss in dparam.keys() for ss in ['dt', 'nt', 'Tmax']])
-    if c0 is True:
-        dparam['Tstore']['value'] = dparam['dt']['value']
-        dparam['nt']['value'] = int(
-            dparam['Tmax']['value'] / dparam['dt']['value']
-        )
 
     # Identify functions
     dparam, func_order = _check_func(
