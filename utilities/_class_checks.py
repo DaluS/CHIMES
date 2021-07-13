@@ -410,21 +410,18 @@ def _suggest_funct_order(
     if method is None:
         method = 'other'
 
-    included = ['ode', 'intermediary']
-    lfunc = [
+    included = ['intermediary']
+    lfunc_inter = [
         kk for kk in lfunc if dparam[kk]['eqtype'] in included
     ]
 
     # ---------------------------
     # func_order is user-provided
     if func_order is not None:
-        lfunc_inter = [
-            kk for kk in lfunc if dparam[kk]['eqtype'] == 'intermediary'
-        ]
         if len(set(func_order)) != len(lfunc_inter):
             msg = (
                 "Provided order of functions is incomplete / too large!\n"
-                + f"\t- functions: {lfunc}\n"
+                + f"\t- functions: {lfunc_inter}\n"
                 + f"\t- provided order: {func_order}"
             )
             raise Exception(msg)
@@ -435,9 +432,6 @@ def _suggest_funct_order(
 
     if method == 'brute force':
         # try orders until one works
-        lfunc_inter = [
-            k0 for k0 in lfunc if dparam[k0]['eqtype'] == 'intermediary'
-        ]
         # Dummy y just for calls, start with nans (see if they propagate)
         y = {
             k0: np.nan for k0, v0 in dparam.items()
@@ -450,31 +444,42 @@ def _suggest_funct_order(
         func_order = []
         for ii in range(len(lfunc_inter)):
             for jj in range(len(var_still_in_list)):
+
                 # add to a temporary list
                 templist = func_order + [var_still_in_list[jj]]
+
                 # try and if work => break and go to the next i
                 try :
                     for k0 in templist:
+                        # get dict of input args for func k0, from y
                         kwdargs = {
                             k1: y[k1]
                             for k1 in dparam[k0]['args']['intermediary']
                         }
+
                         # if lambda => substitute by lamb
                         if 'lambda' in dparam[k0]['args']['intermediary']:
                             kwdargs['lamb'] = kwdargs['lambda']
                             del kwdargs['lambda']
+
+                        # try calling k0
                         y[k0] = dparam[k0]['func'](**kwdargs)
+
+                        # raise Exception if any nan
                         if np.any(np.isnan(y[k0])):
                             raise ValueError('wrong order')
+
                     func_order = templist.copy()
                     _ = var_still_in_list.pop(jj)
                     break
+
                 except ValueError:
                     # didn't work => reinitialise y to avoid keeping error
                     y = {
                         k0: np.nan for k0, v0 in dparam.items()
                         if v0.get('eqtype') == 'intermediary'
                     }
+
                 except Exception as err:
                     # didn't work => reinitialise y to avoid keeping error
                     y = {
@@ -482,7 +487,12 @@ def _suggest_funct_order(
                         if v0.get('eqtype') == 'intermediary'
                     }
                     warnings.warn(str(err))
-        import pdb; pdb.set_trace()     # DB
+
+        """
+        2 possible issues with brute force:
+            - a non-expected error can happen => division by zero
+            - final list may be incomplete (division by 0 => always error)
+        """
 
     elif method == 'other':
         # count the number of args in each category, for each function
@@ -490,56 +500,63 @@ def _suggest_funct_order(
             (
                 len(dparam[k0]['args']['param']),
                 len(dparam[k0]['args']['intermediary']),
-                # len(dparam[k0]['args']['auxiliary']),  # not considered
-                len(dparam[k0]['args']['ode']),
+                # len(dparam[k0]['args']['auxiliary']),     # not considered
+                # len(dparam[k0]['args']['ode']),           # not considered
             )
-            for k0 in lfunc
+            for k0 in lfunc_inter
         ])
         if np.all(np.sum(nbargs[:, 1:], axis=1) > 0):
             msg = "No sorting order of functions can be identified!"
             raise Exception(msg)
 
-        # first: functions that only depend on parameters and self
-        indsort = (np.sum(nbargs[:, 1:], axis=1) == 0).nonzero()[0]
-        indsort = indsort[np.argsort(nbargs[indsort, 0])]
-        lfsort = [lfunc[ii] for ii in indsort]
+        # first: functions that only depend on parameters (and self if ode)
+        isort = (np.sum(nbargs[:, 1:], axis=1) == 0).nonzero()[0]
+        isort = isort[np.argsort(nbargs[isort, 0])]
+        func_order = [lfunc_inter[ii] for ii in isort]
 
         # ---------------------------
         # try to identify a natural sorting order
         # i.e.: functions that only depend on the previously sorted functions
-        while indsort.size < len(lfunc):
+        while isort.size < len(lfunc_inter):
+
+            # list of conditions (True, False) for each function
             lc = [
                 (
-                    ii not in indsort,
-                    np.sum(nbargs[ii, 1:]) <= indsort.size,
-                    all([
-                        ss in lfsort
+                    ii not in isort,                       # not sorted yet
+                    np.sum(nbargs[ii, 1:]) <= isort.size,  # not too many args
+                    all([                                  # only sorted args
+                        ss in func_order
                         for ss in (
-                            dparam[lfunc[ii]]['args']['intermediary']
+                            dparam[lfunc_inter[ii]]['args']['intermediary']
                             # + dparam[lfunc[ii]]['args']['auxiliary']
                             # + dparam[lfunc[ii]]['args']['ode']
                         )
                     ])
                 )
-                for ii in range(len(lfunc))
+                for ii in range(len(lfunc_inter))
             ]
-            indi = [ii for ii in range(len(lfunc)) if all(lc[ii])]
+
+            # indices of functions matching all conditions
+            indi = [ii for ii in range(len(lfunc_inter)) if all(lc[ii])]
+
+            # If none => no easy solution
             if len(indi) == 0:
                 msg = "No natural sorting order of functions "
                 raise Exception(msg)
-            indsort = np.concatenate((indsort, indi))
-            lfsort += [lfunc[ii] for ii in indi]
+
+            # Concantenate with already sorted indices
+            isort = np.concatenate((isort, indi))
+            func_order += [lfunc_inter[ii] for ii in indi]
 
 
-        # set func_order
-        assert indsort.size == len(lfunc)
-        assert len(set(lfsort)) == len(lfsort)
-        func_order = lfsort
-
-    # Make sure to only keep intermediary functions
-    func_order = [
-        kk for kk in func_order if dparam[kk]['eqtype'] == 'intermediary'
-    ]
+    # safety checks
+    if len(set(lfunc_inter)) != len(func_order):
+        msg = (
+            "Suggested func_order does not seem to include all functions!\n"
+            + f"\t- suggested: {func_order}\n"
+            + f"\t- available: {lfunc_inter}\n"
+        )
+        raise Exception(msg)
 
     # print suggested order
     msg = (
