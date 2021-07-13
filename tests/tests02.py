@@ -89,7 +89,11 @@ class Test01_Run():
         for model in self.dsolver.keys():
             out = self.dsolver[model].get_variables_compact()
 
-    def test05_run_all_models(self):
+    def test05_set_single_param(self):
+        for model in self.dsolver.keys():
+            self.dsolver[model].set_dparam(key='Tmax', value=20)
+
+    def test06_run_all_models(self):
         """ Make sure the main function runs as executable from terminal """
 
         # list of entry parameters to try

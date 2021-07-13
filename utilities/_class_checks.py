@@ -413,7 +413,10 @@ def _suggest_funct_order(
     # ---------------------------
     # func_order is user-provided
     if func_order is not None:
-        if len(set(func_order)) != len(lfunc):
+        lfunc_inter = [
+            kk for kk in lfunc if dparam[kk]['eqtype'] == 'intermediary'
+        ]
+        if len(set(func_order)) != len(lfunc_inter):
             msg = (
                 "Provided order of functions is incomplete / too large!\n"
                 + f"\t- functions: {lfunc}\n"

@@ -255,10 +255,7 @@ class Solver():
             self.__dparam[k0]['value'] for k0 in keys
         ], 0, 1)
 
-        # get indices array of input arguments
-        indices = None
-
-        return keys, variables, indices
+        return keys, variables
 
     # ##############
     # show summary
