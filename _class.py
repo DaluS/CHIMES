@@ -33,7 +33,18 @@ class Solver():
         func_order=None,
         method=None,
     ):
-        """ Set the dict of input parameters (dparam) or a single param """
+        """ Set the dict of input parameters (dparam) or a single param
+
+        dparam is the large dictionary that contains:
+            - fixed-value parameters
+            - functions of different types (equations)
+
+        You can provide:
+            - dparam as a dict
+            - dparam as a str refering to an existing pre-defined model
+            - only a key, value pair to change the value of a single parameter
+
+        """
 
         # If all None => set to self._PARAMSET
         c0 = dparam is None and key is None and value is None
@@ -116,11 +127,13 @@ class Solver():
             **kwdargs,
         )
 
-    # #############
+    # ##############################
     # Read-only properties
+    # ##############################
 
     @property
     def lfunc(self):
+        """ List of parameters names that are actually functions """
         return [
             k0 for k0, v0 in self.__dparam.items()
             if v0.get('eqtype') is not None
@@ -128,15 +141,17 @@ class Solver():
 
     @property
     def func_order(self):
+        """ The ordered list of intermediary function names """
         return self.__func_order
 
-    # #############
+    # ##############################
     # reset
+    # ##############################
 
     def reset(self):
         """ Re-initializes all variables
 
-        Only the first time step (initial values) is preserved
+        Only the first time step (initial values) of ode is preserved
         All other time steps are set to nan
         """
 
@@ -149,8 +164,9 @@ class Solver():
                 self.__dparam[k0]['value'][:, :] = np.nan
         self.__run = False
 
-    # ##############
+    # ##############################
     # variables
+    # ##############################
 
     def get_variables_compact(self, eqtype=None):
         """ Return a compact numpy arrays containing all variable
@@ -186,10 +202,12 @@ class Solver():
 
         return keys, variables
 
-    # ##############
-    # show summary
+    # ##############################
+    #  Introspection
+    # ##############################
 
     def __repr__(self):
+        """ This is automatically called when only the instance is entered """
         col0 = ['model', 'source', 'nb. model param', 'nb. functions', 'run']
         ar0 = [
             list(self.__model.keys())[0],
@@ -268,8 +286,9 @@ class Solver():
             returnas=False,
         )
 
-    # ----------
+    # ##############################
     # run simulation
+    # ##############################
 
     def run(self, verb=None):
         """ Run the simulation
