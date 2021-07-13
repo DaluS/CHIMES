@@ -221,7 +221,7 @@ def _check_func(dparam=None, func_order=None, method=None):
     """
 
     # -------------------------------------
-    # extract parameters that are functions 
+    # extract parameters that are functions
     lf = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
     lfi = list(lf)
 
