@@ -449,7 +449,7 @@ def _suggest_funct_order(
                 templist = func_order + [var_still_in_list[jj]]
 
                 # try and if work => break and go to the next i
-                try :
+                try:
                     for k0 in templist:
                         # get dict of input args for func k0, from y
                         kwdargs = {
@@ -547,7 +547,6 @@ def _suggest_funct_order(
             # Concantenate with already sorted indices
             isort = np.concatenate((isort, indi))
             func_order += [lfunc_inter[ii] for ii in indi]
-
 
     # safety checks
     if len(set(lfunc_inter)) != len(func_order):

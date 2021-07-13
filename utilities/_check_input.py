@@ -75,18 +75,18 @@ def _check_inputs(
     """
 
     # SystemOfEquations
-    #if SystemOfEquation is None:
+    # if SystemOfEquation is None:
     SystemOfEquation = _DEFAULTPARAMETERS['SystemOfEquation']
 
     # InitialDictionnary
     if InitialDictionnary is None:
         InitialDictionnary = _DEFAULTPARAMETERS['InitialDictionnary']
 
-    # Value_Changes   
+    # Value_Changes
     if Value_Changes is None:
         Value_Changes = _DEFAULTPARAMETERS['Value_Changes']
 
-    # returnALL 
+    # returnALL
     if returnALL is None:
         returnALL = _DEFAULTPARAMETERS['returnALL']
 
