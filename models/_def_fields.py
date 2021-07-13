@@ -117,7 +117,7 @@ _DFIELDS = {
     # --------------
     # Time vector
     'time': {
-        'func': lambda dt=0: dt,
+        'func': lambda dt=0: 1.,
         'com': 'Time vector',
         'dimension': 'time',
         'units': 'y',
