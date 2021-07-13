@@ -20,6 +20,7 @@ class Solver():
         self.__func_order = None
         if model is not None:
             self.set_dparam(dparam=model)
+        self.__run = False
 
     # ##############
     # parameters
@@ -118,6 +119,7 @@ class Solver():
                 self.__dparam[k0]['value'][1:, :] = np.nan
             else:
                 self.__dparam[k0]['value'][:, :] = np.nan
+        self.__run = False
 
     def get_dparam(self, verb=None, returnas=None, **kwdargs):
         """ Return a copy of the input parameters dict
@@ -247,9 +249,9 @@ class Solver():
         ], dtype=str)
 
         # get compact variable array
-        variables = np.array([
+        variables = np.swapaxes([
             self.__dparam[k0]['value'] for k0 in keys
-        ])
+        ], 0, 1)
 
         # get indices array of input arguments
         indices = None
@@ -258,6 +260,25 @@ class Solver():
 
     # ##############
     # show summary
+
+    def __repr__(self):
+        col0 = ['model', 'source', 'nb. model param', 'nb. functions', 'run']
+        ar0 = [
+            list(self.__model.keys())[0],
+            list(self.__model.values())[0],
+            len([
+                k0 for k0, v0 in self.__dparam.items()
+                if v0.get('func') is None
+            ]),
+            len(self.lfunc),
+            self.__run,
+        ]
+        return _utils._get_summary(
+            lar=[ar0],
+            lcol=[col0],
+            verb=False,
+            returnas=str,
+        )
 
     def get_summary(self):
         """
@@ -289,20 +310,25 @@ class Solver():
                 v0['group'],
                 v0['com'],
             ])
-            for k0, v0 in self.__dparam.items() if v0['group'] != 'Numerical'
+            for k0, v0 in self.__dparam.items()
+            if v0['group'] != 'Numerical'
+            and v0.get('func') is None
         ]
 
         # ----------
-        # variables / functions
-        col2 = ['variable', 'shape', 'units', 'comment']
+        # functions
+        col2 = ['function', 'source', 'shape', 'units', 'eqtype', 'comment']
         ar2 = [
             tuple([
                 k0,
-                'None' if v0['value'] is None else str(v0['value'].shape),
+                v0['source'].split(':')[-1].replace('\n', '').replace(',', ''),
+                str(v0['value'].shape),
                 str(v0['units']),
+                v0['eqtype'],
                 v0['com'],
             ])
-            for k0, v0 in self.__dvar.items()
+            for k0, v0 in self.__dparam.items()
+            if v0.get('func') is not None
         ]
 
         # ----------
@@ -405,6 +431,7 @@ class Solver():
                         kwdargs=kwdargs,
                     )
                 )
+        self.__run = True
 
     def _rk4(self, k0=None, y=None, kwdargs=None):
         """

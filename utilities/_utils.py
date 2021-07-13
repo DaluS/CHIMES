@@ -89,7 +89,3 @@ def _get_summary(
             msg = "Valid return_ values are: {}".format(lok)
             raise Exception(msg)
         return out
-
-
-
-
