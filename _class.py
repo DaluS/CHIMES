@@ -386,7 +386,7 @@ class Solver():
 
             # log if verb > 0
             if verb > 0:
-                if ii == nt-1:
+                if ii == nt - 1:
                     end = '\n'
                 msg = (
                     f'time step {ii+1} / {nt}'
@@ -409,7 +409,7 @@ class Solver():
                 )
 
             # no need to compute ode of next step if already at last time step
-            if ii == nt-1:
+            if ii == nt - 1:
                 break
 
             # compute ode variables from ii-1, using rk4
@@ -449,7 +449,6 @@ class Solver():
             dy3 = self.__dparam[k0]['func'](**kwdargs)
             dy4 = self.__dparam[k0]['func'](**kwdargs)
         return (dy1 + 2*dy2 + 2*dy3 + dy4) * self.__dparam['dt']['value']/6.
-
 
     # ##############################
     #       plotting methods

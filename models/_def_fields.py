@@ -22,7 +22,7 @@ import numpy as np
 
 # #############################################################################
 # #############################################################################
-#                   Dict of default fields 
+#                   Dict of default fields
 # #############################################################################
 
 
@@ -84,13 +84,13 @@ _DFIELDS = {
         'group': 'Numerical',
     },
     # 'verb': {
-        # 'value': True,
-        # 'com': 'flag indicating whether to print intermediate info',
-        # 'dimension': None,
-        # 'units': None,
-        # 'type': None,
-        # 'symbol': None,
-        # 'group': 'Numerical'
+    # 'value': True,
+    # 'com': 'flag indicating whether to print intermediate info',
+    # 'dimension': None,
+    # 'units': None,
+    # 'type': None,
+    # 'symbol': None,
+    # 'group': 'Numerical'
     # },
     'storage': {
         'value': 'full',
@@ -692,10 +692,10 @@ _DFIELDS = {
         'symbol': r'$T_0$',
         'group': 'Climate',
     },
-    # EMISSIONS AND FORCING 
+    # EMISSIONS AND FORCING
     'E_ind': {
         'value': 35.85,
-        'com'  : 'Industrial CO2 emission per year',
+        'com': 'Industrial CO2 emission per year',
         'dimension': 'Gas flux',
         'units': 'GtC Y^{-1}',
         'type': 'extensive',
@@ -704,7 +704,7 @@ _DFIELDS = {
     },
     'E_land': {
         'value': 2.6,
-        'com'  : 'Land CO2 emission per year',
+        'com': 'Land CO2 emission per year',
         'dimension': 'Gas flux',
         'units': 'GtC Y^{-1}',
         'type': 'extensive',
@@ -713,7 +713,7 @@ _DFIELDS = {
     },
     'F_exo': {
         'value': 0.5,
-        'com'  : 'Exogeneous radiative forcing',
+        'com': 'Exogeneous radiative forcing',
         'dimension': 'Power flux',
         'units': 'W m^{-2}',
         'type': 'extensive',
@@ -873,7 +873,7 @@ _DFIELDS = {
 
 # #############################################################################
 # #############################################################################
-#               Conformity checks (for saefty, to detect typos...) 
+#               Conformity checks (for saefty, to detect typos...)
 # #############################################################################
 
 

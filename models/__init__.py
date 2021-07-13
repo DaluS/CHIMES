@@ -25,7 +25,7 @@ _df = {
 
 _DMODEL = {}
 for k0, v0 in _df.items():
-    pfe = os.path.join(_PATH_HERE, k0+'.py')
+    pfe = os.path.join(_PATH_HERE, k0 + '.py')
     spec = importlib.util.spec_from_file_location(k0, pfe)
     foo = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(foo)
