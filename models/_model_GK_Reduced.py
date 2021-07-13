@@ -18,7 +18,6 @@ All parameters can have value:
 _FUNC_ORDER = None
 
 
-
 # ---------------------------
 # user-defined model
 # contains parameters and functions of various types
@@ -41,15 +40,15 @@ _DPARAM = {
 
     # Intermediary
     'lambda': {
-        'value': lambda lamb=0, g=0, alpha=0, beta=0: lambd*(g-alpha-beta),
+        'value': lambda lamb=0, g=0, alpha=0, beta=0: lamb * (g - alpha - beta),
         'type': 'intermediary',
     },
     'omega': {
-        'value': lambda omega=0, philips=0: omega*phillips,
+        'value': lambda omega=0, philips=0: omega * phillips,
         'type': 'intermediary',
     },
     'philips': {
-        'value': lambda phi0=0,  phi1=0, lambd=0: -phi0 + phi1 / (1-lamb)**2,
+        'value': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
         'type': 'intermediary',
     },
     'g': {

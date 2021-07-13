@@ -52,15 +52,15 @@ _DPARAM = {
         'eqtype': 'ode',
     },
     'N': {
-        'func': lambda beta=0, itself=0: beta*itself,
+        'func': lambda beta=0, itself=0: beta * itself,
         'initial': 1.,
         'com': 'Exogenous population as an exponential',
         'eqtype': 'ode',
     },
     'K': {
-        'func': lambda I=0, itself=0, delta=0: I - itself*delta,
+        'func': lambda I=0, itself=0, delta=0: I - itself * delta,
         'initial': 0.1,
-        'com' : 'Capital evolution from investment and depreciation',
+        'com': 'Capital evolution from investment and depreciation',
         'eqtype': 'ode',
     },
     'W': {
@@ -72,7 +72,7 @@ _DPARAM = {
     'D': {
         'func': lambda I=0, Pi=0: I - Pi,
         'initial': 0.1,
-        'com' : 'Debt as Investment-Profit difference',
+        'com': 'Debt as Investment-Profit difference',
         'eqtype': 'ode',
     },
 
@@ -86,7 +86,7 @@ _DPARAM = {
         'eqtype': 'intermediary',
     },
     'Pi': {
-        'func': lambda Y=0, W=0, L=0, r=0, D=0: Y - W*L - r*D,
+        'func': lambda Y=0, W=0, L=0, r=0, D=0: Y - W * L - r * D,
         'eqtype': 'intermediary',
     },
     'lambda': {
@@ -98,7 +98,7 @@ _DPARAM = {
         'eqtype': 'intermediary',
     },
     'philips': {
-        'func': lambda phi0=0,  phi1=0, lamb=0: -phi0 + phi1 / (1-lamb)**2,
+        'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
         'eqtype': 'intermediary',
     },
     'kappa': {
@@ -113,7 +113,7 @@ _DPARAM = {
     # auxiliary, not used for computation but for interpretation
     # => typically computed at the end after the computation
     'g': {
-        'func': lambda omega=0, nu=1, delta=0: (1-omega) / nu - delta,
+        'func': lambda omega=0, nu=1, delta=0: (1 - omega) / nu - delta,
         'eqtype': 'auxiliary',
     },
     'd': {
@@ -121,19 +121,19 @@ _DPARAM = {
         'eqtype': 'auxiliary',
     },
     'pi': {
-        'func': lambda omega=0, r=0, d=0: 1 - omega - r*d,
+        'func': lambda omega=0, r=0, d=0: 1 - omega - r * d,
         'eqtype': 'auxiliary',
     },
     'i': {
-        'func': lambda Y=0: Y*0,
+        'func': lambda Y=0: Y * 0,
         'eqtype': 'auxiliary',
     },
     'phi0': {
-        'func': lambda phinull=0: phinull / (1- phinull**2),
+        'func': lambda phinull=0: phinull / (1 - phinull**2),
         'eqtype': 'auxiliary',
     },
     'phi1': {
-        'func': lambda phinull=0: phinull**3 / (1- phinull**2),
+        'func': lambda phinull=0: phinull**3 / (1 - phinull**2),
         'eqtype': 'auxiliary',
     },
 }
