@@ -5,6 +5,7 @@
 import os
 import inspect
 import itertools as itt
+import warnings
 
 
 # common
@@ -405,6 +406,10 @@ def _suggest_funct_order(
         Auxiliary functions are not considered
     """
 
+    # check inputs
+    if method is None:
+        method = 'other'
+
     included = ['ode', 'intermediary']
     lfunc = [
         kk for kk in lfunc if dparam[kk]['eqtype'] in included
@@ -430,32 +435,62 @@ def _suggest_funct_order(
 
     if method == 'brute force':
         # try orders until one works
-        func_order = []
         lfunc_inter = [
-            k0 for k0, v0 in lfunc
-            if dparam[k0]['eqtype'] == 'intermediary'
+            k0 for k0 in lfunc if dparam[k0]['eqtype'] == 'intermediary'
         ]
-        y = {k : 1 for k in self.variables.keys()}                            # Dummy y just for calls
-        var_still_in_list = [k for k in self.intermediaryfuncs.keys()]  # The list of variable still to find 
-        for i in range(len(self.intermediaryfuncs)):                           # For each variable that has to be placed in order
-            for j in range(len(VariablesStillInTheList)):                      # We select one which has not been calculated
-                Templist = OrderOfIntermediaryFuncs+[VariablesStillInTheList[j]] # We add it to the list
-                try :                                                          # We try to go through calculations
-                    for k0 in Templist:
-                        y[k0]=self.intermediaryfuncs[k0](y,self.parameters)   # We calculate each variable in order
-                    func_order = Templist.copy()                 # Templist is a good begining
-                    del VariablesStillInTheList[j]                             # We removeitfromthelist
-                    break                                                      # We go to the next i element
-                except BaseException as err:                                         # If it didn't work
-                    y = { k : 1 for k in self.variables.keys()}                # We reinitialise y to be sure we don't keep error
+        # Dummy y just for calls, start with nans (see if they propagate)
+        y = {
+            k0: np.nan for k0, v0 in dparam.items()
+            if v0.get('eqtype') == 'intermediary'
+        }
+        # The list of variable still to find
+        var_still_in_list = [k for k in lfunc_inter]
 
-    else:
+        # Initialize and loop
+        func_order = []
+        for ii in range(len(lfunc_inter)):
+            for jj in range(len(var_still_in_list)):
+                # add to a temporary list
+                templist = func_order + [var_still_in_list[jj]]
+                # try and if work => break and go to the next i
+                try :
+                    for k0 in templist:
+                        kwdargs = {
+                            k1: y[k1]
+                            for k1 in dparam[k0]['args']['intermediary']
+                        }
+                        # if lambda => substitute by lamb
+                        if 'lambda' in dparam[k0]['args']['intermediary']:
+                            kwdargs['lamb'] = kwdargs['lambda']
+                            del kwdargs['lambda']
+                        y[k0] = dparam[k0]['func'](**kwdargs)
+                        if np.any(np.isnan(y[k0])):
+                            raise ValueError('wrong order')
+                    func_order = templist.copy()
+                    _ = var_still_in_list.pop(jj)
+                    break
+                except ValueError:
+                    # didn't work => reinitialise y to avoid keeping error
+                    y = {
+                        k0: np.nan for k0, v0 in dparam.items()
+                        if v0.get('eqtype') == 'intermediary'
+                    }
+                except Exception as err:
+                    # didn't work => reinitialise y to avoid keeping error
+                    y = {
+                        k0: np.nan for k0, v0 in dparam.items()
+                        if v0.get('eqtype') == 'intermediary'
+                    }
+                    warnings.warn(str(err))
+
+
+    elif method == 'other':
         # count the number of args in each category, for each function
         nbargs = np.array([
             (
                 len(dparam[k0]['args']['param']),
                 len(dparam[k0]['args']['intermediary']),
-                # len(dparam[k0]['args']['auxiliary']),
+                # len(dparam[k0]['args']['auxiliary']),  # not considered
                 len(dparam[k0]['args']['ode']),
             )
             for k0 in lfunc
@@ -560,11 +595,11 @@ def _suggest_funct_order(
                 llen = [len(vv) for vv in dfremainj.values()]
                 if len(llen) == 0:
                     keepon = False
-                elif np.max(llen) == len(lfremain)-1:
+                elif np.max(llen) == len(lfremain) - 1:
                     keepon = False
                     dfremaini = {
                         k0: v0 for k0, v0 in dfremainj.items()
-                        if len(v0) == len(lfremain)-1
+                        if len(v0) == len(lfremain) - 1
                     }
                     found = True
                 else:
@@ -601,13 +636,12 @@ def _suggest_funct_order(
         assert len(set(lfsort)) == len(lfsort)
         func_order = lfsort
 
-        # only keep intermediary functions
-        func_order = [
-            kk for kk in func_order if dparam[kk]['eqtype'] == 'intermediary'
-        ]
+    # only keep intermediary functions
+    func_order = [
+        kk for kk in func_order if dparam[kk]['eqtype'] == 'intermediary'
+    ]
 
     return func_order
-
 
 
 # #############################################################################
@@ -639,7 +673,7 @@ def _check_dvar(dvar=None):
             "Arg dvar is not conform!\n"
             + "{key0: {'value': v0, 'units': 's', 'com': 'bla'},\n"
             + " key1: {'value': v1, 'units': 's', 'com': 'bla'},\n"
-            + "You provided:\n{}".format(dvar)
+            + f"You provided:\n{dvar}"
         )
         raise Exception(msg)
 
@@ -660,5 +694,3 @@ def check_dvar(dvar=None):
     else:
         dvar = _check_dvar(dvar)
     return dvar, varset
-
-

@@ -30,7 +30,7 @@ class Solver():
         dparam=None,
         key=None, value=None,
         func_order=None,
-        reset=None,
+        method=None,
     ):
         """ Set the dict of input parameters (dparam) or a single param """
 
@@ -81,12 +81,11 @@ class Solver():
             self.__model,
             self.__func_order,
         ) = _class_checks.check_dparam(
-            dparam=dparam, func_order=func_order,
+            dparam=dparam, func_order=func_order, method=method,
         )
 
         # reset variable
-        if reset is None:
-            reset = True
+        self.reset()
 
     # #############
     # Read-only properties
