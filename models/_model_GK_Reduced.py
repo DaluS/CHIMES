@@ -48,7 +48,7 @@ _DPARAM = {
         'value': lambda omega=0, philips=0: omega*phillips,
         'type': 'intermediary',
     },
-    'phillips': {
+    'philips': {
         'value': lambda phi0=0,  phi1=0, lambd=0: -phi0 + phi1 / (1-lamb)**2,
         'type': 'intermediary',
     },

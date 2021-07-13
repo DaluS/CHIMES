@@ -57,7 +57,7 @@ def get_available_models(returnas=None, verb=None):
         )
         if verb is True:
             print(msg)
-    if returnas is True:
+    if returnas is list:
         return lmod
     elif returnas is str:
         return msg

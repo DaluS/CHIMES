@@ -24,7 +24,7 @@ _PATH_PCK = os.path.dirname(_PATH_HERE)
 
 # library-specific
 sys.path.insert(0, _PATH_PCK)   # ensure Main comes from .. => add PYTHONPATH
-import Main
+import _class
 sys.path.pop(0)                 # clean PYTHONPATH
 
 
@@ -54,7 +54,7 @@ class Test01_Run():
 
     @classmethod
     def setup_class(cls):
-        pass
+        cls.dsolver = {}
 
     @classmethod
     def setup(self):
@@ -67,68 +67,21 @@ class Test01_Run():
     def teardown_class(cls):
         pass
 
-    def test01_run(self):
+    def test01_init_from_all_models(self):
         """ Make sure the main function runs from a python console """
+        lmodel = _class._class_checks.models.get_available_models(
+            returnas=list,
+        )
+        for model in lmodel:
+            self.dsolver[model] = _class.Solver(model)
 
-        # list of entry parameters to try
-        lplot = [True, False]
-        lsave = ['None', True, False]
+    def test02_get_dparam(self):
+        pass
 
-        # loop to test all combinations
-        for comb in itt.product(lplot, lsave):
-            Main.run(
-                plot=comb[0],
-                save=comb[1],
-            )
 
-        # Close figures
-        plt.close('all')
-
-    def test02_run_as_exec(self):
+    def test02_run_all_models(self):
         """ Make sure the main function runs as executable from terminal """
 
         # list of entry parameters to try
-        dpar = {
-            'plot': [False],
-            'timeit': [True, False],
-            'save': [False],
-        }
-
-        # Invoke via the shell for windows only
-        shell = True if sys.platform.lower().startswith('win') else False
-
-        # loop to test all combinations
-        lpar = list(dpar.keys())
-        lcomb = [dpar[kk] for kk in lpar]
-        for ii, comb in enumerate(itt.product(*lcomb)):
-            cmd = [
-                os.path.join(_PATH_PCK, 'Main.py'),
-                '--plot', str(comb[0]),
-                '--timeit', str(comb[1]),
-                "--save", str(comb[2]),
-            ]
-            assert comb[0] is False, "Only plot = False allowed here!"
-            process = subprocess.Popen(
-                cmd,
-                stdin=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                stdout=subprocess.PIPE,
-                text=True,
-                shell=shell,
-            )
-
-            # Catch error if any
-            out, err = process.communicate()
-            if err != '':
-                lstr = [
-                    '-\t {}: {}'.format(lpar[jj], comb[jj])
-                    for jj in range(len(lpar))
-                ]
-                msg = (
-                    str(err)
-                    + "\n\nInput comb. {} failed (see above):\n".format(ii)
-                    + '\n'.join(lstr)
-                )
-                raise Exception(msg)
-            process.wait()
-
+        for model in self.dsolver.keys():
+            self.dsolver[model].run()
