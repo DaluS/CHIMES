@@ -453,3 +453,23 @@ class Solver():
             dy3 = self.__dparam[k0]['func'](**kwdargs)
             dy4 = self.__dparam[k0]['func'](**kwdargs)
         return (dy1 + 2*dy2 + 2*dy3 + dy4) * self.__dparam['dt']['value']/6.
+
+
+    # ##############################
+    #       plotting methods
+    # ##############################
+
+    def plot(self):
+        """ To be done (Paul?)
+
+        Advice: put all plotting functions in a dedicated _plot.py module
+        """
+        pass
+
+    # ##############################
+    #       saving methods
+    # ##############################
+
+    def save(self):
+        """ To be done (me) """
+        pass
