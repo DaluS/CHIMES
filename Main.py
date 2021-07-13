@@ -16,7 +16,7 @@ import Class as C               # Core of resolution
 import VariableDictionnary as VarD # Useful infos on variables
 import plots as plts            # Already written plot functions
 
-import Utilities._check_input as CheckInput # Verify the argparsed elements
+import utilities._check_input as CheckInput # Verify the argparsed elements
 
 # IMPORTATION OF ALL THE SYSTEM OF EQUATIONS 
 #!#!#! FOR THE MOMENT ONLY ONE SYSTEM IS IMPORTED 
