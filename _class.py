@@ -263,12 +263,12 @@ class Solver():
 
         # ----------
         # functions
-        col2 = ['function', 'source', 'shape', 'units', 'eqtype', 'comment']
+        col2 = ['function', 'source', 'initial', 'units', 'eqtype', 'comment']
         ar2 = [
             tuple([
                 k0,
                 v0['source'].split(':')[-1].replace('\n', '').replace(',', ''),
-                str(v0['value'].shape),
+                str(v0.get('initial')),
                 str(v0['units']),
                 v0['eqtype'],
                 v0['com'],

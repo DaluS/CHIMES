@@ -188,7 +188,7 @@ def check_dparam(dparam=None, func_order=None, method=None):
             func_order = models._DMODEL[dparam]['func_order']
         dparam = models._DMODEL[dparam]['dparam']
     else:
-        model = 'custom'
+        model = {'custom': ''}
 
     # check conformity
     dparam = _check_dparam(dparam)
