@@ -17,7 +17,12 @@ All parameters can have value:
 
 _FUNC_ORDER = None
 
-
+_DESCRIPTION = """ 
+    DESCRIPTION : This is the simplest economic post-keynesian model
+    TYPICAL BEHAVIOR : metastable oscillations around a solow point 
+    LINKTOARTICLE : Goodwin, Richard, 1967. ‘A growth cycle’, in: Carl Feinstein, editor, Socialism, capitalism,
+and economic growth. Cambridge, UK: Cambridge University Press.
+        """
 # ---------------------------
 # user-defined model
 # contains parameters and functions of various types
@@ -26,27 +31,26 @@ _DPARAM = {
 
     # ---------
     # Fixed-value parameters
-    'alpha': {'value': None},
-    'delta': {'value': None},
-    'beta': {'value': None},
-    'nu': {'value': None},
+    'alpha': None,
+    'delta': None,
+    'beta': None,
+    'nu': None,
     'phinull': None,
 
     # ---------
     # functions
-
-    # former variables
-
-    # Intermediary
     'lambda': {
         'func': lambda itself=0, g=0, alpha=0, beta=0: itself * (g - alpha - beta),
         'eqtype': 'ode',
-        'initial': 0.1,
+        'initial': 0.97,
     },
     'omega': {
         'func': lambda itself=0, philips=0: itself * philips,
         'eqtype': 'ode',
-        'initial': 0.1,
+        'initial': 0.85,
+
+    # Intermediary
+
     },
     'philips': {
         'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
@@ -69,3 +73,36 @@ _DPARAM = {
         'eqtype': 'auxiliary',
     },
 }
+
+# ---------------------------
+# List of presets for specific interesting simulations
+
+_PRESETS = { 
+    'smallcycle' : { 
+        'variables' : {
+            'lambda': .97,
+            'omega' : .85 ,   
+                    },
+        'parameters': {
+                    },
+        'commentary': 'This is a run that should give simple stable sinusoidal oscillations'
+        },
+    'bigcycle' : { 
+        'variables' : {
+            'lambda': .99,
+            'omega' : .85 ,   
+                    },
+        'parameters': {
+                    },
+        'commentary': 'This is a run that should give extremely violent stable oscillations'
+        },    
+        
+    'badnegociation' : {
+        'variables' : {
+                    },
+        'parameters': { 
+            'phinull': .3,
+                    },
+        'commentary': 'This should displace the Solow Point and allow big cycles with few harmonics'    
+                    },       
+    }
