@@ -304,13 +304,21 @@ class Solver():
         # ------------
         # check inputs
         if verb in [None, True]:
-            verb = 1
+            verb = 1        
         if verb == 1:
             end = '\r'
             flush = True
+            timewait =False   
         elif verb == 2:
             end = '\n'
             flush = False
+            timewait =False   
+        elif type(verb) is float : #if timewait is a float, then it is the
+            end = '\n'             # delta of real time between print
+            flush = False 
+            timewait =True         # we will check real time between iterations      
+            
+            
         # ------------
         # reset variables
         self.reset()
@@ -332,17 +340,34 @@ class Solver():
 
         # ------------
         # start time loop
+        if timewait : 
+            t0 = time.time()-2*verb # We look at the time between two iterations
+                                    # We removed 2 verb to be sure that we print
+                                    # the first iteration
+            
         for ii in range(nt):
-
             # log if verb > 0
             if verb > 0:
-                if ii == nt - 1:
-                    end = '\n'
-                msg = (
-                    f'time step {ii+1} / {nt}'
-                )
-                print(msg, end=end, flush=flush)
-
+                if not timewait : 
+                    if ii == nt - 1:
+                        end = '\n'
+                    msg = (
+                        f'time step {ii+1} / {nt}'
+                    )
+                    print(msg, end=end, flush=flush)
+                if timewait :
+                    if time.time()-t0 > verb :
+                        msg = (
+                            f'time step {ii+1} / {nt}'
+                        )
+                        print(msg, end=end, flush=flush)
+                        t0=time.time()
+                    if ii == nt - 1:
+                        end = '\n'
+                        msg = (
+                            f'time step {ii+1} / {nt}'
+                        )
+                        print(msg, end=end, flush=flush)
             # compute intermediary functions, in good order
             for k0 in linter:
                 kwdargs = {

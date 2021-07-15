@@ -15,7 +15,7 @@ print('#### MORE INFORMATIONS ON EACH ')
 NameOfTheModel = 'G_Reduced' 
 sol = _class.Solver()
 sol
-sol.run(verb=0)
+sol.run(verb=0.1)
 
 Result = sol.get_dparam(returnas=dict)
 sol.get_summary()
