@@ -3,7 +3,7 @@
 
 # Common
 import numpy as np
-
+import time
 
 # Library-specific
 from utilities import _utils, _class_checks, _class_utility
@@ -18,8 +18,8 @@ class Solver():
     def __init__(self, model=None):
         self.__dparam = {}
         self.__func_order = None
-        if model is not None:
-            self.set_dparam(dparam=model)
+        #if model is not None: ### COMMENTED FOR NO DEFAULT MODEL ACCEPTANCE
+        self.set_dparam(dparam=model)
         self.__run = False
 
     # ##############################
@@ -48,7 +48,9 @@ class Solver():
 
         # If all None => set to self._PARAMSET
         c0 = dparam is None and key is None and value is None
+        
         if c0 is True:
+            print()
             dparam = self._MODEL
 
         # Check input: dparam xor (key, value)
@@ -309,7 +311,6 @@ class Solver():
         elif verb == 2:
             end = '\n'
             flush = False
-
         # ------------
         # reset variables
         self.reset()
@@ -415,5 +416,5 @@ class Solver():
     # ##############################
 
     def save(self):
-        """ To be done (me) """
+        """ To be done (Didier) """
         pass
