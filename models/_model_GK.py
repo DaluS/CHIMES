@@ -64,9 +64,9 @@ _DPARAM = {
         'eqtype': 'ode',
     },
     'W': {
-        'func': lambda itself=0, philips=0: itself * philips,
+        'func': lambda itself=0, phillips=0: itself * phillips,
         'initial': 0.1,
-        'com': 'Wage evolution through philips curve',
+        'com': 'Wage evolution through phillips curve',
         'eqtype': 'ode',
     },
     'D': {
@@ -97,7 +97,7 @@ _DPARAM = {
         'func': lambda W=0, L=0, Y=1: W * L / Y,
         'eqtype': 'intermediary',
     },
-    'philips': {
+    'phillips': {
         'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
         'eqtype': 'intermediary',
     },
