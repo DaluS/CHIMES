@@ -295,13 +295,14 @@ class Solver():
         """ Simply calculate each intermediary value at t=0
         """
         lode = list(self.get_dparam(eqtype='ode', returnas=dict).keys())
-        linter = self.__func_order
+        laux = list(self.get_dparam(eqtype='auxiliary', returnas=dict).keys())
+        linter = self.__func_order + laux
         dargs = {
             k0: (
                 self.__dparam[k0]['args']['ode']
                 + self.__dparam[k0]['args']['intermediary']
             )
-            for k0 in lode + linter
+            for k0 in lode + linter + laux
         }
         ii=0
         
