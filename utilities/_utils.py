@@ -25,8 +25,8 @@ def _getcharray(ar, col=None, sep='  ', line='-', just='l', msg=True):
         if len(col) not in ar.shape:
             msg = (
                 "len(col) should be in np.array(ar, dtype='U').shape:\n"
-                + "\t- len(col) = {}\n".format(len(col))
-                + "\t- ar.shape = {}".format(ar.shape)
+                + f"\t- len(col) = {len(col)}\n"
+                + f"\t- ar.shape = {ar.shape}"
             )
             raise Exception(msg)
         if len(col) != ar.shape[1]:
@@ -36,13 +36,13 @@ def _getcharray(ar, col=None, sep='  ', line='-', just='l', msg=True):
 
     # Apply to array
     fjust = np.char.ljust if just == 'l' else np.char.rjust
-    out = np.array([sep.join(v) for v in fjust(ar,nn)])
+    out = np.array([sep.join(v) for v in fjust(ar, nn)])
 
     # Apply to col
     if col is not None:
-        arcol = np.array([col, [line*n for n in nn]], dtype='U')
+        arcol = np.array([col, [line * n for n in nn]], dtype='U')
         arcol = np.array([sep.join(v) for v in fjust(arcol, nn)])
-        out = np.append(arcol,out)
+        out = np.append(arcol, out)
 
     if msg:
         out = '\n'.join(out)
@@ -71,7 +71,7 @@ def _get_summary(
     if verb or returnas in [True, str]:
         lmsg = [
             _getcharray(ar, col, sep=sep, line=line, just=just)
-            for ar, col in zip(*[lar,lcol])
+            for ar, col in zip(*[lar, lcol])
         ]
         if verb:
             msg = table_sep.join(lmsg)
@@ -89,7 +89,3 @@ def _get_summary(
             msg = "Valid return_ values are: {}".format(lok)
             raise Exception(msg)
         return out
-
-
-
-

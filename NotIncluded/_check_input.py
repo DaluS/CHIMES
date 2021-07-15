@@ -7,9 +7,11 @@ Created on Wed Jul  7 17:06:50 2021
 import argparse
 import os
 
+
 # #############################################################################
 #                   Uilities In ArgParsing
 # #############################################################################
+
 
 def _str2bool(arg):
     if isinstance(arg, bool):
@@ -50,21 +52,21 @@ def _check_bool(var=None, varname=None, vardef=None):
 
 
 def _check_inputs(
-            _DEFAULTPARAMETERS,
-            SystemOfEquation=None,
-            InitialDictionnary=None,
-            Value_Changes=None,
-            plot=None,
-            timeit=None,      
-            save=None,             
-            savepath=None,        
-            returnALL=None,       
-            Comments=None,
+    _DEFAULTPARAMETERS,
+    SystemOfEquation=None,
+    InitialDictionnary=None,
+    Value_Changes=None,
+    plot=None,
+    timeit=None,
+    save=None,
+    savepath=None,
+    returnALL=None,
+    Comments=None,
 ):
-    
+
     """ verification of input validity.
-    
-    #!#!#! 
+
+    #!#!#!
     SystemOfEquation   NOT CHECKED FOR THE MOMENT
     InitialDictionnary NOT CHECKED FOR THE MOMENT NOT EVEN IMPLEMENTED
     Value_Changes      NOT CHECKED FOR THE MOMENT a dic of dic quite complex
@@ -73,25 +75,25 @@ def _check_inputs(
     """
 
     # SystemOfEquations
-    #if SystemOfEquation is None:
-    SystemOfEquation =_DEFAULTPARAMETERS['SystemOfEquation']
+    # if SystemOfEquation is None:
+    SystemOfEquation = _DEFAULTPARAMETERS['SystemOfEquation']
 
     # InitialDictionnary
     if InitialDictionnary is None:
-        InitialDictionnary=_DEFAULTPARAMETERS['InitialDictionnary']  
-        
-    # Value_Changes   
+        InitialDictionnary = _DEFAULTPARAMETERS['InitialDictionnary']
+
+    # Value_Changes
     if Value_Changes is None:
         Value_Changes = _DEFAULTPARAMETERS['Value_Changes']
- 
-    # returnALL 
+
+    # returnALL
     if returnALL is None:
-        returnALL     = _DEFAULTPARAMETERS['returnALL'] 
-    
+        returnALL = _DEFAULTPARAMETERS['returnALL']
+
     # Comments
     if Comments is None:
-        Comments      = _DEFAULTPARAMETERS['Comments']  
- 
+        Comments = _DEFAULTPARAMETERS['Comments']
+
     # plot
     plot = _check_bool(var=plot, varname='plot', vardef=_DEFAULTPARAMETERS['plot'])
 
@@ -122,15 +124,15 @@ def _check_inputs(
             + "You provided:\n\t{}".format(savepath)
         )
         raise Exception(msg)
-        
 
-    return {'SystemOfEquation' : SystemOfEquation,
-            'InitialDictionnary' : InitialDictionnary,
-            'Value_Changes' : Value_Changes,
-            'plot' : plot,
-            'timeit' : timeit,
-            'save' : save,
-            'savepath' : savepath,
-            'returnALL' : returnALL,
-            'Comments' : Comments
-            }
+    return {
+        'SystemOfEquation': SystemOfEquation,
+        'InitialDictionnary': InitialDictionnary,
+        'Value_Changes': Value_Changes,
+        'plot': plot,
+        'timeit': timeit,
+        'save': save,
+        'savepath': savepath,
+        'returnALL': returnALL,
+        'Comments': Comments,
+    }
