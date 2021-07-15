@@ -270,9 +270,9 @@ class Solver():
             tuple([
                 k0,
                 v0['source'].split(':')[-1].replace('\n', '').replace(',', ''),
-                str(v0.get('value')[0,idx]),
+                "{:.2e}".format(v0.get('value')[0,idx]),
                 str(v0['units']),
-                v0['eqtype'],
+                v0['eqtype'].replace('intermediary','inter').replace('auxiliary','aux'),
                 v0['com'],
             ])
             for k0, v0 in self.__dparam.items()

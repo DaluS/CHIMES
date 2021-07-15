@@ -47,7 +47,7 @@ _DPARAM = {
     # differential equations (ode)
     'a': {
         'func': lambda alpha=0, itself=0: alpha * itself,
-        'initial': 0.1,
+        'initial': 1,
         'com': 'Exogenous technical progress as an exponential',
         'eqtype': 'ode',
     },
@@ -59,13 +59,13 @@ _DPARAM = {
     },
     'K': {
         'func': lambda I=0, itself=0, delta=0: I - itself * delta,
-        'initial': 0.1,
+        'initial': 2.7,
         'com': 'Capital evolution from investment and depreciation',
         'eqtype': 'ode',
     },
     'W': {
         'func': lambda itself=0, phillips=0: itself * phillips,
-        'initial': 0.1,
+        'initial': 0.85,
         'com': 'Wage evolution through phillips curve',
         'eqtype': 'ode',
     },
