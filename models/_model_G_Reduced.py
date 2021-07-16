@@ -49,7 +49,7 @@ _DPARAM = {
         'eqtype': 'ode',
         'initial': 0.85,
     },
-    
+
     # Intermediary
     'phillips': {
         'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
@@ -76,26 +76,28 @@ _DPARAM = {
 # ---------------------------
 # List of presets for specific interesting simulations
 
-_PRESETS = { 
-    'smallcycle' : { 
-        'fields' : {
+_PRESETS = {
+    'smallcycle': {
+        'fields': {
             'lambda': .97,
-            'omega' : .85 ,   
-                    },
-        'com': 'This is a run that should give simple stable sinusoidal oscillations'
+            'omega': .85,
         },
-    'bigcycle' : { 
-        'fields' : {
+        'com': 'This is a run that should give simple stable sinusoidal oscillations'
+    },
+    'bigcycle': {
+        'fields': {
             'lambda': .99,
-            'omega' : .85 ,   
-                    },
+            'omega': .85,
+        },
         'com': 'This is a run that should give extremely violent stable oscillations'
-        },    
-        
-    'badnegociation' : {
-        'fields' : { 
+    },
+
+    'badnegociation': {
+        'fields': {
             'phinull': .3,
-                    },
-        'com': 'This should displace the Solow Point and allow big cycles with few harmonics'    
-                    },       
-    }
+        },
+        'com': 'This should displace the Solow Point and allow big cycles with few harmonics'
+    },
+}
+
+_PLOTS = []

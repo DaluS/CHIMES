@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 import _core
 import matplotlib.pyplot as plt
-### Get the list of models already existing 
-print('#### LIST OF ALL MODELS ####')
-_core._class_checks.models.get_available_models()
-print(' ')
-print('#### MORE INFORMATIONS ON EACH ')
 
 
+ListOfModels = _core._class_checks.models.get_available_models(returnas=list, verb=False)
 
 
 
@@ -32,7 +28,7 @@ sol = _core.Solver(NameOfTheModel)
 sol.run(verb=0)
 
 Result = sol.get_dparam(returnas=dict)
-#sol.get_summary()
+sol.get_summary()
 
 plt.figure()
 plt.subplot(411);plt.plot(Result['time']['value'],Result['W']['value']);plt.ylabel('W')

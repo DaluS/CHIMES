@@ -43,6 +43,22 @@ for k0, v0 in _df.items():
 
 
 def get_available_models(returnas=None, verb=None):
+    '''
+    Find all the existing models and return the information    
+
+    Parameters
+    ----------
+    returnas : TYPE, optional
+        DESCRIPTION. The default is None.
+    verb : TYPE, optional
+        DESCRIPTION. The default is None.
+
+    Returns
+    -------
+    TYPE
+        DESCRIPTION.
+
+    '''
     if returnas is None:
         returnas = False
     if verb is None:
