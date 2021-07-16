@@ -34,7 +34,7 @@ import warnings
 
 import numpy as np
 
-__DOTHECHECK = True
+__DOTHECHECK = False
 __FILLDEFAULTVALUES = True
 
 # #############################################################################
@@ -96,7 +96,7 @@ _DFIELDS = {
         'group': 'Numerical',
     },
     'dt': {
-        'value': 0.01,
+        'value': 0.001,
         'com': 'Time step (fixed timestep method)',
         'dimension': 'time',
         'units': 'y',

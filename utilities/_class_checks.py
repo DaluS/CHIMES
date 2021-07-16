@@ -31,6 +31,25 @@ _LEQTYPES = ['ode', 'intermediary', 'auxiliary']
 _LEXTRAKEYS = ['func', 'kargs', 'args', 'initial', 'source']
 
 
+def _checkInputDparam(dparam,func_order,key,value):
+        lc = [
+            dparam is not None or func_order is not None,
+            key is not None and value is not None,
+        ]
+        if np.sum(lc) != 1:
+            lstr = [
+                '\t- {}: {}'.format(kk, vv)
+                for kk, vv in [
+                    ('dparam', dparam), ('key', key), ('value', value)
+                ]
+            ]
+            msg = (
+                "Please provide dparam/func_order xor (key, value)!\n"
+                + "You provided:\n"
+                + "\n".format(lstr)
+            )
+            raise Exception(msg)
+
 def _check_dparam(dparam=None):
     """ Check basic properties of dparam
 

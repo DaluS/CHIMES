@@ -9,7 +9,7 @@ import time
 from utilities import _utils, _class_checks, _class_utility
 
 
-class Solver():
+class Hub():
     """ Generic class
     """
 
@@ -19,6 +19,7 @@ class Solver():
         self.__dparam = {}
         self.__func_order = None
         self.set_dparam(dparam=model)
+
 
     # ##############################
     #  Setting / getting parameters
@@ -44,31 +45,12 @@ class Solver():
 
         """
 
-        # If all None => set to self._MODEL
-        c0 = dparam is None and key is None and value is None
-
-        if c0 is True:
-            print()
+        # If there is no entry load default model
+        if ( dparam is None and key is None and value is None ) is True:
             dparam = self._MODEL
 
         # Check input: dparam xor (key, value)
-        lc = [
-            dparam is not None or func_order is not None,
-            key is not None and value is not None,
-        ]
-        if np.sum(lc) != 1:
-            lstr = [
-                '\t- {}: {}'.format(kk, vv)
-                for kk, vv in [
-                    ('dparam', dparam), ('key', key), ('value', value)
-                ]
-            ]
-            msg = (
-                "Please provide dparam/func_order xor (key, value)!\n"
-                + "You provided:\n"
-                + "\n".format(lstr)
-            )
-            raise Exception(msg)
+        _class_checks._checkInputDparam(dparam,func_order,key,value)
 
         # set dparam or update desired key
         if dparam is None:
