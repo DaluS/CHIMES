@@ -113,7 +113,7 @@ def _get_dict_subset(
         # return a copy of the dict
         return {k0: dict(indict[k0]) for k0 in lk}
     elif returnas is list:
-        # return only the keys 
+        # return only the keys
         return lk
 
     elif returnas in [np.ndarray, 'DataFrame']:
