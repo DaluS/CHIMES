@@ -96,7 +96,7 @@ class Solver():
             dparam=dparam, func_order=func_order, method=method,
         )
 
-        # store a simplified dict of variable arguments 
+        # store a simplified dict of variable arguments
         # used in reset() and run()
         lode = self.get_dparam(eqtype='ode', returnas=list)
         linter = self.__func_order
@@ -196,7 +196,6 @@ class Solver():
         # reset intermediary variables and auxiliary variables
         laux = self.get_dparam(eqtype='auxiliary', returnas=list)
         linter_aux = self.__func_order + laux
-        ii=0
         for k0 in linter_aux:
             # prepare dict of args
             kwdargs = {
@@ -275,7 +274,7 @@ class Solver():
             returnas=str,
         )
 
-    def get_summary(self,idx=0):
+    def get_summary(self, idx=0):
         """
         Print a str summary of the solver
 
@@ -317,7 +316,7 @@ class Solver():
             tuple([
                 k0,
                 v0['source'].split(':')[-1].replace('\n', '').replace(',', ''),
-                "{:.2e}".format(v0.get('value')[0,idx]),
+                "{:.2e}".format(v0.get('value')[0, idx]),
                 str(v0['units']),
                 v0['eqtype'].replace('intermediary', 'inter').replace(
                     'auxiliary', 'aux',
@@ -363,10 +362,10 @@ class Solver():
             end = '\n'
             flush = False
             timewait = False
-        elif type(verb) is float :  # if timewait is a float, then it is the
+        elif type(verb) is float:   # if timewait is a float, then it is the
             end = '\n'              # delta of real time between print
             flush = False
-            timewait = True         # will check real time between iterations      
+            timewait = True         # will check real time between iteratiions
         else:
             timewait = False
 
@@ -403,13 +402,13 @@ class Solver():
                         f'time step {ii+1} / {nt}'
                     )
                     print(msg, end=end, flush=flush)
-                if timewait :
-                    if time.time() - t0 > verb :
+                if timewait:
+                    if time.time() - t0 > verb:
                         msg = (
                             f'time step {ii+1} / {nt}'
                         )
                         print(msg, end=end, flush=flush)
-                        t0=time.time()
+                        t0 = time.time()
                     elif (ii == nt - 1 or ii == 1):
                         end = '\n'
                         msg = (
@@ -480,7 +479,6 @@ class Solver():
             dy3 = self.__dparam[k0]['func'](**kwdargs)
             dy4 = self.__dparam[k0]['func'](**kwdargs)
         return (dy1 + 2*dy2 + 2*dy3 + dy4) * self.__dparam['dt']['value']/6.
-
 
     # ##############################
     #       plotting methods
