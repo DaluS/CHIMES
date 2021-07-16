@@ -56,21 +56,12 @@ _DEFAULTFIELDS = {
 _DALLOWED_FIELDS = {
     'value': None,
     'com': None,
-    'dimension': [
-        'time', 'time rate',
-        'Temperature', 'Temperature rate',
-        'Gas concentration', 'Gas flux',
-        'Power flux',
-        'Humans',
-        'Money', 'Real Units'
-    ],
     'units': [
-        'Real Units',
-        'y', 'y^{-1}',                          # Time
-        'Dollars',                              # Money
-        'C', 'C^{-1}', 'C^{-2}', 'C^{-zeta}',   # Concentration
-        'Humans',                               # Population
-        'W/m2',                                 # Linked to temperature
+        'Units',  # 
+        'y',      # Time
+        '$',      # Money
+        'C',      # Concentration
+        'Humans', # Population
     ],
     'type': ['intensive', 'extensive', 'dimensionless'],
     'symbol': None,
@@ -365,7 +356,7 @@ _DFIELDS = {
         'symbol': r'$\kappa$',
         'group': 'Economy',
     },    
-    'philips': {
+    'phillips': {
         'value': None,
         'com': 'Wage inflation rate',
         'dimension': 'time rate',

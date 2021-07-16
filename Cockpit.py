@@ -12,12 +12,13 @@ print('#### MORE INFORMATIONS ON EACH ')
 
 
 # #############################################################################
-NameOfTheModel = 'G_Reduced' 
+NameOfTheModel = 'G_Reduced'
 sol = _core.Solver(NameOfTheModel)
-sol.run(verb=0)
+sol.get_summary()
+sol.run(verb=0.1)
 
 Result = sol.get_dparam(returnas=dict)
-sol.get_summary()
+#
 
 plt.figure()
 plt.subplot(211);plt.plot(Result['time']['value'],Result['omega']['value']);plt.ylabel('Omega')
@@ -26,12 +27,12 @@ plt.suptitle(NameOfTheModel)
 plt.show()
 
 # #############################################################################
-NameOfTheModel = 'GK' 
+NameOfTheModel = 'GK'
 sol = _core.Solver(NameOfTheModel)
 sol.run(verb=0)
 
 Result = sol.get_dparam(returnas=dict)
-sol.get_summary()
+#sol.get_summary()
 
 plt.figure()
 plt.subplot(411);plt.plot(Result['time']['value'],Result['W']['value']);plt.ylabel('W')

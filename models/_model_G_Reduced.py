@@ -45,14 +45,13 @@ _DPARAM = {
         'initial': 0.97,
     },
     'omega': {
-        'func': lambda itself=0, philips=0: itself * philips,
+        'func': lambda itself=0, phillips=0: itself * phillips,
         'eqtype': 'ode',
         'initial': 0.85,
-
-    # Intermediary
-
     },
-    'philips': {
+    
+    # Intermediary
+    'phillips': {
         'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
         'eqtype': 'intermediary',
     },
@@ -79,30 +78,24 @@ _DPARAM = {
 
 _PRESETS = { 
     'smallcycle' : { 
-        'variables' : {
+        'fields' : {
             'lambda': .97,
             'omega' : .85 ,   
                     },
-        'parameters': {
-                    },
-        'commentary': 'This is a run that should give simple stable sinusoidal oscillations'
+        'com': 'This is a run that should give simple stable sinusoidal oscillations'
         },
     'bigcycle' : { 
-        'variables' : {
+        'fields' : {
             'lambda': .99,
             'omega' : .85 ,   
                     },
-        'parameters': {
-                    },
-        'commentary': 'This is a run that should give extremely violent stable oscillations'
+        'com': 'This is a run that should give extremely violent stable oscillations'
         },    
         
     'badnegociation' : {
-        'variables' : {
-                    },
-        'parameters': { 
+        'fields' : { 
             'phinull': .3,
                     },
-        'commentary': 'This should displace the Solow Point and allow big cycles with few harmonics'    
+        'com': 'This should displace the Solow Point and allow big cycles with few harmonics'    
                     },       
     }

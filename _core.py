@@ -3,7 +3,7 @@
 
 # Common
 import numpy as np
-
+import time
 
 # Library-specific
 from utilities import _utils, _class_checks, _class_utility
@@ -18,10 +18,10 @@ class Solver():
     def __init__(self, model=None):
         self.__dparam = {}
         self.__func_order = None
-        if model is not None:
-            self.set_dparam(dparam=model)
+        #if model is not None: ### COMMENTED FOR NO DEFAULT MODEL ACCEPTANCE
+        self.set_dparam(dparam=model)
         self.__run = False
-
+        self.runIntermediaryAtInitialState()
     # ##############################
     #  Setting / getting parameters
     # ##############################
@@ -48,7 +48,9 @@ class Solver():
 
         # If all None => set to self._PARAMSET
         c0 = dparam is None and key is None and value is None
+        
         if c0 is True:
+            print()
             dparam = self._MODEL
 
         # Check input: dparam xor (key, value)
@@ -226,7 +228,7 @@ class Solver():
             returnas=str,
         )
 
-    def get_summary(self):
+    def get_summary(self,idx=0):
         """
         Print a str summary of the solver
 
@@ -268,9 +270,9 @@ class Solver():
             tuple([
                 k0,
                 v0['source'].split(':')[-1].replace('\n', '').replace(',', ''),
-                str(v0.get('initial')),
+                "{:.2e}".format(v0.get('value')[0,idx]),
                 str(v0['units']),
-                v0['eqtype'],
+                v0['eqtype'].replace('intermediary','inter').replace('auxiliary','aux'),
                 v0['com'],
             ])
             for k0, v0 in self.__dparam.items()
@@ -289,6 +291,35 @@ class Solver():
     # ##############################
     # run simulation
     # ##############################
+    def runIntermediaryAtInitialState(self): 
+        """ Simply calculate each intermediary value at t=0
+        """
+        lode = list(self.get_dparam(eqtype='ode', returnas=dict).keys())
+        laux = list(self.get_dparam(eqtype='auxiliary', returnas=dict).keys())
+        linter = self.__func_order + laux
+        dargs = {
+            k0: (
+                self.__dparam[k0]['args']['ode']
+                + self.__dparam[k0]['args']['intermediary']
+            )
+            for k0 in lode + linter + laux
+        }
+        ii=0
+        
+        for k0 in linter:
+            kwdargs = {
+                k1: self.__dparam[k1]['value'][ii, :]
+                for k1 in dargs[k0]
+            }
+            if 'lambda' in dargs[k0]:
+                kwdargs['lamb'] = kwdargs['lambda']
+                del kwdargs['lambda']
+            self.__dparam[k0]['value'][ii, :] = (
+                self.__dparam[k0]['func'](
+                    **kwdargs
+                )
+            )
+
 
     def run(self, verb=None):
         """ Run the simulation
@@ -302,14 +333,23 @@ class Solver():
         # ------------
         # check inputs
         if verb in [None, True]:
-            verb = 1
+            verb = 1    
+            
         if verb == 1:
             end = '\r'
             flush = True
+            timewait =False   
         elif verb == 2:
             end = '\n'
             flush = False
-
+            timewait =False   
+        elif type(verb) is float : #if timewait is a float, then it is the
+            end = '\n'             # delta of real time between print
+            flush = False 
+            timewait =True         # we will check real time between iterations      
+        else : 
+            timewait = False
+            
         # ------------
         # reset variables
         self.reset()
@@ -331,17 +371,34 @@ class Solver():
 
         # ------------
         # start time loop
+        if timewait : 
+            t0 = time.time() # We look at the time between two iterations
+                                    # We removed 2 verb to be sure that we print
+                                    # the first iteration
+            
         for ii in range(nt):
-
             # log if verb > 0
             if verb > 0:
-                if ii == nt - 1:
-                    end = '\n'
-                msg = (
-                    f'time step {ii+1} / {nt}'
-                )
-                print(msg, end=end, flush=flush)
-
+                if not timewait : 
+                    if ii == nt - 1:
+                        end = '\n'
+                    msg = (
+                        f'time step {ii+1} / {nt}'
+                    )
+                    print(msg, end=end, flush=flush)
+                if timewait :
+                    if time.time()-t0 > verb :
+                        msg = (
+                            f'time step {ii+1} / {nt}'
+                        )
+                        print(msg, end=end, flush=flush)
+                        t0=time.time()
+                    elif (ii == nt - 1 or ii==0):
+                        end = '\n'
+                        msg = (
+                            f'time step {ii+1} / {nt}'
+                        )
+                        print(msg, end=end, flush=flush)
             # compute intermediary functions, in good order
             for k0 in linter:
                 kwdargs = {
@@ -380,6 +437,7 @@ class Solver():
                 )
         self.__run = True
 
+
     def _rk4(self, k0=None, y=None, kwdargs=None):
         """
         a traditional RK4 scheme, with:
@@ -399,6 +457,7 @@ class Solver():
             dy4 = self.__dparam[k0]['func'](**kwdargs)
         return (dy1 + 2*dy2 + 2*dy3 + dy4) * self.__dparam['dt']['value']/6.
 
+
     # ##############################
     #       plotting methods
     # ##############################
@@ -415,5 +474,5 @@ class Solver():
     # ##############################
 
     def save(self):
-        """ To be done (me) """
+        """ To be done (Didier) """
         pass
