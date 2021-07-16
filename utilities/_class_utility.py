@@ -45,6 +45,21 @@ def _get_dict_subset(
     if verb is None:
         verb = returnas is False
 
+    dreturn_ok = {
+        'False': False,
+        'dict': dict,
+        'np.ndarray': np.ndarray,
+        'list': list,
+        "'DataFrame'": 'DataFrame',
+    }
+    if returnas not in dreturn_ok.values():
+        lstr = [f'\t- {ss}' for ss in dreturn_ok.keys()]
+        msg = (
+            "Arg returnas must be in:\n"
+            + "\n".join(lstr)
+        )
+        raise Exception(msg)
+
     # ----------------------
     # select relevant parameters
 
@@ -97,6 +112,9 @@ def _get_dict_subset(
     if returnas is dict:
         # return a copy of the dict
         return {k0: dict(indict[k0]) for k0 in lk}
+    elif returnas is list:
+        # return only the keys
+        return lk
 
     elif returnas in [np.ndarray, 'DataFrame']:
         out = {
