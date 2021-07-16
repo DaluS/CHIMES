@@ -613,10 +613,51 @@ def _run_check(
     # -------
     # solver
 
-    dsolver_ok = {}
+    dsolver_ok = {
+        'eRK4-homemade': 'a home-made RK4 explicit solver',
+        'eRK4-scipy': 'the scipy RK4 explicit solver',
+        'eRK8-scipy': 'the scipy RK8 explicit solver',
+    }
     if solver is None:
         solver = 'eRK4-homemade'
-
+    if solver not in dsolver_ok.keys():
+        lstr = [f"\t- {k0}: {v0}" for k0, v0 in dsolver_ok.items()]
+        msg = (
+            "Arg solver is invalid, must be either:\n"
+            + "\n".join(lstr)
+        )
+        raise Exception(msg)
 
     return verb, end, flush, timewait, solver
 
+
+def _print_or_wait(
+    ii=None,
+    nt=None,
+    verb=None,
+    timewait=None,
+    end=None,
+    flush=None,
+):
+
+    if not timewait:
+        if ii == nt - 1:
+            end = '\n'
+        msg = (
+            f'time step {ii+1} / {nt}'
+        )
+        print(msg, end=end, flush=flush)
+
+    else:
+        if time.time()-t0 > verb:
+            msg = (
+                f'time step {ii+1} / {nt}'
+            )
+            print(msg, end=end, flush=flush)
+            t0 = time.time()
+        elif (ii == nt - 1 or ii == 0):
+            end = '\n'
+            msg = (
+                f'time step {ii+1} / {nt}'
+            )
+            print(msg, end=end, flush=flush)

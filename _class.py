@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 
 
-# Common
-import numpy as np
+# built-in
 import time
 
+
+# Common
+import numpy as np
+
+
 # Library-specific
-from utilities import _utils, _class_checks, _class_utility
+from utilities import _utils, _class_checks, _class_utility, _solvers
 
 
 class Solver():
@@ -363,28 +367,15 @@ class Solver():
                                     # the first iteration
 
         for ii in range(nt):
-            # log if verb > 0
+
+            # print of wait
             if verb > 0:
-                if not timewait:
-                    if ii == nt - 1:
-                        end = '\n'
-                    msg = (
-                        f'time step {ii+1} / {nt}'
-                    )
-                    print(msg, end=end, flush=flush)
-                if timewait :
-                    if time.time()-t0 > verb :
-                        msg = (
-                            f'time step {ii+1} / {nt}'
-                        )
-                        print(msg, end=end, flush=flush)
-                        t0=time.time()
-                    elif (ii == nt - 1 or ii==0):
-                        end = '\n'
-                        msg = (
-                            f'time step {ii+1} / {nt}'
-                        )
-                        print(msg, end=end, flush=flush)
+                _class_checks._print_or_wait(
+                    ii=ii, nt=nt, verb=verb,
+                    timewait=timewait, end=end, flush=flush,
+                )
+
+            # log if verb > 0
             # compute intermediary functions, in good order
             for k0 in linter:
                 kwdargs = {
@@ -404,45 +395,23 @@ class Solver():
             if ii == nt - 1:
                 break
 
-            # compute ode variables from ii-1, using rk4
-            for k0 in lode:
-                kwdargs = {
-                    k1: self.__dparam[k1]['value'][ii, :] for k1 in dargs[k0]
-                }
-                if 'lambda' in dargs[k0]:
-                    kwdargs['lamb'] = kwdargs['lambda']
-                    del kwdargs['lambda']
-
-                self.__dparam[k0]['value'][ii+1, :] = (
-                    self.__dparam[k0]['value'][ii, :]
-                    + self._rk4(
-                        k0=k0,
-                        y=self.__dparam[k0]['value'][ii, :],
-                        kwdargs=kwdargs,
-                    )
+            # compute ode variables from ii-1, using solver
+            if solver == 'eRK4-homemade':
+                _solvers._eRK4_homemade(
+                    dparam=self.__dparam,
+                    lode=lode,
+                    dargs=dargs,
+                    ii=ii,
                 )
+            elif solver == 'eRK4-scipy':
+                _solvers._eRK4_scipy(
+                    dparam=self.__dparam,
+                    lode=lode,
+                    dargs=dargs,
+                    ii=ii,
+                )
+
         self.__run = True
-
-
-    def _rk4(self, k0=None, y=None, kwdargs=None):
-        """
-        a traditional RK4 scheme, with:
-            - y = array of all variables
-            - p = parameter dictionnary
-        dt is contained within p
-        """
-        if 'itself' in self.__dparam[k0]['kargs']:
-            dy1 = self.__dparam[k0]['func'](itself=y, **kwdargs)
-            dy2 = self.__dparam[k0]['func'](itself=y+dy1/2., **kwdargs)
-            dy3 = self.__dparam[k0]['func'](itself=y+dy2/2., **kwdargs)
-            dy4 = self.__dparam[k0]['func'](itself=y+dy3, **kwdargs)
-        else:
-            dy1 = self.__dparam[k0]['func'](**kwdargs)
-            dy2 = self.__dparam[k0]['func'](**kwdargs)
-            dy3 = self.__dparam[k0]['func'](**kwdargs)
-            dy4 = self.__dparam[k0]['func'](**kwdargs)
-        return (dy1 + 2*dy2 + 2*dy3 + dy4) * self.__dparam['dt']['value']/6.
-
 
     # ##############################
     #       plotting methods
