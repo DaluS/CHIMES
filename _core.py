@@ -18,7 +18,7 @@ class Solver():
     def __init__(self, model=None):
         self.__dparam = {}
         self.__func_order = None
-        #if model is not None: ### COMMENTED FOR NO DEFAULT MODEL ACCEPTANCE
+        # if model is not None: ### COMMENTED FOR NO DEFAULT MODEL ACCEPTANCE
         self.set_dparam(dparam=model)
         self.__run = False
         self.runIntermediaryAtInitialState()
@@ -48,7 +48,7 @@ class Solver():
 
         # If all None => set to self._PARAMSET
         c0 = dparam is None and key is None and value is None
-        
+
         if c0 is True:
             print()
             dparam = self._MODEL
@@ -228,7 +228,7 @@ class Solver():
             returnas=str,
         )
 
-    def get_summary(self,idx=0):
+    def get_summary(self, idx=0):
         """
         Print a str summary of the solver
 
@@ -270,9 +270,11 @@ class Solver():
             tuple([
                 k0,
                 v0['source'].split(':')[-1].replace('\n', '').replace(',', ''),
-                "{:.2e}".format(v0.get('value')[0,idx]),
+                "{:.2e}".format(v0.get('value')[0, idx]),
                 str(v0['units']),
-                v0['eqtype'].replace('intermediary','inter').replace('auxiliary','aux'),
+                v0['eqtype'].replace('intermediary', 'inter').replace(
+                    'auxiliary', 'aux',
+                ),
                 v0['com'],
             ])
             for k0, v0 in self.__dparam.items()
@@ -291,7 +293,7 @@ class Solver():
     # ##############################
     # run simulation
     # ##############################
-    def runIntermediaryAtInitialState(self): 
+    def runIntermediaryAtInitialState(self):
         """ Simply calculate each intermediary value at t=0
         """
         lode = list(self.get_dparam(eqtype='ode', returnas=dict).keys())
@@ -304,8 +306,8 @@ class Solver():
             )
             for k0 in lode + linter + laux
         }
-        ii=0
-        
+        ii = 0
+
         for k0 in linter:
             kwdargs = {
                 k1: self.__dparam[k1]['value'][ii, :]
@@ -320,7 +322,6 @@ class Solver():
                 )
             )
 
-
     def run(self, verb=None):
         """ Run the simulation
 
@@ -333,23 +334,23 @@ class Solver():
         # ------------
         # check inputs
         if verb in [None, True]:
-            verb = 1    
-            
+            verb = 1
+
         if verb == 1:
             end = '\r'
             flush = True
-            timewait =False   
+            timewait = False
         elif verb == 2:
             end = '\n'
             flush = False
-            timewait =False   
-        elif type(verb) is float : #if timewait is a float, then it is the
-            end = '\n'             # delta of real time between print
-            flush = False 
-            timewait =True         # we will check real time between iterations      
-        else : 
             timewait = False
-            
+        elif type(verb) is float:   # if timewait is a float, then it is the
+            end = '\n'              # delta of real time between print
+            flush = False
+            timewait = True         # will check real time between iterations      
+        else:
+            timewait = False
+
         # ------------
         # reset variables
         self.reset()
@@ -371,29 +372,28 @@ class Solver():
 
         # ------------
         # start time loop
-        if timewait : 
-            t0 = time.time() # We look at the time between two iterations
-                                    # We removed 2 verb to be sure that we print
-                                    # the first iteration
-            
+        if timewait:
+            t0 = time.time()    # We look at the time between two iterations
+        # We removed 2 verb to be sure that we print the first iteration
+
         for ii in range(nt):
             # log if verb > 0
             if verb > 0:
-                if not timewait : 
+                if not timewait:
                     if ii == nt - 1:
                         end = '\n'
                     msg = (
                         f'time step {ii+1} / {nt}'
                     )
                     print(msg, end=end, flush=flush)
-                if timewait :
-                    if time.time()-t0 > verb :
+                if timewait:
+                    if time.time() - t0 > verb:
                         msg = (
                             f'time step {ii+1} / {nt}'
                         )
                         print(msg, end=end, flush=flush)
-                        t0=time.time()
-                    elif (ii == nt - 1 or ii==0):
+                        t0 = time.time()
+                    elif (ii == nt - 1 or ii == 0):
                         end = '\n'
                         msg = (
                             f'time step {ii+1} / {nt}'
@@ -437,7 +437,6 @@ class Solver():
                 )
         self.__run = True
 
-
     def _rk4(self, k0=None, y=None, kwdargs=None):
         """
         a traditional RK4 scheme, with:
@@ -447,16 +446,15 @@ class Solver():
         """
         if 'itself' in self.__dparam[k0]['kargs']:
             dy1 = self.__dparam[k0]['func'](itself=y, **kwdargs)
-            dy2 = self.__dparam[k0]['func'](itself=y+dy1/2., **kwdargs)
-            dy3 = self.__dparam[k0]['func'](itself=y+dy2/2., **kwdargs)
-            dy4 = self.__dparam[k0]['func'](itself=y+dy3, **kwdargs)
+            dy2 = self.__dparam[k0]['func'](itself=y + dy1/2., **kwdargs)
+            dy3 = self.__dparam[k0]['func'](itself=y + dy2/2., **kwdargs)
+            dy4 = self.__dparam[k0]['func'](itself=y + dy3, **kwdargs)
         else:
             dy1 = self.__dparam[k0]['func'](**kwdargs)
             dy2 = self.__dparam[k0]['func'](**kwdargs)
             dy3 = self.__dparam[k0]['func'](**kwdargs)
             dy4 = self.__dparam[k0]['func'](**kwdargs)
         return (dy1 + 2*dy2 + 2*dy3 + dy4) * self.__dparam['dt']['value']/6.
-
 
     # ##############################
     #       plotting methods

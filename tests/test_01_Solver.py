@@ -24,7 +24,7 @@ _PATH_PCK = os.path.dirname(_PATH_HERE)
 
 # library-specific
 sys.path.insert(0, _PATH_PCK)   # ensure Main comes from .. => add PYTHONPATH
-import _class
+import _core
 sys.path.pop(0)                 # clean PYTHONPATH
 
 
@@ -69,11 +69,11 @@ class Test01_Run():
 
     def test01_init_from_all_models(self):
         """ Make sure the main function runs from a python console """
-        lmodel = _class._class_checks.models.get_available_models(
+        lmodel = _core._class_checks.models.get_available_models(
             returnas=list,
         )
         for model in lmodel:
-            self.dsolver[model] = _class.Solver(model)
+            self.dsolver[model] = _core.Solver(model)
 
     def test02_get_summary_repr(self):
         for model in self.dsolver.keys():
