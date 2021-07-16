@@ -22,10 +22,8 @@ class Solver():
     def __init__(self, model=None):
         self.__dparam = {}
         self.__func_order = None
-        #if model is not None: ### COMMENTED FOR NO DEFAULT MODEL ACCEPTANCE
         self.set_dparam(dparam=model)
-        self.__run = False
-        self.runIntermediaryAtInitialState()
+
     # ##############################
     #  Setting / getting parameters
     # ##############################
@@ -50,7 +48,7 @@ class Solver():
 
         """
 
-        # If all None => set to self._PARAMSET
+        # If all None => set to self._MODEL
         c0 = dparam is None and key is None and value is None
 
         if c0 is True:
@@ -102,7 +100,37 @@ class Solver():
             dparam=dparam, func_order=func_order, method=method,
         )
 
-        # reset variable
+        # store a simplified dict of variable arguments
+        # used in reset() and run()
+        lode = self.get_dparam(eqtype='ode', returnas=list)
+        linter = self.__func_order
+        laux = self.get_dparam(eqtype='auxiliary', returnas=list)
+
+        self.__dargs = {
+            k0: {
+                k1: self.__dparam[k1]['value']
+                for k1 in (
+                    self.__dparam[k0]['args']['ode']
+                    + self.__dparam[k0]['args']['intermediary']
+                    + self.__dparam[k0]['args']['auxiliary']
+                )
+                if k1 != 'lambda'
+            }
+            for k0 in lode + linter + laux
+        }
+
+        # Handle the lambda exception here to avoid test at every time step
+        # if lambda exists and is a function
+        c0 = (
+            'lambda' in self.__dparam.keys()
+            and self.__dparam['lambda'].get('func') is not None
+        )
+        # then handle the exception
+        for k0, v0 in self.__dargs.items():
+            if c0 and 'lambda' in self.__dparam[k0]['kargs']:
+                self.__dargs[k0]['lamb'] = self.__dparam['lambda']['value']
+
+        # reset all variables
         self.reset()
 
     def get_dparam(self, verb=None, returnas=None, **kwdargs):
@@ -157,7 +185,7 @@ class Solver():
     def reset(self):
         """ Re-initializes all variables
 
-        Only the first time step (initial values) of ode is preserved
+        Only the first time step (initial values) is preserved
         All other time steps are set to nan
         """
 
@@ -168,6 +196,24 @@ class Solver():
                 self.__dparam[k0]['value'][1:, :] = np.nan
             else:
                 self.__dparam[k0]['value'][:, :] = np.nan
+
+        # reset intermediary variables and auxiliary variables
+        laux = self.get_dparam(eqtype='auxiliary', returnas=list)
+        linter_aux = self.__func_order + laux
+        for k0 in linter_aux:
+            # prepare dict of args
+            kwdargs = {
+                k1: v1[0, :]
+                for k1, v1 in self.__dargs[k0].items()
+            }
+            # run function
+            self.__dparam[k0]['value'][0, :] = (
+                self.__dparam[k0]['func'](**kwdargs)
+            )
+            # set other time steps to nan
+            self.__dparam[k0]['value'][1:, :] = np.nan
+
+        # set run to False
         self.__run = False
 
     # ##############################
@@ -232,7 +278,7 @@ class Solver():
             returnas=str,
         )
 
-    def get_summary(self,idx=0):
+    def get_summary(self, idx=0):
         """
         Print a str summary of the solver
 
@@ -274,9 +320,11 @@ class Solver():
             tuple([
                 k0,
                 v0['source'].split(':')[-1].replace('\n', '').replace(',', ''),
-                "{:.2e}".format(v0.get('value')[0,idx]),
+                "{:.2e}".format(v0.get('value')[0, idx]),
                 str(v0['units']),
-                v0['eqtype'].replace('intermediary','inter').replace('auxiliary','aux'),
+                v0['eqtype'].replace('intermediary', 'inter').replace(
+                    'auxiliary', 'aux',
+                ),
                 v0['com'],
             ])
             for k0, v0 in self.__dparam.items()
@@ -295,38 +343,10 @@ class Solver():
     # ##############################
     # run simulation
     # ##############################
-    def runIntermediaryAtInitialState(self):
-        """ Simply calculate each intermediary value at t=0
-        """
-        lode = list(self.get_dparam(eqtype='ode', returnas=dict).keys())
-        laux = list(self.get_dparam(eqtype='auxiliary', returnas=dict).keys())
-        linter = self.__func_order + laux
-        dargs = {
-            k0: (
-                self.__dparam[k0]['args']['ode']
-                + self.__dparam[k0]['args']['intermediary']
-            )
-            for k0 in lode + linter + laux
-        }
-        ii=0
-
-        for k0 in linter:
-            kwdargs = {
-                k1: self.__dparam[k1]['value'][ii, :]
-                for k1 in dargs[k0]
-            }
-            if 'lambda' in dargs[k0]:
-                kwdargs['lamb'] = kwdargs['lambda']
-                del kwdargs['lambda']
-            self.__dparam[k0]['value'][ii, :] = (
-                self.__dparam[k0]['func'](
-                    **kwdargs
-                )
-            )
-
 
     def run(
         self,
+        compute_auxiliary=None,
         solver=None,
         verb=None,
         rtol=None,
@@ -343,7 +363,7 @@ class Solver():
         # ------------
         # check inputs
         verb, end, flush, timewait, solver = _class_checks._run_check(
-            verb=verb, solver=solver,
+            verb=verb, compute_auxiliary=compute_auxiliary, solver=solver,
         )
 
         # ------------
@@ -355,15 +375,9 @@ class Solver():
 
         # ------------
         # temporary dict of input
-        lode = list(self.get_dparam(eqtype='ode', returnas=dict).keys())
+        lode = self.get_dparam(eqtype='ode', returnas=list)
         linter = self.__func_order
-        dargs = {
-            k0: (
-                self.__dparam[k0]['args']['ode']
-                + self.__dparam[k0]['args']['intermediary']
-            )
-            for k0 in lode + linter
-        }
+        laux = self.get_dparam(eqtype='auxiliary', returnas=list)
 
         # ------------
         # start time loop
@@ -372,7 +386,7 @@ class Solver():
 
         if solver == 'eRK4-homemade':
 
-            for ii in range(nt):
+            for ii in range(1, nt):
 
                 # print of wait
                 if verb > 0:
@@ -380,27 +394,6 @@ class Solver():
                         ii=ii, nt=nt, verb=verb,
                         timewait=timewait, end=end, flush=flush,
                     )
-
-                # log if verb > 0
-                # compute intermediary functions, in good order
-                for k0 in linter:
-                    kwdargs = {
-                        k1: self.__dparam[k1]['value'][ii, :]
-                        for k1 in dargs[k0]
-                    }
-                    if 'lambda' in dargs[k0]:
-                        kwdargs['lamb'] = kwdargs['lambda']
-                        del kwdargs['lambda']
-                    self.__dparam[k0]['value'][ii, :] = (
-                        self.__dparam[k0]['func'](
-                            **kwdargs
-                        )
-                    )
-
-                # no need to compute ode of next step if already at last time step
-                if ii == nt - 1:
-                    break
-
                 # compute ode variables from ii-1, using solver
                 _solvers._eRK4_homemade(
                     dparam=self.__dparam,
@@ -408,6 +401,33 @@ class Solver():
                     dargs=dargs,
                     ii=ii,
                 )
+
+                # compute intermediary functions, in good order
+                # Now that inermediary functions are computed at t=0 in reset()
+                # we have to reverse the order of resolution:
+                # first ode then intermediary
+                for k0 in linter:
+                    kwdargs = {
+                        k1: v1[ii-1, :]
+                        for k1, v1 in self.__dargs[k0].items()
+                    }
+                    self.__dparam[k0]['value'][ii, :] = (
+                        self.__dparam[k0]['func'](
+                            **kwdargs
+                    )
+
+                # Since the computation is fast we can also compute auxiliary
+                if compute_auxiliary:
+                    for k0 in laux:
+                        kwdargs = {
+                            k1: v1[ii-1, :]
+                            for k1, v1 in self.__dargs[k0].items()
+                        }
+                        self.__dparam[k0]['value'][ii, :] = (
+                            self.__dparam[k0]['func'](
+                                **kwdargs
+                            )
+                        )
 
         elif solver == 'eRK4-scipy':
             sol = _solvers._eRK4_scipy(
