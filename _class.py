@@ -199,7 +199,7 @@ class Solver():
         for k0 in linter_aux:
             # prepare dict of args
             kwdargs = {
-                k1: v1[ii, :]
+                k1: v1[0, :]
                 for k1, v1 in self.__dargs[k0].items()
             }
             # run function
