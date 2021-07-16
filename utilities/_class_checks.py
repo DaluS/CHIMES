@@ -43,6 +43,7 @@ def _check_dparam(dparam=None):
 
     """
 
+
     # check type
     if not isinstance(dparam, dict):
         msg = (
