@@ -325,7 +325,13 @@ class Solver():
             )
 
 
-    def run(self, solver=None, verb=None):
+    def run(
+        self,
+        solver=None,
+        verb=None,
+        rtol=None,
+        atol=None,
+    ):
         """ Run the simulation
 
         Compute each time step from the previous one using:
@@ -364,52 +370,58 @@ class Solver():
         if timewait:
             t0 = time.time() # We look at the time between two iterations
                                     # We removed 2 verb to be sure that we print
-                                    # the first iteration
 
-        for ii in range(nt):
 
-            # print of wait
-            if verb > 0:
-                _class_checks._print_or_wait(
-                    ii=ii, nt=nt, verb=verb,
-                    timewait=timewait, end=end, flush=flush,
-                )
+        if solver == 'eRK4-homemade':
 
-            # log if verb > 0
-            # compute intermediary functions, in good order
-            for k0 in linter:
-                kwdargs = {
-                    k1: self.__dparam[k1]['value'][ii, :]
-                    for k1 in dargs[k0]
-                }
-                if 'lambda' in dargs[k0]:
-                    kwdargs['lamb'] = kwdargs['lambda']
-                    del kwdargs['lambda']
-                self.__dparam[k0]['value'][ii, :] = (
-                    self.__dparam[k0]['func'](
-                        **kwdargs
+            for ii in range(nt):
+
+                # print of wait
+                if verb > 0:
+                    _class_checks._print_or_wait(
+                        ii=ii, nt=nt, verb=verb,
+                        timewait=timewait, end=end, flush=flush,
                     )
-                )
 
-            # no need to compute ode of next step if already at last time step
-            if ii == nt - 1:
-                break
+                # log if verb > 0
+                # compute intermediary functions, in good order
+                for k0 in linter:
+                    kwdargs = {
+                        k1: self.__dparam[k1]['value'][ii, :]
+                        for k1 in dargs[k0]
+                    }
+                    if 'lambda' in dargs[k0]:
+                        kwdargs['lamb'] = kwdargs['lambda']
+                        del kwdargs['lambda']
+                    self.__dparam[k0]['value'][ii, :] = (
+                        self.__dparam[k0]['func'](
+                            **kwdargs
+                        )
+                    )
 
-            # compute ode variables from ii-1, using solver
-            if solver == 'eRK4-homemade':
-                _solvers._eRK4_homemade(
-                    dparam=self.__dparam,
-                    lode=lode,
-                    dargs=dargs,
-                    ii=ii,
-                )
-            elif solver == 'eRK4-scipy':
-                _solvers._eRK4_scipy(
-                    dparam=self.__dparam,
-                    lode=lode,
-                    dargs=dargs,
-                    ii=ii,
-                )
+                # no need to compute ode of next step if already at last time step
+                if ii == nt - 1:
+                    break
+
+                # compute ode variables from ii-1, using solver
+                if solver == 'eRK4-homemade':
+                    _solvers._eRK4_homemade(
+                        dparam=self.__dparam,
+                        lode=lode,
+                        dargs=dargs,
+                        ii=ii,
+                    )
+        elif solver == 'eRK4-scipy':
+            sol = _solvers._eRK4_scipy(
+                dparam=self.__dparam,
+                lode=lode,
+                linter=linter,
+                dargs=dargs,
+                verb=verb,
+                rtol=rtol,
+                atol=atol,
+            )
+            self.sol = sol
 
         self.__run = True
 
