@@ -577,3 +577,46 @@ def _suggest_funct_order(
     print(msg)
 
     return func_order
+
+
+# #############################################################################
+# #############################################################################
+#                       run checks
+# #############################################################################
+
+
+def _run_check(
+    solver=None,
+    verb=None,
+):
+    # ------
+    # verb
+
+    if verb in [None, True]:
+        verb = 1
+
+    if verb == 1:
+        end = '\r'
+        flush = True
+        timewait =False
+    elif verb == 2:
+        end = '\n'
+        flush = False
+        timewait =False
+    elif type(verb) is float : #if timewait is a float, then it is the
+        end = '\n'             # delta of real time between print
+        flush = False
+        timewait =True         # we will check real time between iterations      
+    else:
+        timewait = False
+
+    # -------
+    # solver
+
+    dsolver_ok = {}
+    if solver is None:
+        solver = 'eRK4-homemade'
+
+
+    return verb, end, flush, timewait, solver
+

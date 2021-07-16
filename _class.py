@@ -48,7 +48,7 @@ class Solver():
 
         # If all None => set to self._PARAMSET
         c0 = dparam is None and key is None and value is None
-        
+
         if c0 is True:
             print()
             dparam = self._MODEL
@@ -291,7 +291,7 @@ class Solver():
     # ##############################
     # run simulation
     # ##############################
-    def runIntermediaryAtInitialState(self): 
+    def runIntermediaryAtInitialState(self):
         """ Simply calculate each intermediary value at t=0
         """
         lode = list(self.get_dparam(eqtype='ode', returnas=dict).keys())
@@ -305,7 +305,7 @@ class Solver():
             for k0 in lode + linter + laux
         }
         ii=0
-        
+
         for k0 in linter:
             kwdargs = {
                 k1: self.__dparam[k1]['value'][ii, :]
@@ -321,7 +321,7 @@ class Solver():
             )
 
 
-    def run(self, verb=None):
+    def run(self, solver=None, verb=None):
         """ Run the simulation
 
         Compute each time step from the previous one using:
@@ -332,24 +332,10 @@ class Solver():
         """
         # ------------
         # check inputs
-        if verb in [None, True]:
-            verb = 1    
-            
-        if verb == 1:
-            end = '\r'
-            flush = True
-            timewait =False   
-        elif verb == 2:
-            end = '\n'
-            flush = False
-            timewait =False   
-        elif type(verb) is float : #if timewait is a float, then it is the
-            end = '\n'             # delta of real time between print
-            flush = False 
-            timewait =True         # we will check real time between iterations      
-        else : 
-            timewait = False
-            
+        verb, end, flush, timewait, solver = _class_checks._run_check(
+            verb=verb, solver=solver,
+        )
+
         # ------------
         # reset variables
         self.reset()
@@ -371,15 +357,15 @@ class Solver():
 
         # ------------
         # start time loop
-        if timewait : 
+        if timewait:
             t0 = time.time() # We look at the time between two iterations
                                     # We removed 2 verb to be sure that we print
                                     # the first iteration
-            
+
         for ii in range(nt):
             # log if verb > 0
             if verb > 0:
-                if not timewait : 
+                if not timewait:
                     if ii == nt - 1:
                         end = '\n'
                     msg = (
