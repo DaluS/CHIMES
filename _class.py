@@ -369,8 +369,6 @@ class Solver():
         # start time loop
         if timewait:
             t0 = time.time() # We look at the time between two iterations
-                                    # We removed 2 verb to be sure that we print
-
 
         if solver == 'eRK4-homemade':
 
@@ -404,13 +402,13 @@ class Solver():
                     break
 
                 # compute ode variables from ii-1, using solver
-                if solver == 'eRK4-homemade':
-                    _solvers._eRK4_homemade(
-                        dparam=self.__dparam,
-                        lode=lode,
-                        dargs=dargs,
-                        ii=ii,
-                    )
+                _solvers._eRK4_homemade(
+                    dparam=self.__dparam,
+                    lode=lode,
+                    dargs=dargs,
+                    ii=ii,
+                )
+
         elif solver == 'eRK4-scipy':
             sol = _solvers._eRK4_scipy(
                 dparam=self.__dparam,

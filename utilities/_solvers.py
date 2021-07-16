@@ -157,7 +157,7 @@ def _eRK4_scipy(
         y0,
         method='RK45',
         t_eval=np.linspace(t_span[0], t_span[1], dparam['nt']['value']),
-        max_step=10.*dparam['dt']['value'],
+        max_step=2.*dparam['dt']['value'],
         rtol=rtol,
         atol=atol,
         vectorized=False,

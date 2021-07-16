@@ -201,6 +201,11 @@ def check_dparam(dparam=None, func_order=None, method=None):
         method=method,
     )
 
+    # Make sure to copy to avoid passing by reference
+    dparam = {
+        k0: dict(v0) for k0, v0 in dparam.items()
+    }
+
     return dparam, model, func_order
 
 
