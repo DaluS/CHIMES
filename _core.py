@@ -344,10 +344,10 @@ class Solver():
             end = '\n'
             flush = False
             timewait = False
-        elif type(verb) is float : # if timewait is a float, then it is the
-            end = '\n'             # delta of real time between print
+        elif type(verb) is float:   # if timewait is a float, then it is the
+            end = '\n'              # delta of real time between print
             flush = False
-            timewait = True         # we will check real time between iterations      
+            timewait = True         # will check real time between iterations      
         else:
             timewait = False
 
@@ -387,7 +387,7 @@ class Solver():
                     )
                     print(msg, end=end, flush=flush)
                 if timewait:
-                    if time.time() - t0 > verb :
+                    if time.time() - t0 > verb:
                         msg = (
                             f'time step {ii+1} / {nt}'
                         )
