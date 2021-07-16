@@ -339,7 +339,6 @@ class Solver():
     # ##############################
     # run simulation
     # ##############################
-
     def run(self, compute_auxiliary=None, verb=None):
         """ Run the simulation
 
@@ -389,10 +388,8 @@ class Solver():
         # start time loop
         if timewait:
             t0 = time.time()    # We look at the time between two iterations
-            # We removed 2 verb to be sure that we print the first iteration
 
         for ii in range(1, nt):
-
             # log if verb > 0
             if verb > 0:
                 if not timewait:
@@ -470,9 +467,9 @@ class Solver():
         """
         if 'itself' in self.__dparam[k0]['kargs']:
             dy1 = self.__dparam[k0]['func'](itself=y, **kwdargs)
-            dy2 = self.__dparam[k0]['func'](itself=y+dy1/2., **kwdargs)
-            dy3 = self.__dparam[k0]['func'](itself=y+dy2/2., **kwdargs)
-            dy4 = self.__dparam[k0]['func'](itself=y+dy3, **kwdargs)
+            dy2 = self.__dparam[k0]['func'](itself=y + dy1/2., **kwdargs)
+            dy3 = self.__dparam[k0]['func'](itself=y + dy2/2., **kwdargs)
+            dy4 = self.__dparam[k0]['func'](itself=y + dy3, **kwdargs)
         else:
             dy1 = self.__dparam[k0]['func'](**kwdargs)
             dy2 = self.__dparam[k0]['func'](**kwdargs)
