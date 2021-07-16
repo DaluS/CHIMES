@@ -591,6 +591,7 @@ def _suggest_funct_order(
 
 
 def _run_check(
+    compute_auxiliary=None,
     solver=None,
     verb=None,
 ):
@@ -615,6 +616,11 @@ def _run_check(
     else:
         timewait = False
 
+    # ------------
+    # compute auxiliary
+    if compute_auxiliary is None:
+        compute_auxiliary = True
+
     # -------
     # solver
 
@@ -633,7 +639,7 @@ def _run_check(
         )
         raise Exception(msg)
 
-    return verb, end, flush, timewait, solver
+    return verb, end, flush, timewait, compute_auxiliary, solver
 
 
 def _print_or_wait(

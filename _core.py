@@ -362,7 +362,10 @@ class Solver():
         """
         # ------------
         # check inputs
-        verb, end, flush, timewait, solver = _class_checks._run_check(
+        (
+            verb, end, flush, timewait,
+            compute_auxiliary, solver,
+        ) = _class_checks._run_check(
             verb=verb, compute_auxiliary=compute_auxiliary, solver=solver,
         )
 
@@ -413,7 +416,8 @@ class Solver():
                     }
                     self.__dparam[k0]['value'][ii, :] = (
                         self.__dparam[k0]['func'](
-                            **kwdargs
+                            **kwdargs,
+                        )
                     )
 
                 # Since the computation is fast we can also compute auxiliary
