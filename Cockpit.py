@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-import _class
+import _core
 import matplotlib.pyplot as plt
 ### Get the list of models already existing 
 print('#### LIST OF ALL MODELS ####')
-_class._class_checks.models.get_available_models()
+_core._class_checks.models.get_available_models()
 print(' ')
 print('#### MORE INFORMATIONS ON EACH ')
 
@@ -13,7 +13,7 @@ print('#### MORE INFORMATIONS ON EACH ')
 
 # #############################################################################
 NameOfTheModel = 'G_Reduced' 
-sol = _class.Solver(NameOfTheModel)
+sol = _core.Solver(NameOfTheModel)
 sol.run(verb=0)
 
 Result = sol.get_dparam(returnas=dict)
@@ -27,7 +27,7 @@ plt.show()
 
 # #############################################################################
 NameOfTheModel = 'GK' 
-sol = _class.Solver(NameOfTheModel)
+sol = _core.Solver(NameOfTheModel)
 sol.run(verb=0)
 
 Result = sol.get_dparam(returnas=dict)
