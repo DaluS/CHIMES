@@ -141,18 +141,19 @@ def _solver_scipy(
     if max_time_step is None:
         max_time_step = 10.*dparam['dt']['value']
 
-    # -----------------
-    # define y0
+    if dparam['nx']['value'] > 1:
+        msg = (
+            "scipy solvers only implemented for nx = 1"
+        )
+        raise Exception(msg)
 
-    y0 = np.array([
-        dparam[k0]['value'][0, 0] for k0 in lode
-    ])
+    lode_notime = [k0 for k0 in lode if k0 != 'time']
 
     # -----------------
     # define f(t, y) (using pre-allocated array for speed
 
-    dydt = np.full((len(lode,)), np.nan)
-    def func(t, y, dydt=dydt, dparam=dparam):
+    dydt = np.full((len(lode_notime,)), np.nan)
+    def func(t, y, dydt=dydt, dparam=dparam, lode_notime=lode_notime):
         """ dydt = f(t, y)
 
         Where y is a (n,) array
@@ -167,27 +168,27 @@ def _solver_scipy(
 
         # ------------
         # update cache
-        for ii, k0 in enumerate(lode):
-            dparam[k0]['value'][-1, 0] = y[ii]
+        for ii, k0 in enumerate(lode_notime):
+            dparam[k0]['value'][-1, :] = y[ii, :]
 
         # ------------
         # First update intermediary functions based on provided y
         for ii, k0 in enumerate(linter):
             # build kwdargs
             kwdargs = {
-                k1: v1[-1, 0]
+                k1: v1[-1, :]
                 for k1, v1 in dargs[k0].items()
             }
 
-            dparam[k0]['value'][-1, 0] = dparam[k0]['func'](**kwdargs)
+            dparam[k0]['value'][-1, :] = dparam[k0]['func'](**kwdargs)
 
         # ------------
         # Then compute derivative functions (ode)
 
-        for ii, k0 in enumerate(lode):
+        for ii, k0 in enumerate(lode_notime):
             # build kwdargs
             kwdargs = {
-                k1: v1[-1, 0]
+                k1: v1[-1, :]
                 for k1, v1 in dargs[k0].items()
             }
 
@@ -198,8 +199,19 @@ def _solver_scipy(
 
         return dydt
 
+    # -----------------
+    # define y0, t_span, t_eval
+
+    y0 = np.array([
+        dparam[k0]['value'][0, 0]
+        for k0 in lode_notime
+    ])
+
     t_span = [dparam['time']['initial'], dparam['Tmax']['value']]
     t_eval = np.linspace(t_span[0], t_span[1], dparam['nt']['value'])
+
+    # -----------------
+    # define y0, t_span, t_eval
 
     sol = scpinteg.solve_ivp(
         func,
@@ -210,7 +222,7 @@ def _solver_scipy(
         max_step=max_time_step,
         rtol=rtol,
         atol=atol,
-        vectorized=False,
+        vectorized=True,
         first_step=dparam['dt']['value'],
     )
 
@@ -228,9 +240,8 @@ def _solver_scipy(
     # dispatch results
 
     dparam['time']['value'] = sol.t
-    for ii, k0 in enumerate(lode):
-        if k0 == 'time':
-            continue
+    for ii, k0 in enumerate(lode_notime):
         dparam[k0]['value'][:, 0] = sol.y[ii, :]
+    dparam['time']['value'] = t_eval
 
     return sol

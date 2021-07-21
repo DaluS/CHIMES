@@ -191,7 +191,10 @@ class Solver():
 
         # reset ode variables
         for k0 in self.lfunc:
-            if self.__dparam[k0]['eqtype'] == 'ode':
+            if k0 == 'time':
+                self.__dparam[k0]['value'][0] = self.__dparam[k0]['initial']
+                self.__dparam[k0]['value'][1:] = np.nan
+            elif self.__dparam[k0]['eqtype'] == 'ode':
                 self.__dparam[k0]['value'][0, :] = self.__dparam[k0]['initial']
                 self.__dparam[k0]['value'][1:, :] = np.nan
             else:
