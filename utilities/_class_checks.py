@@ -611,7 +611,7 @@ def _run_check(
     elif type(verb) is float:   # if timewait is a float, then it is the
         end = '\n'              # delta of real time between print
         flush = False
-        timewait = True         # we will check real time between iterations      
+        timewait = True         # we will check real time between iterations
     else:
         timewait = False
 
