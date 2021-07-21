@@ -110,7 +110,7 @@ def _rk4(dparam=None, k0=None, y=None, kwdargs=None):
 # #############################################################################
 
 
-def _eRK4_scipy(
+def _solver_scipy(
     dparam=None,
     lode=None,
     linter=None,
@@ -119,6 +119,7 @@ def _eRK4_scipy(
     rtol=None,
     verb=None,
     max_time_step=None,
+    solver_scipy=None,
 ):
     """ scipy.RK45 solver, for cross-checking
 
@@ -139,19 +140,6 @@ def _eRK4_scipy(
         atol = 1.e-6
     if max_time_step is None:
         max_time_step = 10.*dparam['dt']['value']
-
-    # scipy compatibility
-    dsol_scipy = {
-        'eRK4-scipy': 'RK45',
-        'eRK8-scipy': 'RK89',
-    }
-    if solver not in dsol_scipy.keys():
-        lstr = [f"\t- '{k0}': '{v0}' (scipy)" for k0, v0 in dsol_scipy.items()]
-        msg = (
-            "Arg solver must be in:\n"
-            + "\n".join(lstr)
-        )
-        raise Exception(msg)
 
     # -----------------
     # define y0
@@ -217,7 +205,7 @@ def _eRK4_scipy(
         func,
         t_span,
         y0,
-        method=dsol_scipy[solver],
+        method=solver_scipy,
         t_eval=t_eval,
         max_step=max_time_step,
         rtol=rtol,

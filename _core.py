@@ -365,7 +365,7 @@ class Solver():
         # check inputs
         (
             verb, end, flush, timewait,
-            compute_auxiliary, solver,
+            compute_auxiliary, solver, solver_scipy,
         ) = _class_checks._run_check(
             verb=verb, compute_auxiliary=compute_auxiliary, solver=solver,
         )
@@ -404,8 +404,8 @@ class Solver():
                 compute_auxiliary=compute_auxiliary,
             )
 
-        elif solver == 'eRK4-scipy':
-            sol = _solvers._eRK4_scipy(
+        elif 'scipy' in solver:
+            sol = _solvers._solver_scipy(
                 dparam=self.__dparam,
                 lode=lode,
                 linter=linter,
@@ -414,6 +414,7 @@ class Solver():
                 rtol=rtol,
                 atol=atol,
                 max_time_step=max_time_step,
+                solver_scipy=solver_scipy,
             )
             self.sol = sol
 

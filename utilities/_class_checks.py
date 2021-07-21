@@ -624,22 +624,38 @@ def _run_check(
     # -------
     # solver
 
-    dsolver_ok = {
-        'eRK4-homemade': 'a home-made RK4 explicit solver',
-        'eRK4-scipy': 'the scipy RK4 explicit solver',
-        'eRK8-scipy': 'the scipy RK8 explicit solver',
+    dsolver = {
+        'eRK4-homemade': {
+            'com': 'explicit Runge_Kutta order 4 homemade',
+        },
+        'eRK2-scipy': {
+            'scipy': 'RK23',
+            'com': 'explicit Runge_Kutta order 2 from scipy',
+        },
+        'eRK4-scipy': {
+            'scipy': 'RK45',
+            'com': 'explicit Runge_Kutta order 4 from scipy',
+        },
+        'eRK8-scipy': {
+            'scipy': 'DOP853',
+            'com': 'explicit Runge_Kutta order 8 from scipy',
+        },
     }
     if solver is None:
         solver = 'eRK4-homemade'
-    if solver not in dsolver_ok.keys():
-        lstr = [f"\t- {k0}: {v0}" for k0, v0 in dsolver_ok.items()]
+    if solver not in dsolver.keys():
+        lstr = [f"\t- '{k0}': {v0['com']}" for k0, v0 in dsolver.items()]
         msg = (
-            "Arg solver is invalid, must be either:\n"
+            "Arg solver must be in:\n"
             + "\n".join(lstr)
         )
         raise Exception(msg)
 
-    return verb, end, flush, timewait, compute_auxiliary, solver
+    solver_scipy = None
+    if 'scipy' in solver:
+        solver_scipy = dsolver[solver]['scipy']
+
+    return verb, end, flush, timewait, compute_auxiliary, solver, solver_scipy
 
 
 def _print_or_wait(
