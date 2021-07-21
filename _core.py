@@ -419,9 +419,9 @@ class Solver():
                 max_time_step=max_time_step,
                 solver_scipy=solver_scipy,
             )
-            self.sol = sol
 
         self.__run = True
+        self.__solver = solver
 
     # ##############################
     #       plotting methods
