@@ -6,7 +6,7 @@ import numpy as np
 import time
 
 # Library-specific
-from utilities import _utils, _class_checks, _class_utility
+from utilities import _utils, _class_checks, _class_utility, _saveload
 
 
 class Solver():
@@ -18,6 +18,8 @@ class Solver():
     def __init__(self, model=None):
         self.__dparam = {}
         self.__func_order = None
+        self.__model = None
+        self.__solver = None
         self.set_dparam(dparam=model)
 
     # ##############################
@@ -173,6 +175,11 @@ class Solver():
     def func_order(self):
         """ The ordered list of intermediary function names """
         return self.__func_order
+
+    @property
+    def model(self):
+        """ The model identifier """
+        return self.__model
 
     # ##############################
     # reset
@@ -339,6 +346,7 @@ class Solver():
     # ##############################
     # run simulation
     # ##############################
+
     def run(self, compute_auxiliary=None, verb=None):
         """ Run the simulation
 
@@ -489,9 +497,43 @@ class Solver():
         pass
 
     # ##############################
+    #       data conversion
+    # ##############################
+
+    def _to_dict(self):
+        """ Convert instance to dict """
+
+        dout = {
+            'dparam': self.get_dparam(verb=False, returnas=dict),
+            'func_order': self.__func_order,
+            'model': self.__model,
+            'solver': self.__solver,
+            'run': self.__run,
+        }
+        return dout
+
+    # ##############################
     #       saving methods
     # ##############################
 
-    def save(self):
-        """ To be done (Didier) """
-        pass
+    def save(self, path=None, name=None, fmt=None, verb=None):
+        """ Save the instance
+
+        Saved files are stored in path/fullname.ext
+        The extension (ext) depends on the format (fmt) chosen for saving
+        The file full name (fullname) is the concatenation of a base default
+        name and a user-defined name.
+            ex.: Output_MODELNAME_USERDEFINEDNAME.ext
+        where MODELNAME is the model's name
+
+        By default path is set to 'output/', but the user can overload it
+
+        """
+
+        return _saveload.save(
+            self,
+            path=path,
+            name=name,
+            fmt=fmt,
+            verb=verb,
+        )
