@@ -5,6 +5,10 @@ import numpy as np
 import scipy.integrate as scpinteg
 
 
+from . import _class_checks
+
+
+
 # #############################################################################
 # #############################################################################
 #                   Home-made
@@ -14,26 +18,70 @@ import scipy.integrate as scpinteg
 def _eRK4_homemade(
     dparam=None,
     lode=None,
+    linter=None,
+    laux=None,
     dargs=None,
-    ii=None,
+    nt=None,
+    verb=None,
+    timewait=None,
+    end=None,
+    flush=None,
+    compute_auxiliary=None,
 ):
-    for k0 in lode:
-        kwdargs = {
-            k1: dparam[k1]['value'][ii, :] for k1 in dargs[k0]
-        }
-        if 'lambda' in dargs[k0]:
-            kwdargs['lamb'] = kwdargs['lambda']
-            del kwdargs['lambda']
+    """ Structure of the homemade rk4 solver, with time loop, intermediaries...
+    """
+    for ii in range(1, nt):
 
-        dparam[k0]['value'][ii+1, :] = (
-            dparam[k0]['value'][ii, :]
-            + _rk4(
-                dparam=dparam,
-                k0=k0,
-                y=dparam[k0]['value'][ii, :],
-                kwdargs=kwdargs,
+        # print of wait
+        if verb > 0:
+            _class_checks._print_or_wait(
+                ii=ii, nt=nt, verb=verb,
+                timewait=timewait, end=end, flush=flush,
             )
-        )
+        # compute ode variables from ii-1, using solver
+        for k0 in lode:
+            kwdargs = {
+                k1: v1[ii-1, :] for k1, v1 in dargs[k0].items()
+            }
+
+            dparam[k0]['value'][ii, :] = (
+                dparam[k0]['value'][ii-1, :]
+                + _rk4(
+                    dparam=dparam,
+                    k0=k0,
+                    y=dparam[k0]['value'][ii-1, :],
+                    kwdargs=kwdargs,
+                )
+            )
+
+        # compute intermediary functions, in good order
+        # Now that inermediary functions are computed at t=0 in reset()
+        # we have to reverse the order of resolution:
+        # first ode then intermediary
+        for k0 in linter:
+            kwdargs = {
+                k1: v1[ii, :]
+                for k1, v1 in dargs[k0].items()
+            }
+            dparam[k0]['value'][ii, :] = (
+                dparam[k0]['func'](
+                    **kwdargs,
+                )
+            )
+
+        # Since the computation is fast we can also compute auxiliary
+        # TBC: there might be a function order here too!
+        if compute_auxiliary:
+            for k0 in laux:
+                kwdargs = {
+                    k1: v1[ii, :]
+                    for k1, v1 in dargs[k0].items()
+                }
+                dparam[k0]['value'][ii, :] = (
+                    dparam[k0]['func'](
+                        **kwdargs
+                    )
+                )
 
 
 def _rk4(dparam=None, k0=None, y=None, kwdargs=None):
@@ -70,6 +118,7 @@ def _eRK4_scipy(
     atol=None,
     rtol=None,
     verb=None,
+    max_time_step=None,
 ):
     """ scipy.RK45 solver, for cross-checking
 
@@ -88,6 +137,8 @@ def _eRK4_scipy(
         rtol = 1.e-3
     if atol is None:
         atol = 1.e-6
+    if max_time_step is None:
+        max_time_step = 10.*dparam['dt']['value']
 
     # -----------------
     # define y0
@@ -109,38 +160,35 @@ def _eRK4_scipy(
         ...
         y[n] = last ode
 
+        All intermediate values ae stored in dparam[k0]['value'][-1, 0]
+
         """
 
         # ------------
-        # First update intermediary functions bqsed on provided y
+        # update cache
+        for ii, k0 in enumerate(lode):
+            dparam[k0]['value'][-1, 0] = y[ii]
+
+        # ------------
+        # First update intermediary functions based on provided y
         for ii, k0 in enumerate(linter):
+            # build kwdargs
             kwdargs = {
-                k1: dparam[k1]['value'][0, 0] for k1 in dargs[k0]
+                k1: v1[-1, 0]
+                for k1, v1 in dargs[k0].items()
             }
-            if 'lambda' in dargs[k0]:
-                kwdargs['lamb'] = kwdargs['lambda']
-                del kwdargs['lambda']
 
-            dparam[k0]['value'][0, 0] = dparam[k0]['func'](**kwdargs)
-
+            dparam[k0]['value'][-1, 0] = dparam[k0]['func'](**kwdargs)
 
         # ------------
         # Then compute derivative functions (ode)
 
         for ii, k0 in enumerate(lode):
+            # build kwdargs
             kwdargs = {
-                k1: dparam[k1]['value'][0, 0]
-                for k1 in dargs[k0]
-                if k1 in linter
+                k1: v1[-1, 0]
+                for k1, v1 in dargs[k0].items()
             }
-            kwdargs.update({
-                k1: y[lode.index(k1)]
-                for k1 in dargs[k0]
-                if k1 in lode
-            })
-            if 'lambda' in dargs[k0]:
-                kwdargs['lamb'] = kwdargs['lambda']
-                del kwdargs['lambda']
 
             if 'itself' in dparam[k0]['kargs']:
                 dydt[ii] = dparam[k0]['func'](itself=y[ii], **kwdargs)
@@ -150,14 +198,15 @@ def _eRK4_scipy(
         return dydt
 
     t_span = [dparam['time']['initial'], dparam['Tmax']['value']]
+    t_eval = np.linspace(t_span[0], t_span[1], dparam['nt']['value'])
 
     sol = scpinteg.solve_ivp(
         func,
         t_span,
         y0,
         method='RK45',
-        t_eval=np.linspace(t_span[0], t_span[1], dparam['nt']['value']),
-        max_step=2.*dparam['dt']['value'],
+        t_eval=t_eval,
+        max_step=max_time_step,
         rtol=rtol,
         atol=atol,
         vectorized=False,
@@ -168,7 +217,9 @@ def _eRK4_scipy(
     # verbosity
     if verb > 0:
         msg = (
-            f"{sol.message}\nSuccess: {sol.success}"
+            f"{sol.message}\nSuccess: {sol.success}\n"
+            f"Nb. fev: {sol.nfev} for {sol.t.size} time steps"
+            f" ({sol.nfev/sol.t.size} per time step)"
         )
         print(msg)
 

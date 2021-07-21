@@ -49,7 +49,7 @@ _DPARAM = {
         'eqtype': 'ode',
         'initial': 0.85,
     },
-    
+
     # Intermediary
     'phillips': {
         'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,

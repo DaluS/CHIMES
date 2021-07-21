@@ -351,6 +351,7 @@ class Solver():
         verb=None,
         rtol=None,
         atol=None,
+        max_time_step=None,
     ):
         """ Run the simulation
 
@@ -389,59 +390,30 @@ class Solver():
 
         if solver == 'eRK4-homemade':
 
-            for ii in range(1, nt):
-
-                # print of wait
-                if verb > 0:
-                    _class_checks._print_or_wait(
-                        ii=ii, nt=nt, verb=verb,
-                        timewait=timewait, end=end, flush=flush,
-                    )
-                # compute ode variables from ii-1, using solver
-                _solvers._eRK4_homemade(
-                    dparam=self.__dparam,
-                    lode=lode,
-                    dargs=dargs,
-                    ii=ii,
-                )
-
-                # compute intermediary functions, in good order
-                # Now that inermediary functions are computed at t=0 in reset()
-                # we have to reverse the order of resolution:
-                # first ode then intermediary
-                for k0 in linter:
-                    kwdargs = {
-                        k1: v1[ii-1, :]
-                        for k1, v1 in self.__dargs[k0].items()
-                    }
-                    self.__dparam[k0]['value'][ii, :] = (
-                        self.__dparam[k0]['func'](
-                            **kwdargs,
-                        )
-                    )
-
-                # Since the computation is fast we can also compute auxiliary
-                if compute_auxiliary:
-                    for k0 in laux:
-                        kwdargs = {
-                            k1: v1[ii-1, :]
-                            for k1, v1 in self.__dargs[k0].items()
-                        }
-                        self.__dparam[k0]['value'][ii, :] = (
-                            self.__dparam[k0]['func'](
-                                **kwdargs
-                            )
-                        )
+            _solvers._eRK4_homemade(
+                dparam=self.__dparam,
+                lode=lode,
+                linter=linter,
+                laux=laux,
+                dargs=self.__dargs,
+                nt=nt,
+                verb=verb,
+                timewait=timewait,
+                end=end,
+                flush=flush,
+                compute_auxiliary=compute_auxiliary,
+            )
 
         elif solver == 'eRK4-scipy':
             sol = _solvers._eRK4_scipy(
                 dparam=self.__dparam,
                 lode=lode,
                 linter=linter,
-                dargs=dargs,
+                dargs=self.__dargs,
                 verb=verb,
                 rtol=rtol,
                 atol=atol,
+                max_time_step=max_time_step,
             )
             self.sol = sol
 
