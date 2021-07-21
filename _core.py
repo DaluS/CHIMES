@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 
 
-# Common
-import numpy as np
+# built-in
 import time
 
+
+# Common
+import numpy as np
+
+
 # Library-specific
-from utilities import _utils, _class_checks, _class_utility
+from utilities import _utils, _class_checks, _class_utility, _solvers
 
 
 class Solver():
@@ -187,7 +191,10 @@ class Solver():
 
         # reset ode variables
         for k0 in self.lfunc:
-            if self.__dparam[k0]['eqtype'] == 'ode':
+            if k0 == 'time':
+                self.__dparam[k0]['value'][0] = self.__dparam[k0]['initial']
+                self.__dparam[k0]['value'][1:] = np.nan
+            elif self.__dparam[k0]['eqtype'] == 'ode':
                 self.__dparam[k0]['value'][0, :] = self.__dparam[k0]['initial']
                 self.__dparam[k0]['value'][1:, :] = np.nan
             else:
@@ -339,7 +346,16 @@ class Solver():
     # ##############################
     # run simulation
     # ##############################
-    def run(self, compute_auxiliary=None, verb=None):
+
+    def run(
+        self,
+        compute_auxiliary=None,
+        solver=None,
+        verb=None,
+        rtol=None,
+        atol=None,
+        max_time_step=None,
+    ):
         """ Run the simulation
 
         Compute each time step from the previous one using:
@@ -350,26 +366,12 @@ class Solver():
         """
         # ------------
         # check inputs
-        if verb in [None, True]:
-            verb = 1
-
-        if verb == 1:
-            end = '\r'
-            flush = True
-            timewait = False
-        elif verb == 2:
-            end = '\n'
-            flush = False
-            timewait = False
-        elif type(verb) is float:   # if timewait is a float, then it is the
-            end = '\n'              # delta of real time between print
-            flush = False
-            timewait = True         # will check real time between iteratiions
-        else:
-            timewait = False
-
-        if compute_auxiliary is None:
-            compute_auxiliary = True
+        (
+            verb, end, flush, timewait,
+            compute_auxiliary, solver, solver_scipy,
+        ) = _class_checks._run_check(
+            verb=verb, compute_auxiliary=compute_auxiliary, solver=solver,
+        )
 
         # ------------
         # reset variables
@@ -389,93 +391,37 @@ class Solver():
         if timewait:
             t0 = time.time()    # We look at the time between two iterations
 
-        for ii in range(1, nt):
-            # log if verb > 0
-            if verb > 0:
-                if not timewait:
-                    if ii == nt - 1:
-                        end = '\n'
-                    msg = (
-                        f'time step {ii+1} / {nt}'
-                    )
-                    print(msg, end=end, flush=flush)
-                if timewait:
-                    if time.time() - t0 > verb:
-                        msg = (
-                            f'time step {ii+1} / {nt}'
-                        )
-                        print(msg, end=end, flush=flush)
-                        t0 = time.time()
-                    elif (ii == nt - 1 or ii == 1):
-                        end = '\n'
-                        msg = (
-                            f'time step {ii+1} / {nt}'
-                        )
-                        print(msg, end=end, flush=flush)
+        if solver == 'eRK4-homemade':
 
-            # compute ode variables from ii-1, using rk4
-            for k0 in lode:
-                kwdargs = {
-                    k1: v1[ii-1, :]
-                    for k1, v1 in self.__dargs[k0].items()
-                }
-                self.__dparam[k0]['value'][ii, :] = (
-                    self.__dparam[k0]['value'][ii-1, :]
-                    + self._rk4(
-                        k0=k0,
-                        y=self.__dparam[k0]['value'][ii-1, :],
-                        kwdargs=kwdargs,
-                    )
-                )
+            _solvers._eRK4_homemade(
+                dparam=self.__dparam,
+                lode=lode,
+                linter=linter,
+                laux=laux,
+                dargs=self.__dargs,
+                nt=nt,
+                verb=verb,
+                timewait=timewait,
+                end=end,
+                flush=flush,
+                compute_auxiliary=compute_auxiliary,
+            )
 
-            # compute intermediary functions, in good order
-            # Now that inermediary functions are computed at t=0 in reset()
-            # we have to reverse the order of resolution:
-            # first ode then intermediary
-            for k0 in linter:
-                kwdargs = {
-                    k1: v1[ii-1, :]
-                    for k1, v1 in self.__dargs[k0].items()
-                }
-                self.__dparam[k0]['value'][ii, :] = (
-                    self.__dparam[k0]['func'](
-                        **kwdargs
-                    )
-                )
-
-            # Since the computation is fast we can also compute auxiliary
-            if compute_auxiliary:
-                for k0 in laux:
-                    kwdargs = {
-                        k1: v1[ii-1, :]
-                        for k1, v1 in self.__dargs[k0].items()
-                    }
-                    self.__dparam[k0]['value'][ii, :] = (
-                        self.__dparam[k0]['func'](
-                            **kwdargs
-                        )
-                    )
+        elif 'scipy' in solver:
+            sol = _solvers._solver_scipy(
+                dparam=self.__dparam,
+                lode=lode,
+                linter=linter,
+                dargs=self.__dargs,
+                verb=verb,
+                rtol=rtol,
+                atol=atol,
+                max_time_step=max_time_step,
+                solver_scipy=solver_scipy,
+            )
 
         self.__run = True
-
-    def _rk4(self, k0=None, y=None, kwdargs=None):
-        """
-        a traditional RK4 scheme, with:
-            - y = array of all variables
-            - p = parameter dictionnary
-        dt is contained within p
-        """
-        if 'itself' in self.__dparam[k0]['kargs']:
-            dy1 = self.__dparam[k0]['func'](itself=y, **kwdargs)
-            dy2 = self.__dparam[k0]['func'](itself=y + dy1/2., **kwdargs)
-            dy3 = self.__dparam[k0]['func'](itself=y + dy2/2., **kwdargs)
-            dy4 = self.__dparam[k0]['func'](itself=y + dy3, **kwdargs)
-        else:
-            dy1 = self.__dparam[k0]['func'](**kwdargs)
-            dy2 = self.__dparam[k0]['func'](**kwdargs)
-            dy3 = self.__dparam[k0]['func'](**kwdargs)
-            dy4 = self.__dparam[k0]['func'](**kwdargs)
-        return (dy1 + 2*dy2 + 2*dy3 + dy4) * self.__dparam['dt']['value']/6.
+        self.__solver = solver
 
     # ##############################
     #       plotting methods
