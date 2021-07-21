@@ -26,6 +26,7 @@ _DESCRIPTION = """
         """
 
 
+
 # ---------------------------
 # user-defined model
 # contains parameters and functions of various types
@@ -87,8 +88,8 @@ _PRESETS = {
         },
         'com': (
             'This is a run that should give simple '
-            'stable sinusoidal oscillations'
-        ),
+            'stable sinusoidal oscillations'),
+        'plots' : [],    
     },
     'bigcycle': {
         'fields': {

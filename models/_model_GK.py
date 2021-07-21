@@ -14,7 +14,8 @@ All parameters can have value:
 
 import numpy as np
 
-
+_PRESETS = { }
+_DESCRIPTION = ''
 # ---------------------------
 # user-defined function order (optional)
 
@@ -63,19 +64,20 @@ _DPARAM = {
         'com': 'Capital evolution from investment and depreciation',
         'eqtype': 'ode',
     },
-    'W': {
-        'func': lambda itself=0, phillips=0: itself * phillips,
-        'initial': 0.85,
-        'com': 'Wage evolution through phillips curve',
-        'eqtype': 'ode',
-    },
+
     'D': {
         'func': lambda I=0, Pi=0: I - Pi,
         'initial': 0.1,
         'com': 'Debt as Investment-Profit difference',
         'eqtype': 'ode',
     },
-
+    
+    'W': {
+        'func': lambda itself=0, phillips=0:itself*phillips,
+        'initial': 0.1,
+        'com': 'Wage increase as salarial negociation',
+        'eqtype': 'ode',
+    },
     # Intermediary functions (endogenous, computation intermediates)
     'Y': {
         'func': lambda K=0, nu=1: K / nu,

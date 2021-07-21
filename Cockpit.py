@@ -2,20 +2,25 @@
 import _core
 import matplotlib.pyplot as plt
 ### Get the list of models already existing 
-print('#### LIST OF ALL MODELS ####')
-_core._class_checks.models.get_available_models()
-print(' ')
-print('#### MORE INFORMATIONS ON EACH ')
 
 
-
-
-
+Solvers = ['eRK4-homemade', 
+            'eRK2-scipy',
+            'eRK4-scipy',
+            'eRK8-scipy',
+          ]
+verb = [ 0,
+         1,
+         2, 
+         .5, 
+       ]
+ListOfModels = _core._class_checks.models.get_available_models(returnas=list)
+_core._class_checks.models.describe_available_models()
 # #############################################################################
 NameOfTheModel = 'G_Reduced'
-sol = _core.Solver(NameOfTheModel)
+sol = _core.Hub(NameOfTheModel)
 sol.get_summary()
-sol.run(verb=0.1)
+sol.run(solver='eRK4-homemade', verb=0.1)
 
 Result = sol.get_dparam(returnas=dict)
 #
@@ -28,8 +33,8 @@ plt.show()
 
 # #############################################################################
 NameOfTheModel = 'GK'
-sol = _core.Solver(NameOfTheModel)
-sol.run(verb=0)
+sol = _core.Hub(NameOfTheModel)
+sol.run(solver='eRK4-homemade',verb=0.1)
 
 Result = sol.get_dparam(returnas=dict)
 #sol.get_summary()

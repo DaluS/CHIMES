@@ -13,7 +13,7 @@ import numpy as np
 from utilities import _utils, _class_checks, _class_utility, _solvers
 
 
-class Solver():
+class Hub():
     """ Generic class
     """
 

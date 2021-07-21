@@ -6,6 +6,7 @@ import os
 import inspect
 import itertools as itt
 import warnings
+import time
 
 
 # common
@@ -664,6 +665,7 @@ def _print_or_wait(
     timewait=None,
     end=None,
     flush=None,
+    t0 = 0
 ):
 
     if not timewait:
@@ -687,3 +689,4 @@ def _print_or_wait(
                 f'time step {ii+1} / {nt}'
             )
             print(msg, end=end, flush=flush)
+    return t0
