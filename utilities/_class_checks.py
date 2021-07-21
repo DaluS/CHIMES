@@ -43,7 +43,6 @@ def _check_dparam(dparam=None):
 
     """
 
-
     # check type
     if not isinstance(dparam, dict):
         msg = (
@@ -604,15 +603,15 @@ def _run_check(
     if verb == 1:
         end = '\r'
         flush = True
-        timewait =False
+        timewait = False
     elif verb == 2:
         end = '\n'
         flush = False
-        timewait =False
-    elif type(verb) is float : #if timewait is a float, then it is the
-        end = '\n'             # delta of real time between print
+        timewait = False
+    elif type(verb) is float:   # if timewait is a float, then it is the
+        end = '\n'              # delta of real time between print
         flush = False
-        timewait =True         # we will check real time between iterations      
+        timewait = True         # we will check real time between iterations      
     else:
         timewait = False
 
@@ -676,7 +675,7 @@ def _print_or_wait(
         print(msg, end=end, flush=flush)
 
     else:
-        if time.time()-t0 > verb:
+        if time.time() - t0 > verb:
             msg = (
                 f'time step {ii+1} / {nt}'
             )

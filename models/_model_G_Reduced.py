@@ -17,12 +17,15 @@ All parameters can have value:
 
 _FUNC_ORDER = None
 
-_DESCRIPTION = """ 
+_DESCRIPTION = """
     DESCRIPTION : This is the simplest economic post-keynesian model
-    TYPICAL BEHAVIOR : metastable oscillations around a solow point 
-    LINKTOARTICLE : Goodwin, Richard, 1967. ‘A growth cycle’, in: Carl Feinstein, editor, Socialism, capitalism,
-and economic growth. Cambridge, UK: Cambridge University Press.
+    TYPICAL BEHAVIOR : metastable oscillations around a solow point
+    LINKTOARTICLE : Goodwin, Richard, 1967. ‘A growth cycle’, in:
+        Carl Feinstein, editor, Socialism, capitalism
+        and economic growth. Cambridge, UK: Cambridge University Press.
         """
+
+
 # ---------------------------
 # user-defined model
 # contains parameters and functions of various types
@@ -76,26 +79,34 @@ _DPARAM = {
 # ---------------------------
 # List of presets for specific interesting simulations
 
-_PRESETS = { 
-    'smallcycle' : { 
-        'fields' : {
+_PRESETS = {
+    'smallcycle': {
+        'fields': {
             'lambda': .97,
-            'omega' : .85 ,   
-                    },
-        'com': 'This is a run that should give simple stable sinusoidal oscillations'
+            'omega': .85,
         },
-    'bigcycle' : { 
-        'fields' : {
+        'com': (
+            'This is a run that should give simple '
+            'stable sinusoidal oscillations'
+        ),
+    },
+    'bigcycle': {
+        'fields': {
             'lambda': .99,
-            'omega' : .85 ,   
-                    },
-        'com': 'This is a run that should give extremely violent stable oscillations'
-        },    
-        
-    'badnegociation' : {
-        'fields' : { 
+            'omega': .85,
+        },
+        'com': (
+            'This is a run that should give extremely '
+            'violent stable oscillations'
+        ),
+    },
+    'badnegociation': {
+        'fields': {
             'phinull': .3,
-                    },
-        'com': 'This should displace the Solow Point and allow big cycles with few harmonics'    
-                    },       
-    }
+        },
+        'com': (
+            'This should displace the Solow Point and '
+            'allow big cycles with few harmonics'
+        ),
+    },
+}

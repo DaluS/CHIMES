@@ -8,7 +8,6 @@ import scipy.integrate as scpinteg
 from . import _class_checks
 
 
-
 # #############################################################################
 # #############################################################################
 #                   Home-made
@@ -139,7 +138,7 @@ def _solver_scipy(
     if atol is None:
         atol = 1.e-6
     if max_time_step is None:
-        max_time_step = 10.*dparam['dt']['value']
+        max_time_step = 10. * dparam['dt']['value']
 
     if dparam['nx']['value'] > 1:
         msg = (
@@ -153,6 +152,7 @@ def _solver_scipy(
     # define f(t, y) (using pre-allocated array for speed
 
     dydt = np.full((len(lode_notime,)), np.nan)
+
     def func(t, y, dydt=dydt, dparam=dparam, lode_notime=lode_notime):
         """ dydt = f(t, y)
 

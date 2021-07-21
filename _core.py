@@ -389,7 +389,7 @@ class Solver():
         # ------------
         # start time loop
         if timewait:
-            t0 = time.time() # We look at the time between two iterations
+            t0 = time.time()    # We look at the time between two iterations
 
         if solver == 'eRK4-homemade':
 
