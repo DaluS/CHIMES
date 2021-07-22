@@ -125,3 +125,10 @@ class Test01_Run():
             obj = _core._saveload.load(ff)
             model = list(obj.model.keys())[0]
             assert obj == self.dmodel[model]
+
+    def test09_copy(self):
+        for model in self.dmodel.keys():
+            obj = self.dmodel[model].copy()
+            assert obj == self.dmodel[model]
+            assert obj is not self.dmodel[model]
+
