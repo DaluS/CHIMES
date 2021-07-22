@@ -189,7 +189,10 @@ def check_dparam(dparam=None, func_order=None, method=None, model=None):
         model = {dparam: models._DMODEL[dparam]['file']}
         if func_order is None:
             func_order = models._DMODEL[dparam]['func_order']
-        dparam = models._DMODEL[dparam]['dparam']
+        dparam = {
+            k0: dict(v0) if hasattr(v0, '__iter__') else v0
+            for k0, v0 in models._DMODEL[dparam]['dparam'].items()
+        }
     else:
         if model is None:
             model = {"custom": ''}
@@ -399,14 +402,15 @@ def _check_func(dparam=None, func_order=None, method=None):
                 )
                 raise Exception(msg)
             kargs, exp = source.split(':')
-            kargs = kargs.strip()
             exp = exp.strip()
-            if not all(['=' in kk for kk in kargs.split(',')]):
+            kargs = [kk.strip() for kk in kargs.strip().split(',')]
+            if not all(['=' in kk for kk in kargs]):
                 msg = (
                     'Only keyword args can be used for lambda functions!\n'
                     f'Provided:\n{source}'
                 )
                 raise Exception(msg)
+            kargs = ', '.join(kargs)
             dparam[k0]['source_kargs'], dparam[k0]['source_exp'] = kargs, exp
 
     # --------------------------------
@@ -415,7 +419,7 @@ def _check_func(dparam=None, func_order=None, method=None):
     for k0 in lfi:
         if len(dparam[k0]['args']) > 0:
             defaults = list(dparam[k0]['func'].__defaults__)
-            kargs = dparam[k0]['source_kargs'].split(',')
+            kargs = dparam[k0]['source_kargs'].split(', ')
             for k1 in dparam[k0]['args']['param']:
                 defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
                 ind = [ii for ii, vv in enumerate(kargs) if k1 in vv]
