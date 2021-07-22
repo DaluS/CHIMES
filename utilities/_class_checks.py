@@ -46,7 +46,6 @@ def _check_dparam(dparam=None):
 
     """
 
-
     # check type
     if not isinstance(dparam, dict):
         msg = (
@@ -203,6 +202,11 @@ def check_dparam(dparam=None, func_order=None, method=None):
         func_order=func_order,
         method=method,
     )
+
+    # Make sure to copy to avoid passing by reference
+    dparam = {
+        k0: dict(v0) for k0, v0 in dparam.items()
+    }
 
     return dparam, model, func_order
 
@@ -616,3 +620,109 @@ def _suggest_funct_order(
     print(msg)
 
     return func_order
+
+
+# #############################################################################
+# #############################################################################
+#                       run checks
+# #############################################################################
+
+
+def _run_check(
+    compute_auxiliary=None,
+    solver=None,
+    verb=None,
+):
+    # ------
+    # verb
+
+    if verb in [None, True]:
+        verb = 1
+
+    if verb == 1:
+        end = '\r'
+        flush = True
+        timewait = False
+    elif verb == 2:
+        end = '\n'
+        flush = False
+        timewait = False
+    elif type(verb) is float:   # if timewait is a float, then it is the
+        end = '\n'              # delta of real time between print
+        flush = False
+        timewait = True         # we will check real time between iterations
+    else:
+        timewait = False
+
+    # ------------
+    # compute auxiliary
+    if compute_auxiliary is None:
+        compute_auxiliary = True
+
+    # -------
+    # solver
+
+    dsolver = {
+        'eRK4-homemade': {
+            'com': 'explicit Runge_Kutta order 4 homemade',
+        },
+        'eRK2-scipy': {
+            'scipy': 'RK23',
+            'com': 'explicit Runge_Kutta order 2 from scipy',
+        },
+        'eRK4-scipy': {
+            'scipy': 'RK45',
+            'com': 'explicit Runge_Kutta order 4 from scipy',
+        },
+        'eRK8-scipy': {
+            'scipy': 'DOP853',
+            'com': 'explicit Runge_Kutta order 8 from scipy',
+        },
+    }
+    if solver is None:
+        solver = 'eRK4-homemade'
+    if solver not in dsolver.keys():
+        lstr = [f"\t- '{k0}': {v0['com']}" for k0, v0 in dsolver.items()]
+        msg = (
+            "Arg solver must be in:\n"
+            + "\n".join(lstr)
+        )
+        raise Exception(msg)
+
+    solver_scipy = None
+    if 'scipy' in solver:
+        solver_scipy = dsolver[solver]['scipy']
+
+    return verb, end, flush, timewait, compute_auxiliary, solver, solver_scipy
+
+
+def _print_or_wait(
+    ii=None,
+    nt=None,
+    verb=None,
+    timewait=None,
+    end=None,
+    flush=None,
+):
+
+    if not timewait:
+        if ii == nt - 1:
+            end = '\n'
+        msg = (
+            f'time step {ii+1} / {nt}'
+        )
+        print(msg, end=end, flush=flush)
+
+    else:
+        if time.time() - t0 > verb:
+            msg = (
+                f'time step {ii+1} / {nt}'
+            )
+            print(msg, end=end, flush=flush)
+            t0 = time.time()
+        elif (ii == nt - 1 or ii == 0):
+            end = '\n'
+            msg = (
+                f'time step {ii+1} / {nt}'
+            )
+            print(msg, end=end, flush=flush)
