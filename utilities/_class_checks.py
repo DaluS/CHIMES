@@ -163,7 +163,7 @@ def _check_dparam(dparam=None):
 # #############################################################################
 
 
-def check_dparam(dparam=None, func_order=None, method=None):
+def check_dparam(dparam=None, func_order=None, method=None, model=None):
     """ Check user-provided dparam
 
     dparam can be:
@@ -191,7 +191,8 @@ def check_dparam(dparam=None, func_order=None, method=None):
             func_order = models._DMODEL[dparam]['func_order']
         dparam = models._DMODEL[dparam]['dparam']
     else:
-        model = {'custom': ''}
+        if model is None:
+            model = {"custom": ''}
 
     # check conformity
     dparam = _check_dparam(dparam)
