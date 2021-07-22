@@ -73,7 +73,7 @@ class Test01_Run():
             returnas=list,
         )
         for model in lmodel:
-            self.dmodel[model] = _core.Solver(model)
+            self.dmodel[model] = _core.Hub(model)
 
     def test02_get_summary_repr(self):
         for model in self.dmodel.keys():

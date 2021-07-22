@@ -9,19 +9,14 @@ import numpy as np
 
 
 # ---------------------------
-
-
-_FUNC_ORDER = None # user-defined function order (optional)
-
-_FUNC_PARAMS = None # user-defined list of parameters (optional)
-
-_DESCRIPTION = """
+_DESCRIPTION = """ 
     DESCRIPTION : This is a Goodwin model based on extensive variables. 
     Inflation not integrated to the process
     TYPICAL BEHAVIOR : Convergence toward solow point ( good equilibrium) or debt crisis
     LINKTOARTICLE :  
-    """   
-_DPARAM={}    
+    """   # Description that will be shown when the user load the model or browse through models
+    
+_DPARAM={} #SHOULD BE REMOVED WITH NEWFORMALISM   
 
 # ---------------------------
 # user-defined model
@@ -108,21 +103,27 @@ _LOGICS = {
     },
 }
 
+
+
 _PRESETS = {
-    'convergence': {
+    'default' : { 
         'fields': {
-            'ode':{
                 'a': 1,
                 'N': 1,
                 'K': 2.7,
-                'D': 0.1,
+                'D': 0.2,
                 'W': .85,
                 'p': 1,
-                },
-            'parameters':{
-            'r': 0.03
+                'alpha' : 0.02,
+                'beta' : 0.025,
+                'nu' : 3,
+                'delta' :.005  ,
+                'phinull': .04,
+                'k0' : -0.0065,
+                'k1' : np.exp(-5),
+                'k2' : 20,
+                'r': 0.03,
             },
-        },
         'com': (
             'This is a run that should give simple '
             'convergent oscillations'),
@@ -130,17 +131,14 @@ _PRESETS = {
     },
     'crisis': {
         'fields': {
-            'ode':{
                 'a': 1,
                 'N': 1,
                 'K': 2.7,
                 'D': 10,
                 'W': .85,
                 'p': 1,
-                },
-            'parameters':{
-            'r': 0.03
-                },
+                
+                'r': 0.0
             },
         'com': (
             'This is a run that should create a debt crisis'
@@ -148,3 +146,8 @@ _PRESETS = {
         'plots' : [],   
     },
 }
+
+_FUNC_ORDER = None # user-defined function order (optional)
+
+_FUNC_PARAMS = None # user-defined list of parameters (optional)
+

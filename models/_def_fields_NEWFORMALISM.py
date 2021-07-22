@@ -49,7 +49,6 @@ _LIBRARY = {
     'CORE' : {
         # Population    
         'N': {
-            'ode': lambda beta=0, itself=0: beta * itself,
             'value': 1.,
             'com': 'Exogenous population as an exponential',
             'units': 'humans'
@@ -62,7 +61,6 @@ _LIBRARY = {
         
         # Productivity
         'a': {
-            'ode': lambda alpha=0, itself=0: alpha * itself,
             'value': 1,
             'units': 'Units.Humans^{-1}.years^{-1}',
             'com': 'Exogenous technical progress as an exponential',
@@ -73,10 +71,9 @@ _LIBRARY = {
             'units': 'y^{-1}',
             },    
         'W': {
-            'ode': lambda itself=0, phillips=0: itself * phillips,
             'value': 0.85,
-            'com': 'Wage evolution through phillips curve',
-            'units': 'y^{-1}'
+            'com': 'Wage value',
+            'units': 'Dollars'
         },
 
         
@@ -92,7 +89,6 @@ _LIBRARY = {
             'units': None,
             },
         'K': {
-            'ode': lambda I=0, itself=0, delta=0: I - itself * delta,
             'value': 2.7,
             'units':'Units',
             'com': 'Capital evolution from investment and depreciation',
@@ -187,7 +183,6 @@ _LIBRARY = {
             'units': 'y^{-1}',
         },
         'D': {
-            'ode': lambda I=0, Pi=0: I - Pi,
             'value': 0.1,
             'com': 'Debt as Investment-Profit difference',
             'units': 'Dollars',
@@ -216,7 +211,7 @@ _LIBRARY = {
             'units': 'Dollars',
             },
         },
-           
+               
     'MISC' : {
         'Coucou' : {
             'value': 0,
@@ -224,6 +219,7 @@ _LIBRARY = {
             'units' :None,
             },
         },
+    
 }
 
 _DEFAULTFIELDS = {'com':'',
@@ -376,12 +372,24 @@ def detectdimension(subject):
             else :
                 dimensions[units]=1  
                 
-    print(dimensions)
     return dimensions
 
+def print_fields(value=False,com=False,unit=False,group=False):
+    for key in _DFIELDS.keys(): 
+        msg = key+(10-len(key))*' '
+        if com : 
+            msg +=' : '+_DFIELDS[key]['com']+(30-len(str(_DFIELDS[key]['com'])))*' '
+        if unit :
+            msg +=', unit :'+str(_DFIELDS[key]['units'])+(10-len(str(_DFIELDS[key]['units'])))*' '
+        if group :
+            msg +=', key :'+str(_DFIELDS[key]['group'])+(10-len(str(_DFIELDS[key]['group'])))*' '
+        if (value and 'value' in _DFIELDS[key].keys() ): 
+            msg +=', value :'+str(_DFIELDS[key]['value'])
+        print(msg)
+    
+    
+    
 CHECK_FIELDS(_LIBRARY)
-
-describe_LIBRARY(_LIBRARY)
     
 _DFIELDS=from_Library_to_DFIELDS(_LIBRARY,_DEFAULTFIELDS)
     
