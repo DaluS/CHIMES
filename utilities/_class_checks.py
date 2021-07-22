@@ -28,7 +28,10 @@ _PATH_MODELS = os.path.join(os.path.dirname(_PATH_HERE), 'models')
 
 _LTYPES = [int, float, np.int_, np.float_]
 _LEQTYPES = ['ode', 'intermediary', 'auxiliary']
-_LEXTRAKEYS = ['func', 'kargs', 'args', 'initial', 'source']
+_LEXTRAKEYS = [
+    'func', 'kargs', 'args', 'initial',
+    'source_kargs', 'source_exp',
+]
 
 
 def _check_dparam(dparam=None):
@@ -367,20 +370,56 @@ def _check_func(dparam=None, func_order=None, method=None):
         )
         raise Exception(msg)
 
+    # -------------------------------
+    # Store the source for later use (doc, saving...)
+    for k0 in lfi:
+        if dparam[k0].get('source_kargs') is None:
+            assert dparam[k0].get('source_exp') is None
+            source = inspect.getsource(dparam[k0]['func'])
+            if source.count('lambda') != 1 or not source.endswith(',\n'):
+                msg = (
+                    f"The source line function {k0} is non-valid\n"
+                    "It must be a single-line lambda function, "
+                    "ending with ',\n'"
+                    f"Provided source:\n{source}"
+                )
+                raise Exception(msg)
+            source = source.strip().replace(',\n', '')
+            source = source[source.index('lambda')+len('lambda'):]
+            if source.count(':') != 1:
+                msg = (
+                    "Provided source is non-valid\n"
+                    "It should have a single ':'\n"
+                    f"Provided:\n{source}"
+                )
+                raise Exception(msg)
+            kargs, exp = source.split(':')
+            kargs = kargs.strip()
+            exp = exp.strip()
+            if not all(['=' in kk for kk in kargs.split(',')]):
+                msg = (
+                    'Only keyword args can be used for lambda functions!\n'
+                    f'Provided:\n{source}'
+                )
+                raise Exception(msg)
+            dparam[k0]['source_kargs'], dparam[k0]['source_exp'] = kargs, exp
+
     # --------------------------------
     # set default values of parameters to their real values
     # this way we don't have to feed the parameters value inside the loop
     for k0 in lfi:
         if len(dparam[k0]['args']) > 0:
             defaults = list(dparam[k0]['func'].__defaults__)
+            kargs = dparam[k0]['source_kargs'].split(',')
             for k1 in dparam[k0]['args']['param']:
                 defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
+                ind = [ii for ii, vv in enumerate(kargs) if k1 in vv]
+                if len(ind) != 1:
+                    msg = f"Inconsistency in kargs for {k0}, {k1}"
+                    raise Exception(msg)
+                kargs[ind[0]] = "{}={}".format(k1, dparam[k1]['value'])
             dparam[k0]['func'].__defaults__ = tuple(defaults)
-
-    # -------------------------------
-    # Store the source for later use (doc, saving...)
-    for k0 in lfi:
-        dparam[k0]['source'] = inspect.getsource(dparam[k0]['func'])
+            dparam[k0]['source_kargs'] = ', '.join(kargs)
 
     # -------------------------------------------
     # Create variables for all varying quantities
