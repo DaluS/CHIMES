@@ -22,10 +22,10 @@ class Solver():
 
     def __init__(self, model=None):
         self.__dparam = {}
-        self.__func_order = None
-        self.__model = None
-        self.__solver = None
-        self.set_dparam(dparam=model)
+        self.__dmisc = dict.fromkeys(['model', 'func_order', 'run', 'solver'])
+        self.__dargs = {}
+        if model is not False:
+            self.set_dparam(dparam=model)
 
     # ##############################
     #  Setting / getting parameters
@@ -92,21 +92,22 @@ class Solver():
 
         # func_order as previous if not provided
         if func_order is None:
-            func_order = self.__func_order
+            func_order = self.__dmisc['func_order']
 
         # Update to check consistency
         (
             self.__dparam,
-            self.__model,
-            self.__func_order,
+            self.__dmisc['model'],
+            self.__dmisc['func_order'],
         ) = _class_checks.check_dparam(
             dparam=dparam, func_order=func_order, method=method,
+            model=self.__dmisc.get('model')
         )
 
         # store a simplified dict of variable arguments
         # used in reset() and run()
         lode = self.get_dparam(eqtype='ode', returnas=list)
-        linter = self.__func_order
+        linter = self.__dmisc['func_order']
         laux = self.get_dparam(eqtype='auxiliary', returnas=list)
 
         self.__dargs = {
@@ -179,12 +180,25 @@ class Solver():
     @property
     def func_order(self):
         """ The ordered list of intermediary function names """
-        return self.__func_order
+        return self.__dmisc['func_order']
 
     @property
     def model(self):
         """ The model identifier """
-        return self.__model
+        return self.__dmisc['model']
+
+    @property
+    def dargs(self):
+        return self.__dargs
+
+    @property
+    def dmisc(self):
+        return self.__dmisc
+
+    @property
+    def dparam(self):
+        return self.get_dparam(returnas=dict, verb=False)
+
 
     # ##############################
     # reset
@@ -210,7 +224,7 @@ class Solver():
 
         # reset intermediary variables and auxiliary variables
         laux = self.get_dparam(eqtype='auxiliary', returnas=list)
-        linter_aux = self.__func_order + laux
+        linter_aux = self.__dmisc['func_order'] + laux
         for k0 in linter_aux:
             # prepare dict of args
             kwdargs = {
@@ -225,7 +239,7 @@ class Solver():
             self.__dparam[k0]['value'][1:, :] = np.nan
 
         # set run to False
-        self.__run = False
+        self.__dmisc['run'] = False
 
     # ##############################
     # variables
@@ -273,14 +287,14 @@ class Solver():
         """ This is automatically called when only the instance is entered """
         col0 = ['model', 'source', 'nb. model param', 'nb. functions', 'run']
         ar0 = [
-            list(self.__model.keys())[0],
-            list(self.__model.values())[0],
+            list(self.__dmisc['model'].keys())[0],
+            list(self.__dmisc['model'].values())[0],
             len([
                 k0 for k0, v0 in self.__dparam.items()
                 if v0.get('func') is None
             ]),
             len(self.lfunc),
-            self.__run,
+            self.__dmisc['run'],
         ]
         return _utils._get_summary(
             lar=[ar0],
@@ -391,7 +405,7 @@ class Solver():
         # ------------
         # temporary dict of input
         lode = self.get_dparam(eqtype='ode', returnas=list)
-        linter = self.__func_order
+        linter = self.__dmisc['func_order']
         laux = self.get_dparam(eqtype='auxiliary', returnas=list)
 
         # ------------
@@ -428,8 +442,8 @@ class Solver():
                 solver_scipy=solver_scipy,
             )
 
-        self.__run = True
-        self.__solver = solver
+        self.__dmisc['run'] = True
+        self.__dmisc['solver'] = solver
 
     # ##############################
     #       plotting methods
@@ -450,13 +464,49 @@ class Solver():
         """ Convert instance to dict """
 
         dout = {
-            'dparam': self.get_dparam(verb=False, returnas=dict),
-            'func_order': self.__func_order,
-            'model': self.__model,
-            'solver': self.__solver,
-            'run': self.__run,
+            'dparam': self.get_dparam(returnas=dict, verb=False),
+            'dmisc': dict(self.__dmisc),
+            'dargs': dict(self.__dargs),
         }
         return dout
+
+    @classmethod
+    def _from_dict(cls, dout=None):
+        """ Create an instance from a dict """
+
+        # --------------
+        # check inputs
+        c0 = (
+            isinstance(dout, dict)
+            and sorted(dout.keys()) == ['dargs', 'dmisc', 'dparam']
+            and all([isinstance(dd, dict) for dd in dout.values()])
+        )
+        if not c0:
+            msg = (
+                "Arg dout must be a dict of the form:\n"
+                "{'dargs': dict, 'dmisc': dict, 'dparams': dict}\n"
+                f"You provided:\n{dout}"
+            )
+            raise Exception(msg)
+
+        # -------------
+        # reformat func from source
+        for k0, v0 in dout['dparam'].items():
+            if dout['dparam'][k0].get('func') is not None:
+                dout['dparam'][k0]['func'] = eval(
+                    f"lambda {dout['dparam'][k0]['source_kargs']}: "
+                    f"{dout['dparam'][k0]['source_exp']}"
+                )[0]
+
+        # -------------------
+        # create instance
+        obj = cls(model=False)
+        obj.__dparam = {k0: dict(v0) for k0, v0 in dout['dparam'].items()}
+        obj.__dmisc = dict(dout['dmisc'])
+        obj.__dargs = dict(dout['dargs'])
+
+        return obj
+
 
     # ##############################
     #       saving methods
@@ -483,3 +533,11 @@ class Solver():
             fmt=fmt,
             verb=verb,
         )
+
+    # ##############################
+    #       comparison methods
+    # ##############################
+
+    def __eq__(self, other):
+        """ Automatically called when testing obj1 == obj2 """
+        return _class_utility._equal(self, other)
