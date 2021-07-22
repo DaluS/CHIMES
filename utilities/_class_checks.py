@@ -393,7 +393,7 @@ def _check_func(dparam=None, func_order=None, method=None):
                 )
                 raise Exception(msg)
             source = source.strip().replace(',\n', '')
-            source = source[source.index('lambda')+len('lambda'):]
+            source = source[source.index('lambda') + len('lambda'):]
             if source.count(':') != 1:
                 msg = (
                     "Provided source is non-valid\n"

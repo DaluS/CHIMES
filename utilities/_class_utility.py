@@ -198,8 +198,8 @@ def _dict_equal(dict1, dict2, dd=None):
             if not c0:
                 msg = "Different behaviour of func at default!"
         else:
-            import pdb; pdb.set_trace()     # DB
-            pass
+            msg = "data type not handled yet!"
+            raise NotImplementedError(msg)
 
         if msg is not None:
             dfail[key] = msg

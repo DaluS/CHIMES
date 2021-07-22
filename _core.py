@@ -199,7 +199,6 @@ class Solver():
     def dparam(self):
         return self.get_dparam(returnas=dict, verb=False)
 
-
     # ##############################
     # reset
     # ##############################
@@ -507,7 +506,6 @@ class Solver():
 
         return obj
 
-
     # ##############################
     #       saving methods
     # ##############################
@@ -543,7 +541,6 @@ class Solver():
 
         dout = self._to_dict()
         return self.__class__._from_dict(dout=dout)
-
 
     # ##############################
     #       comparison methods

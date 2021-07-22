@@ -131,4 +131,3 @@ class Test01_Run():
             obj = self.dmodel[model].copy()
             assert obj == self.dmodel[model]
             assert obj is not self.dmodel[model]
-
