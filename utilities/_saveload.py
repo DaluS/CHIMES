@@ -172,28 +172,7 @@ def load(pfe):
         for k0, v0 in dict(np.load(pfe, allow_pickle=True)).items()
     }
 
-    # -------------
-    # reformat funcfrom source
-    for k0, v0 in dout['dparam'].items():
-        if dout['dparam'][k0].get('func') is not None:
-            dout['dparam'][k0]['func'] = eval(
-                f"lambda {dout['dparam'][k0]['source_kargs']}: "
-                f"{dout['dparam'][k0]['source_exp']}"
-            )
-
-    # -------------------
-    # create instance
+    # --------------
+    # create instance from dict
     import _core
-    obj = _core.Solver()
-    obj.set_dparam(dparam=dout['dparam'])
-
-    # ------------------
-    #  Inject results if already run
-    if dout['run'] is True:
-        for k0 in dout['dparam'].keys()
-            obj._set_value(key=k0, value=dout['dparam'][k0]['value'])
-        obj._set_run(True)
-
-    return obj
-
-
+    return _core.Solver._from_dict(dout)
