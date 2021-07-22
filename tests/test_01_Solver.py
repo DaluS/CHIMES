@@ -20,6 +20,7 @@ plt.ion()
 
 _PATH_HERE = os.path.abspath(os.path.dirname(__file__))
 _PATH_PCK = os.path.dirname(_PATH_HERE)
+_PATH_OUTPUT = os.path.join(_PATH_PCK, 'output')
 
 
 # library-specific
@@ -65,7 +66,13 @@ class Test01_Run():
 
     @classmethod
     def teardown_class(cls):
-        pass
+        """ Clean-up the saved files """
+        lf = [
+            os.path.join(_PATH_OUTPUT, ff) for ff in os.listdir(_PATH_OUTPUT)
+            if ff.endswidth('.npz')
+        ]
+        for ff in lf:
+            os.remove(ff)
 
     def test01_init_from_all_models(self):
         """ Make sure the main function runs from a python console """
@@ -99,3 +106,12 @@ class Test01_Run():
         # list of entry parameters to try
         for model in self.dsolver.keys():
             self.dsolver[model].run()
+
+    def test07_save(self):
+        # list of entry parameters to try
+        for ii, model in enumerate(self.dsolver.keys()):
+            self.dsolver[model].save(name=str(ii))
+
+    def test08_load(self):
+        lf = 
+
