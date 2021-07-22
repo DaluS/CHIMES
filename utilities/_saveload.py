@@ -5,6 +5,8 @@
 import os
 import inspect
 import itertools as itt
+import getpass
+import datetime as dtm
 import warnings
 
 
@@ -100,8 +102,10 @@ def save(
 
     # --------------
     # Make full name
-    model = list(obj.model.keys())[0]
-    fullname = f'Output_{model}_{name}.{ext}'
+    model = list(obj.model.keys())[0].replace('_', '-').replace(' ', '-')
+    user = getpass.getuser()
+    date = dtm.datetime.utcnow().strftime('%Y%m%d-%H%M%S')
+    fullname = f'Output_{model}_{name}_{user}_{date}.{ext}'
 
     # --------------
     # convert data for saving
