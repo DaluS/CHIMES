@@ -69,7 +69,7 @@ class Test01_Run():
         """ Clean-up the saved files """
         lf = [
             os.path.join(_PATH_OUTPUT, ff) for ff in os.listdir(_PATH_OUTPUT)
-            if ff.endswidth('.npz')
+            if ff.endswith('.npz')
         ]
         for ff in lf:
             os.remove(ff)
@@ -113,5 +113,9 @@ class Test01_Run():
             self.dsolver[model].save(name=str(ii))
 
     def test08_load(self):
-        lf = 
-
+        lf = [
+            os.path.join(_PATH_OUTPUT, ff) for ff in os.listdir(_PATH_OUTPUT)
+            if ff.endswith('.npz')
+        ]
+        for ff in lf:
+            obj = _core._saveload.load(ff)

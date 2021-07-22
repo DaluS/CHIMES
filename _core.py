@@ -322,7 +322,7 @@ class Solver():
         ar2 = [
             tuple([
                 k0,
-                v0['source'].split(':')[-1].replace('\n', '').replace(',', ''),
+                v0['source_exp'],
                 "{:.2e}".format(v0.get('value')[0, idx]),
                 str(v0['units']),
                 v0['eqtype'].replace('intermediary', 'inter').replace(
