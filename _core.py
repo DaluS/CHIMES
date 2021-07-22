@@ -535,6 +535,17 @@ class Solver():
         )
 
     # ##############################
+    #       replication methods
+    # ##############################
+
+    def copy(self):
+        """ Return a copy of the instance """
+
+        dout = self._to_dict()
+        return self.__class__._from_dict(dout=dout)
+
+
+    # ##############################
     #       comparison methods
     # ##############################
 
