@@ -20,7 +20,7 @@ plt.ion()
 
 _PATH_HERE = os.path.abspath(os.path.dirname(__file__))
 _PATH_PCK = os.path.dirname(_PATH_HERE)
-_PATH_OUTPUT = os.path.join(_PATH_PCK, 'output')
+_PATH_OUTPUT = os.path.join(_PATH_HERE, 'output')
 
 
 # library-specific
