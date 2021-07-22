@@ -107,19 +107,21 @@ class Test01_Run():
         lsolvers = ['eRK4-homemade', 'eRK2-scipy', 'eRK4-scipy', 'eRK8-scipy']
 
         # list of entry parameters to try
-        for model in self.dsolver.keys():
+        for model in self.dmodel.keys():
             for solver in lsolvers:
                 self.dmodel[model].run(solver=solver)
 
     def test07_save(self):
         # list of entry parameters to try
-        for ii, model in enumerate(self.dsolver.keys()):
-            self.dsolver[model].save(name=str(ii))
+        for ii, model in enumerate(self.dmodel.keys()):
+            self.dmodel[model].save(name=str(ii))
 
-    def test08_load(self):
+    def test08_load_and_equal(self):
         lf = [
             os.path.join(_PATH_OUTPUT, ff) for ff in os.listdir(_PATH_OUTPUT)
             if ff.endswith('.npz')
         ]
         for ff in lf:
             obj = _core._saveload.load(ff)
+            model = list(obj.model.keys())[0]
+            assert obj == self.dmodel[model]
