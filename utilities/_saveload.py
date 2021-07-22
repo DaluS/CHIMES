@@ -113,9 +113,8 @@ def save(
         # delete lambda functions
         # they can't be saved, and will be reloaded from the model file
         for k0 in dout['dparam'].keys():
-            if dout['dparam'][k0].get('func') is None:
-                continue
-            del dout['dparam'][k0]['func']
+            if dout['dparam'][k0].get('func') is not None:
+                dout['dparam'][k0]['func'] = True
 
         # the model source file stored in self.model
 
@@ -136,8 +135,65 @@ def save(
 # #############################################################################
 
 
-def load():
+def _load_check_input(pfe):
+    c0 = (
+        isinstance(pfe, str)
+        and pfe.endswith('.npz')
+    )
+    if not c0:
+        msg = (
+            "Arg pfe must be a str pointing to a valid file!\n"
+            + f"Provided: {pfe}"
+        )
+        raise Exception(msg)
+
+    if not os.path.isfile(pfe):
+        if not os.path.isfile(os.path.join(_PATH_OUTPUT, pfe)):
+            msg = (
+                "Arg pfe must be a str pointing to a valid file!\n"
+                + f"Provided: {pfe}"
+            )
+            raise Exception(msg)
+        pfe = os.path.join(_PATH_OUTPUT, pfe)
+    return pfe
+
+
+def load(pfe):
     """ Load a save output file """
-    pass
+
+    # --------------
+    # check inputs
+    pfe = _load_check_input(pfe)
+
+    # --------------
+    # load
+    dout = {
+        k0: v0.tolist()
+        for k0, v0 in dict(np.load(pfe, allow_pickle=True)).items()
+    }
+
+    # -------------
+    # reformat funcfrom source
+    for k0, v0 in dout['dparam'].items():
+        if dout['dparam'][k0].get('func') is not None:
+            dout['dparam'][k0]['func'] = eval(
+                f"lambda {dout['dparam'][k0]['source_kargs']}: "
+                f"{dout['dparam'][k0]['source_exp']}"
+            )
+
+    # -------------------
+    # create instance
+    import _core
+    obj = _core.Solver()
+    obj.set_dparam(dparam=dout['dparam'])
+
+    # ------------------
+    #  Inject results if already run
+    if dout['run'] is True:
+        for k0 in dout['dparam'].keys()
+            obj._set_value(key=k0, value=dout['dparam'][k0]['value'])
+        obj._set_run(True)
+
+    return obj
 
 
