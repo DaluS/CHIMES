@@ -20,6 +20,7 @@ plt.ion()
 
 _PATH_HERE = os.path.abspath(os.path.dirname(__file__))
 _PATH_PCK = os.path.dirname(_PATH_HERE)
+_PATH_OUTPUT = os.path.join(_PATH_HERE, 'output')
 
 
 # library-specific
@@ -65,7 +66,13 @@ class Test01_Run():
 
     @classmethod
     def teardown_class(cls):
-        pass
+        """ Clean-up the saved files """
+        lf = [
+            os.path.join(_PATH_OUTPUT, ff) for ff in os.listdir(_PATH_OUTPUT)
+            if ff.endswith('.npz')
+        ]
+        for ff in lf:
+            os.remove(ff)
 
     def test01_init_from_all_models(self):
         """ Make sure the main function runs from a python console """
@@ -103,3 +110,24 @@ class Test01_Run():
         for model in self.dmodel.keys():
             for solver in lsolvers:
                 self.dmodel[model].run(solver=solver)
+
+    def test07_save(self):
+        # list of entry parameters to try
+        for ii, model in enumerate(self.dmodel.keys()):
+            self.dmodel[model].save(name=str(ii))
+
+    def test08_load_and_equal(self):
+        lf = [
+            os.path.join(_PATH_OUTPUT, ff) for ff in os.listdir(_PATH_OUTPUT)
+            if ff.endswith('.npz')
+        ]
+        for ff in lf:
+            obj = _core._saveload.load(ff)
+            model = list(obj.model.keys())[0]
+            assert obj == self.dmodel[model]
+
+    def test09_copy(self):
+        for model in self.dmodel.keys():
+            obj = self.dmodel[model].copy()
+            assert obj == self.dmodel[model]
+            assert obj is not self.dmodel[model]
