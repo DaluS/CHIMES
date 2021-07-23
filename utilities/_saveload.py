@@ -389,20 +389,22 @@ def get_available_output(
     # filter if relevant
     for ff in lf:
         for k0, v0 in dcrit.items():
-            if df[ff][k0] != v0:
-                del df[ff]
+            if ff in df.keys():
+                if df[ff][k0] != v0:
+                    del df[ff]
     lf = list(df.keys())
 
     # -----------
     # verb
 
     if verb is True:
-        lcrit = ['f\t- {k0}: {v0}' for k0, v0 in dcrit]
+        lcrit = [f'\t- {k0}: {v0}' for k0, v0 in dcrit.items()]
         lstr = [f'\t- {ff}' for ff in lf]
         msg = (
             "File selection criteria:\n"
+            + f"\t- path: {path}\n"
             + "\n".join(lcrit)
-            + "Available files matching criteria:\n"
+            + "\nAvailable files matching criteria:\n"
             + "\n".join(lstr)
         )
         print(msg)
