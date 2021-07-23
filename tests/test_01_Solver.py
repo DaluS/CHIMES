@@ -179,10 +179,16 @@ class Test01_Run():
                 return_dfail=True,
             )
             if isok is False:
-                msg = (
-                    f"Differs from reference for: {list(dfaili.keys())}"
-                )
-                dfail[f'{model}_{solver}'] = msg
+                # only tolerated error: different absolte path to model file
+                keyok = f"dmisc['model']['{model}']"
+                if keyok in dfaili.keys():
+                    del dfaili[keyok]
+                isok = len(dfaili) == 0
+                if isok is False:
+                    msg = (
+                        f"Differs from reference for: {list(dfaili.keys())}"
+                    )
+                    dfail[f'{model}_{solver}'] = msg
 
         if len(dfail) > 0:
             lstr = [f'\t- {k0}: {v0}' for k0, v0 in dfail.items()]
