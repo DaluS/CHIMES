@@ -546,6 +546,10 @@ class Solver():
     #       comparison methods
     # ##############################
 
-    def __eq__(self, other):
+    def __eq__(self, other, verb=None, return_dfail=None):
         """ Automatically called when testing obj1 == obj2 """
-        return _class_utility._equal(self, other)
+        return _class_utility._equal(
+            self, other,
+            verb=verb,
+            return_dfail=return_dfail,
+        )

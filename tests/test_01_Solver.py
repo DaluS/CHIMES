@@ -172,14 +172,20 @@ class Test01_Run():
             model = list(lobj_ref[ii].dmisc['model'].keys())[0]
             solver = lobj_ref[ii].dmisc['solver']
             obj = self.dmodel[model][solver]
-            if not obj == lobj_ref[ii]:
+
+            isok, dfail = obj.__eq__(
+                lobj_ref[ii],
+                verb=False,
+                return_dfail=True,
+            )
+            if isok is False:
                 msg = (
-                    "Difference with reference output!"
+                    f"Differs from reference for: {list(dfail.keys())}"
                 )
                 dfail[f'{model}_{solver}'] = msg
 
         if len(dfail) > 0:
-            lstr = [f'\t- {k0}: v0' for k0, v0 in dfail.items()]
+            lstr = [f'\t- {k0}: {v0}' for k0, v0 in dfail.items()]
             msg = (
                 "The following output regressions have been detected:\n"
                 + "\n".join(lstr)

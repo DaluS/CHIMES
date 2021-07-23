@@ -207,7 +207,7 @@ def _dict_equal(dict1, dict2, dd=None):
     return dfail
 
 
-def _equal(obj1, obj2, verb=None):
+def _equal(obj1, obj2, verb=None, return_dfail=None):
     """ Assess whether 2 instances are equal (i.e.: have the same attributes)
     """
 
@@ -217,6 +217,12 @@ def _equal(obj1, obj2, verb=None):
         verb = True
     if not isinstance(verb, bool):
         msg = f"Arg verb must be a bool!\nProvided: {verb}"
+        raise Exception(msg)
+
+    if return_dfail is None:
+        return_dfail = False
+    if not isinstance(return_dfail, bool):
+        msg = f"Arg return_dfail must be a bool!\nProvided: {verb}"
         raise Exception(msg)
 
     # ------------
@@ -242,7 +248,10 @@ def _equal(obj1, obj2, verb=None):
     # print result and return
 
     if len(dfail) == 0:
-        return True
+        if return_dfail is True:
+            return True, dfail
+        else:
+            return True
     else:
         if verb is True:
             lstr = [f'\t- {k0}: {v0}' for k0, v0 in dfail.items()]
@@ -251,4 +260,7 @@ def _equal(obj1, obj2, verb=None):
                 + "\n".join(lstr)
             )
             print(msg)
-        return False
+        if return_dfail is True:
+            return False, dfail
+        else:
+            return False
