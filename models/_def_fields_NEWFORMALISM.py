@@ -375,6 +375,8 @@ def detectdimension(subject):
     return dimensions
 
 def print_fields(value=False,com=False,unit=False,group=False):
+    print(60*'#')
+    print('List of fields in the library')
     for key in _DFIELDS.keys(): 
         msg = key+(10-len(key))*' '
         if com : 
@@ -386,7 +388,7 @@ def print_fields(value=False,com=False,unit=False,group=False):
         if (value and 'value' in _DFIELDS[key].keys() ): 
             msg +=', value :'+str(_DFIELDS[key]['value'])
         print(msg)
-    
+    print(60*'#')    
     
     
 CHECK_FIELDS(_LIBRARY)

@@ -25,7 +25,6 @@ verb = [
 
 ListOfModels = _core._class_checks.models.get_available_models(returnas=list)
 
-
 ### THE LOOP FOR V1 THAT HAS TO WORK WELL
 """
 for NameOfTheModel in ListOfModels :
@@ -63,10 +62,9 @@ for NameOfTheModel in ListOfModels :
 NameOfTheModel = 'G_Reduced'
 sol = _core.Hub(NameOfTheModel)
 sol.get_summary()
-sol.run(solver='eRK4-homemade', verb=0.1)
+sol.run(solver='eRK4-homemade', verb=1.1)
 
 Result = sol.get_dparam(returnas=dict)
-#
 
 plt.figure()
 plt.subplot(211);plt.plot(Result['time']['value'],Result['omega']['value']);plt.ylabel('Omega')
@@ -77,10 +75,10 @@ plt.show()
 # #############################################################################
 NameOfTheModel = 'GK'
 sol = _core.Hub(NameOfTheModel)
-sol.run(solver='eRK4-homemade',verb=0.1)
+sol.run(solver='eRK4-homemade',verb=1.1)
 
 Result = sol.get_dparam(returnas=dict)
-#sol.get_summary()
+sol.get_summary()
 
 plt.figure()
 plt.subplot(411);plt.plot(Result['time']['value'],Result['W']['value']);plt.ylabel('W')
