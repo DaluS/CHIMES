@@ -114,14 +114,14 @@ class Test01_Run():
                 solver: _core.Solver(model) for solver in self.lsolvers
             }
             for jj, solver in enumerate(self.lsolvers):
-          
+
                 if ii % 2 == 0:
                     # testing verb = 0, 1, 2
                     verb = (ii + jj) % 3
                 else:
                     # testing verb = float
-                    verb = ii + jj / len(lsolvers)
-          
+                    verb = ii + jj / len(self.lsolvers)
+
                 self.dmodel[model][solver].run(solver=solver, verb=verb)
 
     def test07_save(self):
