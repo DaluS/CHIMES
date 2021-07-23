@@ -126,7 +126,7 @@ class Test01_Run():
             if ff.endswith('.npz')
         ]
         for ff in lf:
-            obj = _core._saveload.load(ff)
+            obj = _core._saveload.load(ff)[0]
             model = list(obj.model.keys())[0]
             assert obj == self.dmodel[model]
 
@@ -135,3 +135,17 @@ class Test01_Run():
             obj = self.dmodel[model].copy()
             assert obj == self.dmodel[model]
             assert obj is not self.dmodel[model]
+
+    def test10_get_available_output(self):
+        # verb
+        _core._saveload.get_available_output(path=_PATH_OUTPUT)
+        # list
+        _core._saveload.get_available_output(path=_PATH_OUTPUT, returnas=list)
+        # dict, with filters
+        _core._saveload.get_available_output(
+            path=_PATH_OUTPUT,
+            model='GK',
+            name='2',
+            returnas=dict,
+        )
+
