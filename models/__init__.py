@@ -61,3 +61,16 @@ def get_available_models(returnas=None, verb=None):
         return lmod
     elif returnas is str:
         return msg
+    
+    
+def describe_available_models():
+    print(60*'#')
+    print('Description of each model :')
+    for k0, v0 in _DMODEL.items():
+        print('###',k0,'###',10*'#')
+        print(v0.get('description','NO DESCRIPTION PROVIDED'))
+        print('Presets :')
+        for v1 in v0.get('presets',[]):
+            print(v1,v0['presets'][v1]['com'])
+        print(2*'\n')
+    print(60*'#')

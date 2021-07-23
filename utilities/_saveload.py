@@ -221,7 +221,7 @@ def load(pfe):
     import _core
 
     lobj = [
-        _core.Solver._from_dict(
+        _core.Hub._from_dict(
             {
                 k0: v0.tolist()
                 for k0, v0 in dict(np.load(ff, allow_pickle=True)).items()
