@@ -20,7 +20,8 @@ plt.ion()
 
 _PATH_HERE = os.path.abspath(os.path.dirname(__file__))
 _PATH_PCK = os.path.dirname(_PATH_HERE)
-_PATH_OUTPUT = os.path.join(_PATH_HERE, 'output')
+_PATH_OUTPUT = os.path.join(_PATH_HERE, 'output_temp')
+_PATH_OUTPUT_REF = os.path.join(_PATH_HERE, 'output_ref')
 
 
 # library-specific
@@ -114,7 +115,10 @@ class Test01_Run():
     def test07_save(self):
         # list of entry parameters to try
         for ii, model in enumerate(self.dmodel.keys()):
-            self.dmodel[model].save(name=str(ii))
+            self.dmodel[model].save(
+                name=str(ii),
+                path=_PATH_OUTPUT,
+            )
 
     def test08_load_and_equal(self):
         lf = [
