@@ -32,6 +32,9 @@ def _check_files(pfe):
     try:
         pfe = _check_files_validity(pfe)
     except Exception as err:
+        # if the files are not valid
+        # it may be because the user just provided the file name without the
+        # path => add the path and try again
         if isinstance(pfe, str):
             pfe = [pfe]
         pfe = [os.path.join(_PATH_OUTPUT, ff) for ff in pfe]
@@ -403,6 +406,8 @@ def get_available_output(
 
     if verb is True:
         lcrit = [f'\t- {k0}: {v0}' for k0, v0 in dcrit.items()]
+        if len(lcrit) > 0:
+            lcrit[-1] += "\n"
         lstr = [f'\t- {ff}' for ff in lf]
         msg = (
             "File selection criteria:\n"
