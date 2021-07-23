@@ -9,6 +9,9 @@ import numpy as np
 from . import _utils
 
 
+_LTYPES = [int, float, np.int_, np.float_]
+
+
 # #############################################################################
 # #############################################################################
 #           Generic function to get / print a subset of a dict
@@ -126,3 +129,138 @@ def _get_dict_subset(
             return pd.DataFrame.from_dict(out)
         else:
             return out
+
+
+# #############################################################################
+# #############################################################################
+#           Overload logical operations on Solver class
+# #############################################################################
+
+
+def _dict_equal(dict1, dict2, dd=None):
+
+    # initialize failures dict
+    dfail = {}
+
+    # check they have identical keys
+    c0 = sorted(dict1.keys()) == sorted(dict2.keys())
+    if not c0:
+        lk = set(dict1.keys()).difference(dict2.keys())
+        lk = set(dict2.keys()).difference(dict1.keys())
+        dfail[dd] = f"non-common keys: {lk}"
+        return dfail
+
+    # check the content of each key
+    for k0, v0 in dict1.items():
+        key = f"{dd}['{k0}']"
+        msg = None
+
+        # check type
+        if type(v0) != type(dict2[k0]):
+            msg = f"different type ({type(v0)} vs {type(dict2[k0])})"
+            dfail[key] = msg
+            continue
+
+        # check easy cases (bool, str, floats...)
+        c0 = (
+            isinstance(v0, bool)
+            or isinstance(v0, str)
+            or type(v0) in _LTYPES
+        )
+        if c0:
+            if v0 != dict2[k0]:
+                msg = f"different values ({v0} vs {dict2[k0]})"
+        elif isinstance(v0, np.ndarray):
+            if v0.shape != dict2[k0].shape:
+                msg = f"different shapes ({v0.shape} vs {dict2[k0].shape})"
+            elif not np.allclose(v0, dict2[k0], equal_nan=True):
+                msg = "different values"
+        elif isinstance(v0, list) or isinstance(v0, tuple):
+            if len(v0) != len(dict2[k0]):
+                msg = f"different lengths ({len(v0)} vs {len(dict2[k0])})"
+            elif v0 != dict2[k0]:
+                msg = "different values"
+        elif v0 is None:
+            pass
+        elif isinstance(v0, dict):
+            dfail.update(_dict_equal(v0, dict2[k0], dd=f"{dd}['{k0}']"))
+        elif k0 == 'func':
+            c0 = (
+                (
+                    isinstance(v0(), np.ndarray)
+                    and np.allclose(v0(), dict2[k0]())
+                )
+                or (
+                    type(v0()) in _LTYPES
+                    and v0() == dict2[k0]()
+                )
+            )
+            if not c0:
+                msg = "Different behaviour of func at default!"
+        else:
+            msg = "data type not handled yet!"
+            raise NotImplementedError(msg)
+
+        if msg is not None:
+            dfail[key] = msg
+
+    return dfail
+
+
+def _equal(obj1, obj2, verb=None, return_dfail=None):
+    """ Assess whether 2 instances are equal (i.e.: have the same attributes)
+    """
+
+    # ------------
+    # check inputs
+    if verb is None:
+        verb = True
+    if not isinstance(verb, bool):
+        msg = f"Arg verb must be a bool!\nProvided: {verb}"
+        raise Exception(msg)
+
+    if return_dfail is None:
+        return_dfail = False
+    if not isinstance(return_dfail, bool):
+        msg = f"Arg return_dfail must be a bool!\nProvided: {verb}"
+        raise Exception(msg)
+
+    # ------------
+    # Basic check
+    if type(obj1) != type(obj2):
+        if verb is True:
+            msg = "Object have different types ({type(obj1)} vs {type(obj2)})!"
+            print(msg)
+        return False
+
+    # ------------
+    # check equality
+
+    dfail = {}
+    for dd in ['dargs', 'dmisc', 'dparam']:
+        dfail.update(_dict_equal(
+            dict1=getattr(obj1, dd),
+            dict2=getattr(obj2, dd),
+            dd=dd,
+        ))
+
+    # ------------
+    # print result and return
+
+    if len(dfail) == 0:
+        if return_dfail is True:
+            return True, dfail
+        else:
+            return True
+    else:
+        if verb is True:
+            lstr = [f'\t- {k0}: {v0}' for k0, v0 in dfail.items()]
+            msg = (
+                "The following differences have been found:\n"
+                + "\n".join(lstr)
+            )
+            print(msg)
+        if return_dfail is True:
+            return False, dfail
+        else:
+            return False

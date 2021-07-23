@@ -34,7 +34,7 @@ import warnings
 
 import numpy as np
 
-__DOTHECHECK = True
+__DOTHECHECK = False
 __FILLDEFAULTVALUES = True
 
 # #############################################################################
