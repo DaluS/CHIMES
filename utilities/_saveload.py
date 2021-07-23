@@ -315,6 +315,10 @@ def _get_available_output_check(
             dfail[k0] = msg
             continue
 
+        # format model and name
+        if k0 in ['model', 'name']:
+            dcrit[k0] = dcrit[k0].replace('_', '-').replace(' ', '-')
+
     if len(dfail) > 0:
         lstr = [f'\t- {k0}: {v0}' for k0, v0 in dfail.items()]
         msg = (
