@@ -644,6 +644,7 @@ def _run_check(
     if verb in [None, True]:
         verb = 1
 
+    end, flush, timewait = None, None, None
     if verb == 1:
         end = '\r'
         flush = True
