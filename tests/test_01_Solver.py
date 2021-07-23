@@ -156,7 +156,7 @@ class Test01_Run():
             name='2',
             returnas=dict,
         )
-    def test11_reproducibility(self):
+    def test11_nonregression_output(self):
 
         # load reference files
         df_ref = _core._saveload.get_available_output(
@@ -166,9 +166,21 @@ class Test01_Run():
         lobj_ref = _core._saveload.load(list(df_ref.keys()))
 
         # compare to current output
+        dfail = {}
         for ii, (ff, v0) in enumerate(df_ref.items()):
             model = list(lobj_ref[ii].dmisc['model'].keys())[0]
             solver = lobj_ref[ii].dmisc['solver']
             obj = self.dmodel[model][solver]
-            assert obj == lobj_ref[ii]
+            if not obj == lobj_ref[ii]:
+                msg = (
+                    "Difference with reference output!"
+                )
+                dfail[f'{model}_{solver}'] = msg
 
+        if len(dfail) > 0:
+            lstr = [f'\t- {k0}: v0' for k0, v0 in dfail.items()]
+            msg = (
+                "The following output regressions have been detected:\n"
+                + "\n".join(lstr)
+            )
+            raise Exception(msg)
