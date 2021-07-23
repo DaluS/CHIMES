@@ -327,7 +327,7 @@ def _check_func(dparam=None, func_order=None, method=None):
         and [
             not (hasattr(dparam[k0]['value'], '__call__'))
             and dparam[k0].get('eqtype') is None
-            for k0 in set(dparam.keys()).difference(lfi)
+            for k0 in dparam.keys() if k0 not in lfi
         ]
     )
     if not c0:
@@ -338,9 +338,9 @@ def _check_func(dparam=None, func_order=None, method=None):
     # classify input args per category
     for k0 in lfi:
         kargs = [kk for kk in dparam[k0]['kargs'] if kk != 'itself']
-        argsf = set(kargs).intersection(lfi)
+        argsf = [kk for kk in kargs if kk in lfi]
         dparam[k0]['args'] = {
-            'param': list(set(kargs).difference(lfi)),
+            'param': [kk for kk in kargs if kk not in lfi],
             'ode': [
                 kk for kk in argsf
                 if dparam[kk]['eqtype'] == 'ode'

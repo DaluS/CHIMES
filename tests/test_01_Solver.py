@@ -20,7 +20,8 @@ plt.ion()
 
 _PATH_HERE = os.path.abspath(os.path.dirname(__file__))
 _PATH_PCK = os.path.dirname(_PATH_HERE)
-_PATH_OUTPUT = os.path.join(_PATH_HERE, 'output')
+_PATH_OUTPUT = os.path.join(_PATH_HERE, 'output_temp')
+_PATH_OUTPUT_REF = os.path.join(_PATH_HERE, 'output_ref')
 
 
 # library-specific
@@ -56,6 +57,10 @@ class Test01_Run():
     @classmethod
     def setup_class(cls):
         cls.dmodel = {}
+        cls.lsolvers = [
+            'eRK4-homemade',
+            'eRK2-scipy', 'eRK4-scipy', 'eRK8-scipy',
+        ]
 
     @classmethod
     def setup(self):
@@ -103,39 +108,100 @@ class Test01_Run():
     def test06_run_all_models_all_solvers(self):
         """ Make sure the main function runs as executable from terminal """
 
-        # solvers to be tested
-        lsolvers = ['eRK4-homemade', 'eRK2-scipy', 'eRK4-scipy', 'eRK8-scipy']
-
         # list of entry parameters to try
         for ii, model in enumerate(self.dmodel.keys()):
-            for jj, solver in enumerate(lsolvers):
+            self.dmodel[model] = {
+                solver: _core.Solver(model) for solver in self.lsolvers
+            }
+            for jj, solver in enumerate(self.lsolvers):
 
                 if ii % 2 == 0:
                     # testing verb = 0, 1, 2
                     verb = (ii + jj) % 3
                 else:
                     # testing verb = float
-                    verb = ii + jj / len(lsolvers)
+                    verb = ii + jj / len(self.lsolvers)
 
-                self.dmodel[model].run(solver=solver, verb=verb)
+                self.dmodel[model][solver].run(solver=solver, verb=verb)
 
     def test07_save(self):
         # list of entry parameters to try
         for ii, model in enumerate(self.dmodel.keys()):
-            self.dmodel[model].save(name=str(ii))
+            for jj, solver in enumerate(self.lsolvers):
+                self.dmodel[model][solver].save(
+                    name=str(ii * 10 + jj),
+                    path=_PATH_OUTPUT,
+                )
 
     def test08_load_and_equal(self):
         lf = [
-            os.path.join(_PATH_OUTPUT, ff) for ff in os.listdir(_PATH_OUTPUT)
+            os.path.join(_PATH_OUTPUT, ff)
+            for ff in os.listdir(_PATH_OUTPUT)
             if ff.endswith('.npz')
         ]
         for ff in lf:
-            obj = _core._saveload.load(ff)
+            obj = _core._saveload.load(ff)[0]
             model = list(obj.model.keys())[0]
-            assert obj == self.dmodel[model]
+            solver = obj.dmisc['solver']
+            assert obj == self.dmodel[model][solver]
 
     def test09_copy(self):
         for model in self.dmodel.keys():
-            obj = self.dmodel[model].copy()
-            assert obj == self.dmodel[model]
-            assert obj is not self.dmodel[model]
+            for solver in self.lsolvers:
+                obj = self.dmodel[model][solver].copy()
+                assert obj == self.dmodel[model][solver]
+                assert obj is not self.dmodel[model][solver]
+
+    def test10_get_available_output(self):
+        # verb
+        _core._saveload.get_available_output(path=_PATH_OUTPUT)
+        # list
+        _core._saveload.get_available_output(path=_PATH_OUTPUT, returnas=list)
+        # dict, with filters
+        _core._saveload.get_available_output(
+            path=_PATH_OUTPUT,
+            model='GK',
+            name='2',
+            returnas=dict,
+        )
+
+    def test11_nonregression_output(self):
+
+        # load reference files
+        df_ref = _core._saveload.get_available_output(
+            path=_PATH_OUTPUT_REF,
+            returnas=dict,
+        )
+        lobj_ref = _core._saveload.load(list(df_ref.keys()))
+
+        # compare to current output
+        dfail = {}
+        for ii, (ff, v0) in enumerate(df_ref.items()):
+            model = list(lobj_ref[ii].dmisc['model'].keys())[0]
+            solver = lobj_ref[ii].dmisc['solver']
+            obj = self.dmodel[model][solver]
+
+            isok, dfaili = obj.__eq__(
+                lobj_ref[ii],
+                verb=False,
+                return_dfail=True,
+            )
+            if isok is False:
+                # only tolerated error: different absolte path to model file
+                keyok = f"dmisc['model']['{model}']"
+                if keyok in dfaili.keys():
+                    del dfaili[keyok]
+                isok = len(dfaili) == 0
+                if isok is False:
+                    msg = (
+                        f"Differs from reference for: {list(dfaili.keys())}"
+                    )
+                    dfail[f'{model}_{solver}'] = msg
+
+        if len(dfail) > 0:
+            lstr = [f'\t- {k0}: {v0}' for k0, v0 in dfail.items()]
+            msg = (
+                "The following output regressions have been detected:\n"
+                + "\n".join(lstr)
+            )
+            raise Exception(msg)
