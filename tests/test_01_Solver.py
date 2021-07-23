@@ -121,7 +121,7 @@ class Test01_Run():
         for ii, model in enumerate(self.dmodel.keys()):
             for jj, solver in enumerate(self.lsolvers):
                 self.dmodel[model][solver].save(
-                    name=str(ii*10 + jj),
+                    name=str(ii * 10 + jj),
                     path=_PATH_OUTPUT,
                 )
 
@@ -156,6 +156,7 @@ class Test01_Run():
             name='2',
             returnas=dict,
         )
+
     def test11_nonregression_output(self):
 
         # load reference files

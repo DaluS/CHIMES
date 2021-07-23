@@ -340,7 +340,7 @@ def _check_func(dparam=None, func_order=None, method=None):
         kargs = [kk for kk in dparam[k0]['kargs'] if kk != 'itself']
         argsf = [kk for kk in kargs if kk in lfi]
         dparam[k0]['args'] = {
-            'param':[kk for kk in kargs if kk not in lfi],
+            'param': [kk for kk in kargs if kk not in lfi],
             'ode': [
                 kk for kk in argsf
                 if dparam[kk]['eqtype'] == 'ode'
