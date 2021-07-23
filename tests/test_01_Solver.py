@@ -115,7 +115,7 @@ class Test01_Run():
                     verb = (ii + jj) % 3
                 else:
                     # testing verb = float
-                    verb = ii + jj/len(lsolvers)
+                    verb = ii + jj / len(lsolvers)
 
                 self.dmodel[model].run(solver=solver, verb=verb)
 
