@@ -103,9 +103,10 @@ def save(
     # --------------
     # Make full name
     model = list(obj.model.keys())[0].replace('_', '-').replace(' ', '-')
+    solver = obj.dmisc['solver']
     user = getpass.getuser()
     date = dtm.datetime.utcnow().strftime('%Y%m%d-%H%M%S')
-    fullname = f'Output_{model}_{name}_{user}_{date}.{ext}'
+    fullname = f'Output_{model}_{solver}_{name}_{user}_{date}.{ext}'
 
     # --------------
     # convert data for saving
@@ -142,11 +143,13 @@ def save(
 def _load_check_input(pfe):
     c0 = (
         isinstance(pfe, str)
+        and os.path.split(pfe).startswith('Output_')
         and pfe.endswith('.npz')
     )
     if not c0:
         msg = (
             "Arg pfe must be a str pointing to a valid file!\n"
+            "The file name should be of the form 'Output_....npz'"
             + f"Provided: {pfe}"
         )
         raise Exception(msg)
@@ -180,3 +183,11 @@ def load(pfe):
     # create instance from dict
     import _core
     return _core.Solver._from_dict(dout)
+
+
+# #############################################################################
+# #############################################################################
+#                   Parse file names
+# #############################################################################
+
+
