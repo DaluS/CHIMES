@@ -107,9 +107,17 @@ class Test01_Run():
         lsolvers = ['eRK4-homemade', 'eRK2-scipy', 'eRK4-scipy', 'eRK8-scipy']
 
         # list of entry parameters to try
-        for model in self.dmodel.keys():
-            for solver in lsolvers:
-                self.dmodel[model].run(solver=solver)
+        for ii, model in enumerate(self.dmodel.keys()):
+            for jj, solver in enumerate(lsolvers):
+
+                if ii % 2 == 0:
+                    # testing verb = 0, 1, 2
+                    verb = (ii + jj) % 3
+                else:
+                    # testing verb = float
+                    verb = ii + jj/len(lsolvers)
+
+                self.dmodel[model].run(solver=solver, verb=verb)
 
     def test07_save(self):
         # list of entry parameters to try
