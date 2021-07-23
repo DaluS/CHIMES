@@ -173,14 +173,14 @@ class Test01_Run():
             solver = lobj_ref[ii].dmisc['solver']
             obj = self.dmodel[model][solver]
 
-            isok, dfail = obj.__eq__(
+            isok, dfaili = obj.__eq__(
                 lobj_ref[ii],
                 verb=False,
                 return_dfail=True,
             )
             if isok is False:
                 msg = (
-                    f"Differs from reference for: {list(dfail.keys())}"
+                    f"Differs from reference for: {list(dfaili.keys())}"
                 )
                 dfail[f'{model}_{solver}'] = msg
 
