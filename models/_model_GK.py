@@ -104,7 +104,7 @@ _DPARAM = {
         'eqtype': 'intermediary',
     },
     'kappa': {
-        'func': lambda k0=0, k1=0, k2=0, pi=0, Y=1: k0 + k1 * np.exp(k2*pi),
+        'func': lambda k0=0, k1=0, k2=0, Pi=0, Y=1: k0 + k1 * np.exp(k2*Pi/Y),
         'eqtype': 'intermediary',
     },
     'I': {
@@ -120,11 +120,11 @@ _DPARAM = {
     },
     'd': {
         'func': lambda D=0, Y=1: D / Y,
-        'eqtype': 'intermediary',
+        'eqtype': 'auxiliary',
     },
     'pi': {
         'func': lambda omega=0, r=0, d=0: 1 - omega - r * d,
-        'eqtype': 'intermediary',
+        'eqtype': 'auxiliary',
     },
     'i': {
         'func': lambda Y=0: Y * 0,
