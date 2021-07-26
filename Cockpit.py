@@ -1,15 +1,27 @@
 # -*- coding: utf-8 -*-
+<<<<<<< HEAD
 # !pytest tests/test_01_Solver.py -v To test the system
 
 import _core
 import matplotlib.pyplot as plt
 
 # Get the list of models already existing
+=======
+
+
+#!pytest tests/test_01_Solver.py -v
+
+
+import _core
+import matplotlib.pyplot as plt
+### Get the list of models already existing 
+>>>>>>> parent of 5a3c3da (New able to merge)
 print('#### LIST OF ALL MODELS ####')
 _core._class_checks.models.get_available_models()
 print(' ')
 print('#### MORE INFORMATIONS ON EACH ')
 
+<<<<<<< HEAD
 Solvers = ['eRK4-homemade',
            'eRK2-scipy',
            'eRK4-scipy',
@@ -21,6 +33,19 @@ verb = [0,
         2,
         .5,
         ]
+=======
+
+Solvers = ['eRK4-homemade', 
+            'eRK2-scipy',
+            'eRK4-scipy',
+            'eRK8-scipy',
+          ]
+verb = [ 0,
+         1,
+         2, 
+         .5, 
+       ]
+>>>>>>> parent of 5a3c3da (New able to merge)
 
 # THE LOOP FOR V1 THAT HAS TO WORK WELL
 """
@@ -61,6 +86,7 @@ sol.get_summary()
 sol.run(verb=0.1)
 
 Result = sol.get_dparam(returnas=dict)
+#
 
 plt.figure()
 plt.subplot(211)
@@ -75,10 +101,10 @@ plt.show()
 # #############################################################################
 NameOfTheModel = 'GK'
 sol = _core.Hub(NameOfTheModel)
-sol.get_summary()
 sol.run(verb=0)
 
 Result = sol.get_dparam(returnas=dict)
+#sol.get_summary()
 
 plt.figure()
 plt.subplot(411)
