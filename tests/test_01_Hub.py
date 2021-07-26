@@ -85,7 +85,7 @@ class Test01_Run():
             returnas=list,
         )
         for model in lmodel:
-            self.dmodel[model] = _core.Solver(model)
+            self.dmodel[model] = _core.Hub(model)
 
     def test02_get_summary_repr(self):
         for model in self.dmodel.keys():
@@ -111,7 +111,7 @@ class Test01_Run():
         # list of entry parameters to try
         for ii, model in enumerate(self.dmodel.keys()):
             self.dmodel[model] = {
-                solver: _core.Solver(model) for solver in self.lsolvers
+                solver: _core.Hub(model) for solver in self.lsolvers
             }
             for jj, solver in enumerate(self.lsolvers):
 

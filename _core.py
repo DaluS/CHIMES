@@ -14,7 +14,7 @@ from utilities import _utils, _class_checks, _class_utility
 from utilities import _solvers, _saveload
 
 
-class Solver():
+class Hub():
     """ Generic class
     """
 

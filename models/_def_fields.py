@@ -21,7 +21,6 @@ This file contains :
         
     _DALLOWED_FIELDS : Contains all the restrictions on each field for each 
     element in _DFIELD
-    
     _DEFAULTFIELDS : The value that will be added if none are 
     
     __DOTHECHECK Flag to check or not the dictionnary
@@ -34,7 +33,7 @@ import warnings
 
 import numpy as np
 
-__DOTHECHECK = True
+__DOTHECHECK = False
 __FILLDEFAULTVALUES = True
 
 # #############################################################################
