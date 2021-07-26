@@ -259,11 +259,13 @@ def CHECK_FIELDS(dic):
                 msg = str(field)+' in '+str(group) + \
                     ' have both function and value'
                 Errormessage += msg+'\n'
-            elif ('ode' in subject.keys() and not 'value' in subject.keys()):
+            elif ('ode' in subject.keys() and
+                  'value' not in subject.keys()):
                 msg = str(field)+' in '+str(group) + \
                     ' is an ODE with no initial condition'
                 Errormessage += msg+'\n'
-            elif ('func' not in subject.keys() and 'value' not in subject.keys()):
+            elif ('func' not in subject.keys() and
+                  'value' not in subject.keys()):
                 msg = str(field)+' in '+str(group) + \
                     ' is a parameter with no value'
                 Errormessage += msg+'\n'
@@ -276,7 +278,7 @@ def CHECK_FIELDS(dic):
                 msg = str(field)+' in '+str(group)+' has no unit'
                 Warningmessage += msg+'\n'
         # Check that all fields are well located
-        #print(group, len(dic[group].keys()))
+        # print(group, len(dic[group].keys()))
         if (group == 'MISC' and len(dic[group].keys()) > 0):
             msg = 'MISC group contains field that should be classified'
 
@@ -338,7 +340,8 @@ def detectype(subject):
     if len(dimlist) == 0:
         return 'dimensionless'
     elif len(dimlist) == 1:
-        if (dimlist[0] in ['y', 'humans', 'Units', 'Dollars'] and dims[dimlist] == 1):
+        if (dimlist[0] in ['y', 'humans', 'Units', 'Dollars'] and
+                dims[dimlist] == 1):
             return 'Extensive'
     else:
         return 'Intensive'
@@ -351,7 +354,7 @@ def detectdimension(subject):
     infos = subject['units']
 
     # CUT THE STRING INTO SEPARATE ELEMENTS
-    if infos == None:
+    if infos is None:
         dimensions['Multiplier'] = 1
     else:
         infos = infos.split(' ')
