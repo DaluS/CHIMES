@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 <<<<<<< HEAD
+<<<<<<< HEAD
 # !pytest tests/test_01_Solver.py -v To test the system
 
 import _core
@@ -14,6 +15,15 @@ import matplotlib.pyplot as plt
 
 import _core
 import matplotlib.pyplot as plt
+=======
+
+
+#!pytest tests/test_01_Solver.py -v
+
+
+import _core
+import matplotlib.pyplot as plt
+>>>>>>> parent of 5a3c3da (New able to merge)
 ### Get the list of models already existing 
 >>>>>>> parent of 5a3c3da (New able to merge)
 print('#### LIST OF ALL MODELS ####')
@@ -21,6 +31,7 @@ _core._class_checks.models.get_available_models()
 print(' ')
 print('#### MORE INFORMATIONS ON EACH ')
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 Solvers = ['eRK4-homemade',
            'eRK2-scipy',
@@ -34,6 +45,8 @@ verb = [0,
         .5,
         ]
 =======
+=======
+>>>>>>> parent of 5a3c3da (New able to merge)
 
 Solvers = ['eRK4-homemade', 
             'eRK2-scipy',
