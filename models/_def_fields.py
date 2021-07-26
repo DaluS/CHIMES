@@ -67,11 +67,11 @@ _DALLOWED_FIELDS = {
     'group': None,  # [
     # 'Numerical',
     # 'Population',
-    #'Prices', 'Capital', 'Philips', 'Gemmes',
-    #'Keen', 'Dividends', 'Economy', 'Production',
+    # 'Prices', 'Capital', 'Philips', 'Gemmes',
+    # 'Keen', 'Dividends', 'Economy', 'Production',
     # 'Coupling',
     # 'RelaxBuffer',
-    #'Climate', 'Damage',
+    # 'Climate', 'Damage',
     # ],
 }
 

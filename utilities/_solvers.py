@@ -29,16 +29,16 @@ def _eRK4_homemade(
 ):
     """ Structure of the homemade rk4 solver, with time loop, intermediaries...
     """
-    t0=time.time()
+    t0 = time.time()
     for ii in range(1, nt):
 
         # print of wait
         if verb > 0:
-            t0=_class_checks._print_or_wait(
+            t0 = _class_checks._print_or_wait(
                 ii=ii, nt=nt, verb=verb,
                 timewait=timewait, end=end, flush=flush,
                 t0=t0,
-                )
+            )
         # compute ode variables from ii-1, using solver
         for k0 in lode:
             kwdargs = {
