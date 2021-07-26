@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+# %% Importations ###########
 
 # built-in
 import time
@@ -12,6 +13,7 @@ import numpy as np
 # Library-specific
 from utilities import _utils, _class_checks, _class_utility
 from utilities import _solvers, _saveload
+import _plots as plots
 
 
 class Hub():
@@ -28,7 +30,7 @@ class Hub():
             self.set_dparam(dparam=model)
 
     # ##############################
-    #  Setting / getting parameters
+    # %% Setting / getting parameters
     # ##############################
 
     def set_dparam(
@@ -166,7 +168,7 @@ class Hub():
         )
 
     # ##############################
-    # Read-only properties
+    # %% Read-only properties
     # ##############################
 
     @property
@@ -449,11 +451,10 @@ class Hub():
     # ##############################
 
     def plot(self):
-        """ To be done (Paul?)
-
-        Advice: put all plotting functions in a dedicated _plot.py module
         """
-        pass
+        Launch all the basic plots
+        """
+        plots.plotbasic(self, rows=2, idx=0)
 
     # ##############################
     #       data conversion

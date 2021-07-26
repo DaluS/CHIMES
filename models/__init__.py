@@ -65,7 +65,7 @@ def get_available_models(returnas=None, verb=None):
         return msg
 
 
-def describe_ALL_available_models(model='all'):
+def describe_ALL_available_models():
     print(60*'#')
     print('Description of each model :')
     for k0, v0 in _DMODEL.items():
@@ -76,10 +76,10 @@ def describe_ALL_available_models(model='all'):
 def describe_available_model(model):
     k0 = model
     v0 = _DMODEL[k0]
-    for k0, v0 in _DMODEL.items():
-        print('###', k0, '###', 10*'#')
-        print(v0['description'])
-        print('Presets :')
-        for v1 in v0['presets']:
-            print(v1, v0['presets'][v1]['com'])
-        print(2*'\n')
+
+    print('###', k0, '###', 10*'#')
+    print(v0['description'])
+    print('Presets :')
+    for v1 in v0['presets']:
+        print(v1+(15-len(v1))*' ', v0['presets'][v1]['com'])
+    print(2*'\n')

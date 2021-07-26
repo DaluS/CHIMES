@@ -33,7 +33,7 @@ _DESCRIPTION = """
 _DPARAM = {
 
     # ---------
-    # Fixed-value parameters
+    # %% Fixed-value parameters
     'alpha': None,
     'delta': None,
     'beta': None,
@@ -41,7 +41,7 @@ _DPARAM = {
     'phinull': None,
 
     # ---------
-    # functions
+    # %% functions
     'lambda': {
         'func': lambda itself=0, g=0, alpha=0, beta=0: itself * (g - alpha - beta),
         'eqtype': 'ode',
@@ -86,7 +86,7 @@ _PRESETS = {
             'omega': .85,
         },
         'com': (
-            'This is a run that should give simple '
+            'gives simple '
             'stable sinusoidal oscillations'
         ),
     },
@@ -96,7 +96,7 @@ _PRESETS = {
             'omega': .85,
         },
         'com': (
-            'This is a run that should give extremely '
+            'give extremely '
             'violent stable oscillations'
         ),
     },
@@ -105,7 +105,7 @@ _PRESETS = {
             'phinull': .3,
         },
         'com': (
-            'This should displace the Solow Point and '
+            'displace the Solow Point and '
             'allow big cycles with few harmonics'
         ),
     },
