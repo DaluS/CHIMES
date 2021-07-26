@@ -43,7 +43,8 @@ _DPARAM = {
     # ---------
     # functions
     'lambda': {
-        'func': lambda itself=0, g=0, alpha=0, beta=0: itself * (g - alpha - beta),
+        'func': lambda itself=0, g=0, alpha=0, beta=0:
+            itself * (g - alpha - beta),
         'eqtype': 'ode',
         'initial': 0.97,
     },

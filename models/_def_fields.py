@@ -11,18 +11,18 @@ Users can decide to replace some fields when they define their model, but all
 fields which are not explicitly described by the user / modeller in the model
 will be taken from this default database
 
----- 
+----
 
-This file contains : 
-    _DFIELDS the big dictionnary with basic information on 
-        * Variables 
+This file contains :
+    _DFIELDS the big dictionnary with basic information on
+        * Variables
         * Parameters
         * Numerical parameters
-        
-    _DALLOWED_FIELDS : Contains all the restrictions on each field for each 
+
+    _DALLOWED_FIELDS : Contains all the restrictions on each field for each
     element in _DFIELD
-    _DEFAULTFIELDS : The value that will be added if none are 
-    
+    _DEFAULTFIELDS : The value that will be added if none are
+
     __DOTHECHECK Flag to check or not the dictionnary
     __FILLDEFAULTVALUES Flag to fill the defaultfields
 """
@@ -40,39 +40,39 @@ __FILLDEFAULTVALUES = True
 # #############################################################################
 #                   FIELDS OF FIELDS AND EXPECTED VALUES
 # #############################################################################
-# dict of default value in fields 
+# dict of default value in fields
 _DEFAULTFIELDS = {
-    'value'    : None,
-    'com'      : 'No comment',
+    'value': None,
+    'com': 'No comment',
     'dimension': 'undefined',
-    'units'    : 'undefined',
-    'type'     : 'undefined',
-    'group'    : None,  
-    #'symbol' : this is the key of the variable
-    }
+    'units': 'undefined',
+    'type': 'undefined',
+    'group': None,
+    # 'symbol' : this is the key of the variable
+}
 
 # dict of allowed fields (None => no restriction)
 _DALLOWED_FIELDS = {
     'value': None,
     'com': None,
     'units': [
-        'Units',  # 
+        'Units',  #
         'y',      # Time
         '$',      # Money
         'C',      # Concentration
-        'Humans', # Population
+        'Humans',  # Population
     ],
     'type': ['intensive', 'extensive', 'dimensionless'],
     'symbol': None,
-    'group': None, #[
-        #'Numerical',
-        #'Population',
-        #'Prices', 'Capital', 'Philips', 'Gemmes',
-        #'Keen', 'Dividends', 'Economy', 'Production',
-        #'Coupling',
-        #'RelaxBuffer',
-        #'Climate', 'Damage',
-    #],
+    'group': None,  # [
+    # 'Numerical',
+    # 'Population',
+    # 'Prices', 'Capital', 'Philips', 'Gemmes',
+    # 'Keen', 'Dividends', 'Economy', 'Production',
+    # 'Coupling',
+    # 'RelaxBuffer',
+    # 'Climate', 'Damage',
+    # ],
 }
 
 # #############################################################################
@@ -82,7 +82,7 @@ _DALLOWED_FIELDS = {
 
 
 _DFIELDS = {
-    
+
     # --------------
     # Numerical
     'Tmax': {
@@ -177,7 +177,7 @@ _DFIELDS = {
     # Production
     'nu': {
         'value': 3,
-        'com': 'Kapital to output ratio',   
+        'com': 'Kapital to output ratio',
         'dimension': None,
         'units': None,
         'type': 'intensive',
@@ -262,7 +262,7 @@ _DFIELDS = {
     # DYNAMICAL VARIABLES ####################################################
     # ------------------------------------------------------------------------
     # ------------------------------------------------------------------------
-    ### Classic dimensionless for phase-space
+    # Classic dimensionless for phase-space
     'omega': {
         'value': .578,
         'com': 'Wage share of the economy',
@@ -292,7 +292,7 @@ _DFIELDS = {
         'group': 'Economy',
     },
 
-    ### Intensive dynamic variable
+    # Intensive dynamic variable
     'a': {
         'value': None,
         'com': 'productivity per worker',
@@ -311,8 +311,8 @@ _DFIELDS = {
         'symbol': r'$N$',
         'group': 'Population',
     },
-    
-    
+
+
     'K': {
         'value': None,
         'com': 'Capital',
@@ -344,7 +344,7 @@ _DFIELDS = {
     # INTERMEDIARY VARIABLES #################################################
     # ------------------------------------------------------------------------
     # ------------------------------------------------------------------------
-    
+
     # From functions
     'kappa': {
         'value': None,
@@ -354,7 +354,7 @@ _DFIELDS = {
         'type': 'dimensionless',
         'symbol': r'$\kappa$',
         'group': 'Economy',
-    },    
+    },
     'phillips': {
         'value': None,
         'com': 'Wage inflation rate',
@@ -366,7 +366,7 @@ _DFIELDS = {
     },
 
 
-    
+
     'pi': {
         'value': None,
         'com': 'relative profit',
@@ -385,7 +385,7 @@ _DFIELDS = {
         'symbol': r'$g$',
         'group': 'Economy',
     },
-    'GDP': {          
+    'GDP': {
         'value': None,
         'com': 'GDP in nominal term',
         'dimension': 'Money',
@@ -430,7 +430,7 @@ _DFIELDS = {
         'symbol': r'$\Pi$',
         'group': 'Economy',
     },
-    
+
     'i': {
         'value': None,
         'com': 'Inflation rate',
@@ -449,7 +449,7 @@ _DFIELDS = {
 # #############################################################################
 
 
-def Complete_DFIELDS(_DFIELDS,_DEFAULTFIELDS): 
+def Complete_DFIELDS(_DFIELDS, _DEFAULTFIELDS):
     for k in _DFIELDS.keys():
         kkey = _DFIELDS[k].keys()
         basekeys = ['value',
@@ -460,12 +460,14 @@ def Complete_DFIELDS(_DFIELDS,_DEFAULTFIELDS):
                     'type',
                     'group']
         for v in basekeys:
-            if v not in kkey : _DFIELDS[k][v]= _DEFAULTFIELDS[v]
-        if 'symbol'    not in kkey : _DFIELDS[k]['symbol']    = k   
-    return _DFIELDS     
-        
+            if v not in kkey:
+                _DFIELDS[k][v] = _DEFAULTFIELDS[v]
+        if 'symbol' not in kkey:
+            _DFIELDS[k]['symbol'] = k
+    return _DFIELDS
 
-def Check_DFIELDS(_DFIELDS,_DALLOWED_FIELDS):
+
+def Check_DFIELDS(_DFIELDS, _DALLOWED_FIELDS):
     # List non-conform keys in dict, for detailed error printing
     dk0 = {
         k0: [
@@ -489,8 +491,7 @@ def Check_DFIELDS(_DFIELDS,_DALLOWED_FIELDS):
             ])
         )
     }
-    
-    
+
     # Raise warning if any non-conformity
     # Include details per key
     if len(dk0) > 0:
@@ -501,5 +502,8 @@ def Check_DFIELDS(_DFIELDS,_DALLOWED_FIELDS):
         )
         warnings.warn(msg)
 
-if __FILLDEFAULTVALUES : _DFIELDS = Complete_DFIELDS(_DFIELDS,_DEFAULTFIELDS  )
-if __DOTHECHECK        :            Check_DFIELDS   (_DFIELDS,_DALLOWED_FIELDS)
+
+if __FILLDEFAULTVALUES:
+    _DFIELDS = Complete_DFIELDS(_DFIELDS, _DEFAULTFIELDS)
+if __DOTHECHECK:
+    Check_DFIELDS(_DFIELDS, _DALLOWED_FIELDS)

@@ -1,11 +1,6 @@
 # -*- coding: utf-8 -*-
-
-
 import os
 import importlib
-
-
-from ._def_fields import _DFIELDS
 
 
 _PATH_HERE = os.path.dirname(__file__)
@@ -33,7 +28,7 @@ for k0, v0 in _df.items():
         'dparam': foo._DPARAM,
         'func_order': foo._FUNC_ORDER,
         'file': foo.__file__,
-        'description': foo._DESCRIPTION, 
+        'description': foo._DESCRIPTION,
         'presets': foo._PRESETS
     }
 
@@ -64,20 +59,22 @@ def get_available_models(returnas=None, verb=None):
     elif returnas is str:
         return msg
 
+
 def describe_ALL_available_models(model='all'):
     print(60*'#')
     print('Description of each model :')
     for k0, v0 in _DMODEL.items():
         describe_available_model(k0)
     print(60*'#')
-        
+
+
 def describe_available_model(model):
-    k0=model
-    v0=_DMODEL[k0]
+    k0 = model
+    v0 = _DMODEL[k0]
     for k0, v0 in _DMODEL.items():
-        print('###',k0,'###',10*'#')
+        print('###', k0, '###', 10*'#')
         print(v0['description'])
         print('Presets :')
         for v1 in v0['presets']:
-            print(v1,v0['presets'][v1]['com'])
+            print(v1, v0['presets'][v1]['com'])
         print(2*'\n')
