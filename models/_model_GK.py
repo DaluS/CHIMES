@@ -21,7 +21,7 @@ import numpy as np
 _FUNC_ORDER = None
 
 _DESCRIPTION = ""
-_PRESETS={}
+_PRESETS = {}
 # ---------------------------
 # user-defined model
 # contains parameters and functions of various types
