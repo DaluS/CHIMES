@@ -6,7 +6,7 @@ import os
 import inspect
 import itertools as itt
 import warnings
-
+import time
 
 # common
 import numpy as np
@@ -640,16 +640,17 @@ def _run_check(
 ):
     # ------
     # verb
-
-    if verb in [None, True]:
+    if verb is True:
         verb = 1
+    if verb in [None, False]:
+        verb = 0
 
     end, flush, timewait = None, None, None
-    if verb == 1:
+    if (verb == 1 and type(verb) is int):
         end = '\r'
         flush = True
         timewait = False
-    elif verb == 2:
+    elif (verb == 2 and type(verb) is int):
         end = '\n'
         flush = False
         timewait = False
@@ -709,6 +710,7 @@ def _print_or_wait(
     timewait=None,
     end=None,
     flush=None,
+    t0=0
 ):
 
     if not timewait:
@@ -732,3 +734,4 @@ def _print_or_wait(
                 f'time step {ii+1} / {nt}'
             )
             print(msg, end=end, flush=flush)
+    return t0
