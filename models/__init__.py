@@ -77,9 +77,15 @@ def describe_available_model(model):
     k0 = model
     v0 = _DMODEL[k0]
 
-    print('###', k0, '###', 10*'#')
-    print(v0['description'])
-    print('Presets :')
+    print('### DESCRIPTION OF', k0, (30-len(k0))*'#')
+    print('# Location    :', v0['file'])
+    print('# Description :\n', v0['description'])
+    print('# VARIABLES   :')
+    for key, val in v0['dparam'].items():
+        if type(val) is dict:
+            print('    ', key+(10-len(key))*' ',
+                  val.get('com', 'comment not given'))
+    print('# PRESETS     :')
     for v1 in v0['presets']:
-        print(v1+(15-len(v1))*' ', v0['presets'][v1]['com'])
+        print('    ', v1+(15-len(v1))*' ', v0['presets'][v1]['com'])
     print(2*'\n')
