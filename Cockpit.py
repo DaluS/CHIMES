@@ -11,10 +11,6 @@ _core._class_checks.models.describe_ALL_available_models()
 
 # %% Choice of parameters ####################################################
 '''
-* To load a model : `sol = _core.Solver('G_Reduced')`
-* To get the presets ` `
-* To load a presets :
-
 * To change a parameter :  `sol.set_dparam(key='alpha', value=0.01)`
 
 
@@ -24,9 +20,6 @@ sol.load_field({'a' : [1,2,'log'],
 sol.load_field({'nx': 100})
 sol.load_field({'a': [1,2,3]})
 '''
-
-# hub.run(solver='eRK2-scipy')
-# hub.run(verb=.5)
 
 
 # %% DEEPER ANALYSIS ##########################################################

@@ -114,7 +114,7 @@ _DFIELDS = {
         'group': 'Numerical',
     },
     'nx': {
-        'value': 10,
+        'value': 1,
         'com': 'Number of similar systems evolving in parrallel',
         'dimension': None,
         'units': None,

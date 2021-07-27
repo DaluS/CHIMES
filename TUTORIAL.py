@@ -2,7 +2,7 @@
  "cells": [
   {
    "cell_type": "markdown",
-   "id": "5832f2ec",
+   "id": "8e75de4d",
    "metadata": {},
    "source": [
     "# Tutorial to learn how to use the GEMMES library\n",
@@ -14,7 +14,7 @@
   {
    "cell_type": "code",
    "execution_count": 1,
-   "id": "4a44c661",
+   "id": "039a147d",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -28,7 +28,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "0c3dd508",
+   "id": "33162246",
    "metadata": {},
    "source": [
     "## Get the informations on what is available "
@@ -37,7 +37,7 @@
   {
    "cell_type": "code",
    "execution_count": 2,
-   "id": "4e4913ef",
+   "id": "64a9ef32",
    "metadata": {},
    "outputs": [
     {
@@ -58,7 +58,7 @@
   {
    "cell_type": "code",
    "execution_count": 3,
-   "id": "963f66d5",
+   "id": "ce71aac7",
    "metadata": {},
    "outputs": [
     {
@@ -131,7 +131,7 @@
   {
    "cell_type": "code",
    "execution_count": 4,
-   "id": "aa7df56a",
+   "id": "aa513853",
    "metadata": {},
    "outputs": [
     {
@@ -175,7 +175,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "f613083f",
+   "id": "663d6562",
    "metadata": {},
    "source": [
     "## Loading the model in the hub\n",
@@ -187,7 +187,7 @@
   {
    "cell_type": "code",
    "execution_count": 5,
-   "id": "1b9d8017",
+   "id": "889c819b",
    "metadata": {},
    "outputs": [
     {
@@ -206,7 +206,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "3ba54cde",
+   "id": "8239025a",
    "metadata": {},
    "source": [
     "## Getting information on the loaded system \n",
@@ -235,7 +235,7 @@
   {
    "cell_type": "code",
    "execution_count": 6,
-   "id": "d30c3bde",
+   "id": "c6a6c9aa",
    "metadata": {},
    "outputs": [
     {
@@ -258,7 +258,7 @@
   {
    "cell_type": "code",
    "execution_count": 7,
-   "id": "156fa379",
+   "id": "8f78c5fe",
    "metadata": {},
    "outputs": [
     {
@@ -315,7 +315,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "76e88560",
+   "id": "8d55b111",
    "metadata": {},
    "source": [
     "## Tweak the system parameters and values "
@@ -324,7 +324,7 @@
   {
    "cell_type": "code",
    "execution_count": 8,
-   "id": "01d65bd1",
+   "id": "000817c0",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -333,7 +333,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "28f3da32",
+   "id": "5eb94e5a",
    "metadata": {},
    "source": [
     "## Run the simulation \n",
@@ -360,7 +360,7 @@
   {
    "cell_type": "code",
    "execution_count": 9,
-   "id": "5193bf11",
+   "id": "be58864a",
    "metadata": {},
    "outputs": [
     {
@@ -408,7 +408,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "bbfbf40d",
+   "id": "ec9a8d8e",
    "metadata": {},
    "source": [
     "## Getting more analyses \n",
@@ -419,7 +419,7 @@
   {
    "cell_type": "code",
    "execution_count": 10,
-   "id": "b4f095bf",
+   "id": "d40339b1",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -428,7 +428,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "6ba10b71",
+   "id": "d52b9d81",
    "metadata": {},
    "source": [
     "## Look at the values in the model \n",
@@ -472,7 +472,7 @@
   {
    "cell_type": "code",
    "execution_count": 11,
-   "id": "1b289373",
+   "id": "11ca79e8",
    "metadata": {},
    "outputs": [
     {
@@ -523,7 +523,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "1c5d0496",
+   "id": "e398fe8d",
    "metadata": {},
    "source": [
     "## Plot your stuff ! \n",
@@ -534,7 +534,7 @@
   {
    "cell_type": "code",
    "execution_count": 12,
-   "id": "2ceb577d",
+   "id": "e0029182",
    "metadata": {},
    "outputs": [
     {
@@ -557,7 +557,7 @@
   {
    "cell_type": "code",
    "execution_count": 13,
-   "id": "ea54375a",
+   "id": "c1a608ad",
    "metadata": {},
    "outputs": [
     {
@@ -580,7 +580,7 @@
   {
    "cell_type": "code",
    "execution_count": 14,
-   "id": "778e0974",
+   "id": "afbde817",
    "metadata": {
     "scrolled": true
    },
@@ -604,7 +604,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "dce5d036",
+   "id": "2cd93405",
    "metadata": {},
    "source": [
     "## Saving/Loading a run \n",
@@ -616,7 +616,7 @@
   {
    "cell_type": "code",
    "execution_count": 17,
-   "id": "d4831331",
+   "id": "173d8896",
    "metadata": {},
    "outputs": [],
    "source": [
@@ -625,7 +625,7 @@
   },
   {
    "cell_type": "markdown",
-   "id": "eab99245",
+   "id": "9a91e3b7",
    "metadata": {},
    "source": [
     "# I WANT TO JUST DO THE RUN"
@@ -634,7 +634,7 @@
   {
    "cell_type": "code",
    "execution_count": 15,
-   "id": "1c18f0d6",
+   "id": "19404ce4",
    "metadata": {},
    "outputs": [
     {
@@ -668,7 +668,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "e384416e",
+   "id": "3277afe5",
    "metadata": {},
    "outputs": [],
    "source": []
@@ -676,7 +676,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "81459bfd",
+   "id": "bc630483",
    "metadata": {},
    "outputs": [],
    "source": []
@@ -684,7 +684,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "aa581b02",
+   "id": "267d720c",
    "metadata": {},
    "outputs": [],
    "source": []
@@ -692,7 +692,7 @@
   {
    "cell_type": "code",
    "execution_count": null,
-   "id": "99018fb3",
+   "id": "60fbf20e",
    "metadata": {},
    "outputs": [],
    "source": []
