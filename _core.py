@@ -411,9 +411,6 @@ class Hub():
 
         # ------------
         # start time loop
-        if timewait:
-            t0 = time.time()    # We look at the time between two iterations
-
         if solver == 'eRK4-homemade':
 
             _solvers._eRK4_homemade(
@@ -447,14 +444,134 @@ class Hub():
         self.__dmisc['solver'] = solver
 
     # ##############################
-    #       plotting methods
+    #       Deep analysis methods
     # ##############################
+    def FillCyclesForAll(self, ref=None):
+        '''
+        This function is a wrap-up on GetCycle to do it on all variables
+        '''
+        for var, dic1 in self.__dparam.items():
+            if 'func' in dic1.keys():
+                if ref is None:
+                    self.FillCycles(var, var)
+                else:
+                    self.FillCycles(var, ref)
+
+    def FillCycles(self, var, ref='lambda'):
+        '''
+        Add a new category in dparam and fill it with analysis of the cycle
+
+        var : name of the variable we are working on
+        ref : reference for the oscillations detections
+        '''
+
+        # Check if the run did occur
+
+        # Get the new dictionnary to edit
+        dic = self.__dparam[var]
+        if 'cycles' not in dic.keys():
+            dic['cycles'] = {'reference': ref}
+            '''
+'period_indexes': [],  # [[idx1,idx2],[idx2,idx3],] index of borders
+# for each period
+'period_T_intervals': [],  # [t[idx1,t[idx2]],..] time of borders
+'t_mean_cycle': [],  # [(t[idx1+t[idx2])/2.],..]
+# time of the middle of the cycle
+'period_T': [],  # duration of the cycle
+'meanval': [],  # mean value during the interval
+'stdval': [],   # standard deviation during the interval
+'minval': [],   # minimal value in the interval
+'maxval': [],   # maximal value in the interval
+'reference': ref,  # the variable that has been used to detect cycle
+}
+            '''
+
+        # check if reference has already calculated its period
+        # the reference has cycle and this cycle has been calculated on itself
+        dic1 = dic['cycles']
+        Ready = False
+        if 'cycles' in self.__dparam[ref].keys():
+            dic2 = self.__dparam[ref]['cycles']
+            if (dic2['reference'] == ref and 'period_indexes' in dic2):
+                # We can take the reference as the base
+                Ready = True
+        # If there is no good reference
+        # We calculate it and put
+        if not Ready:
+            self.findCycles(ref)
+            dic2 = self.__dparam[ref]['cycles']
+
+        for key in ['period_indexes', 'period_T_intervals',
+                    't_mean_cycle', 'period_T']:
+            dic1[key] = dic2[key]
+
+        tim = self.__dparam['time']['value']
+        dic1['period_T_intervals'] = [[tim[idx[0], 0], tim[idx[1], 0]]
+                                      for idx in dic1['period_indexes']]
+        dic1['t_mean_cycle'] = [
+            (t[0]+t[1])/2 for t in dic1['period_T_intervals']]
+        dic1['period_T'] = [
+            (t[1]-t[0]) for t in dic1['period_T_intervals']]
+
+        # Detect the maximum as the boundaries
+        values = dic['value']
+        dic1['meanval'] = [np.mean(values[idx[0]:idx[1]])
+                           for idx in dic1['period_indexes']]
+        dic1['medval'] = [np.median(values[idx[0]:idx[1]])
+                          for idx in dic1['period_indexes']]
+        dic1['stdval'] = [np.std(values[idx[0]:idx[1]])
+                          for idx in dic1['period_indexes']]
+        dic1['minval'] = [np.amin(values[idx[0]:idx[1]])
+                          for idx in dic1['period_indexes']]
+        dic1['maxval'] = [np.amax(values[idx[0]:idx[1]])
+                          for idx in dic1['period_indexes']]
+
+        #
+
+        # Fill for each the characteristics
+
+    def findCycles(self, refval):
+        '''
+        Detect all positions of  local maximums
+        '''
+        # initialisation
+        Periods = []
+        id1 = 1
+
+        self.__dparam[refval]['cycles'] = {}
+
+        dic1 = self.__dparam[refval]['cycles']
+        val = self.__dparam[refval]['value']
+
+        # identification loop
+        while id1 < len(val)-2:
+            if (val[id1] > val[id1-1] and
+                    val[id1] > val[id1+1]):
+                Periods.append(1*id1)
+            id1 += 1
+
+        # Fill the formalism
+        self.__dparam[refval]['cycles']['period_indexes'] = [
+            [Periods[i], Periods[i+1]] for i in range(len(Periods)-1)
+        ]
+        tim = self.__dparam['time']['value']
+        dic1 = self.__dparam[refval]['cycles']
+        dic1['period_T_intervals'] = [[tim[idx[0]], tim[idx[1]]]
+                                      for idx in dic1['period_indexes']]
+        dic1['t_mean_cycle'] = [
+            (t[0]+t[1])/2 for t in dic1['period_T_intervals']]
+        dic1['period_T'] = [
+            (t[1]-t[0]) for t in dic1['period_T_intervals']]
+        dic1['reference'] = refval
+
+        # ##############################
+        #       plotting methods
+        # ##############################
 
     def plot(self):
         """
         Launch all the basic plots
         """
-        plots.plotbasic(self, rows=2, idx=0)
 
     # ##############################
     #       data conversion
@@ -470,7 +587,7 @@ class Hub():
         }
         return dout
 
-    @classmethod
+    @ classmethod
     def _from_dict(cls, dout=None):
         """ Create an instance from a dict """
 

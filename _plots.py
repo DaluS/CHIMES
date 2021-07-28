@@ -10,7 +10,7 @@ import numpy as np
 from matplotlib.collections import LineCollection
 
 
-def plotbasic(sol, rows=1, idx=0):
+def AllVar(sol, rows=1, idx=0):
     '''
     Plot all the variables in the system on a same figure
 
@@ -46,7 +46,7 @@ def plotbasic(sol, rows=1, idx=0):
     #    print('Plot simple could not be done as the simulation did not run')
 
 
-def plotVar(sol, key, idx=0):
+def Var(sol, key, idx=0, cycles=False, log=False):
     '''
     Parameters
     ----------
@@ -63,23 +63,68 @@ def plotVar(sol, key, idx=0):
 
     '''
     plt.figure('key :'+key+'| system idx'+str(idx), figsize=(10, 5))
+    fig = plt.gcf()
+    ax = plt.gca()
 
+    # PLOT OF THE BASE
     allvars = sol.get_dparam(returnas=dict)
     y = allvars[key]['value']
     t = allvars['time']['value']
+    plt.plot(t, y, lw=2, ls='-', c='k')
 
-    plt.plot(t, y)
+    # PLOT OF THE CYCLES
+    if cycles:
+        cyclvar = allvars[key]['cycles']
+        tmcycles = cyclvar['t_mean_cycle']
+
+        # Plot of each period by a rectangle
+
+        # Plot of enveloppe (mean-max)
+        vmin = cyclvar['minval']
+        vmax = cyclvar['maxval']
+        plt.plot(tmcycles, vmin, '--', label='min value')
+        plt.plot(tmcycles, vmax, '--', label='max value')
+
+        # Plot of the mean value evolution
+        meanv = np.array(cyclvar['meanval'])
+        plt.plot(tmcycles, cyclvar['meanval'], ls='dotted', label='mean value')
+        plt.plot(tmcycles, cyclvar['medval'],
+                 ls='dashdot', label='median value')
+
+        # Plot of the standard deviation around the mean value
+        stdv = np.array(cyclvar['stdval'])
+        ax.fill_between(tmcycles, meanv - stdv, meanv + stdv, alpha=0.2)
+        plt.legend()
+
+    if log is True:
+        ax.set_yscale('log')
+    plt.title('Evolution of :'+key+' in model : ' +
+              list(sol.model.keys())[0]+'| system number'+str(idx))
     plt.ylabel(key)
     plt.xlabel('time')
     plt.show()
 
 
-def plotphasespace(sol, x='omega', y='lambda', idx=0):
+def phasespace(sol, x='omega', y='lambda', color='time', idx=0):
+    '''
+    Plot of the trajectory of the system in a 2dimensional phase-space
 
+    Parameters
+    ----------
+    sol : hub after a run
+    x   : key for the variable on x axis, The default is 'omega'.
+    y   : key for the variable on y axis, The default is 'lambda'.
+    idx : number of the system taken to be plot, The default is 0
+
+    Returns
+    -------
+    None.
+
+    '''
     allvars = sol.get_dparam(returnas=dict)
     yval = allvars[y]['value'][:, idx]
     xval = allvars[x]['value'][:, idx]
-    t = allvars['time']['value'][:, idx]
+    t = allvars[color]['value'][:, idx]
 
     points = np.array([xval, yval]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
@@ -89,11 +134,11 @@ def plotphasespace(sol, x='omega', y='lambda', idx=0):
     lc.set_array(t)
     lc.set_linewidth(2)
 
-    plt.figure('Phasespace'+x+' '+y+'for system :'+str(idx), figsize=(10, 10))
+    plt.figure('Phasespace'+x+' '+y+'for system :'+str(idx), figsize=(10, 7))
     fig = plt.gcf()
     ax = plt.gca()
     line = ax.add_collection(lc)
-    fig.colorbar(line, ax=ax, label='time (y)')
+    fig.colorbar(line, ax=ax, label=color)
     plt.xlabel(x)
     plt.ylabel(y)
     plt.xlim([np.amin(xval), np.amax(xval)])
