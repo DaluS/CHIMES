@@ -51,7 +51,7 @@ Result = hub.get_dparam(returnas=dict)
 # #############################################################################
 hub = _core.Hub('GK')
 #hub.set_dparam(key='alpha', value=2.5)
-hub.get_summary()
+# hub.get_summary()
 hub.run(verb=1.1)
 hub.get_summary()
 
@@ -66,3 +66,6 @@ plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)
 plots.phasespace(hub, x='omega', y='d', idx=0)
 plots.phasespace(hub, x='omega', y='lambda', color='time', idx=0)
 plots.phasespace(hub, x='omega', y='lambda', color='d', idx=0)
+
+dimensionlessnumbers = ['omega', 'lambda', 'd']
+plots.AllPhaseSpace(hub, dimensionlessnumbers, idx=0)
