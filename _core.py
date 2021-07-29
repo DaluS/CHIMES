@@ -117,7 +117,7 @@ class Hub():
                 k1: self.__dparam[k1]['value']
                 for k1 in (
                     self.__dparam[k0]['args']['ode']
-                    + self.__dparam[k0]['args']['intermediary']
+                    + self.__dparam[k0]['args']['statevar']
                     + self.__dparam[k0]['args']['auxiliary']
                 )
                 if k1 != 'lambda'
@@ -318,7 +318,7 @@ class Hub():
                 k0,
                 str(v0['value']),
                 str(v0['units']),
-                v0['com'],
+                v0['description'],
             ])
             for k0, v0 in self.__dparam.items() if v0['group'] == 'Numerical'
         ]
