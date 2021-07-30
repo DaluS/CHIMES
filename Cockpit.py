@@ -8,7 +8,7 @@ import _plots as plots
 
 _core._class_checks.models.get_available_models()
 _core._class_checks.models.describe_ALL_available_models()
-
+_core._class_checks.models.PrintDFIELDS()
 # %% Start the hub ###########################################################
 hub = _core.Hub('GK')
 

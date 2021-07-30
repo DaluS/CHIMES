@@ -35,7 +35,7 @@ _LIBRARY = {
             'com': 'Constant dt'
         },
         'nx': {
-            'value': 100,
+            'value': 1,
             'units': 'y',
             'definition': 'Total simulated time',
         },
@@ -52,7 +52,7 @@ _LIBRARY = {
         # Population
         'N': {
             'value': 1.,
-            'definition': 'Exogenous population as an exponential',
+            'definition': 'Population',
             'units': 'humans'
         },
         'beta': {
@@ -64,8 +64,8 @@ _LIBRARY = {
         # Productivity
         'a': {
             'value': 1,
-            'units': 'Units.Humans^{-1}.years^{-1}',
-            'definition': 'Exogenous technical progress as an exponential',
+            'units': 'units.humans^{-1}.years^{-1}',
+            'definition': 'Productivity',
         },
         'alpha': {
             'value': 0.02,
@@ -75,7 +75,7 @@ _LIBRARY = {
         'W': {
             'value': 0.85,
             'definition': 'Wage value',
-            'units': 'Dollars'
+            'units': 'dollars'
         },
 
 
@@ -92,15 +92,15 @@ _LIBRARY = {
         },
         'K': {
             'value': 2.7,
-            'units': 'Units',
-            'definition': 'Capital evolution from investment and depreciation',
+            'units': 'units',
+            'definition': 'Capital',
         },
 
 
         'pi': {
             'value': None,
             'definition': 'relative profit',
-            'units': '',
+            'units': None,
             'symbol': r'$\pi$',
         },
         'g': {
@@ -111,22 +111,22 @@ _LIBRARY = {
         'Y': {
             'value': None,
             'definition': 'GDP in output quantity',
-            'units': 'Units.years^{-1}',
+            'units': 'units.years^{-1}',
         },
         'L': {
             'value': None,
             'definition': 'Workers',
-            'units': 'Humans',
+            'units': 'humans',
         },
         'I': {
             'value': None,
             'definition': 'Investment',
-            'units': 'Dollars',
+            'units': 'dollars',
         },
         'Pi': {
             'value': None,
             'definition': 'Absolute profit',
-            'units': 'Dollars',
+            'units': 'dollars',
         },
         #        'lambda': {
         #            'value': None,
@@ -193,13 +193,13 @@ _LIBRARY = {
     'Debt': {
         'r': {
             'value': .03,
-            'definition': 'Interest at the bank',
+            'definition': 'Interest on debt',
             'units': 'y^{-1}',
         },
         'D': {
             'value': 0.1,
-            'definition': 'Debt as Investment-Profit difference',
-            'units': 'Dollars',
+            'definition': 'Debt of private sector',
+            'units': 'dollars',
         },
         'd': {
             # 'func': lambda GDP=0, D=0: D/GDP,
@@ -222,7 +222,7 @@ _LIBRARY = {
         'GDP': {
             'value': None,
             'definition': 'GDP in nominal term',
-            'units': 'Dollars',
+            'units': 'dollars',
         },
         'i': {
             'value': None,
@@ -309,7 +309,6 @@ def CHECK_FIELDS(dic):
 
 
 def from_Library_to_DFIELDS(lib, _DEFAULTFIELDS, _DFIELDS={}):
-    # print(_DFIELDS)
     '''
     allow the _Library to be compatible with _DFIELDS
     (with minimal work needed on ode etc)
@@ -366,13 +365,12 @@ def from_Library_to_DFIELDS(lib, _DEFAULTFIELDS, _DFIELDS={}):
 def detectype(subject):
     dims = detectdimension(subject)
 
-    dimlist = [keys for keys in dims.keys() if keys != 'Muliplier']
-
+    dimlist = [keys for keys in dims.keys() if keys != 'Multiplier']
     if len(dimlist) == 0:
         return 'dimensionless'
     elif len(dimlist) == 1:
-        if (dimlist[0] in ['y', 'humans', 'Units', 'Dollars'] and
-                dims[dimlist] == 1):
+        if (dimlist[0] in ['y', 'humans', 'units', 'dollars'] and
+                dims[dimlist[0]] == 1):
             return 'Extensive'
     else:
         return 'Intensive'
@@ -414,28 +412,6 @@ def detectdimension(subject):
                 dimensions[units] = 1
 
     return dimensions
-
-
-def print_fields(value=False, com=False, unit=False, group=False):
-    print(60*'#')
-    print('List of fields in the library')
-    for key in _DFIELDS.keys():
-        msg = key+(10-len(key))*' '
-        if com:
-            msg += ' : '+_DFIELDS[key]['definition'] + \
-                (30-len(str(_DFIELDS[key]['definition'])))*' '
-        if unit:
-            msg += ', unit :' + \
-                str(_DFIELDS[key]['units']) + \
-                (10-len(str(_DFIELDS[key]['units'])))*' '
-        if group:
-            msg += ', key :'+str(_DFIELDS[key]['group']) + \
-                (10-len(str(_DFIELDS[key]['group'])))*' '
-        if (value and 'value' in _DFIELDS[key].keys()):
-            msg += ', value :'+str(_DFIELDS[key]['value'])
-        if len(msg) > 1:
-            print(msg)
-    print(60*'#')
 
 
 def FillFromModel(

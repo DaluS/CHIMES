@@ -318,7 +318,7 @@ class Hub():
                 k0,
                 str(v0['value']),
                 str(v0['units']),
-                v0['description'],
+                v0['definition'],
             ])
             for k0, v0 in self.__dparam.items() if v0['group'] == 'Numerical'
         ]
