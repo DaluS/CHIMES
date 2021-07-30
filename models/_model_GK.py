@@ -80,61 +80,61 @@ _DPARAM = {
     # Intermediary functions (endogenous, computation intermediates)
     'Y': {
         'func': lambda K=0, nu=1: K / nu,
-        'eqtype': 'intermediary',
+        'eqtype': 'statevar',
     },
     'L': {
         'func': lambda K=0, a=1, nu=1: K / (a * nu),
-        'eqtype': 'intermediary',
+        'eqtype': 'statevar',
     },
     'Pi': {
         'func': lambda Y=0, W=0, L=0, r=0, D=0: Y - W * L - r * D,
-        'eqtype': 'intermediary',
+        'eqtype': 'statevar',
     },
     'lambda': {
         'func': lambda L=0, N=1: L / N,
-        'eqtype': 'intermediary',
+        'eqtype': 'statevar',
     },
     'omega': {
         'func': lambda W=0, L=0, Y=1: W * L / Y,
-        'eqtype': 'intermediary',
+        'eqtype': 'statevar',
     },
     'phillips': {
         'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
-        'eqtype': 'intermediary',
+        'eqtype': 'statevar',
     },
     'kappa': {
         'func': lambda k0=0, k1=0, k2=0, Pi=0, Y=1: k0 + k1 * np.exp(k2*Pi/Y),
-        'eqtype': 'intermediary',
+        'eqtype': 'statevar',
     },
     'I': {
         'func': lambda Y=0, kappa=0: Y * kappa,
-        'eqtype': 'intermediary',
+        'eqtype': 'statevar',
     },
 
     # auxiliary, not used for computation but for interpretation
     # => typically computed at the end after the computation
     'g': {
         'func': lambda omega=0, nu=1, delta=0: (1 - omega) / nu - delta,
-        'eqtype': 'auxiliary',
+        'eqtype': 'statevar',
     },
     'd': {
         'func': lambda D=0, Y=1: D / Y,
-        'eqtype': 'auxiliary',
+        'eqtype': 'statevar',
     },
     'pi': {
         'func': lambda omega=0, r=0, d=0: 1 - omega - r * d,
-        'eqtype': 'auxiliary',
+        'eqtype': 'statevar',
     },
     'i': {
         'func': lambda Y=0: Y * 0,
-        'eqtype': 'auxiliary',
+        'eqtype': 'statevar',
     },
     'phi0': {
         'func': lambda phinull=0: phinull / (1 - phinull**2),
-        'eqtype': 'auxiliary',
+        'eqtype': 'statevar',
     },
     'phi1': {
         'func': lambda phinull=0: phinull**3 / (1 - phinull**2),
-        'eqtype': 'auxiliary',
+        'eqtype': 'statevar',
     },
 }

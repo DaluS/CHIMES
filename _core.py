@@ -220,7 +220,7 @@ class Hub():
             elif self.__dparam[k0]['eqtype'] == 'ode':
                 self.__dparam[k0]['value'][0, :] = self.__dparam[k0]['initial']
                 self.__dparam[k0]['value'][1:, :] = np.nan
-            else:
+            elif self.__dparam[k0]['eqtype'] == 'statevar':
                 self.__dparam[k0]['value'][:, :] = np.nan
 
         # reset intermediary variables and auxiliary variables

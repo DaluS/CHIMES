@@ -9,6 +9,9 @@ import _plots as plots
 _core._class_checks.models.get_available_models()
 _core._class_checks.models.describe_ALL_available_models()
 
+# %% Start the hub ###########################################################
+hub = _core.Hub('GK')
+
 # %% Choice of parameters ####################################################
 '''
 * To change a parameter :  `sol.set_dparam(key='alpha', value=0.01)`
@@ -34,13 +37,12 @@ sol.getCycleAnalysis(key=False)
 # sol_load = _core._saveload.load(' ')
 
 
-# %% Test that the system is still doing great ################################
+# %% Test that the system is still doing great #############################
 # !pytest tests/test_01_Hub.py -v
 
-
-# #############################################################################
-# #############################################################################
-# #############################################################################
+# ##########################################################################
+# ##########################################################################
+# ##########################################################################
 '''
 hub = _core.Hub('G_Reduced')
 hub.get_summary()
@@ -49,11 +51,10 @@ hub.plot()
 Result = hub.get_dparam(returnas=dict)
 '''
 # #############################################################################
-hub = _core.Hub('GK')
 # hub.set_dparam(key='alpha', value=2.5)
 # hub.get_summary()
 hub.run(verb=1.1)
-hub.get_summary()
+# hub.get_summary()
 
 # hub.FillCyclesForAll(ref=None)
 hub.FillCyclesForAll(ref='lambda')

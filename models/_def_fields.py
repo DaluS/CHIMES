@@ -128,11 +128,11 @@ _LIBRARY = {
             'definition': 'Absolute profit',
             'units': 'Dollars',
         },
-        'lambda': {
-            'value': None,
-            'definition': 'employement rate',
-            'units': None,
-        },
+        #        'lambda': {
+        #            'value': None,
+        #            'definition': 'employement rate',
+        #            'units': None,
+        #        },
         'omega': {
             'value': None,
             'definition': 'wage share',
@@ -328,7 +328,7 @@ def from_Library_to_DFIELDS(lib, _DEFAULTFIELDS, _DFIELDS={}):
                     'type': detectype(subject),
                     'dimension': detectdimension(subject),
                     'symbol': subject.get('symbol', field),
-                    'eqtype': 'StateVariable',
+                    'eqtype': 'statevar',
                     'group': group,
                 }
             elif ('ode' in subject.keys()):
@@ -382,7 +382,7 @@ def detectdimension(subject):
     ''' This function takes the units and transform it into a dictionnary
     of units '''
     dimensions = {}
-    infos = subject['units']
+    infos = subject.get('units', '')
 
     # CUT THE STRING INTO SEPARATE ELEMENTS
     if infos is None:
@@ -436,6 +436,68 @@ def print_fields(value=False, com=False, unit=False, group=False):
         if len(msg) > 1:
             print(msg)
     print(60*'#')
+
+
+def FillFromModel(
+        lk0, dparam, _DFIELDS):
+    for keymessing in lk0:
+        inputfrommodel = dparam[keymessing]
+        if inputfrommodel['eqtype'] == 'ode':
+            if ('func' in inputfrommodel.keys() and
+                    'initial' in inputfrommodel.keys()):
+                _DFIELDS[keymessing] = {
+                    'func': inputfrommodel['func'],
+                    'initial': inputfrommodel['initial'],
+                    'definition': inputfrommodel.get('definition', ''),
+                    'com': inputfrommodel.get('com', ''),
+                    'units': inputfrommodel.get('units', ''),
+                    'type': detectype(
+                        inputfrommodel),
+                    'dimension': detectdimension(
+                        inputfrommodel),
+                    'symbol': inputfrommodel.get('symbol', keymessing),
+                    'eqtype': 'ode',
+                    'group': '_MODELSPECIFIC',
+                }
+            else:
+                print('Could not load', keymessing,
+                      'not enough elements for ode (check func and initial)')
+        elif inputfrommodel['eqtype'] == 'statevar':
+            if ('func' in inputfrommodel.keys()):
+                _DFIELDS[keymessing] = {
+                    'func': inputfrommodel['func'],
+                    'definition': inputfrommodel.get('definition', ''),
+                    'com': inputfrommodel.get('com', ''),
+                    'units': inputfrommodel.get('units', ''),
+                    'type': detectype(
+                        inputfrommodel),
+                    'dimension': detectdimension(
+                        inputfrommodel),
+                    'symbol': inputfrommodel.get('symbol', keymessing),
+                    'eqtype': 'statevar',
+                    'group': '_MODELSPECIFIC',
+                }
+            else:
+                print('Could not load', keymessing,
+                      'not enough elements for StateVar (no "func" field)')
+        else:
+            if ('value' in inputfrommodel.keys()):
+                _DFIELDS[keymessing] = {
+                    'value': inputfrommodel['value'],
+                    'definition': inputfrommodel.get('definition', ''),
+                    'com': inputfrommodel.get('com', ''),
+                    'units': inputfrommodel.get('units', ''),
+                    'type': detectype(
+                        inputfrommodel),
+                    'dimension': detectdimension(
+                        inputfrommodel),
+                    'symbol': inputfrommodel.get('symbol', keymessing),
+                    'group': '_MODELSPECIFIC',
+                }
+            else:
+                print('Could not load', keymessing,
+                      'not enough elements for parameter (no "value" field)')
+    return _DFIELDS
 
 
 CHECK_FIELDS(_LIBRARY)

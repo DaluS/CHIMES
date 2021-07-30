@@ -10,7 +10,18 @@ All parameters can have value:
                             the function will be called at each time step
 
 """
-
+"""
+    'value': inputfrommodel['value'],
+    'definition': inputfrommodel.get('definition', ''),
+    'com': inputfrommodel.get('com', ''),
+    'units': inputfrommodel.get('units', ''),
+    'type': models._def_fields.detectype(
+        inputfrommodel),
+    'dimension': models._def_fields.detectdimension(
+        inputfrommodel),
+    'symbol': inputfrommodel.get('symbol', keymessing),
+    'group': '_MODELSPECIFIC',
+    """
 
 # ---------------------------
 # user-defined function order (optional)
@@ -53,26 +64,26 @@ _DPARAM = {
         'initial': 0.85,
     },
 
-    # Intermediary
+    # statevar
     'phillips': {
         'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
-        'eqtype': 'intermediary',
+        'eqtype': 'statevar',
     },
     'g': {
         'func': lambda pi=0, nu=1, delta=0: pi / nu - delta,
-        'eqtype': 'intermediary',
+        'eqtype': 'statevar',
     },
     'pi': {
         'func': lambda omega=0: 1. - omega,
-        'eqtype': 'intermediary',
+        'eqtype': 'statevar',
     },
     'phi0': {
         'func': lambda phinull=0: phinull / (1 - phinull**2),
-        'eqtype': 'auxiliary',
+        'eqtype': 'statevar',
     },
     'phi1': {
         'func': lambda phinull=0: phinull**3 / (1 - phinull**2),
-        'eqtype': 'auxiliary',
+        'eqtype': 'statevar',
     },
 }
 

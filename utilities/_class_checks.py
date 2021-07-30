@@ -27,7 +27,7 @@ _PATH_MODELS = os.path.join(os.path.dirname(_PATH_HERE), 'models')
 
 
 _LTYPES = [int, float, np.int_, np.float_]
-_LEQTYPES = ['ode', 'intermediary', 'auxiliary']
+_LEQTYPES = ['ode', 'statevar', 'auxiliary']
 _LEXTRAKEYS = [
     'func', 'kargs', 'args', 'initial',
     'source_kargs', 'source_exp',
@@ -54,16 +54,29 @@ def _check_dparam(dparam=None):
         )
         raise Exception(msg)
 
-    # check keys
+    # First check : try to fill new fields into dparam
+    lk0 = [
+        k0 for k0 in dparam.keys() if k0 not in models._DFIELDS.keys()
+    ]
+    if len(lk0) > 0:
+        msg = (
+            "*** Some fields of the model are not declared in the library.\n"
+            f"Autofill process for fields in : {lk0}"
+        )
+        print(msg)
+    # Check that he can autofill the FIELD
+    models._DFIELDS = models._def_fields.FillFromModel(
+        lk0, dparam, models._DFIELDS)
+
     lk0 = [
         k0 for k0 in dparam.keys() if k0 not in models._DFIELDS.keys()
     ]
     if len(lk0) > 0:
         msg = (
             "dparam must have keys identified in models._DFIELDS!\n"
-            f"You provided: {lk0}"
+            f"You provided: {lk0}."
         )
-        raise Exception(msg)
+        raise Warning(msg)
 
     # add numerical parameters if not included
     lknum = [
@@ -345,13 +358,13 @@ def _check_func(dparam=None, func_order=None, method=None):
                 kk for kk in argsf
                 if dparam[kk]['eqtype'] == 'ode'
             ],
+            'statevar': [
+                kk for kk in argsf
+                if dparam[kk]['eqtype'] == 'statevar'
+            ],
             'auxiliary': [
                 kk for kk in argsf
                 if dparam[kk]['eqtype'] == 'auxiliary'
-            ],
-            'intermediary': [
-                kk for kk in argsf
-                if dparam[kk]['eqtype'] == 'intermediary'
             ],
         }
 
@@ -374,7 +387,7 @@ def _check_func(dparam=None, func_order=None, method=None):
         msg = (
             "The following auxiliary functions are necessary for computation\n"
             + "\n".join(lstr)
-            + "\n=> Consider setting them to 'intermediary'"
+            + "\n=> Consider setting them to 'statevar'"
         )
         raise Exception(msg)
 
@@ -470,7 +483,9 @@ def _suggest_funct_order(
     if method is None:
         method = 'other'
 
-    included = ['intermediary']
+    print('***No functions order given. Automatic order filling...')
+
+    included = ['statevar']
     lfunc_inter = [
         kk for kk in lfunc if dparam[kk]['eqtype'] in included
     ]
@@ -495,7 +510,7 @@ def _suggest_funct_order(
         # Dummy y just for calls, start with nans (see if they propagate)
         y = {
             k0: np.nan for k0, v0 in dparam.items()
-            if v0.get('eqtype') == 'intermediary'
+            if v0.get('eqtype') == 'statevar'
         }
         # The list of variable still to find
         var_still_in_list = [kk for kk in lfunc_inter]
@@ -514,11 +529,11 @@ def _suggest_funct_order(
                         # get dict of input args for func k0, from y
                         kwdargs = {
                             k1: y[k1]
-                            for k1 in dparam[k0]['args']['intermediary']
+                            for k1 in dparam[k0]['args']['statevar']
                         }
 
                         # if lambda => substitute by lamb
-                        if 'lambda' in dparam[k0]['args']['intermediary']:
+                        if 'lambda' in dparam[k0]['args']['statevar']:
                             kwdargs['lamb'] = kwdargs['lambda']
                             del kwdargs['lambda']
 
@@ -537,14 +552,14 @@ def _suggest_funct_order(
                     # didn't work => reinitialise y to avoid keeping error
                     y = {
                         k0: np.nan for k0, v0 in dparam.items()
-                        if v0.get('eqtype') == 'intermediary'
+                        if v0.get('eqtype') == 'statevar'
                     }
 
                 except Exception as err:
                     # didn't work => reinitialise y to avoid keeping error
                     y = {
                         k0: np.nan for k0, v0 in dparam.items()
-                        if v0.get('eqtype') == 'intermediary'
+                        if v0.get('eqtype') == 'statevar'
                     }
                     warnings.warn(str(err))
 
@@ -559,7 +574,7 @@ def _suggest_funct_order(
         nbargs = np.array([
             (
                 len(dparam[k0]['args']['param']),
-                len(dparam[k0]['args']['intermediary']),
+                len(dparam[k0]['args']['statevar']),
                 # len(dparam[k0]['args']['auxiliary']),     # not considered
                 # len(dparam[k0]['args']['ode']),           # not considered
             )
@@ -587,7 +602,7 @@ def _suggest_funct_order(
                     all([                                  # only sorted args
                         ss in func_order
                         for ss in (
-                            dparam[lfunc_inter[ii]]['args']['intermediary']
+                            dparam[lfunc_inter[ii]]['args']['statevar']
                             # + dparam[lfunc[ii]]['args']['auxiliary']
                             # + dparam[lfunc[ii]]['args']['ode']
                         )
@@ -619,7 +634,6 @@ def _suggest_funct_order(
 
     # print suggested order
     msg = (
-        'Suggested order for intermediary functions (func_order):\n'
         f'{func_order}'
     )
     print(msg)
