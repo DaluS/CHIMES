@@ -31,7 +31,8 @@ _LIBRARY = {
         'nt': {
             'func': lambda Tmax=0, dt=1: int(Tmax / dt),
             'units': None,
-            'definition': 'Total simulated time',
+            'definition': 'Number of timestep',
+            'com': 'Constant dt'
         },
         'nx': {
             'value': 100,
@@ -42,6 +43,7 @@ _LIBRARY = {
             'value': 0,
             'ode': lambda dt=0: 1.,
             'definition': 'Time vector',
+            'com': 'dt/dt=1, time as ODE',
             'units': 'y',
         },
     },
@@ -153,11 +155,13 @@ _LIBRARY = {
         'phi0': {
             'func': lambda phinull=0: phinull / (1 - phinull**2),
             'definition': '',
+            'com': 'Parameter1 for diverving squared',
             'units': None,
         },
         'phi1': {
             'func': lambda phinull=0: phinull**3 / (1 - phinull**2),
             'definition': '',
+            'com': 'Parameter1 for diverving squared',
             'units': None,
         },
     },
@@ -238,7 +242,8 @@ _LIBRARY = {
 }
 
 _DEFAULTFIELDS = {'definition': '',
-                  'units': ''}
+                  'units': '',
+                  'com': ''}
 
 
 def CHECK_FIELDS(dic):
@@ -314,9 +319,11 @@ def from_Library_to_DFIELDS(lib, _DEFAULTFIELDS, _DFIELDS={}):
             subject = lib[group][field]
             if ('func' in subject.keys()):
                 _DFIELDS[field] = {
-                    'value': subject['func'],
+                    'func': subject['func'],
                     'definition': subject.get('definition',
                                               _DEFAULTFIELDS['definition']),
+                    'com': subject.get('com',
+                                       _DEFAULTFIELDS['com']),
                     'units': subject.get('units', _DEFAULTFIELDS['units']),
                     'type': detectype(subject),
                     'dimension': detectdimension(subject),
@@ -330,6 +337,8 @@ def from_Library_to_DFIELDS(lib, _DEFAULTFIELDS, _DFIELDS={}):
                     'initial': subject['value'],
                     'definition': subject.get('definition',
                                               _DEFAULTFIELDS['definition']),
+                    'com': subject.get('com',
+                                       _DEFAULTFIELDS['com']),
                     'units': subject.get('units', _DEFAULTFIELDS['units']),
                     'type': detectype(subject),
                     'dimension': detectdimension(subject),
@@ -342,6 +351,8 @@ def from_Library_to_DFIELDS(lib, _DEFAULTFIELDS, _DFIELDS={}):
                     'value': subject['value'],
                     'definition': subject.get('definition',
                                               _DEFAULTFIELDS['definition']),
+                    'com': subject.get('com',
+                                       _DEFAULTFIELDS['com']),
                     'units': subject.get('units', _DEFAULTFIELDS['units']),
                     'symbol': subject.get('symbol', field),
                     'type': detectype(subject),
