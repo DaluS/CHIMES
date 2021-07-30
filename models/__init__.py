@@ -93,7 +93,7 @@ def describe_available_model(model):
 
 
 def PrintDFIELDS(inpt=None):
-    k0 = "THE LIBRARY"
+    k0 = "THE DEFAULT LIBRARY"
     print('### DESCRIPTION OF', k0, (40-len(k0))*'#')
     if inpt is None:
         inpt = _DFIELDS
@@ -104,6 +104,7 @@ def PrintDFIELDS(inpt=None):
         print('### group :', group, (15-len(group))*'#')
         col0 = ['key',
                 'definition',
+                'value',
                 'type',
                 'units',
                 ]
@@ -111,6 +112,7 @@ def PrintDFIELDS(inpt=None):
             tuple([
                 k0,
                 v0['definition'],
+                printavalue(v0),
                 v0['type'],
                 v0['units'],
             ])
@@ -122,6 +124,17 @@ def PrintDFIELDS(inpt=None):
             returnas=False,
         )
     print(2*'\n', 60*'#', 2*'\n')
+
+
+def printavalue(v0):
+    if v0['eqtype'] == 'parameter':
+        return v0['value']
+    if v0['eqtype'] == 'ode':
+        return 'ode :'+str(v0['initial'])
+    if v0['eqtype'] == 'statevar':
+        return 'State variable'
+    else:
+        return ' '
 
 
 def _getcharray(ar, col=None, sep='  ', line='-', just='l', msg=True):
