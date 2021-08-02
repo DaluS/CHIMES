@@ -53,8 +53,12 @@ Result = hub.get_dparam(returnas=dict)
 # #############################################################################
 # hub.set_dparam(key='alpha', value=2.5)
 # hub.get_summary()
-hub.run(verb=1.1)
-# hub.get_summary()
+for model in ['GK', 'G_Reduced']:
+    for solver in ['eRK2-scipy', 'eRK4-scipy', 'eRK8-scipy']:
+        hub = _core.Hub('GK')
+        hub.run(verb=1.1)
+        hub.save()
+        # hub.get_summary()
 
 # hub.FillCyclesForAll(ref=None)
 hub.FillCyclesForAll(ref='lambda')
@@ -62,11 +66,13 @@ hub.FillCyclesForAll(ref='lambda')
 Result = hub.get_dparam(returnas=dict)
 
 plots.AllVar(hub)
-plots.Var(hub, 'K', idx=0, cycles=True, log=True)
-plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)
-plots.phasespace(hub, x='omega', y='d', idx=0)
-plots.phasespace(hub, x='omega', y='lambda', color='time', idx=0)
-plots.phasespace(hub, x='omega', y='lambda', color='d', idx=0)
+"""
+    #plots.Var(hub, 'K', idx=0, cycles=True, log=True)
+    plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)
+    plots.phasespace(hub, x='omega', y='d', idx=0)
+    plots.phasespace(hub, x='omega', y='lambda', color='time', idx=0)
+    plots.phasespace(hub, x='omega', y='lambda', color='d', idx=0)
 
-dimensionlessnumbers = ['omega', 'lambda', 'd', 'g']
-plots.AllPhaseSpace(hub, dimensionlessnumbers, idx=0)
+    dimensionlessnumbers = ['omega', 'lambda', 'd', 'g']
+    plots.AllPhaseSpace(hub, dimensionlessnumbers, idx=0)
+    """,
