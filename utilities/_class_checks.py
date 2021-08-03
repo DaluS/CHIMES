@@ -25,7 +25,6 @@ _PATH_MODELS = os.path.join(os.path.dirname(_PATH_HERE), 'models')
 #                       dparam checks - low-level basis
 # #############################################################################
 
-
 _LTYPES = [int, float, np.int_, np.float_]
 _LEQTYPES = ['ode', 'statevar', 'auxiliary']
 _LEXTRAKEYS = [
@@ -507,123 +506,58 @@ def _suggest_funct_order(
     # ---------------------------
     # func_order is determined automatically
 
-    if method == 'brute force':
-        # try orders until one works
-        # Dummy y just for calls, start with nans (see if they propagate)
-        y = {
-            k0: np.nan for k0, v0 in dparam.items()
-            if v0.get('eqtype') == 'statevar'
-        }
-        # The list of variable still to find
-        var_still_in_list = [kk for kk in lfunc_inter]
+    # count the number of args in each category, for each function
+    nbargs = np.array([
+        (
+            len(dparam[k0]['args']['param']),
+            len(dparam[k0]['args']['statevar']),
+            # len(dparam[k0]['args']['auxiliary']),     # not considered
+            # len(dparam[k0]['args']['ode']),           # not considered
+        )
+        for k0 in lfunc_inter
+    ])
+    if np.all(np.sum(nbargs[:, 1:], axis=1) > 0):
+        msg = "No sorting order of functions can be identified!"
+        raise Exception(msg)
 
-        # Initialize and loop
-        func_order = []
-        for ii in range(len(lfunc_inter)):
-            for jj in range(len(var_still_in_list)):
+    # first: functions that only depend on parameters (and self if ode)
+    isort = (np.sum(nbargs[:, 1:], axis=1) == 0).nonzero()[0]
+    isort = isort[np.argsort(nbargs[isort, 0])]
+    func_order = [lfunc_inter[ii] for ii in isort]
 
-                # add to a temporary list
-                templist = func_order + [var_still_in_list[jj]]
+    # ---------------------------
+    # try to identify a natural sorting order
+    # i.e.: functions that only depend on the previously sorted functions
+    while isort.size < len(lfunc_inter):
 
-                # try and if work => break and go to the next i
-                try:
-                    for k0 in templist:
-                        # get dict of input args for func k0, from y
-                        kwdargs = {
-                            k1: y[k1]
-                            for k1 in dparam[k0]['args']['statevar']
-                        }
-
-                        # if lambda => substitute by lamb
-                        if 'lambda' in dparam[k0]['args']['statevar']:
-                            kwdargs['lamb'] = kwdargs['lambda']
-                            del kwdargs['lambda']
-
-                        # try calling k0
-                        y[k0] = dparam[k0]['func'](**kwdargs)
-
-                        # raise Exception if any nan
-                        if np.any(np.isnan(y[k0])):
-                            raise ValueError('wrong order')
-
-                    func_order = templist.copy()
-                    _ = var_still_in_list.pop(jj)
-                    break
-
-                except ValueError:
-                    # didn't work => reinitialise y to avoid keeping error
-                    y = {
-                        k0: np.nan for k0, v0 in dparam.items()
-                        if v0.get('eqtype') == 'statevar'
-                    }
-
-                except Exception as err:
-                    # didn't work => reinitialise y to avoid keeping error
-                    y = {
-                        k0: np.nan for k0, v0 in dparam.items()
-                        if v0.get('eqtype') == 'statevar'
-                    }
-                    warnings.warn(str(err))
-
-        """
-        2 possible issues with brute force:
-            - a non-expected error can happen => division by zero
-            - final list may be incomplete (division by 0 => always error)
-        """
-
-    elif method == 'other':
-        # count the number of args in each category, for each function
-        nbargs = np.array([
+        # list of conditions (True, False) for each function
+        lc = [
             (
-                len(dparam[k0]['args']['param']),
-                len(dparam[k0]['args']['statevar']),
-                # len(dparam[k0]['args']['auxiliary']),     # not considered
-                # len(dparam[k0]['args']['ode']),           # not considered
+                ii not in isort,                       # not sorted yet
+                np.sum(nbargs[ii, 1:]) <= isort.size,  # not too many args
+                all([                                  # only sorted args
+                    ss in func_order
+                    for ss in (
+                        dparam[lfunc_inter[ii]]['args']['statevar']
+                        # + dparam[lfunc[ii]]['args']['auxiliary']
+                        # + dparam[lfunc[ii]]['args']['ode']
+                    )
+                ])
             )
-            for k0 in lfunc_inter
-        ])
-        if np.all(np.sum(nbargs[:, 1:], axis=1) > 0):
-            msg = "No sorting order of functions can be identified!"
+            for ii in range(len(lfunc_inter))
+        ]
+
+        # indices of functions matching all conditions
+        indi = [ii for ii in range(len(lfunc_inter)) if all(lc[ii])]
+
+        # If none => no easy solution
+        if len(indi) == 0:
+            msg = "No natural sorting order of functions "
             raise Exception(msg)
 
-        # first: functions that only depend on parameters (and self if ode)
-        isort = (np.sum(nbargs[:, 1:], axis=1) == 0).nonzero()[0]
-        isort = isort[np.argsort(nbargs[isort, 0])]
-        func_order = [lfunc_inter[ii] for ii in isort]
-
-        # ---------------------------
-        # try to identify a natural sorting order
-        # i.e.: functions that only depend on the previously sorted functions
-        while isort.size < len(lfunc_inter):
-
-            # list of conditions (True, False) for each function
-            lc = [
-                (
-                    ii not in isort,                       # not sorted yet
-                    np.sum(nbargs[ii, 1:]) <= isort.size,  # not too many args
-                    all([                                  # only sorted args
-                        ss in func_order
-                        for ss in (
-                            dparam[lfunc_inter[ii]]['args']['statevar']
-                            # + dparam[lfunc[ii]]['args']['auxiliary']
-                            # + dparam[lfunc[ii]]['args']['ode']
-                        )
-                    ])
-                )
-                for ii in range(len(lfunc_inter))
-            ]
-
-            # indices of functions matching all conditions
-            indi = [ii for ii in range(len(lfunc_inter)) if all(lc[ii])]
-
-            # If none => no easy solution
-            if len(indi) == 0:
-                msg = "No natural sorting order of functions "
-                raise Exception(msg)
-
-            # Concantenate with already sorted indices
-            isort = np.concatenate((isort, indi))
-            func_order += [lfunc_inter[ii] for ii in indi]
+        # Concantenate with already sorted indices
+        isort = np.concatenate((isort, indi))
+        func_order += [lfunc_inter[ii] for ii in indi]
 
     # safety checks
     if len(set(lfunc_inter)) != len(func_order):

@@ -37,7 +37,7 @@ _LIBRARY = {
         'nx': {
             'value': 1,
             'units': 'y',
-            'definition': 'Total simulated time',
+            'definition': 'NUMBER OF PARRALLEL SYSTEMS',
         },
         'time': {
             'value': 0,

@@ -10,7 +10,6 @@ This program contains the class Hub which is the intermediary in all steps :
     * Analyzing
     * Plotting
     * Saving
-    resolution
 '''
 
 # %% Importations ###########
@@ -34,7 +33,7 @@ class Hub():
 
     _MODEL = 'GK'  # Default model to be loaded
 
-    def __init__(self, model=None):
+    def __init__(self, model=None, loadLibrary=True):
         # The dictionary that will contains everything
         self.__dparam = {}
 
@@ -50,12 +49,97 @@ class Hub():
         # I HAVE NO IDEA WHAT THIS VARIABLE DO
         self.__dargs = {}
 
+        # PROCESS TO INITIALIZE THE SYSTEM
+        if loadLibrary:
+            self.Load_BasicLibrary()
         if model is not False:
-            self.set_dparam(dparam=model)
+            self.Load_ModelFiles(mod)
+        if (loadLibrary and model is not False):
+            self.Mix_ModelAndLibrary(self)
 
     # ##############################
     # %% Setting / getting parameters
     # ##############################
+
+    def Load_BasicLibrary(self):
+        '''
+        Load the library in /models/_def_fields.py called _DFIELDS
+        '''
+        self._DFIELDS = {}
+
+    def Load_ModelFiles(self, MODNAME):
+        '''
+        Load the model in /models/_model_MODNAME.py
+        '''
+
+        self._DMODEL = {}
+
+        self.__dmisc['model'] = MODNAME
+        self.__dmisc['func_order'] =
+        self.__dmisc['description'] =
+        self.__dmisc['preset'] =
+
+        self.__dargs =
+
+    def Mix_ModelAndLibrary(self):
+        '''
+        Create __dparam based on _DFIELDS and _DMODEL
+        '''
+        # Verify that both are loaded
+
+        # Load the group of numerical variables
+
+        # Load all fields in _DMODEL, with the complement from _DFIELDS
+
+        # Put the system into the right numberofsystems
+
+        # Elements taken from previous version ################################
+        lode = self.get_dparam(eqtype='ode', returnas=list)
+        linter = self.__dmisc['func_order']
+        laux = self.get_dparam(eqtype='auxiliary', returnas=list)
+
+        self.__dargs = {
+            k0: {
+                k1: self.__dparam[k1]['value']
+                for k1 in (
+                    self.__dparam[k0]['args']['ode']
+                    + self.__dparam[k0]['args']['statevar']
+                    + self.__dparam[k0]['args']['auxiliary']
+                )
+                if k1 != 'lambda'
+            }
+            for k0 in lode + linter + laux
+        }
+
+        # Handle the lambda exception here to avoid test at every time step
+        # if lambda exists and is a function
+        c0 = (
+            'lambda' in self.__dparam.keys()
+            and self.__dparam['lambda'].get('func') is not None
+        )
+        # then handle the exception
+        for k0, v0 in self.__dargs.items():
+            if c0 and 'lambda' in self.__dparam[k0]['kargs']:
+                self.__dargs[k0]['lamb'] = self.__dparam['lambda']['value']
+
+        # reset all variables
+        self.reset()
+
+    def Change_NumberOfSystems(self, value):
+        '''
+        Reset __dparam with a method to take into account changes
+        '''
+        # Get previous number of variables
+
+    def Change_Attribute(self, value):
+        '''
+        Change the value of one attribute in dparam
+        '''
+
+    def Change_Attributes(self, dictofChanges):
+        '''
+        Change a set of attributes in dparam
+        '''
 
     def set_dparam(
         self,
@@ -127,39 +211,6 @@ class Hub():
             dparam=dparam, func_order=func_order, method=method,
             model=self.__dmisc.get('model')
         )
-
-        # store a simplified dict of variable arguments
-        # used in reset() and run()
-        lode = self.get_dparam(eqtype='ode', returnas=list)
-        linter = self.__dmisc['func_order']
-        laux = self.get_dparam(eqtype='auxiliary', returnas=list)
-
-        self.__dargs = {
-            k0: {
-                k1: self.__dparam[k1]['value']
-                for k1 in (
-                    self.__dparam[k0]['args']['ode']
-                    + self.__dparam[k0]['args']['statevar']
-                    + self.__dparam[k0]['args']['auxiliary']
-                )
-                if k1 != 'lambda'
-            }
-            for k0 in lode + linter + laux
-        }
-
-        # Handle the lambda exception here to avoid test at every time step
-        # if lambda exists and is a function
-        c0 = (
-            'lambda' in self.__dparam.keys()
-            and self.__dparam['lambda'].get('func') is not None
-        )
-        # then handle the exception
-        for k0, v0 in self.__dargs.items():
-            if c0 and 'lambda' in self.__dparam[k0]['kargs']:
-                self.__dargs[k0]['lamb'] = self.__dparam['lambda']['value']
-
-        # reset all variables
-        self.reset()
 
     # ##############################
     # run simulation
