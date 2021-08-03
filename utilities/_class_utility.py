@@ -18,6 +18,26 @@ _LTYPES = [int, float, np.int_, np.float_]
 #              used by get_dparam(), get_dvar(), get_dfunc()
 # #############################################################################
 
+def fromOldToNewModelFormalism(LOGICS):
+
+    # Rewriting fuctions
+    _DPARAM = {}
+    for keys, funcs in LOGICS.get('ode', {}):
+        _DPARAM['key'] = {
+            'func': funcs['logic'],
+            'com': funcs['com'],
+            'eqtype': 'ode',
+            'initial': funcs.get('initial', None)
+        }
+    for keys, funcs in LOGICS.get('statevar', {}):
+        _DPARAM['key'] = {
+            'func': funcs['logic'],
+            'com': funcs['com'],
+            'eqtype': 'statevar'
+        }
+
+    # Determination of parameters
+
 
 def _get_dict_subset(
     indict=None,

@@ -1,9 +1,19 @@
 # -*- coding: utf-8 -*-
 
-# %% Importations ###########
+'''
+Core of the GEMMES resolution.
+This program contains the class Hub which is the intermediary in all steps :
+    * Initialisation
+    * Load
+    * Editing
+    * Resolving
+    * Analyzing
+    * Plotting
+    * Saving
+    resolution
+'''
 
-# built-in
-import time
+# %% Importations ###########
 
 
 # Common
@@ -17,15 +27,29 @@ import _plots as plots
 
 
 class Hub():
-    """ Generic class
+    """
+    Generic class to stock every data and method for the user to interact
+    with.
     """
 
-    _MODEL = 'GK'
+    _MODEL = 'GK'  # Default model to be loaded
 
     def __init__(self, model=None):
+        # The dictionary that will contains everything
         self.__dparam = {}
-        self.__dmisc = dict.fromkeys(['model', 'func_order', 'run', 'solver'])
+
+        # A few informations that could be useful
+        self.__dmisc = dict.fromkeys(['model',  # Model name
+                                      'func_order',  # ordered list of statevar
+                                      'run',        # Flag to check if run
+                                      'solver',     # Name of the solver used
+                                      'description',  # model string description
+                                      'preset',  # Dictionnary of presets
+                                      ])
+
+        # I HAVE NO IDEA WHAT THIS VARIABLE DO
         self.__dargs = {}
+
         if model is not False:
             self.set_dparam(dparam=model)
 
@@ -53,14 +77,12 @@ class Hub():
 
         """
 
-        # If all None => set to self._MODEL
+        # 1) Check if there is no input. If so , it load the basic model name
         c0 = dparam is None and key is None and value is None
-
         if c0 is True:
-            print()
             dparam = self._MODEL
 
-        # Check input: dparam xor (key, value)
+        # 2) Now Check input: either dparam or (key, value)
         lc = [
             dparam is not None or func_order is not None,
             key is not None and value is not None,
@@ -79,7 +101,7 @@ class Hub():
             )
             raise Exception(msg)
 
-        # set dparam or update desired key
+        # 3) Add the update to the general field
         if dparam is None:
             if func_order is not None:
                 dparam = self.__dparam
@@ -138,252 +160,6 @@ class Hub():
 
         # reset all variables
         self.reset()
-
-    def get_dparam(self, verb=None, returnas=None, **kwdargs):
-        """ Return a copy of the input parameters dict
-
-        Return as:
-            - dict: dict
-            - 'DataGFrame': a pandas DataFrame
-            - np.ndarray: a dict of np.ndarrays
-            - False: return nothing (useful of verb=True)
-
-        verb:
-            - True: pretty-print the chosen parameters
-            - False: print nothing
-        """
-        lcrit = ['dimension', 'units', 'type', 'group', 'eqtype']
-        lprint = [
-            'parameter', 'value', 'units', 'dimension', 'symbol',
-            'type', 'eqtype', 'group', 'comment',
-        ]
-
-        return _class_utility._get_dict_subset(
-            indict=self.__dparam,
-            verb=verb,
-            returnas=returnas,
-            lcrit=lcrit,
-            lprint=lprint,
-            **kwdargs,
-        )
-
-    # ##############################
-    # %% Read-only properties
-    # ##############################
-
-    @property
-    def lfunc(self):
-        """ List of parameters names that are actually functions """
-        return [
-            k0 for k0, v0 in self.__dparam.items()
-            if v0.get('eqtype') is not None
-        ]
-
-    @property
-    def func_order(self):
-        """ The ordered list of intermediary function names """
-        return self.__dmisc['func_order']
-
-    @property
-    def model(self):
-        """ The model identifier """
-        return self.__dmisc['model']
-
-    @property
-    def dargs(self):
-        return self.__dargs
-
-    @property
-    def dmisc(self):
-        return self.__dmisc
-
-    @property
-    def dparam(self):
-        return self.get_dparam(returnas=dict, verb=False)
-
-    # ##############################
-    # reset
-    # ##############################
-
-    def reset(self):
-        """ Re-initializes all variables
-
-        Only the first time step (initial values) is preserved
-        All other time steps are set to nan
-        """
-
-        # reset ode variables
-        for k0 in self.lfunc:
-            if k0 == 'time':
-                self.__dparam[k0]['value'][0] = self.__dparam[k0]['initial']
-                self.__dparam[k0]['value'][1:] = np.nan
-            elif self.__dparam[k0]['eqtype'] == 'ode':
-                self.__dparam[k0]['value'][0, :] = self.__dparam[k0]['initial']
-                self.__dparam[k0]['value'][1:, :] = np.nan
-            elif self.__dparam[k0]['eqtype'] == 'statevar':
-                self.__dparam[k0]['value'][:, :] = np.nan
-
-        # reset intermediary variables and auxiliary variables
-        laux = self.get_dparam(eqtype='auxiliary', returnas=list)
-        linter_aux = self.__dmisc['func_order'] + laux
-        for k0 in linter_aux:
-            # prepare dict of args
-            kwdargs = {
-                k1: v1[0, :]
-                for k1, v1 in self.__dargs[k0].items()
-            }
-            # run function
-            self.__dparam[k0]['value'][0, :] = (
-                self.__dparam[k0]['func'](**kwdargs)
-            )
-            # set other time steps to nan
-            self.__dparam[k0]['value'][1:, :] = np.nan
-
-        # set run to False
-        self.__dmisc['run'] = False
-
-    # ##############################
-    # variables
-    # ##############################
-
-    def get_variables_compact(self, eqtype=None):
-        """ Return a compact numpy arrays containing all variable
-
-        Return
-            - compact np.ndarray of all variables
-            - list of variable names, in the same order
-            - array of indices
-        """
-        # check inputs
-        leqtype = ['ode', 'intermediary', 'auxiliary']
-        if eqtype is None:
-            eqtype = ['ode', 'intermediary']
-        if isinstance(eqtype, str):
-            eqtype = [eqtype]
-            if any([ss not in leqtype for ss in eqtype]):
-                msg = (
-                    f"eqtype must be in {leqtype}\n"
-                    f"You provided: {eqtype}"
-                )
-                raise Exception(msg)
-
-        # list of keys of variables
-        keys = np.array([
-            k0 for k0, v0 in self.__dparam.items()
-            if v0.get('eqtype') in leqtype
-        ], dtype=str)
-
-        # get compact variable array
-        variables = np.swapaxes([
-            self.__dparam[k0]['value'] for k0 in keys
-        ], 0, 1)
-
-        return keys, variables
-
-    # ##############################
-    #  Introspection
-    # ##############################
-
-    def __repr__(self):
-        """ This is automatically called when only the instance is entered """
-        col0 = ['model', 'source', 'nb. model param', 'nb. functions', 'run']
-        ar0 = [
-            list(self.__dmisc['model'].keys())[0],
-            list(self.__dmisc['model'].values())[0],
-            len([
-                k0 for k0, v0 in self.__dparam.items()
-                if v0.get('func') is None
-            ]),
-            len(self.lfunc),
-            self.__dmisc['run'],
-        ]
-        return _utils._get_summary(
-            lar=[ar0],
-            lcol=[col0],
-            verb=False,
-            returnas=str,
-        )
-
-    def get_summary(self, idx=0):
-        """
-        Print a str summary of the solver
-
-        """
-
-        # ----------
-        # Numerical parameters
-        col0 = ['Numerical param.', 'value', 'units', 'comment']
-        ar0 = [
-            tuple([
-                k0,
-                str(v0['value']),
-                str(v0['units']),
-                v0['definition'],
-            ])
-            for k0, v0 in self.__dparam.items() if v0['group'] == 'Numerical'
-        ]
-
-        # ----------
-        # parameters
-        col1 = ['Model param.', 'value', 'units', 'group', 'comment']
-        ar1 = [
-            tuple([
-                k0,
-                str(v0['value']),
-                str(v0['units']),
-                v0['group'],
-                v0['com'],
-            ])
-            for k0, v0 in self.__dparam.items()
-            if v0['group'] != 'Numerical'
-            and v0.get('func') is None
-        ]
-
-        # ----------
-        # functions
-        if self.__dmisc['run']:
-            col2 = ['function', 'source', 'initial',
-                    'final', 'units', 'eqtype', 'comment']
-            ar2 = [
-                tuple([
-                    k0,
-                    v0['source_exp'],
-                    "{:.2e}".format(v0.get('value')[0, idx]),
-                    "{:.2e}".format(v0.get('value')[-1, idx]),
-                    str(v0['units']),
-                    v0['eqtype'].replace('intermediary', 'inter').replace(
-                        'auxiliary', 'aux',
-                    ),
-                    v0['com'],
-                ])
-                for k0, v0 in self.__dparam.items()
-                if v0.get('func') is not None
-            ]
-        else:
-            col2 = ['function', 'source', 'initial',
-                    'units', 'eqtype', 'comment']
-            ar2 = [
-                tuple([
-                    k0,
-                    v0['source_exp'],
-                    "{:.2e}".format(v0.get('value')[0, idx]),
-                    str(v0['units']),
-                    v0['eqtype'].replace('intermediary', 'inter').replace(
-                        'auxiliary', 'aux',
-                    ),
-                    v0['com'],
-                ])
-                for k0, v0 in self.__dparam.items()
-                if v0.get('func') is not None
-            ]
-        # ----------
-        # format output
-        return _utils._get_summary(
-            lar=[ar0, ar1, ar2],
-            lcol=[col0, col1, col2],
-            verb=True,
-            returnas=False,
-        )
 
     # ##############################
     # run simulation
@@ -463,9 +239,54 @@ class Hub():
         self.__dmisc['solver'] = solver
 
     # ##############################
-    #       Deep analysis methods
+    # %% plotting methods
     # ##############################
-    def FillCyclesForAll(self, ref=None):
+
+    def plot(self):
+        """
+        Launch all the basic plots
+        """
+
+        # plot per units
+
+
+# ############################################################################
+# %%#################### EVERYTHING THAT IS ALREADY WORKING WELL #############
+# ############################################################################
+
+    # ##############################
+    # %% Analysis methods for cycles
+    # ##############################
+    def InitiateCyclesDictionnary(self):
+        '''
+        Create the structure that will contains
+        '''
+        for var, dic1 in self.__dparam.items():
+            if 'func' in dic1.keys():
+                dic1['cycles'] = {
+                    'period_indexes':  # [[idx1,idx2],[idx2,idx3],] borders
+                    [self.__dparam['nx']['value']*[None]],
+                    'period_T_intervals':  # [t[idx1,t[idx2]],..] borders time
+                    [self.__dparam['nx']['value']*[None]],
+                    't_mean_cycle':  # time of the middle of the cycle
+                    [self.__dparam['nx']['value']*[None]],
+                    'period_T':  # duration of the cycle
+                    [self.__dparam['nx']['value']*[None]],
+                    'meanval':  # mean value during the interval
+                    [self.__dparam['nx']['value']*[None]],
+                    'stdval':  # standard deviation during the interval
+                    [self.__dparam['nx']['value']*[None]],
+                    'minval':  # minimal value in the interval
+                    [self.__dparam['nx']['value']*[None]],
+                    'medval':  # minimal value in the interval
+                    [self.__dparam['nx']['value']*[None]],
+                    'maxval':  # maximal value in the interval
+                    [self.__dparam['nx']['value']*[None]],
+                    'reference':  # the variable that has been used to detect
+                    [self.__dparam['nx']['value']*[None]],
+                }
+
+    def FillCyclesForAllVar(self, idx='all', ref=None):
         '''
         This function is a wrap-up on GetCycle to do it on all variables.
 
@@ -473,15 +294,27 @@ class Hub():
         ref is the reference variable on which the time of cycles is determined
         by default the variable detect cycles in itself
         '''
+        self.InitiateCyclesDictionnary()
 
-        for var, dic1 in self.__dparam.items():
-            if 'func' in dic1.keys():
-                if ref is None:
-                    self.FillCycles(var, var)
-                else:
-                    self.FillCycles(var, ref)
+        if idx == 'all':
+            idxV = range(self.__dparam['nx']['value'])
+        elif type(idx) is list:
+            idxV = idx
+        else:
+            idxV = [idx*1]
 
-    def FillCycles(self, var, ref='lambda'):
+        if self.__dmisc['run']:
+            for idx in idxV:
+                for var, dic1 in self.__dparam.items():
+                    if 'func' in dic1.keys():
+                        if ref is None:
+                            self.FillCycles(var, var, idx=0)
+                        else:
+                            self.FillCycles(var, ref, idx=0)
+        else:
+            print('Cycle Detection impossible : system did not run')
+
+    def FillCycles(self, var, ref='lambda', idx=0):
         '''
         it calculates the cycles properties
         ref is the reference variable on which the time of cycles is determined
@@ -491,68 +324,52 @@ class Hub():
         ref : reference for the oscillations detections
         '''
 
-        # Check if the run did occur
-
         # Get the new dictionnary to edit
         dic = self.__dparam[var]
-        if 'cycles' not in dic.keys():
-            dic['cycles'] = {'reference': ref}
-            '''
-'period_indexes': [],  # [[idx1,idx2],[idx2,idx3],] index of borders
-# for each period
-'period_T_intervals': [],  # [t[idx1,t[idx2]],..] time of borders
-'t_mean_cycle': [],  # [(t[idx1+t[idx2])/2.],..]
-# time of the middle of the cycle
-'period_T': [],  # duration of the cycle
-'meanval': [],  # mean value during the interval
-'stdval': [],   # standard deviation during the interval
-'minval': [],   # minimal value in the interval
-'maxval': [],   # maximal value in the interval
-'reference': ref,  # the variable that has been used to detect cycle
-}
-            '''
+        if 'cycles' not in dic:
+            self.InitiateCyclesDictionnary()
 
         # check if reference has already calculated its period
         # the reference has cycle and this cycle has been calculated on itself
         dic1 = dic['cycles']
         Ready = False
-        if 'cycles' in self.__dparam[ref].keys():
-            dic2 = self.__dparam[ref]['cycles']
-            if (dic2['reference'] == ref and 'period_indexes' in dic2):
-                # We can take the reference as the base
-                Ready = True
+        dic2 = self.__dparam[ref]['cycles']
+        if (dic2['reference'][idx] == ref and
+                dic2['period_indexes'][idx] is not None):
+            # We can take the reference as the base
+            Ready = True
         # If there is no good reference
         # We calculate it and put
         if not Ready:
-            self.findCycles(ref)
+            self.findCycles(ref, idx)
             dic2 = self.__dparam[ref]['cycles']
 
         for key in ['period_indexes', 'period_T_intervals',
                     't_mean_cycle', 'period_T']:
-            dic1[key] = dic2[key]
+            dic1[key][idx] = dic2[key][idx]
 
-        tim = self.__dparam['time']['value']
-        dic1['period_T_intervals'] = [[tim[idx[0], 0], tim[idx[1], 0]]
-                                      for idx in dic1['period_indexes']]
-        dic1['t_mean_cycle'] = [
-            (t[0]+t[1])/2 for t in dic1['period_T_intervals']]
-        dic1['period_T'] = [
-            (t[1]-t[0]) for t in dic1['period_T_intervals']]
+        tim = self.__dparam['time']['value'][:, idx]
+        dic1['period_T_intervals'][idx] = [[tim[ids[0]], tim[ids[1]]]
+                                           for ids in dic1['period_indexes'][idx]]
+        dic1['t_mean_cycle'][idx] = [
+            (t[0]+t[1])/2 for t in dic1['period_T_intervals'][idx]]
+        dic1['period_T'][idx] = [
+            (t[1]-t[0]) for t in dic1['period_T_intervals'][idx]]
 
         # Fill for each the characteristics
-        values = dic['value']
-        dic1['meanval'] = [np.mean(values[idx[0]:idx[1]])
-                           for idx in dic1['period_indexes']]
-        dic1['medval'] = [np.median(values[idx[0]:idx[1]])
-                          for idx in dic1['period_indexes']]
-        dic1['stdval'] = [np.std(values[idx[0]:idx[1]])
-                          for idx in dic1['period_indexes']]
-        dic1['minval'] = [np.amin(values[idx[0]:idx[1]])
-                          for idx in dic1['period_indexes']]
-        dic1['maxval'] = [np.amax(values[idx[0]:idx[1]])
-                          for idx in dic1['period_indexes']]
+        values = dic['value'][:, idx]
+        dic1['meanval'][idx] = [np.mean(values[ids[0]: ids[1]])
+                                for ids in dic1['period_indexes'][idx]]
+        dic1['medval'][idx] = [np.median(values[ids[0]: ids[1]])
+                               for ids in dic1['period_indexes'][idx]]
+        dic1['stdval'][idx] = [np.std(values[ids[0]: ids[1]])
+                               for ids in dic1['period_indexes'][idx]]
+        dic1['minval'][idx] = [np.amin(values[ids[0]: ids[1]])
+                               for ids in dic1['period_indexes'][idx]]
+        dic1['maxval'][idx] = [np.amax(values[ids[0]: ids[1]])
+                               for ids in dic1['period_indexes'][idx]]
 
-    def findCycles(self, refval):
+    def findCycles(self, refval, idx):
         '''
         Detect all positions of local maximums and the time that is linked
         '''
@@ -560,11 +377,9 @@ class Hub():
         Periods = []
         id1 = 1
 
-        self.__dparam[refval]['cycles'] = {}
-
         dic1 = self.__dparam[refval]['cycles']
-        val = self.__dparam[refval]['value']
-
+        val = self.__dparam[refval]['value'][:, idx]
+        tim = self.__dparam['time']['value'][:, idx]
         # identification loop
         while id1 < len(val)-2:
             if (val[id1] > val[id1-1] and
@@ -573,30 +388,96 @@ class Hub():
             id1 += 1
 
         # Fill the formalism
-        self.__dparam[refval]['cycles']['period_indexes'] = [
+        self.__dparam[refval]['cycles']['period_indexes'][idx] = [
             [Periods[i], Periods[i+1]] for i in range(len(Periods)-1)
         ]
-        tim = self.__dparam['time']['value']
+
+        indexes = dic1['period_indexes'][idx]
         dic1 = self.__dparam[refval]['cycles']
-        dic1['period_T_intervals'] = [[tim[idx[0]], tim[idx[1]]]
-                                      for idx in dic1['period_indexes']]
-        dic1['t_mean_cycle'] = [
-            (t[0]+t[1])/2 for t in dic1['period_T_intervals']]
-        dic1['period_T'] = [
-            (t[1]-t[0]) for t in dic1['period_T_intervals']]
-        dic1['reference'] = refval
+        dic1['period_T_intervals'][idx] = [[tim[ids[0]], tim[ids[1]]]
+                                           for ids in indexes]
+        dic1['t_mean_cycle'][idx] = [
+            (t[0]+t[1])/2 for t in dic1['period_T_intervals'][idx]]
+        dic1['period_T'][idx] = [
+            (t[1]-t[0]) for t in dic1['period_T_intervals'][idx]]
+        dic1['reference'][idx] = refval
+    # ##############################
+    # reset
+    # ##############################
 
-        # ##############################
-        #       plotting methods
-        # ##############################
+    def reset(self):
+        """ Re-initializes all variables
 
-    def plot(self):
+        Only the first time step (initial values) is preserved
+        All other time steps are set to nan
         """
-        Launch all the basic plots
-        """
+
+        # reset ode variables
+        for k0 in self.lfunc:
+            if k0 == 'time':
+                self.__dparam[k0]['value'][0] = self.__dparam[k0]['initial']
+                self.__dparam[k0]['value'][1:] = np.nan
+            elif self.__dparam[k0]['eqtype'] == 'ode':
+                self.__dparam[k0]['value'][0, :] = self.__dparam[k0]['initial']
+                self.__dparam[k0]['value'][1:, :] = np.nan
+            elif self.__dparam[k0]['eqtype'] == 'statevar':
+                self.__dparam[k0]['value'][:, :] = np.nan
+
+        # reset intermediary variables and auxiliary variables
+        laux = self.get_dparam(eqtype='auxiliary', returnas=list)
+        linter_aux = self.__dmisc['func_order'] + laux
+        for k0 in linter_aux:
+            # prepare dict of args
+            kwdargs = {
+                k1: v1[0, :]
+                for k1, v1 in self.__dargs[k0].items()
+            }
+            # run function
+            self.__dparam[k0]['value'][0, :] = (
+                self.__dparam[k0]['func'](**kwdargs)
+            )
+            # set other time steps to nan
+            self.__dparam[k0]['value'][1:, :] = np.nan
+
+        # set run to False
+        self.__dmisc['run'] = False
 
     # ##############################
-    #       data conversion
+    # %% Read-only properties
+    # ##############################
+
+    @ property
+    def lfunc(self):
+        """ List of parameters names that are actually functions """
+        return [
+            k0 for k0, v0 in self.__dparam.items()
+            if v0.get('eqtype') is not None
+        ]
+
+    @ property
+    def func_order(self):
+        """ The ordered list of intermediary function names """
+        return self.__dmisc['func_order']
+
+    @ property
+    def model(self):
+        """ The model identifier """
+        return self.__dmisc['model']
+
+    @ property
+    def dargs(self):
+        return self.__dargs
+
+    @ property
+    def dmisc(self):
+        return self.__dmisc
+
+    @ property
+    def dparam(self):
+        return self.get_dparam(returnas=dict, verb=False)
+
+    # ##############################
+    # %%    data conversion
     # ##############################
 
     def _to_dict(self):
@@ -647,7 +528,7 @@ class Hub():
         return obj
 
     # ##############################
-    #       saving methods
+    # %%    saving methods
     # ##############################
 
     def save(self, path=None, name=None, fmt=None, verb=None):
@@ -692,4 +573,182 @@ class Hub():
             self, other,
             verb=verb,
             return_dfail=return_dfail,
+        )
+
+    # ##############################
+    # %% Introspection
+    # ##############################
+
+    def __repr__(self):
+        """ This is automatically called when only the instance is entered """
+        col0 = ['model', 'source', 'nb. model param', 'nb. functions', 'run']
+        ar0 = [
+            list(self.__dmisc['model'].keys())[0],
+            list(self.__dmisc['model'].values())[0],
+            len([
+                k0 for k0, v0 in self.__dparam.items()
+                if v0.get('func') is None
+            ]),
+            len(self.lfunc),
+            self.__dmisc['run'],
+        ]
+        return _utils._get_summary(
+            lar=[ar0],
+            lcol=[col0],
+            verb=False,
+            returnas=str,
+        )
+
+    def get_summary(self, idx=0):
+        """
+        Print a str summary of the solver
+
+        """
+
+        # ----------
+        # Numerical parameters
+        col0 = ['Numerical param.', 'value', 'units', 'definition', 'comment']
+        ar0 = [
+            tuple([
+                k0,
+                str(v0['value']),
+                str(v0['units']),
+                v0.get('definition', ' '),
+                v0.get('com', ' ')
+            ])
+            for k0, v0 in self.__dparam.items() if
+            (v0['group'] == 'Numerical' and k0 != 'time')
+        ]
+
+        # ----------
+        # parameters
+        col1 = ['Model param.', 'value', 'units', 'group',
+                'definition', 'comment']
+        ar1 = [
+            tuple([
+                k0,
+                str(v0['value']),
+                str(v0['units']),
+                v0['group'],
+                v0.get('definition', ' '),
+                v0.get('com', ' ')
+            ])
+            for k0, v0 in self.__dparam.items()
+            if v0['group'] != 'Numerical'
+            and v0.get('func') is None
+        ]
+
+        # ----------
+        # functions
+        if self.__dmisc['run']:
+            col2 = ['function', 'source', 'initial',
+                    'final', 'units', 'eqtype',
+                    'definition', 'comment']
+            ar2 = [
+                tuple([
+                    k0,
+                    v0['source_exp'],
+                    "{:.2e}".format(v0.get('value')[0, idx]),
+                    "{:.2e}".format(v0.get('value')[-1, idx]),
+                    str(v0['units']),
+                    v0['eqtype'].replace('intermediary', 'inter').replace(
+                        'auxiliary', 'aux',
+                    ),
+                    v0.get('definition', ' '),
+                    v0.get('com', ' '),
+                ])
+                for k0, v0 in self.__dparam.items()
+                if v0.get('func') is not None
+            ]
+        else:
+            col2 = ['function', 'source', 'initial',
+                    'units', 'eqtype', 'definition', 'comment']
+            ar2 = [
+                tuple([
+                    k0,
+                    v0['source_exp'],
+                    "{:.2e}".format(v0.get('value')[0, idx]),
+                    str(v0['units']),
+                    v0['eqtype'].replace('intermediary', 'inter').replace(
+                        'auxiliary', 'aux',
+                    ),
+                    v0.get('definition', ' '),
+                    v0.get('com', ' '),
+                ])
+                for k0, v0 in self.__dparam.items()
+                if v0.get('func') is not None
+            ]
+        # ----------
+        # format output
+        return _utils._get_summary(
+            lar=[ar0, ar1, ar2],
+            lcol=[col0, col1, col2],
+            verb=True,
+            returnas=False,
+        )
+
+    # ##############################
+    # variables
+    # ##############################
+
+    def get_variables_compact(self, eqtype=None):
+        """ Return a compact numpy arrays containing all variable
+
+        Return
+            - compact np.ndarray of all variables
+            - list of variable names, in the same order
+            - array of indices
+        """
+        # check inputs
+        leqtype = ['ode', 'intermediary', 'auxiliary']
+        if eqtype is None:
+            eqtype = ['ode', 'intermediary']
+        if isinstance(eqtype, str):
+            eqtype = [eqtype]
+            if any([ss not in leqtype for ss in eqtype]):
+                msg = (
+                    f"eqtype must be in {leqtype}\n"
+                    f"You provided: {eqtype}"
+                )
+                raise Exception(msg)
+
+        # list of keys of variables
+        keys = np.array([
+            k0 for k0, v0 in self.__dparam.items()
+            if v0.get('eqtype') in leqtype
+        ], dtype=str)
+
+        # get compact variable array
+        variables = np.swapaxes([
+            self.__dparam[k0]['value'] for k0 in keys
+        ], 0, 1)
+
+        return keys, variables
+
+    def get_dparam(self, verb=None, returnas=None, **kwdargs):
+        """ Return a copy of the input parameters dict
+
+        Return as:
+            - dict: dict
+            - 'DataGFrame': a pandas DataFrame
+            - np.ndarray: a dict of np.ndarrays
+            - False: return nothing (useful of verb=True)
+
+        verb:
+            - True: pretty-print the chosen parameters
+            - False: print nothing
+        """
+        lcrit = ['dimension', 'units', 'type', 'group', 'eqtype']
+        lprint = [
+            'parameter', 'value', 'units', 'dimension', 'symbol',
+            'type', 'eqtype', 'group', 'comment',
+        ]
+
+        return _class_utility._get_dict_subset(
+            indict=self.__dparam,
+            verb=verb,
+            returnas=returnas,
+            lcrit=lcrit,
+            lprint=lprint,
+            **kwdargs,
         )

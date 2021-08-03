@@ -154,14 +154,14 @@ _LIBRARY = {
         },
         'phi0': {
             'func': lambda phinull=0: phinull / (1 - phinull**2),
-            'definition': '',
-            'com': 'Parameter1 for diverving squared',
+            'definition': 'Parameter1 for diverving squared',
+            'com': '',
             'units': None,
         },
         'phi1': {
             'func': lambda phinull=0: phinull**3 / (1 - phinull**2),
-            'definition': '',
-            'com': 'Parameter1 for diverving squared',
+            'definition': 'Parameter1 for diverving squared',
+            'com': '',
             'units': None,
         },
     },

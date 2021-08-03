@@ -75,24 +75,25 @@ def Var(sol, key, idx=0, cycles=False, log=False):
     # PLOT OF THE CYCLES
     if cycles:
         cyclvar = allvars[key]['cycles']
-        tmcycles = cyclvar['t_mean_cycle']
+        tmcycles = cyclvar['t_mean_cycle'][idx]
 
         # Plot of each period by a rectangle
 
         # Plot of enveloppe (mean-max)
-        vmin = cyclvar['minval']
-        vmax = cyclvar['maxval']
+        vmin = cyclvar['minval'][idx]
+        vmax = cyclvar['maxval'][idx]
         plt.plot(tmcycles, vmin, '--', label='min value')
         plt.plot(tmcycles, vmax, '--', label='max value')
 
         # Plot of the mean value evolution
-        meanv = np.array(cyclvar['meanval'])
-        plt.plot(tmcycles, cyclvar['meanval'], ls='dotted', label='mean value')
-        plt.plot(tmcycles, cyclvar['medval'],
+        meanv = np.array(cyclvar['meanval'][idx])
+        plt.plot(tmcycles, cyclvar['meanval'][idx],
+                 ls='dotted', label='mean value')
+        plt.plot(tmcycles, cyclvar['medval'][idx],
                  ls='dashdot', label='median value')
 
         # Plot of the standard deviation around the mean value
-        stdv = np.array(cyclvar['stdval'])
+        stdv = np.array(cyclvar['stdval'][idx])
         ax.fill_between(tmcycles, meanv - stdv, meanv + stdv, alpha=0.2)
         plt.legend()
 
