@@ -110,6 +110,8 @@ def _check_dparam(dparam=None):
                     dparam[k0][ss] = models._DFIELDS[k0][ss]
 
             # identify invalid keys
+            # Remove for the moment as it does not correspond to the system
+            '''
             lk = [
                 kk for kk in dparam[k0].keys()
                 if kk != 'eqtype'
@@ -118,7 +120,7 @@ def _check_dparam(dparam=None):
             if len(lk) > 0:
                 dfail[k0] = f"Invalid keys: {lk}"
                 continue
-
+            '''
             # check value xor func
             c0 = (
                 'value' not in dparam[k0].keys()

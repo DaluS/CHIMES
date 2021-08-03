@@ -12,6 +12,7 @@ _core._class_checks.models.PrintDFIELDS()
 # %% Start the hub ###########################################################
 hub = _core.Hub('GK')
 
+hub.set_dparam(key='alpha', value=0.01)
 # %% Choice of parameters ####################################################
 '''
 * To change a parameter :  `sol.set_dparam(key='alpha', value=0.01)`
@@ -54,13 +55,15 @@ Result = hub.get_dparam(returnas=dict)
 # hub.set_dparam(key='alpha', value=2.5)
 # hub.get_summary()
 for model in ['GK', 'G_Reduced']:
-    for solver in ['eRK2-scipy', 'eRK4-scipy', 'eRK8-scipy']:
-        hub = _core.Hub('GK')
-        hub.run(verb=1.1)
+    for solver in ['eRK4-homemade', 'eRK2-scipy', 'eRK4-scipy', 'eRK8-scipy']:
+        hub = _core.Hub(model=model)
+        hub.run(verb=1.1, solver=solver)
         hub.save()
         # hub.get_summary()
 
 # hub.FillCyclesForAll(ref=None)
+hub.reset()
+hub.run()
 hub.FillCyclesForAll(ref='lambda')
 
 Result = hub.get_dparam(returnas=dict)

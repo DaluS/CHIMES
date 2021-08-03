@@ -128,11 +128,11 @@ _LIBRARY = {
             'definition': 'Absolute profit',
             'units': 'dollars',
         },
-        #        'lambda': {
-        #            'value': None,
-        #            'definition': 'employement rate',
-        #            'units': None,
-        #        },
+        'lambda': {
+            'value': None,
+            'definition': 'employement rate',
+            'units': None,
+        },
         'omega': {
             'value': None,
             'definition': 'wage share',
