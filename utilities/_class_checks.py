@@ -14,7 +14,7 @@ import numpy as np
 
 # library specific
 import models
-
+# import _class_utility
 
 _PATH_HERE = os.path.dirname(__file__)
 _PATH_MODELS = os.path.join(os.path.dirname(_PATH_HERE), 'models')
@@ -33,53 +33,70 @@ _LEXTRAKEYS = [
 ]
 
 
-def _check_dparam(dparam=None):
-    """ Check basic properties of dparam
+def loadlibrary():
+    return dict(models._DFIELDS)
 
-    It must be a dict
-    with only str as keys
-    with only some fields allowed for each key
-    with values that can be scalars or functions
 
-    <Missing fields are filled in from defaults values in models._DFIELDS
-
-    """
-
-    # check type
-    if not isinstance(dparam, dict):
+def loadmodel(mod):
+    # Check if the model name is a valid one
+    if mod not in models._DMODEL.keys():
         msg = (
-            "dparam must be a dict!\n"
-            f"You provided: {type(dparam)}"
+            f"Requested pre-defined model ('{mod}') not available!\n"
+            + models.get_available_models(returnas=str, verb=False)
         )
         raise Exception(msg)
 
-    # First check : try to fill new fields into dparam
-    lk0 = [
-        k0 for k0 in dparam.keys() if k0 not in models._DFIELDS.keys()
-    ]
-    if len(lk0) > 0:
-        msg = (
-            "*** Some fields of the model are not declared in the library.\n"
-            f"Autofill process for fields in : {lk0}"
-        )
-        print(msg)
-    # Check that he can autofill the FIELD
-    models._DFIELDS = models._def_fields.FillFromModel(
-        lk0, dparam, models._DFIELDS)
+    return dict(models._DMODEL[mod])
 
-    lk0 = [
-        k0 for k0 in dparam.keys() if k0 not in models._DFIELDS.keys()
-    ]
-    if len(lk0) > 0:
-        msg = (
-            "dparam must have keys identified in models._DFIELDS!\n"
-            f"You provided: {lk0}."
-        )
-        raise Warning(msg)
 
+def ModelNewFormalism(initialLogics):
+    ModelDict = {}
+    for keys, funcs in initialLogics.get('ode', {}).items():
+        ModelDict[keys] = {
+            'func': funcs['logic'],
+            'com': funcs['com'],
+            'kargs': inspect.getfullargspec(funcs['logic']).args,
+            'eqtype': 'ode',
+            'initial': funcs.get('initial', None)
+        }
+    for keys, funcs in initialLogics.get('statevar', {}).items():
+        ModelDict[keys] = {
+            'func': funcs['logic'],
+            'kargs':  inspect.getfullargspec(funcs['logic']).args,
+            'com': funcs['com'],
+            'eqtype': 'statevar'
+        }
+    for keys, funcs in initialLogics.get('parameters', {}).items():
+        ModelDict[keys] = {
+            'value': funcs['logic'],
+            'con': funcs['com'],
+            'eqtype': 'parameter'
+        }
+
+    return dict(ModelDict)
+
+
+def FindParameters(model):
+    Variables = set([key for key,
+                     value in model.items() if value['eqtype'] != 'parameter'])
+    VariableAndParameters = [v['kargs']
+                             for v in model.values() if 'kargs' in v.keys()]
+    VariableAndParameters = [
+        item for elem in VariableAndParameters for item in elem]
+    VariableAndParameters = set([v.replace('lamb', 'lambda')
+                                 for v in VariableAndParameters])
+    Parameters = list(VariableAndParameters-Variables-set('itself'))
+    print('*** Parameters identified as :', Parameters)
+
+    for p in [p for p in Parameters if p not in model.keys()]:
+        model[p] = {}
+    return model
+
+
+def AddNumericalAndCheckDparam(dparam, _DFIELDS):
     # add numerical parameters if not included
     lknum = [
-        k0 for k0, v0 in models._DFIELDS.items()
+        k0 for k0, v0 in _DFIELDS.items()
         if v0['group'] == 'Numerical'
     ]
     for k0 in lknum:
@@ -167,6 +184,51 @@ def _check_dparam(dparam=None):
             + "\n".join(lstr)
         )
         raise Exception(msg)
+
+
+def _check_dparam(dparam=None):
+    """ Check basic properties of dparam
+
+    It must be a dict
+    with only str as keys
+    with only some fields allowed for each key
+    with values that can be scalars or functions
+
+    <Missing fields are filled in from defaults values in models._DFIELDS
+
+    """
+
+    # check type
+    if not isinstance(dparam, dict):
+        msg = (
+            "dparam must be a dict!\n"
+            f"You provided: {type(dparam)}"
+        )
+        raise Exception(msg)
+
+    # First check : try to fill new fields into dparam
+    lk0 = [
+        k0 for k0 in dparam.keys() if k0 not in models._DFIELDS.keys()
+    ]
+    if len(lk0) > 0:
+        msg = (
+            "*** Some fields of the model are not declared in the library.\n"
+            f"Autofill process for fields in : {lk0}"
+        )
+        print(msg)
+    # Check that he can autofill the FIELD
+    models._DFIELDS = models._def_fields.FillFromModel(
+        lk0, dparam, models._DFIELDS)
+
+    lk0 = [
+        k0 for k0 in dparam.keys() if k0 not in models._DFIELDS.keys()
+    ]
+    if len(lk0) > 0:
+        msg = (
+            "dparam must have keys identified in models._DFIELDS!\n"
+            f"You provided: {lk0}."
+        )
+        raise Warning(msg)
 
     return dparam
 

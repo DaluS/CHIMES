@@ -30,13 +30,12 @@ for k0, v0 in _df.items():
     foo = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(foo)
     _DMODEL[v0] = {
-        'dparam': foo._DPARAM,
+        'dparam': foo._LOGICS,
         'func_order': foo._FUNC_ORDER,
         'file': foo.__file__,
         'description': foo._DESCRIPTION,
-        'presets': foo._PRESETS
+        'presets': foo._PRESETS,
     }
-
 
 # ####################################################
 # ####################################################
@@ -82,10 +81,12 @@ def describe_available_model(model):
     print('# Location    :', v0['file'])
     print('# Description :\n', v0['description'])
     print('# VARIABLES   :')
-    for key, val in v0['dparam'].items():
-        if type(val) is dict:
-            print('    ', key+(10-len(key))*' ',
-                  val.get('com', 'comment not given'))
+    for key1, val1 in v0['dparam'].items():
+        print('Section :', key1)
+        for key, val in v0['dparam'][key1].items():
+            if type(val) is dict:
+                print('    ', key+(10-len(key))*' ',
+                      val.get('com', 'comment not given'))
     print('# PRESETS     :')
     for v1 in v0['presets']:
         print('    ', v1+(15-len(v1))*' ', v0['presets'][v1]['com'])

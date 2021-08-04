@@ -6,9 +6,11 @@ Contains all the possibilities of each _core interaction
 import _core
 import _plots as plots
 
-_core._class_checks.models.get_available_models()
+# _core._class_checks.models.get_available_models()
 _core._class_checks.models.describe_ALL_available_models()
-_core._class_checks.models.PrintDFIELDS()
+# _core._class_checks.models.PrintDFIELDS()
+
+
 # %% Start the hub ###########################################################
 
 # %% Choice of parameters ####################################################
@@ -38,7 +40,8 @@ sol.getCycleAnalysis(key=False)
 
 # %% Test that the system is still doing great #############################
 # !pytest tests/test_01_Hub.py -v
-hub = _core.Hub(model='GK')
+hub = _core.Hub(model='GK-NEWFORMALISM')
+
 hub.run(verb=1.1)
 hub.FillCyclesForAllVar(ref='lambda', idx='all')
 plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)

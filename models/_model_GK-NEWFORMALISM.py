@@ -10,13 +10,13 @@ import numpy as np
 
 # ---------------------------
 _DESCRIPTION = """
+
     DESCRIPTION : This is a Goodwin model based on extensive variables.
     Inflation not integrated to the process
     TYPICAL BEHAVIOR : Convergence toward solow point ( good equilibrium) or debt crisis
     LINKTOARTICLE :
     """   # Description that will be shown when the user load the model or browse through models
 
-_DPARAM = {}  # SHOULD BE REMOVED WITH NEWFORMALISM
 
 # ---------------------------
 # user-defined model
@@ -51,14 +51,14 @@ _LOGICS = {
     },
 
     # Intermediary relevant functions
-    'func': {
+    'statevar': {
         'Y': {
             'logic': lambda K=0, nu=1: K / nu,
             'com': 'Leontiev optimized production function ',
         },
         'GDP': {
             'logic': lambda Y=0, p=0: Y*p,
-            'com': 'Leontiev ',
+            'com': 'Output with selling price ',
         },
         'inflation': {
             'logic': lambda p=0: 0,
@@ -90,7 +90,7 @@ _LOGICS = {
         },
         'I': {
             'logic': lambda GDP=0, kappa=0: GDP * kappa,
-            'com': '',
+            'com': 'Investment value',
         },
         'd': {
             'logic': lambda D=0, GDP=1: D / GDP,
@@ -98,9 +98,15 @@ _LOGICS = {
         },
         'pi': {
             'logic': lambda omega=0, r=0, d=0: 1 - omega - r * d,
-            'com': '',
+            'com': 'relative profit',
         },
     },
+    'parameters': {
+        'nu': {
+            'logic': 3,
+            'com': 'OVERLOADING A DEFINITION',
+        }
+    }
 }
 
 
@@ -147,5 +153,3 @@ _PRESETS = {
 }
 
 _FUNC_ORDER = None  # user-defined function order (optional)
-
-_FUNC_PARAMS = None  # user-defined list of parameters (optional)

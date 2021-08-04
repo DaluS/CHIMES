@@ -20,7 +20,7 @@ import numpy as np
 
 
 # Library-specific
-from utilities import _utils, _class_checks, _class_utility
+from utilities import _utils, _class_checks  # , _class_utility
 from utilities import _solvers, _saveload
 import _plots as plots
 
@@ -46,17 +46,18 @@ class Hub():
                                       'preset',  # Dictionnary of presets
                                       ])
 
-        # I HAVE NO IDEA WHAT THIS VARIABLE DO
         self.__dargs = {}
 
         # PROCESS TO INITIALIZE THE SYSTEM
         if loadLibrary:
             self.Load_BasicLibrary()
+
         if model is not False:
-            self.Load_ModelFiles(mod)
+            self.Load_ModelFiles(model)
+        '''
         if (loadLibrary and model is not False):
             self.Mix_ModelAndLibrary(self)
-
+        '''
     # ##############################
     # %% Setting / getting parameters
     # ##############################
@@ -65,27 +66,57 @@ class Hub():
         '''
         Load the library in /models/_def_fields.py called _DFIELDS
         '''
-        self._DFIELDS = {}
+        self._DFIELDS = _class_checks.loadlibrary()
 
     def Load_ModelFiles(self, MODNAME):
         '''
         Load the model in /models/_model_MODNAME.py
         '''
 
-        self._DMODEL = {}
-
+        # Load the file
+        self._DMODEL = _class_checks.loadmodel(MODNAME)
         self.__dmisc['model'] = MODNAME
-        self.__dmisc['func_order'] =
-        self.__dmisc['description'] =
-        self.__dmisc['preset'] =
+        self.__dmisc['func_order'] = self._DMODEL.get('func_order', '')
+        self.__dmisc['description'] = self._DMODEL['description']
+        self.__dmisc['preset'] = self._DMODEL['presets']
 
-        self.__dargs =
+        # Get new formalism
+        self._DMODEL['dparam'] = _class_checks.ModelNewFormalism(
+            self._DMODEL['dparam'])
+        # Find the parameters
+        self._DMODEL['dparam'] = _class_checks.FindParameters(
+            self._DMODEL['dparam'])
 
     def Mix_ModelAndLibrary(self):
         '''
         Create __dparam based on _DFIELDS and _DMODEL
+
+        This is done in three steps :
+            * Loading _DMODEL['dparam'] as the basis
+            * Calling complements for each key from the library
+            * Calling the numerical group to complement each key that have not been
         '''
-        # Verify that both are loaded
+
+        # Load _DMODEL['dparam']
+        for key, val in self._DMODEL['dparam'].items():
+            self.__dparam[key] = dict(val)
+
+        # For all these keys, load all keys of _DFIELD
+        for key, val in self.__dparam.items():
+            dfieldkey = self._DFIELDS.get(key, {})
+
+            # Load dparam
+        lknum = [
+            k0 for k0, v0 in self._DFIELDS.items()
+            if v0['group'] == 'Numerical'
+        ]
+        for k0 in lknum:
+            if k0 not in self.__dparam.keys():
+                self.__dparam[k0] = self._DFIELDS[k0]
+
+        # Add time vector if missing
+        if 'time' not in self.__dparam.keys():
+            self.__dparam['time'] = self._DFIELDS['time']
 
         # Load the group of numerical variables
 
@@ -371,8 +402,8 @@ class Hub():
         ref is the reference variable on which the time of cycles is determined
         by default the variable detect cycles in itself
 
-        var : name of the variable we are working on
-        ref : reference for the oscillations detections
+        var: name of the variable we are working on
+        ref: reference for the oscillations detections
         '''
 
         # Get the new dictionnary to edit
