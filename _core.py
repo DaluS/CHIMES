@@ -17,10 +17,10 @@ This program contains the class Hub which is the intermediary in all steps :
 
 # Common
 import numpy as np
-
+import inspect
 
 # Library-specific
-from utilities import _utils, _class_checks  # , _class_utility
+from utilities import _utils, _class_checks, _class_utility
 from utilities import _solvers, _saveload
 import _plots as plots
 
@@ -58,13 +58,15 @@ class Hub():
         self.Mix_ModelAndLibrary()
 
         for key, val in self.__dparam.items():
-            print(key, 10*'#')
-            for key2, val2 in val.items():
-                print('   ', key2, val2)
+            if key in ['phi0', 'phi1']:
+                print(key, 10*'#')
+                for key2, val2 in val.items():
+                    print('   ', key2, (10-len(key2))*' '+':', val2)
 
         # self.PrepareDparam()
-        _class_checks._check_dparam(self.__dparam)
-        # _class_checks.CheckDparam(self.__dparam)
+
+        returnvar = _class_checks.CheckDparam(self.__dparam)
+
     # ##############################
     # %% Setting / getting parameters
     # ##############################
@@ -91,8 +93,8 @@ class Hub():
         self._DMODEL['dparam'] = _class_checks.ModelNewFormalism(
             self._DMODEL['dparam'])
         # Find the parameters
-        self._DMODEL['dparam'] = _class_checks.FindParameters(
-            self._DMODEL['dparam'])
+        self._DMODEL['dparam'], self.__dmisc['parameters'] = \
+            _class_checks.FindParameters(self._DMODEL['dparam'])
 
     def Mix_ModelAndLibrary(self):
         '''
@@ -118,7 +120,7 @@ class Hub():
             if key not in self._DFIELDS.keys():
                 # 2.A) If there is nothing about the field in the library
 
-                print(key, 'Need to be completed automatically')
+                print(key, (15-len(key))*' ', 'Is autofilled from model')
                 self.__dparam = _class_checks.FillasFields(key, self.__dparam)
 
             else:
@@ -136,7 +138,6 @@ class Hub():
 
                 # 2.B.2) Instertion of function/ode/parameters specific fields
                 if val['eqtype'] == 'ode':
-
                     # If it is an ODE, load the initial value
                     if (val['initial'] is not None and
                             'value' in dfieldkey.keys()):
@@ -149,7 +150,7 @@ class Hub():
                         val['initial'] = dfieldkey['value']
 
                 # If it is a parameter, load the value
-                if val['eqtype'] == 'parameter':
+                if val['eqtype'] == 'parameters':
                     if ('value' in val.keys() and
                             'value' in dfieldkey.keys()):
                         Comments += key+' value taken from model \n'
@@ -160,11 +161,17 @@ class Hub():
                     else:
                         val['value'] = dfieldkey['value']
 
-                # If it is a function, nothing needed !
+                # If it is a function, just be sure that you copy everything
+                # that is needed from the field !
+                elif dfieldkey['eqtype'] == 'statevar':
+                    for Newkey, newval in dfieldkey.items():
+                        if Newkey not in val.items():
+                            val[Newkey] = newval
+                    val['kargs'] = inspect.getfullargspec(val['func']).args,
 
         print(Comments)
 
-        #3) Load Numerical group ############################
+        # 3) Load Numerical group ############################
         lknum = [
             k0 for k0, v0 in self._DFIELDS.items()
             if v0['group'] == 'Numerical'
@@ -178,10 +185,14 @@ class Hub():
             self.__dparam['time'] = self._DFIELDS['time']
 
     def PrepareDparam(self):
+
         lode = self.get_dparam(eqtype='ode', returnas=list)
         linter = self.__dmisc['func_order']
         laux = self.get_dparam(eqtype='auxiliary', returnas=list)
 
+        print('lode', lode)
+        print('linter', linter)
+        print('laux', laux)
         self.__dargs = {
             k0: {
                 k1: self.__dparam[k1]['value']

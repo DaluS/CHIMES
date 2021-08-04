@@ -14,7 +14,7 @@ import numpy as np
 
 # library specific
 import models
-# import _class_utility
+#import _class_utility
 
 _PATH_HERE = os.path.dirname(__file__)
 _PATH_MODELS = os.path.join(os.path.dirname(_PATH_HERE), 'models')
@@ -77,6 +77,10 @@ def ModelNewFormalism(initialLogics):
 
 
 def FindParameters(model):
+    '''
+    From logics in the model, determine parameters. Initialise their definition
+    So they can be filled later
+    '''
     Variables = set([key for key,
                      value in model.items() if value['eqtype'] != 'parameter'])
     VariableAndParameters = [v['kargs']
@@ -86,12 +90,12 @@ def FindParameters(model):
     VariableAndParameters = set([v.replace('lamb', 'lambda')
                                  for v in VariableAndParameters])
     Parameters = list(VariableAndParameters-Variables-set(['itself']))
-    # Parameters = list(set(Parameters))
-    print('*** Parameters identified as :', Parameters)
+    print('*** Parameters list identified as :', Parameters)
 
     for p in [p for p in Parameters if p not in model.keys()]:
         model[p] = {}
-    return model
+
+    return model, Parameters
 
 
 def FillasFields(k, dpar):
@@ -112,11 +116,10 @@ def CheckDparam(dparam):
             continue
 
         if isinstance(dparam[k0], dict):
-
             # check value xor func
             c0 = (
                 'value' not in dparam[k0].keys()
-                and 'func' not in v0.keys()
+                and 'func' not in dparam[k0].keys()
             )
             if c0:
                 dfail[k0] = "dict must have key 'value' or 'func'"
@@ -180,30 +183,6 @@ def check_dparam(dparam=None, func_order=None, method=None, model=None):
         - All functions are checked, as well as the func_order
 
     """
-
-    # if str => load from file
-    if isinstance(dparam, str):
-        # In this case, dparam is the name of a model
-        # Get list of available models in models/, as a dict
-        if dparam not in models._DMODEL.keys():
-            msg = (
-                f"Requested pre-defined model ('{dparam}') not available!\n"
-                + models.get_available_models(returnas=str, verb=False)
-            )
-            raise Exception(msg)
-        model = {dparam: models._DMODEL[dparam]['file']}
-        if func_order is None:
-            func_order = models._DMODEL[dparam]['func_order']
-        dparam = {
-            k0: dict(v0) if hasattr(v0, '__iter__') else v0
-            for k0, v0 in models._DMODEL[dparam]['dparam'].items()
-        }
-    else:
-        if model is None:
-            model = {"custom": ''}
-
-    # check conformity
-    dparam = _check_dparam(dparam)
 
     # Identify functions
     dparam, func_order = _check_func(
