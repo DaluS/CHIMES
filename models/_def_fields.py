@@ -231,14 +231,6 @@ _LIBRARY = {
         },
     },
 
-    'MISC': {
-        'Coucou': {
-            'value': 0,
-            'definition': 'I am just a test',
-            'units': None,
-        },
-    },
-
 }
 
 _DEFAULTFIELDS = {'definition': '',
@@ -356,7 +348,7 @@ def from_Library_to_DFIELDS(lib, _DEFAULTFIELDS, _DFIELDS={}):
                     'symbol': subject.get('symbol', field),
                     'type': detectype(subject),
                     'dimension': detectdimension(subject),
-                    'eqtype': 'parameter',
+                    'eqtype': 'parameters',
                     'group': group,
                 }
     return _DFIELDS
@@ -370,7 +362,9 @@ def detectype(subject):
         return 'dimensionless'
     elif len(dimlist) == 1:
         if (dimlist[0] in ['y', 'humans', 'units', 'dollars'] and
-                dims[dimlist[0]] == 1):
+                int(dims[dimlist[0]]) == 1):
+            return 'Extensive'
+        if dimlist[0] == 'y' and int(dims[dimlist[0]]) == -1:
             return 'Extensive'
     else:
         return 'Intensive'
@@ -414,66 +408,21 @@ def detectdimension(subject):
     return dimensions
 
 
-def FillFromModel(
-        lk0, dparam, _DFIELDS):
-    for keymessing in lk0:
-        inputfrommodel = dparam[keymessing]
-        if inputfrommodel['eqtype'] == 'ode':
-            if ('func' in inputfrommodel.keys() and
-                    'initial' in inputfrommodel.keys()):
-                _DFIELDS[keymessing] = {
-                    'func': inputfrommodel['func'],
-                    'initial': inputfrommodel['initial'],
-                    'definition': inputfrommodel.get('definition', ''),
-                    'com': inputfrommodel.get('com', ''),
-                    'units': inputfrommodel.get('units', ''),
-                    'type': detectype(
-                        inputfrommodel),
-                    'dimension': detectdimension(
-                        inputfrommodel),
-                    'symbol': inputfrommodel.get('symbol', keymessing),
-                    'eqtype': 'ode',
-                    'group': '_MODELSPECIFIC',
-                }
-            else:
-                print('Could not load', keymessing,
-                      'not enough elements for ode (check func and initial)')
-        elif inputfrommodel['eqtype'] == 'statevar':
-            if ('func' in inputfrommodel.keys()):
-                _DFIELDS[keymessing] = {
-                    'func': inputfrommodel['func'],
-                    'definition': inputfrommodel.get('definition', ''),
-                    'com': inputfrommodel.get('com', ''),
-                    'units': inputfrommodel.get('units', ''),
-                    'type': detectype(
-                        inputfrommodel),
-                    'dimension': detectdimension(
-                        inputfrommodel),
-                    'symbol': inputfrommodel.get('symbol', keymessing),
-                    'eqtype': 'statevar',
-                    'group': '_MODELSPECIFIC',
-                }
-            else:
-                print('Could not load', keymessing,
-                      'not enough elements for StateVar (no "func" field)')
-        else:
-            if ('value' in inputfrommodel.keys()):
-                _DFIELDS[keymessing] = {
-                    'value': inputfrommodel['value'],
-                    'definition': inputfrommodel.get('definition', ''),
-                    'com': inputfrommodel.get('com', ''),
-                    'units': inputfrommodel.get('units', ''),
-                    'type': detectype(
-                        inputfrommodel),
-                    'dimension': detectdimension(
-                        inputfrommodel),
-                    'symbol': inputfrommodel.get('symbol', keymessing),
-                    'group': '_MODELSPECIFIC',
-                }
-            else:
-                print('Could not load', keymessing,
-                      'not enough elements for parameter (no "value" field)')
-    return _DFIELDS
+def FillasFields(keymessing, dparam):
+    '''
+    When a field is defined in the model but not in this file,
+    it will give him the same shape
+    '''
+    dic = dparam[keymessing]
+
+    dic['definition'] = dic.get('definition', '')
+    dic['com'] = dic.get('com', '')
+    dic['units'] = dic.get('units', '')
+    dic['symbol'] = dic.get('symbol', keymessing)
+    dic['group'] = dic.get('group', '_MODELSPECIFIC')
+    dic['type'] = detectype(dic),
+    dic['dimension'] = detectdimension(dic),
+    return dparam
 
 
 CHECK_FIELDS(_LIBRARY)

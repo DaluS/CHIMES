@@ -42,11 +42,12 @@ _LOGICS = {
         },
         'W': {
             'logic': lambda phillips=0, itself=0: itself*phillips,
-            'com': 'salary through negociation'
+            'com': 'salary through negociation',
         },
         'p': {
             'logic': lambda itself=0, inflation=0: itself*inflation,
             'com': 'NO INFLATION FOR THE MOMENT',
+            'initial': 1,
         },
     },
 

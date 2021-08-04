@@ -54,10 +54,10 @@ class Hub():
 
         if model is not False:
             self.Load_ModelFiles(model)
-        '''
-        if (loadLibrary and model is not False):
-            self.Mix_ModelAndLibrary(self)
-        '''
+
+        self.Mix_ModelAndLibrary()
+
+        self.PrepareDparam()
     # ##############################
     # %% Setting / getting parameters
     # ##############################
@@ -94,18 +94,79 @@ class Hub():
         This is done in three steps :
             * Loading _DMODEL['dparam'] as the basis
             * Calling complements for each key from the library
-            * Calling the numerical group to complement each key that have not been
-        '''
+            (or invent them)
+            * Calling the numerical group into dparam
 
-        # Load _DMODEL['dparam']
+            ! NUMERICAL GROUP ERASE THE MODEL FOR THE MOMENT
+        '''
+        Comments = ''
+
+        # 1) Load _DMODEL['dparam']###########################
         for key, val in self._DMODEL['dparam'].items():
             self.__dparam[key] = dict(val)
 
-        # For all these keys, load all keys of _DFIELD
+        # 2) Complete through _DFIELD ##########################
         for key, val in self.__dparam.items():
-            dfieldkey = self._DFIELDS.get(key, {})
 
-            # Load dparam
+            if key not in self._DFIELDS.keys():
+                # 2.A) If there is nothing about the field in the library
+
+                print(key, 'Need to be completed automatically')
+                # print(key)
+                # for k, v in self.__dparam[key].items():
+                #    print(k, (10-len(k))*':', v)
+                self.__dparam = _class_checks.FillasFields(key, self.__dparam)
+                # print('\n')
+                # for k, v in self.__dparam[key].items():
+                #    print(k, (10-len(k))*':', v)
+                # print('###########')
+
+            else:
+                # 2.B) Completion with the library _DFIELDS
+
+                dfieldkey = self._DFIELDS.get(key, {})
+
+                # 2.B.1) insertion of all fields non-related
+                # to functions/ode/parameters
+                Listkeys = ['definition', 'com',
+                            'units', 'type', 'symbol', 'group', 'eqtype']
+                for basicKey in Listkeys:
+                    if basicKey not in val.keys():
+                        val[basicKey] = dfieldkey[basicKey]
+
+                # 2.B.2) Instertion of function/ode/parameters specific fields
+                if val['eqtype'] == 'ode':
+                    print(key, val)
+                    # If it is an ODE, load the initial value
+                    if (val['initial'] is not None and
+                            'value' in dfieldkey.keys()):
+                        Comments += key+' initial value taken from model \n'
+                        print(key+' initial value taken from model \n')
+                    elif (val['initial'] is None and
+                            'value' not in dfieldkey.keys()):
+                        raise Exception(
+                            key+" no initial value in model nor field")
+                    else:
+                        val['initial'] = dfieldkey['value']
+                        print('Value taken in field')
+
+                # If it is a parameter, load the value
+                if val['eqtype'] == 'parameter':
+                    if ('value' in val.keys() and
+                            'value' in dfieldkey.keys()):
+                        Comments += key+' value taken from model \n'
+                    elif ('value' not in val.keys() and
+                            'value' not in dfieldkey.keys()):
+                        raise Exception(
+                            key+" no value in model nor field")
+                    else:
+                        val['value'] = dfieldkey['value']
+
+                # If it is a function, nothing needed !
+
+        print(Comments)
+
+        #3) Load Numerical group ############################
         lknum = [
             k0 for k0, v0 in self._DFIELDS.items()
             if v0['group'] == 'Numerical'
@@ -114,47 +175,43 @@ class Hub():
             if k0 not in self.__dparam.keys():
                 self.__dparam[k0] = self._DFIELDS[k0]
 
-        # Add time vector if missing
+        # 3.a) Add time vector if missing
         if 'time' not in self.__dparam.keys():
             self.__dparam['time'] = self._DFIELDS['time']
 
-        # Load the group of numerical variables
-
-        # Load all fields in _DMODEL, with the complement from _DFIELDS
-
-        # Put the system into the right numberofsystems
-
-        # Elements taken from previous version ################################
+    '''
+    def PrepareDparam(self):
         lode = self.get_dparam(eqtype='ode', returnas=list)
         linter = self.__dmisc['func_order']
         laux = self.get_dparam(eqtype='auxiliary', returnas=list)
 
-        self.__dargs = {
-            k0: {
-                k1: self.__dparam[k1]['value']
-                for k1 in (
-                    self.__dparam[k0]['args']['ode']
-                    + self.__dparam[k0]['args']['statevar']
-                    + self.__dparam[k0]['args']['auxiliary']
-                )
-                if k1 != 'lambda'
-            }
-            for k0 in lode + linter + laux
-        }
+         self.__dargs = {
+              k0: {
+                   k1: self.__dparam[k1]['value']
+                   for k1 in (
+                        self.__dparam[k0]['args']['ode']
+                        + self.__dparam[k0]['args']['statevar']
+                        + self.__dparam[k0]['args']['auxiliary']
+                    )
+                   if k1 != 'lambda'
+                   }
+              for k0 in lode + linter + laux
+              }
 
-        # Handle the lambda exception here to avoid test at every time step
-        # if lambda exists and is a function
-        c0 = (
-            'lambda' in self.__dparam.keys()
-            and self.__dparam['lambda'].get('func') is not None
-        )
-        # then handle the exception
-        for k0, v0 in self.__dargs.items():
-            if c0 and 'lambda' in self.__dparam[k0]['kargs']:
-                self.__dargs[k0]['lamb'] = self.__dparam['lambda']['value']
+          # Handle the lambda exception here to avoid test at every time step
+          # if lambda exists and is a function
+          c0 = (
+               'lambda' in self.__dparam.keys()
+                and self.__dparam['lambda'].get('func') is not None
+               )
+           # then handle the exception
+           for k0, v0 in self.__dargs.items():
+                if c0 and 'lambda' in self.__dparam[k0]['kargs']:
+                    self.__dargs[k0]['lamb'] = self.__dparam['lambda']['value']
 
-        # reset all variables
-        self.reset()
+            # reset all variables
+            self.reset()
+    '''
 
     def Change_NumberOfSystems(self, value):
         '''

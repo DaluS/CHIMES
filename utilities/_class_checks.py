@@ -85,12 +85,17 @@ def FindParameters(model):
         item for elem in VariableAndParameters for item in elem]
     VariableAndParameters = set([v.replace('lamb', 'lambda')
                                  for v in VariableAndParameters])
-    Parameters = list(VariableAndParameters-Variables-set('itself'))
+    Parameters = list(VariableAndParameters-Variables-set(['itself']))
+    #Parameters = list(set(Parameters))
     print('*** Parameters identified as :', Parameters)
 
     for p in [p for p in Parameters if p not in model.keys()]:
         model[p] = {}
     return model
+
+
+def FillasFields(k, dpar):
+    return models._def_fields.FillasFields(k, dpar)
 
 
 def AddNumericalAndCheckDparam(dparam, _DFIELDS):
