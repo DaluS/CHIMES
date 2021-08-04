@@ -86,7 +86,7 @@ def FindParameters(model):
     VariableAndParameters = set([v.replace('lamb', 'lambda')
                                  for v in VariableAndParameters])
     Parameters = list(VariableAndParameters-Variables-set(['itself']))
-    #Parameters = list(set(Parameters))
+    # Parameters = list(set(Parameters))
     print('*** Parameters identified as :', Parameters)
 
     for p in [p for p in Parameters if p not in model.keys()]:
@@ -98,19 +98,7 @@ def FillasFields(k, dpar):
     return models._def_fields.FillasFields(k, dpar)
 
 
-def AddNumericalAndCheckDparam(dparam, _DFIELDS):
-    # add numerical parameters if not included
-    lknum = [
-        k0 for k0, v0 in _DFIELDS.items()
-        if v0['group'] == 'Numerical'
-    ]
-    for k0 in lknum:
-        if k0 not in dparam.keys():
-            dparam[k0] = models._DFIELDS[k0]
-
-    # Add time vector if missing
-    if 'time' not in dparam.keys():
-        dparam['time'] = models._DFIELDS['time']
+def CheckDparam(dparam):
 
     # check values
     dfail = {}
@@ -125,23 +113,6 @@ def AddNumericalAndCheckDparam(dparam, _DFIELDS):
 
         if isinstance(dparam[k0], dict):
 
-            # set missing field to default
-            for ss in models._DFIELDS[k0].keys():
-                if dparam[k0].get(ss) is None:
-                    dparam[k0][ss] = models._DFIELDS[k0][ss]
-
-            # identify invalid keys
-            # Remove for the moment as it does not correspond to the system
-            '''
-            lk = [
-                kk for kk in dparam[k0].keys()
-                if kk != 'eqtype'
-                and kk not in _LEXTRAKEYS + list(models._DFIELDS[k0].keys())
-            ]
-            if len(lk) > 0:
-                dfail[k0] = f"Invalid keys: {lk}"
-                continue
-            '''
             # check value xor func
             c0 = (
                 'value' not in dparam[k0].keys()
@@ -189,53 +160,6 @@ def AddNumericalAndCheckDparam(dparam, _DFIELDS):
             + "\n".join(lstr)
         )
         raise Exception(msg)
-
-
-def _check_dparam(dparam=None):
-    """ Check basic properties of dparam
-
-    It must be a dict
-    with only str as keys
-    with only some fields allowed for each key
-    with values that can be scalars or functions
-
-    <Missing fields are filled in from defaults values in models._DFIELDS
-
-    """
-
-    # check type
-    if not isinstance(dparam, dict):
-        msg = (
-            "dparam must be a dict!\n"
-            f"You provided: {type(dparam)}"
-        )
-        raise Exception(msg)
-
-    # First check : try to fill new fields into dparam
-    lk0 = [
-        k0 for k0 in dparam.keys() if k0 not in models._DFIELDS.keys()
-    ]
-    if len(lk0) > 0:
-        msg = (
-            "*** Some fields of the model are not declared in the library.\n"
-            f"Autofill process for fields in : {lk0}"
-        )
-        print(msg)
-    # Check that he can autofill the FIELD
-    models._DFIELDS = models._def_fields.FillFromModel(
-        lk0, dparam, models._DFIELDS)
-
-    lk0 = [
-        k0 for k0 in dparam.keys() if k0 not in models._DFIELDS.keys()
-    ]
-    if len(lk0) > 0:
-        msg = (
-            "dparam must have keys identified in models._DFIELDS!\n"
-            f"You provided: {lk0}."
-        )
-        raise Warning(msg)
-
-    return dparam
 
 
 # #############################################################################

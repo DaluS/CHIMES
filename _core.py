@@ -57,7 +57,14 @@ class Hub():
 
         self.Mix_ModelAndLibrary()
 
-        self.PrepareDparam()
+        for key, val in self.__dparam.items():
+            print(key, 10*'#')
+            for key2, val2 in val.items():
+                print('   ', key2, val2)
+
+        # self.PrepareDparam()
+        _class_checks._check_dparam(self.__dparam)
+        # _class_checks.CheckDparam(self.__dparam)
     # ##############################
     # %% Setting / getting parameters
     # ##############################
@@ -112,14 +119,7 @@ class Hub():
                 # 2.A) If there is nothing about the field in the library
 
                 print(key, 'Need to be completed automatically')
-                # print(key)
-                # for k, v in self.__dparam[key].items():
-                #    print(k, (10-len(k))*':', v)
                 self.__dparam = _class_checks.FillasFields(key, self.__dparam)
-                # print('\n')
-                # for k, v in self.__dparam[key].items():
-                #    print(k, (10-len(k))*':', v)
-                # print('###########')
 
             else:
                 # 2.B) Completion with the library _DFIELDS
@@ -136,19 +136,17 @@ class Hub():
 
                 # 2.B.2) Instertion of function/ode/parameters specific fields
                 if val['eqtype'] == 'ode':
-                    print(key, val)
+
                     # If it is an ODE, load the initial value
                     if (val['initial'] is not None and
                             'value' in dfieldkey.keys()):
                         Comments += key+' initial value taken from model \n'
-                        print(key+' initial value taken from model \n')
                     elif (val['initial'] is None and
                             'value' not in dfieldkey.keys()):
                         raise Exception(
                             key+" no initial value in model nor field")
                     else:
                         val['initial'] = dfieldkey['value']
-                        print('Value taken in field')
 
                 # If it is a parameter, load the value
                 if val['eqtype'] == 'parameter':
@@ -179,39 +177,37 @@ class Hub():
         if 'time' not in self.__dparam.keys():
             self.__dparam['time'] = self._DFIELDS['time']
 
-    '''
     def PrepareDparam(self):
         lode = self.get_dparam(eqtype='ode', returnas=list)
         linter = self.__dmisc['func_order']
         laux = self.get_dparam(eqtype='auxiliary', returnas=list)
 
-         self.__dargs = {
-              k0: {
-                   k1: self.__dparam[k1]['value']
-                   for k1 in (
-                        self.__dparam[k0]['args']['ode']
-                        + self.__dparam[k0]['args']['statevar']
-                        + self.__dparam[k0]['args']['auxiliary']
-                    )
-                   if k1 != 'lambda'
-                   }
-              for k0 in lode + linter + laux
-              }
+        self.__dargs = {
+            k0: {
+                k1: self.__dparam[k1]['value']
+                for k1 in (
+                    self.__dparam[k0]['args']['ode']
+                    + self.__dparam[k0]['args']['statevar']
+                    + self.__dparam[k0]['args']['auxiliary']
+                )
+                if k1 != 'lambda'
+            }
+            for k0 in lode + linter + laux
+        }
 
-          # Handle the lambda exception here to avoid test at every time step
-          # if lambda exists and is a function
-          c0 = (
-               'lambda' in self.__dparam.keys()
-                and self.__dparam['lambda'].get('func') is not None
-               )
-           # then handle the exception
-           for k0, v0 in self.__dargs.items():
-                if c0 and 'lambda' in self.__dparam[k0]['kargs']:
-                    self.__dargs[k0]['lamb'] = self.__dparam['lambda']['value']
+        # Handle the lambda exception here to avoid test at every time step
+        # if lambda exists and is a function
+        c0 = (
+            'lambda' in self.__dparam.keys()
+            and self.__dparam['lambda'].get('func') is not None
+        )
+        # then handle the exception
+        for k0, v0 in self.__dargs.items():
+            if c0 and 'lambda' in self.__dparam[k0]['kargs']:
+                self.__dargs[k0]['lamb'] = self.__dparam['lambda']['value']
 
-            # reset all variables
-            self.reset()
-    '''
+        # reset all variables
+        self.reset()
 
     def Change_NumberOfSystems(self, value):
         '''
