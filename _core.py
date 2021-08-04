@@ -57,16 +57,13 @@ class Hub():
 
         self.Mix_ModelAndLibrary()
 
-        for key, val in self.__dparam.items():
-            if key in ['phi0', 'phi1']:
-                print(key, 10*'#')
-                for key2, val2 in val.items():
-                    print('   ', key2, (10-len(key2))*' '+':', val2)
+        _class_checks.CheckDparam(self.__dparam)
+        self.__dparam, mode, self.__dmisc['func_order'] = \
+            _class_checks.check_dparam(self.__dparam)
 
-        # self.PrepareDparam()
+        print(self.__dparam)
 
-        returnvar = _class_checks.CheckDparam(self.__dparam)
-
+        self.PrepareDparam()
     # ##############################
     # %% Setting / getting parameters
     # ##############################
@@ -187,12 +184,9 @@ class Hub():
     def PrepareDparam(self):
 
         lode = self.get_dparam(eqtype='ode', returnas=list)
-        linter = self.__dmisc['func_order']
+        linter = self.get_dparam(eqtype='statevar', returnas=list)
         laux = self.get_dparam(eqtype='auxiliary', returnas=list)
 
-        print('lode', lode)
-        print('linter', linter)
-        print('laux', laux)
         self.__dargs = {
             k0: {
                 k1: self.__dparam[k1]['value']
@@ -255,30 +249,6 @@ class Hub():
             - only a key, value pair to change the value of a single parameter
 
         """
-
-        # 1) Check if there is no input. If so , it load the basic model name
-        c0 = dparam is None and key is None and value is None
-        if c0 is True:
-            dparam = self._MODEL
-
-        # 2) Now Check input: either dparam or (key, value)
-        lc = [
-            dparam is not None or func_order is not None,
-            key is not None and value is not None,
-        ]
-        if np.sum(lc) != 1:
-            lstr = [
-                '\t- {}: {}'.format(kk, vv)
-                for kk, vv in [
-                    ('dparam', dparam), ('key', key), ('value', value)
-                ]
-            ]
-            msg = (
-                "Please provide dparam/func_order xor (key, value)!\n"
-                + "You provided:\n"
-                + "\n".format(lstr)
-            )
-            raise Exception(msg)
 
         # 3) Add the update to the general field
         if dparam is None:
@@ -727,10 +697,10 @@ class Hub():
 
     def __repr__(self):
         """ This is automatically called when only the instance is entered """
-        col0 = ['model', 'source', 'nb. model param', 'nb. functions', 'run']
+        col0 = ['model', 'nb. model param', 'nb. functions', 'run']
         ar0 = [
-            list(self.__dmisc['model'].keys())[0],
-            list(self.__dmisc['model'].values())[0],
+            self.__dmisc['model'],
+            # list(self.__dmisc['model'].values())[0],
             len([
                 k0 for k0, v0 in self.__dparam.items()
                 if v0.get('func') is None
