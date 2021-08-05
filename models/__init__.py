@@ -31,7 +31,7 @@ for k0, v0 in _df.items():
     spec.loader.exec_module(foo)
     _DMODEL[v0] = {
         'dparam': foo._LOGICS,
-        'func_order': foo._FUNC_ORDER,
+        # 'func_order': foo._FUNC_ORDER,
         'file': foo.__file__,
         'description': foo._DESCRIPTION,
         'presets': foo._PRESETS,
@@ -128,11 +128,12 @@ def PrintDFIELDS(inpt=None):
 
 
 def printavalue(v0):
-    if v0['eqtype'] == 'parameter':
+    eqtype = v0.get('eqtype', '')
+    if eqtype == 'parameters':
         return v0['value']
-    if v0['eqtype'] == 'ode':
+    if eqtype == 'ode':
         return 'ode :'+str(v0['initial'])
-    if v0['eqtype'] == 'statevar':
+    if eqtype == 'statevar':
         return 'State variable'
     else:
         return ' '

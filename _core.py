@@ -61,8 +61,6 @@ class Hub():
         self.__dparam, mode, self.__dmisc['func_order'] = \
             _class_checks.check_dparam(self.__dparam)
 
-        print(self.__dparam)
-
         self.PrepareDparam()
     # ##############################
     # %% Setting / getting parameters

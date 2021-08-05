@@ -152,5 +152,3 @@ _PRESETS = {
         'plots': [],
     },
 }
-
-_FUNC_ORDER = None  # user-defined function order (optional)

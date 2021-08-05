@@ -129,12 +129,12 @@ _LIBRARY = {
             'units': 'dollars',
         },
         'lambda': {
-            'value': None,
+            'value': .97,
             'definition': 'employement rate',
             'units': None,
         },
         'omega': {
-            'value': None,
+            'value': .85,
             'definition': 'wage share',
             'units': None,
         },
