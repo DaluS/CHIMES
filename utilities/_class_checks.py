@@ -90,7 +90,7 @@ def FindParameters(model):
     VariableAndParameters = set([v.replace('lamb', 'lambda')
                                  for v in VariableAndParameters])
     Parameters = list(VariableAndParameters-Variables-set(['itself']))
-    print('*** Parameters list identified as :', Parameters)
+    print('*** Parameters list identified as :\n', Parameters)
 
     for p in [p for p in Parameters if p not in model.keys()]:
         model[p] = {}

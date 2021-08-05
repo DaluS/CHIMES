@@ -33,38 +33,43 @@ class Hub():
 
     _MODEL = 'GK'  # Default model to be loaded
 
-    def __init__(self, model=None, loadLibrary=True):
-        # The dictionary that will contains everything
+    # ###################
+    # %% Initialisation #
+    # ###################
+    def __init__(self, model='GK', loadLibrary=True):
+
+        # The dictionary that will contains everything related to variables
+        # and parameters
         self.__dparam = {}
 
         # A few informations that could be useful
-        self.__dmisc = dict.fromkeys(['model',  # Model name
+        self.__dmisc = dict.fromkeys(['model',      # Model name
                                       'func_order',  # ordered list of statevar
                                       'run',        # Flag to check if run
                                       'solver',     # Name of the solver used
                                       'description',  # model string description
-                                      'preset',  # Dictionnary of presets
+                                      'preset',     # Dictionnary of presets
                                       ])
-
-        self.__dargs = {}
 
         # PROCESS TO INITIALIZE THE SYSTEM
         if loadLibrary:
+            # Get the general fields in self._DFIELDS
             self.Load_BasicLibrary()
 
         if model is not False:
+            # Get the content of the model in self._DMODEL
             self.Load_ModelFiles(model)
 
-        self.Mix_ModelAndLibrary()
-
+        # Mixing both into the dic we will edit (__dparam)
+        self.Dparam_from_dfields_and_dmodel()
         _class_checks.CheckDparam(self.__dparam)
-        self.__dparam, mode, self.__dmisc['func_order'] = \
+        self.__dparam, _, self.__dmisc['func_order'] = \
             _class_checks.check_dparam(self.__dparam)
+        self.CreateDargs()
 
-        self.PrepareDparam()
-    # ##############################
-    # %% Setting / getting parameters
-    # ##############################
+    # ########################################
+    # %% Setting  parameters at initialisation
+    # ########################################
 
     def Load_BasicLibrary(self):
         '''
@@ -83,15 +88,17 @@ class Hub():
         self.__dmisc['func_order'] = self._DMODEL.get('func_order', '')
         self.__dmisc['description'] = self._DMODEL['description']
         self.__dmisc['preset'] = self._DMODEL['presets']
+        self.__dmisc['sizeForced'] = []
 
         # Get new formalism
         self._DMODEL['dparam'] = _class_checks.ModelNewFormalism(
             self._DMODEL['dparam'])
+
         # Find the parameters
         self._DMODEL['dparam'], self.__dmisc['parameters'] = \
             _class_checks.FindParameters(self._DMODEL['dparam'])
 
-    def Mix_ModelAndLibrary(self):
+    def Dparam_from_dfields_and_dmodel(self):
         '''
         Create __dparam based on _DFIELDS and _DMODEL
 
@@ -101,7 +108,7 @@ class Hub():
             (or invent them)
             * Calling the numerical group into dparam
 
-            ! NUMERICAL GROUP ERASE THE MODEL FOR THE MOMENT
+            ! NUMERICAL GROUP FIELDS HAVE PRIORITY OVER MODEL FOR HE MOMENT
         '''
         Comments = ''
 
@@ -164,7 +171,7 @@ class Hub():
                             val[Newkey] = newval
                     val['kargs'] = inspect.getfullargspec(val['func']).args,
 
-        print(Comments)
+        # print(Comments)
 
         # 3) Load Numerical group ############################
         lknum = [
@@ -179,8 +186,11 @@ class Hub():
         if 'time' not in self.__dparam.keys():
             self.__dparam['time'] = self._DFIELDS['time']
 
-    def PrepareDparam(self):
-
+    def CreateDargs(self):
+        '''
+        Dargs contains all the values and variables for run execution
+        '''
+        self.__dargs = {}
         lode = self.get_dparam(eqtype='ode', returnas=list)
         linter = self.get_dparam(eqtype='statevar', returnas=list)
         laux = self.get_dparam(eqtype='auxiliary', returnas=list)
@@ -212,68 +222,91 @@ class Hub():
         # reset all variables
         self.reset()
 
-    def Change_NumberOfSystems(self, value):
-        '''
-        Reset __dparam with a method to take into account changes
-        '''
-        # Get previous number of variables
-
-    def Change_Attribute(self, value):
-        '''
-        Change the value of one attribute in dparam
-        '''
-
     def Change_Attributes(self, dictofChanges):
         '''
-        Change a set of attributes in dparam
+        Change a set of attributes in dparam.
+        If necessary, change the number of system
+
+        forcing mean giving an list of values with a well determined number of
+        system. The system cannot be forced on multiple values
+
+        The dictofchanges has to look like :
+
+        { key : float,
+          key : [min,max,type]} #type being either 'lin' or 'log'
+          key : [val1...valn] #which force the system to be of size n
+            }
         '''
+        # 1.a) CHECK THE KEY OF CHANGES
+        for key in dictofChanges.keys():
+            # 1) Check that the change is allowed
+            # the key exist
+            if key not in self.__dparam.keys():
+                raise Exception(key + ' Not in the model !')
+            # 2) the key concern a function
+            if self.__dparam[key]['eqtype'] == 'statevar':
+                raise Exception(
+                    key + ' Is a statevariable, you cannot force it')
 
-    def set_dparam(
-        self,
-        dparam=None,
-        key=None, value=None,
-        func_order=None,
-        method=None,
-    ):
-        """ Set the dict of input parameters (dparam) or a single param
+        # 1.b) CHECK THE FORCING VALUE
+        sizes = []
+        size = self.__dparam['nx']['value']
+        for val in dictofChanges.values():
+            # If the change is explicitely multisystem
+            if isinstance(val, list):
+                # If the change is not a range
+                if not (len(val) == 3 and type(val[-1]) is str):
+                    sizes.append(len(val))
+        sizes = list(set(sizes))
+        if len(sizes) >= 2:
+            raise Exception(
+                "You are forcing two number of sectors at the same time")
+        elif len(sizes) == 1:
+            if sizes[0] != self.__dparam['nx']['value']:
+                # Check if the size of the system had already been forced
+                # And if this forcing is not changed
+                for keyforcedbefore in self._dmisc['sizeForced']:
+                    if keyforcedbefore not in dictofChanges.keys():
+                        raise Exception(
+                            keyforcedbefore + ' was already forced' +
+                            'at a different size')
+                size = sizes[0]
 
-        dparam is the large dictionary that contains:
-            - fixed-value parameters
-            - functions of different types (equations)
+        # 1.c) CHECK THAT IF nx IS EXPLICITELY CHANGED IT IS CONSISTENT
+        # WITH FORCING
+        if 'nx' in dictofChanges.keys():
+            if (size != self.__dparam['nx']['value'] and
+                    size != dictofChanges['nx']):
+                raise Exception(
+                    'Forcing is detected on value'+str(size) +
+                    'While you ask for'+str(dictofChanges['nx'])+'systems')
+            else:
+                size = dictofChanges['nx']
 
-        You can provide:
-            - dparam as a dict
-            - dparam as a str refering to an existing pre-defined model
-            - only a key, value pair to change the value of a single parameter
+        # 2) Rewrite the change with new sizes
+        if size != self.__dparam['nx']['value']:
+            print('The system detected a new size :', size)
+            NewdictofChanges = self.ChangeSystemsize(self, dictofChanges, size)
+        else:
+            NewdictofChanges = dict(dictofChanges)
 
-        """
+            # 2) ADD THE UPDATES
+        for key, var in NewdictofChanges.items():
+            print(key, var)
+            # Change the value or the initial
+            if self.__dparam[key]['eqtype'] == 'ode':
+                self.__dparam[key]['initial'] = var
+            else:
+                self.__dparam[key]['value'] = var
 
-        # 3) Add the update to the general field
-        if dparam is None:
-            if func_order is not None:
-                dparam = self.__dparam
-            elif key not in self.__dparam.keys():
-                msg = (
-                    "key {} is not identified!\n".format(key)
-                    + "See get_dparam() method"
-                )
-                raise Exception(msg)
-            dparam = dict(self.__dparam)
-            dparam[key]['value'] = value
+            # Add the forcing flag
+            if isinstance(val, list):
+                # If the change is not a range
+                if not (len(val) == 3 and type(val[-1]) is str):
+                    pass
 
-        # func_order as previous if not provided
-        if func_order is None:
-            func_order = self.__dmisc['func_order']
-
-        # Update to check consistency
-        (
-            self.__dparam,
-            self.__dmisc['model'],
-            self.__dmisc['func_order'],
-        ) = _class_checks.check_dparam(
-            dparam=dparam, func_order=func_order, method=method,
-            model=self.__dmisc.get('model')
-        )
+        # reset everything
+        self.reset()
 
     # ##############################
     # run simulation
@@ -866,3 +899,25 @@ class Hub():
             lprint=lprint,
             **kwdargs,
         )
+
+    def get_presets(self, returnas=False,):
+        '''
+        Will print the presets, or give the list, or the full dictionnary
+        '''
+        if returnas is False:
+            print(self.__dmisc['preset'])
+        if returnas == list:
+            return self.__dmisc['preset'].keys()
+        if returnas == dict:
+            return self.__dmisc['preset']
+
+    def set_preset(self, name, verb=False):
+        if name not in self.__dmisc['preset'].keys():
+            raise Exception(name+' is not a known preset')
+
+        preset = self.__dmisc['preset'][name]
+        self.Change_Attributes(preset['fields'])
+        self.Plot = preset['plots']
+        if verb:
+            print('Preset', name, 'loaded')
+            print(preset['com'])

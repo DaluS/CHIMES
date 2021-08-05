@@ -124,7 +124,7 @@ _PRESETS = {
             'beta': 0.025,
             'nu': 3,
             'delta': .005,
-            'phinull': .04,
+            # 'phinull': .04,
             'k0': -0.0065,
             'k1': np.exp(-5),
             'k2': 20,

@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
-"""
+
 # ---------------------------
 # user-defined function order (optional)
 
 _DESCRIPTION = """
-    DESCRIPTION : This is the simplest economic post-keynesian model
+    ABSTRACT : This is the simplest economic post-keynesian model
     TYPICAL BEHAVIOR : metastable oscillations around a solow point
     LINKTOARTICLE : Goodwin, Richard, 1967. ‘A growth cycle’, in:
         Carl Feinstein, editor, Socialism, capitalism
@@ -18,7 +17,6 @@ _DESCRIPTION = """
 # contains parameters and functions of various types
 
 _LOGICS = {
-
     'ode': {
         'lambda': {
             'logic': lambda itself=0, g=0, alpha=0, beta=0: itself * (
