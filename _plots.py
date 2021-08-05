@@ -188,3 +188,20 @@ def AllPhaseSpace(sol, variablesREF, idx=0):
     plt.suptitle('All Phasespace for system :'+str(idx)+' for model : ' +
                  sol.model)
     plt.show()
+
+
+def ForEachUnitsGroup(sol, dimensiongroups=None, idx=0):
+    if dimensiongroups is None:
+        dimensiongroups = sol._Hub__dmisc['unitgroups']
+    allvars = sol.get_dparam(returnas=dict)
+    t = allvars['time']['value'][:, idx]
+
+    for dim, allvar in dimensiongroups.items():
+        plt.figure(dim, figsize=(10, 10))
+        plt.xlabel('time')
+        plt.ylabel(dim)
+        for var in allvar:
+            yval = allvars[var]['value'][:, idx]
+            plt.plot(t, yval, label=var)
+        plt.legend()
+        plt.show()

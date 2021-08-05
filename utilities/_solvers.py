@@ -13,6 +13,87 @@ from . import _class_checks
 #                   Home-made
 # #############################################################################
 
+def _eRK4_paul(
+    dparam=None,
+    lode=None,
+    linter=None,
+    laux=None,
+    dargs=None,
+
+    nt=None,
+    verb=None,
+    timewait=None,
+    end=None,
+    flush=None,
+    compute_auxiliary=None,
+):
+    """ Structure of the homemade rk4 solver, with time loop, intermediaries...
+    """
+    t0 = time.time()
+
+    # Initialize the structure. This structure will do the rk4 buffer
+    # And we will update dparam everytime its needed
+    y = {k0: np.zeros_like(4, dparam['nx']['value'])
+         for k0 in lode+linter}
+    dy = {k0: np.zeros_like(4, dparam['nx']['value'])
+          for k0 in lode+linter}
+    for ii in range(nt-1):
+        pass
+        '''
+        # print of wait
+        if verb > 0:
+            t0 = _class_checks._print_or_wait(
+                ii=ii, nt=nt, verb=verb,
+                timewait=timewait, end=end, flush=flush,
+                t0=t0,
+            )
+
+        # We read the "previous" step
+        for k0 in lode+linter:
+            y[k0][0, :] = dparam[k0][ii, :]
+
+        # Do each step of the rk4
+        for i2 in range(4):
+            # We calculate the new value of the statevar
+
+            for k0 in lode:
+                kwdargs = {k1: v1[ii-1, :] for k1, v1 in dargs[k0].items()}
+                dy[k0][i2] = _rk4(dparam=dparam, k0=k0,
+                                  y=y[k0][i2, :], kwdargs=kwdargs,)
+            for k0 in linter:
+                kwdargs = {k1: v1[ii, :] for k1, v1 in dargs[k0].items()}
+                dparam[k0]['value'][ii, :] = (dparam[k0]['func'](**kwdargs,))
+
+            dparam[k0]['value'][ii, :] = (
+                dparam[k0]['value'][ii-1, :]
+                +
+            )
+        '''
+        # compute intermediary functions, in good order
+        # Now that inermediary functions are computed at t=0 in reset()
+        # we have to reverse the order of resolution:
+        # first ode then intermediary
+
+
+def _rk4(dparam=None, k0=None, y=None, kwdargs=None):
+    """
+    a traditional RK4 scheme, with:
+        - y = array of all variables
+        - p = parameter dictionnary
+    dt is contained within p
+    """
+    if 'itself' in dparam[k0]['kargs']:
+        dy1 = dparam[k0]['func'](itself=y, **kwdargs)
+        dy2 = dparam[k0]['func'](itself=y+dy1/2., **kwdargs)
+        dy3 = dparam[k0]['func'](itself=y+dy2/2., **kwdargs)
+        dy4 = dparam[k0]['func'](itself=y+dy3, **kwdargs)
+    else:
+        dy1 = dparam[k0]['func'](**kwdargs)
+        dy2 = dparam[k0]['func'](**kwdargs)
+        dy3 = dparam[k0]['func'](**kwdargs)
+        dy4 = dparam[k0]['func'](**kwdargs)
+    return (dy1 + 2*dy2 + 2*dy3 + dy4) * dparam['dt']['value']/6.
+
 
 def _eRK4_homemade(
     dparam=None,
@@ -27,7 +108,11 @@ def _eRK4_homemade(
     flush=None,
     compute_auxiliary=None,
 ):
-    """ Structure of the homemade rk4 solver, with time loop, intermediaries...
+    """
+    THIS IS NOT AN RK4. EACH VARIABLE ARE UPDATED SEPARATELY WHERE AN RK4
+    DOES UPDATE ALL VARIABLES TOGETHER BETWEEN INTERVALS
+
+    Structure of the homemade rk4 solver, with time loop, intermediaries...
     """
     t0 = time.time()
     for ii in range(1, nt):
@@ -39,6 +124,7 @@ def _eRK4_homemade(
                 timewait=timewait, end=end, flush=flush,
                 t0=t0,
             )
+
         # compute ode variables from ii-1, using solver
         for k0 in lode:
             kwdargs = {
@@ -83,26 +169,6 @@ def _eRK4_homemade(
                         **kwdargs
                     )
                 )
-
-
-def _rk4(dparam=None, k0=None, y=None, kwdargs=None):
-    """
-    a traditional RK4 scheme, with:
-        - y = array of all variables
-        - p = parameter dictionnary
-    dt is contained within p
-    """
-    if 'itself' in dparam[k0]['kargs']:
-        dy1 = dparam[k0]['func'](itself=y, **kwdargs)
-        dy2 = dparam[k0]['func'](itself=y+dy1/2., **kwdargs)
-        dy3 = dparam[k0]['func'](itself=y+dy2/2., **kwdargs)
-        dy4 = dparam[k0]['func'](itself=y+dy3, **kwdargs)
-    else:
-        dy1 = dparam[k0]['func'](**kwdargs)
-        dy2 = dparam[k0]['func'](**kwdargs)
-        dy3 = dparam[k0]['func'](**kwdargs)
-        dy4 = dparam[k0]['func'](**kwdargs)
-    return (dy1 + 2*dy2 + 2*dy3 + dy4) * dparam['dt']['value']/6.
 
 
 # #############################################################################

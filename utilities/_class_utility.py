@@ -3,7 +3,7 @@
 
 # Common
 import numpy as np
-
+from collections import defaultdict
 
 # Library-specific
 from . import _utils
@@ -12,6 +12,25 @@ from . import _utils
 _LTYPES = [int, float, np.int_, np.float_]
 
 
+def _get_DicOfSameUnits(entrydic):
+    # Do a dictionnary with only the dimension and no multiplier
+    # with only statevar/ode keys
+    tempdic = {}
+    for key, values in entrydic.items():
+        if (values.get('eqtype', '').lower() != 'parameters' and
+                values.get('group').lower() != 'numerical'):
+            tempdic[key] = {ke: va for ke, va in values['dimension'].items()
+                            if ke != 'Multiplier'}
+
+    # Do a dictonnary with one unique key
+    newdic = defaultdict(list)
+    for key, values in tempdic.items():
+        name = [k+str(v) for k, v in values.items()]
+        name2 = ''
+        for n in name:
+            name2 += n+','
+        newdic[name2].append(key)
+    return newdic
 # #############################################################################
 # #############################################################################
 #           Generic function to get / print a subset of a dict

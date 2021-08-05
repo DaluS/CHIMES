@@ -4,6 +4,7 @@ This module contains tests for tofu.geom in its structured version
 """
 
 # Built-in
+import _core
 import os
 import sys
 import itertools as itt     # for iterating on parameters combinations
@@ -26,7 +27,6 @@ _PATH_OUTPUT_REF = os.path.join(_PATH_HERE, 'output_ref')
 
 # library-specific
 sys.path.insert(0, _PATH_PCK)   # ensure Main comes from .. => add PYTHONPATH
-import _core
 sys.path.pop(0)                 # clean PYTHONPATH
 
 

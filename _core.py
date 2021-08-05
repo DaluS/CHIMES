@@ -22,7 +22,7 @@ import inspect
 # Library-specific
 from utilities import _utils, _class_checks, _class_utility
 from utilities import _solvers, _saveload
-import _plots as plots
+# import _plots as plots
 
 
 class Hub():
@@ -30,8 +30,6 @@ class Hub():
     Generic class to stock every data and method for the user to interact
     with.
     """
-
-    _MODEL = 'GK'  # Default model to be loaded
 
     # ###################
     # %% Initialisation #
@@ -66,10 +64,12 @@ class Hub():
         self.__dparam, _, self.__dmisc['func_order'] = \
             _class_checks.check_dparam(self.__dparam)
         self.CreateDargs()
+        self.__dmisc['unitgroups'] = \
+            _class_utility._get_DicOfSameUnits(self.__dparam)
 
-    # ########################################
-    # %% Setting  parameters at initialisation
-    # ########################################
+    # #############################
+    # %% Methods for initialisation
+    # #############################
 
     def Load_BasicLibrary(self):
         '''
@@ -117,6 +117,7 @@ class Hub():
             self.__dparam[key] = dict(val)
 
         # 2) Complete through _DFIELD ##########################
+        print('*** Fields not existing in library autofilled by the system :')
         for key, val in self.__dparam.items():
 
             if key not in self._DFIELDS.keys():
@@ -132,7 +133,7 @@ class Hub():
 
                 # 2.B.1) insertion of all fields non-related
                 # to functions/ode/parameters
-                Listkeys = ['definition', 'com',
+                Listkeys = ['definition', 'com', 'dimension',
                             'units', 'type', 'symbol', 'group', 'eqtype']
                 for basicKey in Listkeys:
                     if basicKey not in val.keys():
@@ -292,7 +293,6 @@ class Hub():
 
             # 2) ADD THE UPDATES
         for key, var in NewdictofChanges.items():
-            print(key, var)
             # Change the value or the initial
             if self.__dparam[key]['eqtype'] == 'ode':
                 self.__dparam[key]['initial'] = var
@@ -307,6 +307,17 @@ class Hub():
 
         # reset everything
         self.reset()
+
+    def set_preset(self, name, verb=False):
+        if name not in self.__dmisc['preset'].keys():
+            raise Exception(name+' is not a known preset')
+
+        preset = self.__dmisc['preset'][name]
+        self.Change_Attributes(preset['fields'])
+        self.Plot = preset['plots']
+        if verb:
+            print('Preset', name, 'loaded')
+            print(preset['com'])
 
     # ##############################
     # run simulation
@@ -370,7 +381,7 @@ class Hub():
             )
 
         elif 'scipy' in solver:
-            sol = _solvers._solver_scipy(
+            _ = _solvers._solver_scipy(
                 dparam=self.__dparam,
                 lode=lode,
                 linter=linter,
@@ -393,17 +404,12 @@ class Hub():
         """
         Launch all the basic plots
         """
-
-        # plot per units
-
-
-# ############################################################################
-# %%#################### EVERYTHING THAT IS ALREADY WORKING WELL #############
-# ############################################################################
+        pass
 
     # ##############################
     # %% Analysis methods for cycles
     # ##############################
+
     def InitiateCyclesDictionnary(self):
         '''
         Create the structure that will contains
@@ -497,7 +503,8 @@ class Hub():
 
         tim = self.__dparam['time']['value'][:, idx]
         dic1['period_T_intervals'][idx] = [[tim[ids[0]], tim[ids[1]]]
-                                           for ids in dic1['period_indexes'][idx]]
+                                           for ids in
+                                           dic1['period_indexes'][idx]]
         dic1['t_mean_cycle'][idx] = [
             (t[0]+t[1])/2 for t in dic1['period_T_intervals'][idx]]
         dic1['period_T'][idx] = [
@@ -588,40 +595,6 @@ class Hub():
 
         # set run to False
         self.__dmisc['run'] = False
-
-    # ##############################
-    # %% Read-only properties
-    # ##############################
-
-    @ property
-    def lfunc(self):
-        """ List of parameters names that are actually functions """
-        return [
-            k0 for k0, v0 in self.__dparam.items()
-            if v0.get('eqtype') is not None
-        ]
-
-    @ property
-    def func_order(self):
-        """ The ordered list of intermediary function names """
-        return self.__dmisc['func_order']
-
-    @ property
-    def model(self):
-        """ The model identifier """
-        return self.__dmisc['model']
-
-    @ property
-    def dargs(self):
-        return self.__dargs
-
-    @ property
-    def dmisc(self):
-        return self.__dmisc
-
-    @ property
-    def dparam(self):
-        return self.get_dparam(returnas=dict, verb=False)
 
     # ##############################
     # %%    data conversion
@@ -723,20 +696,52 @@ class Hub():
         )
 
     # ##############################
+    # %% Read-only properties
+    # ##############################
+
+    @ property
+    def lfunc(self):
+        """ List of parameters names that are actually functions """
+        return [
+            k0 for k0, v0 in self.__dparam.items()
+            if v0.get('eqtype') is not None
+        ]
+
+    @ property
+    def func_order(self):
+        """ The ordered list of intermediary function names """
+        return self.__dmisc['func_order']
+
+    @ property
+    def model(self):
+        """ The model identifier """
+        return self.__dmisc['model']
+
+    @ property
+    def dargs(self):
+        return self.__dargs
+
+    @ property
+    def dmisc(self):
+        return self.__dmisc
+
+    @ property
+    def dparam(self):
+        return self.get_dparam(returnas=dict, verb=False)
+
+    # ##############################
     # %% Introspection
     # ##############################
 
     def __repr__(self):
         """ This is automatically called when only the instance is entered """
-        col0 = ['model', 'nb. model param', 'nb. functions', 'run']
+        col0 = ['model', 'nb. model param', 'nb. ode', 'nb. statevar', 'run']
         ar0 = [
             self.__dmisc['model'],
             # list(self.__dmisc['model'].values())[0],
-            len([
-                k0 for k0, v0 in self.__dparam.items()
-                if v0.get('func') is None
-            ]),
-            len(self.lfunc),
+            len(self.__dmisc['parameters']),
+            len(self.get_dparam(eqtype='ode', returnas=list)),
+            len(self.get_dparam(eqtype='statevar', returnas=list)),
             self.__dmisc['run'],
         ]
         return _utils._get_summary(
@@ -744,7 +749,7 @@ class Hub():
             lcol=[col0],
             verb=False,
             returnas=str,
-        )
+        )+'\n'+self.__dmisc['description']
 
     def get_summary(self, idx=0):
         """
@@ -911,13 +916,14 @@ class Hub():
         if returnas == dict:
             return self.__dmisc['preset']
 
-    def set_preset(self, name, verb=False):
-        if name not in self.__dmisc['preset'].keys():
-            raise Exception(name+' is not a known preset')
-
-        preset = self.__dmisc['preset'][name]
-        self.Change_Attributes(preset['fields'])
-        self.Plot = preset['plots']
-        if verb:
-            print('Preset', name, 'loaded')
-            print(preset['com'])
+    def get_groupsofvariable(self, returnas=False,):
+        '''
+        Will print the groups of variable per dimensions
+        , or give the list, or the full dictionnary
+        '''
+        if returnas is False:
+            print(self.__dmisc['unitgroups'])
+        if returnas == list:
+            return self.__dmisc['unitgroups'].keys()
+        if returnas == dict:
+            return self.__dmisc['unitgroups']

@@ -69,8 +69,8 @@ def ModelNewFormalism(initialLogics):
     for keys, funcs in initialLogics.get('parameters', {}).items():
         ModelDict[keys] = {
             'value': funcs['logic'],
-            'con': funcs['com'],
-            'eqtype': 'parameter'
+            'com': funcs['com'],
+            'eqtype': 'parameters'
         }
 
     return dict(ModelDict)

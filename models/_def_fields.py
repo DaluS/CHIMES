@@ -170,7 +170,7 @@ _LIBRARY = {
         'kappa': {
             'value': None,
             'definition': 'Part of GDP in investment',
-            'units': '',
+            'units': None,
             'symbol': r'$\kappa$',
         },
         'k0': {
@@ -205,7 +205,7 @@ _LIBRARY = {
             # 'func': lambda GDP=0, D=0: D/GDP,
             'value': 0.1,
             'definition': 'relative debt',
-            'units': ''
+            'units': None,
         },
     },
 
@@ -421,7 +421,7 @@ def FillasFields(keymessing, dparam):
     dic['symbol'] = dic.get('symbol', keymessing)
     dic['group'] = dic.get('group', '_MODELSPECIFIC')
     dic['type'] = detectype(dic),
-    dic['dimension'] = detectdimension(dic),
+    dic['dimension'] = detectdimension(dic)
     return dparam
 
 
