@@ -13,7 +13,7 @@ import _plots as plots
 # _core._class_checks.models.PrintDFIELDS()
 
 
-hub = _core.Hub(model='TEMPLATE')
+hub = _core.Hub(model='GK')
 presetlist = hub.get_presets(returnas=list)
 
 groupsofvariable = hub.get_groupsofvariable(returnas=dict)
