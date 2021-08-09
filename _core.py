@@ -314,26 +314,27 @@ class Hub():
         # Numerical parameters
         col0 = ['Numerical param.', 'value', 'units', 'comment']
         ar0 = [
-            tuple([
+            [
                 k0,
                 str(v0['value']),
                 str(v0['units']),
                 v0['com'],
-            ])
+            ]
             for k0, v0 in self.__dparam.items() if v0['group'] == 'Numerical'
         ]
+        ar0.append(['run', str(self.__dmisc['run']), '', ''])
 
         # ----------
         # parameters
         col1 = ['Model param.', 'value', 'units', 'group', 'comment']
         ar1 = [
-            tuple([
+            [
                 k0,
                 str(v0['value']),
                 str(v0['units']),
                 v0['group'],
                 v0['com'],
-            ])
+            ]
             for k0, v0 in self.__dparam.items()
             if v0['group'] != 'Numerical'
             and v0.get('func') is None
@@ -341,9 +342,10 @@ class Hub():
 
         # ----------
         # functions
-        col2 = ['function', 'source', 'initial', 'units', 'eqtype', 'comment']
+        col2 = ['function', 'source', 'initial',
+                'units', 'eqtype', 'comment']
         ar2 = [
-            tuple([
+            [
                 k0,
                 v0['source_exp'],
                 "{:.2e}".format(v0.get('value')[0, idx]),
@@ -352,10 +354,30 @@ class Hub():
                     'auxiliary', 'aux',
                 ),
                 v0['com'],
-            ])
+            ]
             for k0, v0 in self.__dparam.items()
             if v0.get('func') is not None
         ]
+
+        # --------------------------
+        # Add solver and final value if has run
+        if self.__dmisc['run'] is True:
+
+            # add solver
+            ar0.append(['solver', self.__dmisc['solver'], '', ''])
+
+            # add column title
+            col2.insert(3, 'final')
+
+            # add value to each variable
+            ii = 0
+            for k0, v0 in self.__dparam.items():
+                if v0.get('func') is not None:
+                    ar2[ii].insert(
+                        3,
+                        "{:.2e}".format(v0.get('value')[-1, idx]),
+                    )
+                    ii += 1
 
         # ----------
         # format output
@@ -449,8 +471,13 @@ class Hub():
 
     def FillCyclesForAll(self, ref=None):
         '''
-        This function is a wrap-up on GetCycle to do it on all variables
+        This function is a wrap-up on GetCycle to do it on all variables.
+
+        For each variables, it calculates the cycles properties
+        ref is the reference variable on which the time of cycles is determined
+        by default the variable detect cycles in itself
         '''
+
         for var, dic1 in self.__dparam.items():
             if 'func' in dic1.keys():
                 if ref is None:
@@ -460,7 +487,9 @@ class Hub():
 
     def FillCycles(self, var, ref='lambda'):
         '''
-        Add a new category in dparam and fill it with analysis of the cycle
+        it calculates the cycles properties
+        ref is the reference variable on which the time of cycles is determined
+        by default the variable detect cycles in itself
 
         var : name of the variable we are working on
         ref : reference for the oscillations detections
@@ -514,7 +543,7 @@ class Hub():
         dic1['period_T'] = [
             (t[1] - t[0]) for t in dic1['period_T_intervals']]
 
-        # Detect the maximum as the boundaries
+        # Fill for each the characteristics
         values = dic['value']
         dic1['meanval'] = [np.mean(values[idx[0]:idx[1]])
                            for idx in dic1['period_indexes']]
@@ -527,13 +556,9 @@ class Hub():
         dic1['maxval'] = [np.amax(values[idx[0]:idx[1]])
                           for idx in dic1['period_indexes']]
 
-        #
-
-        # Fill for each the characteristics
-
     def findCycles(self, refval):
         '''
-        Detect all positions of local maximums
+        Detect all positions of local maximums and the time that is linked
         '''
         # initialisation
         periods = []
