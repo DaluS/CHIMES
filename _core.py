@@ -299,6 +299,8 @@ class Hub():
             else:
                 self.__dparam[key]['value'] = var
 
+            # Add the explicit change
+
             # Add the forcing flag
             if isinstance(val, list):
                 # If the change is not a range
@@ -312,10 +314,53 @@ class Hub():
         '''
         rewrite dictofChanges with explicit arrays each time
         '''
-
+        # Get new size
         self.__dparam['nx']['value'] = size
 
+        # For each key in dparam
         for key, val in self.__dparam.items():
+
+            # If this key has no change asked
+            if key not in dictofChanges.keys():
+                # If this key had been previously changed, load it
+                if 'SetInstruction' in val.keys():
+                    dictofChanges['key'] = val['SetInstruction']
+                # if not and ode, take initial value
+                elif val['eqtype'] == 'ode':
+                    dictofChanges['key'] = [
+                        val['initial'], val['initial'], 'lin']
+                # if not and parameter, take the value
+                else:
+                    dictofChanges['key'] = [
+                        val['value'], val['value'], 'lin']
+
+            # Reassign new value
+            self.__dparam['setInstruction'] = dictofChanges[key]
+
+        # Forcing identification :
+        Forced = False
+        for val in dictofChanges.values():
+            # If the change is explicitely multisystem
+            if isinstance(val, list):
+                # If the change is not a range
+                if not (len(val) == 3 and type(val[-1]) is str):
+                    Forcing = len(val)
+                    Forced = True
+        if Forced:
+            self._dmisc['sizeForced'] = Forcing
+
+        # Translate everything into right-size numpy
+        newdict = {}
+        for key, val in dictofChanges.items():
+            # Transform 3list into numpy array
+            if len(val) == 3 and type(val[-1]) is str:
+                if val[-1] is 'lin':
+                    newdict[key] = np.linspace(val[0], val[1], num=size)
+                elif val[-1] is 'log':
+                    newdict[key] = np.logspace(
+                        np.log10(val[0]), np.log10(val[1]), num=size)
+                else:
+                    print(val[-1]+" is not a valid key (use lin or log)")
 
     def set_preset(self, name, verb=False):
         if name not in self.__dmisc['preset'].keys():
