@@ -314,26 +314,27 @@ class Hub():
         # Numerical parameters
         col0 = ['Numerical param.', 'value', 'units', 'comment']
         ar0 = [
-            tuple([
+            [
                 k0,
                 str(v0['value']),
                 str(v0['units']),
                 v0['com'],
-            ])
+            ]
             for k0, v0 in self.__dparam.items() if v0['group'] == 'Numerical'
         ]
+        ar0.append(['run', str(self.__dmisc['run']), '', ''])
 
         # ----------
         # parameters
         col1 = ['Model param.', 'value', 'units', 'group', 'comment']
         ar1 = [
-            tuple([
+            [
                 k0,
                 str(v0['value']),
                 str(v0['units']),
                 v0['group'],
                 v0['com'],
-            ])
+            ]
             for k0, v0 in self.__dparam.items()
             if v0['group'] != 'Numerical'
             and v0.get('func') is None
@@ -341,41 +342,43 @@ class Hub():
 
         # ----------
         # functions
-        if self.__dmisc['run']:
-            col2 = ['function', 'source', 'initial',
-                    'final', 'units', 'eqtype', 'comment']
-            ar2 = [
-                tuple([
-                    k0,
-                    v0['source_exp'],
-                    "{:.2e}".format(v0.get('value')[0, idx]),
-                    "{:.2e}".format(v0.get('value')[-1, idx]),
-                    str(v0['units']),
-                    v0['eqtype'].replace('intermediary', 'inter').replace(
-                        'auxiliary', 'aux',
-                    ),
-                    v0['com'],
-                ])
-                for k0, v0 in self.__dparam.items()
-                if v0.get('func') is not None
+        col2 = ['function', 'source', 'initial',
+                'units', 'eqtype', 'comment']
+        ar2 = [
+            [
+                k0,
+                v0['source_exp'],
+                "{:.2e}".format(v0.get('value')[0, idx]),
+                str(v0['units']),
+                v0['eqtype'].replace('intermediary', 'inter').replace(
+                    'auxiliary', 'aux',
+                ),
+                v0['com'],
             ]
-        else:
-            col2 = ['function', 'source', 'initial',
-                    'units', 'eqtype', 'comment']
-            ar2 = [
-                tuple([
-                    k0,
-                    v0['source_exp'],
-                    "{:.2e}".format(v0.get('value')[0, idx]),
-                    str(v0['units']),
-                    v0['eqtype'].replace('intermediary', 'inter').replace(
-                        'auxiliary', 'aux',
-                    ),
-                    v0['com'],
-                ])
-                for k0, v0 in self.__dparam.items()
-                if v0.get('func') is not None
-            ]
+            for k0, v0 in self.__dparam.items()
+            if v0.get('func') is not None
+        ]
+
+        # --------------------------
+        # Add solver and final value if has run
+        if self.__dmisc['run'] is True:
+
+            # add solver
+            ar0.append(['solver', self.__dmisc['solver'], '', ''])
+
+            # add column title
+            col2.insert(3, 'final')
+
+            # add value to each variable
+            ii = 0
+            for k0, v0 in self.__dparam.items():
+                if v0.get('func') is not None:
+                    ar2[ii].insert(
+                        3,
+                        "{:.2e}".format(v0.get('value')[-1, idx]),
+                    )
+                    ii += 1
+
         # ----------
         # format output
         return _utils._get_summary(
