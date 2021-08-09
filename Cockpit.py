@@ -18,7 +18,7 @@ presetlist = hub.get_presets(returnas=list)
 
 groupsofvariable = hub.get_groupsofvariable(returnas=dict)
 # hub.set_preset('default')
-# hub.Change_Attributes({'nu': 2.65,
+hub.Change_Attributes({'nu': [2.65, 3, 5]})
 #                       'K': 2})
 hub.run(verb=1.1)
 

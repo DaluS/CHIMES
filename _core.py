@@ -266,7 +266,7 @@ class Hub():
             if sizes[0] != self.__dparam['nx']['value']:
                 # Check if the size of the system had already been forced
                 # And if this forcing is not changed
-                for keyforcedbefore in self._dmisc['sizeForced']:
+                for keyforcedbefore in self.__dmisc['sizeForced']:
                     if keyforcedbefore not in dictofChanges.keys():
                         raise Exception(
                             keyforcedbefore + ' was already forced' +
@@ -286,7 +286,7 @@ class Hub():
 
         # 2) Rewrite the change with new sizes
         if size != self.__dparam['nx']['value']:
-            print('The system detected a new size :', size)
+            print('*** The system detected a new size :', size)
             NewdictofChanges = self.ChangeSystemsize(dictofChanges, size)
         else:
             NewdictofChanges = dict(dictofChanges)
@@ -298,14 +298,6 @@ class Hub():
                 self.__dparam[key]['initial'] = var
             else:
                 self.__dparam[key]['value'] = var
-
-            # Add the explicit change
-
-            # Add the forcing flag
-            if isinstance(val, list):
-                # If the change is not a range
-                if not (len(val) == 3 and type(val[-1]) is str):
-                    pass
 
         # reset everything
         self.reset()
@@ -319,23 +311,25 @@ class Hub():
 
         # For each key in dparam
         for key, val in self.__dparam.items():
-
             # If this key has no change asked
-            if key not in dictofChanges.keys():
-                # If this key had been previously changed, load it
+            if (key not in dictofChanges.keys()
+                    and val['group'] != 'Numerical'
+                    and val['eqtype'] != 'statevar'):
+
+                # If this key had been previously changed by a range, load it
                 if 'SetInstruction' in val.keys():
-                    dictofChanges['key'] = val['SetInstruction']
+                    dictofChanges[key] = val['SetInstruction']
                 # if not and ode, take initial value
                 elif val['eqtype'] == 'ode':
-                    dictofChanges['key'] = [
+                    dictofChanges[key] = [
                         val['initial'], val['initial'], 'lin']
                 # if not and parameter, take the value
                 else:
-                    dictofChanges['key'] = [
+                    dictofChanges[key] = [
                         val['value'], val['value'], 'lin']
 
-            # Reassign new value
-            self.__dparam['setInstruction'] = dictofChanges[key]
+                # Reassign new value
+                self.__dparam[key]['setInstruction'] = dictofChanges[key]
 
         # Forcing identification :
         Forced = False
@@ -347,20 +341,21 @@ class Hub():
                     Forcing = len(val)
                     Forced = True
         if Forced:
-            self._dmisc['sizeForced'] = Forcing
+            self.__dmisc['sizeForced'] = Forcing
 
         # Translate everything into right-size numpy
         newdict = {}
         for key, val in dictofChanges.items():
             # Transform 3list into numpy array
             if len(val) == 3 and type(val[-1]) is str:
-                if val[-1] is 'lin':
+                if val[-1] == 'lin':
                     newdict[key] = np.linspace(val[0], val[1], num=size)
-                elif val[-1] is 'log':
+                elif val[-1] == 'log':
                     newdict[key] = np.logspace(
                         np.log10(val[0]), np.log10(val[1]), num=size)
-                else:
-                    print(val[-1]+" is not a valid key (use lin or log)")
+            else:
+                newdict[key] = val
+        return newdict
 
     def set_preset(self, name, verb=False):
         if name not in self.__dmisc['preset'].keys():
