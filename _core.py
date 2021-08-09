@@ -446,6 +446,7 @@ class Hub():
     # ##############################
     #       Deep analysis methods
     # ##############################
+
     def FillCyclesForAll(self, ref=None):
         '''
         This function is a wrap-up on GetCycle to do it on all variables
@@ -532,7 +533,7 @@ class Hub():
 
     def findCycles(self, refval):
         '''
-        Detect all positions of  local maximums
+        Detect all positions of local maximums
         '''
         # initialisation
         periods = []

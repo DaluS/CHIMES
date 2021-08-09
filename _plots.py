@@ -134,9 +134,8 @@ def phasespace(sol, x='omega', y='lambda', color='time', idx=0):
     lc.set_array(t)
     lc.set_linewidth(2)
 
-    plt.figure('Phasespace'+x+' '+y+'for system :'+str(idx), figsize=(10, 7))
-    fig = plt.gcf()
-    ax = plt.gca()
+    fig = plt.figure('Phasespace'+x+' '+y+'for system :'+str(idx), figsize=(10, 7))
+    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
     line = ax.add_collection(lc)
     fig.colorbar(line, ax=ax, label=color)
     plt.xlabel(x)
