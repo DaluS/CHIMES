@@ -489,15 +489,15 @@ class Hub():
         # check if reference has already calculated its period
         # the reference has cycle and this cycle has been calculated on itself
         dic1 = dic['cycles']
-        Ready = False
+        ready = False
         if 'cycles' in self.__dparam[ref].keys():
             dic2 = self.__dparam[ref]['cycles']
             if (dic2['reference'] == ref and 'period_indexes' in dic2):
                 # We can take the reference as the base
-                Ready = True
+                ready = True
         # If there is no good reference
         # We calculate it and put
-        if not Ready:
+        if not ready:
             self.findCycles(ref)
             dic2 = self.__dparam[ref]['cycles']
 
@@ -535,7 +535,7 @@ class Hub():
         Detect all positions of  local maximums
         '''
         # initialisation
-        Periods = []
+        periods = []
         id1 = 1
 
         self.__dparam[refval]['cycles'] = {}
@@ -547,12 +547,12 @@ class Hub():
         while id1 < len(val)-2:
             if (val[id1] > val[id1-1] and
                     val[id1] > val[id1+1]):
-                Periods.append(1*id1)
+                periods.append(1*id1)
             id1 += 1
 
         # Fill the formalism
         self.__dparam[refval]['cycles']['period_indexes'] = [
-            [Periods[i], Periods[i+1]] for i in range(len(Periods)-1)
+            [periods[i], periods[i+1]] for i in range(len(periods)-1)
         ]
         tim = self.__dparam['time']['value']
         dic1 = self.__dparam[refval]['cycles']
@@ -587,7 +587,7 @@ class Hub():
         }
         return dout
 
-    @ classmethod
+    @classmethod
     def _from_dict(cls, dout=None):
         """ Create an instance from a dict """
 
