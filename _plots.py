@@ -5,12 +5,14 @@ Created on Mon Jul 26 16:16:01 2021
 @author: Paul Valcke
 """
 
-import matplotlib.pyplot as plt
+
 import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
+import matplotlib.gridspec as gridspec
 
 
-def AllVar(sol, rows=1, idx=0):
+def AllVar(sol, nrows=1, idx=0, dmargin=None, show=None):
     '''
     Plot all the variables in the system on a same figure
 
@@ -28,20 +30,47 @@ def AllVar(sol, rows=1, idx=0):
     None.
 
     '''
+
+    # -----------
+    # Check inputs
+    if dmargin is None:
+        dmargin = {
+            'left': 0.10, 'right': 0.90,
+            'bottom': 0.10, 'top': 0.90,
+            'wspace': 0.10, 'hspace': 0.10,
+        }
+    if show is None:
+        show = True
+
+
+    # -----------
+    # Prepare data to be printed
+
     # if sol.__dmisc['run']:
     lkeys, array = sol.get_variables_compact()
 
     t = array[:, -1]
-    plt.figure('All variables', figsize=(20, 20))
-    for i in range(len(lkeys) - 1):
+
+    # -----------
+    # Prepare figure and axes
+    fig = plt.figure('All variables', figsize=(20, 20))
+    gs = gridspec.GridSpec(ncols=1, nrows=nrows, **dmargin)
+
+    tit = f'{list(sol.model.keys())[0]} ||| system number: {idx}'
+    fig.suptitle(tit)
+
+    for ii in range(len(lkeys) - 1):
         lk = lkeys[i]
-        val = array[:, i, idx]
-        plt.subplot(len(lkeys) - 1, rows, i + 1)
+        val = array[:, ii, idx]
+        plt.subplot(len(lkeys) - 1, rows, ii + 1)
 
         plt.plot(t, val)
         plt.ylabel(lk)
-    plt.suptitle(list(sol.model.keys())[0] + '||| system number :' + str(idx))
-    plt.show()
+
+
+
+    if show is True
+        plt.show()
     # else:
     #    print('Plot simple could not be done as the simulation did not run')
 
