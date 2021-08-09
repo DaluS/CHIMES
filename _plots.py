@@ -12,7 +12,7 @@ from matplotlib.collections import LineCollection
 import matplotlib.gridspec as gridspec
 
 
-def AllVar(sol, nrows=1, idx=0, dmargin=None, show=None):
+def AllVar(sol, ncols=1, idx=0, dmargin=Nonei, fs=None, show=None):
     '''
     Plot all the variables in the system on a same figure
 
@@ -20,10 +20,12 @@ def AllVar(sol, nrows=1, idx=0, dmargin=None, show=None):
     ----------
     sol : The hub of the system
         DESCRIPTION.
-    rows : the number of column on the plot
+    ncols : the number of column in the figure
         DESCRIPTION. The default is 2.
     idx : the index of the system you want to print
         DESCRIPTION. The default is 0.
+    dmargin: dict
+        dict defining the margins to be used for defining the axes
 
     Returns
     -------
@@ -39,6 +41,8 @@ def AllVar(sol, nrows=1, idx=0, dmargin=None, show=None):
             'bottom': 0.10, 'top': 0.90,
             'wspace': 0.10, 'hspace': 0.10,
         }
+    if fs is None:
+        fs = (20, 20)
     if show is None:
         show = True
 
@@ -51,10 +55,13 @@ def AllVar(sol, nrows=1, idx=0, dmargin=None, show=None):
 
     t = array[:, -1]
 
+    # derive nrows
+    nrows = len(lkeys) // ncols + 1
+
     # -----------
     # Prepare figure and axes
-    fig = plt.figure('All variables', figsize=(20, 20))
-    gs = gridspec.GridSpec(ncols=1, nrows=nrows, **dmargin)
+    fig = plt.figure('All variables', figsize=fs)
+    gs = gridspec.GridSpec(ncols=ncols, nrows=nrows, **dmargin)
 
     tit = f'{list(sol.model.keys())[0]} ||| system number: {idx}'
     fig.suptitle(tit)
