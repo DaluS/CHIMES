@@ -124,7 +124,12 @@ class Test01_Run():
 
                 self.dmodel[model][solver].run(solver=solver, verb=verb)
 
-    def test07_save(self):
+    def test07_get_summary_repr_after_run(self):
+        for model in self.dmodel.keys():
+            print(self.dmodel[model])
+            self.dmodel[model].get_summary()
+
+    def test08_save(self):
         # list of entry parameters to try
         for ii, model in enumerate(self.dmodel.keys()):
             for jj, solver in enumerate(self.lsolvers):
@@ -133,7 +138,7 @@ class Test01_Run():
                     path=_PATH_OUTPUT,
                 )
 
-    def test08_load_and_equal(self):
+    def test09_load_and_equal(self):
         lf = [
             os.path.join(_PATH_OUTPUT, ff)
             for ff in os.listdir(_PATH_OUTPUT)
@@ -145,14 +150,14 @@ class Test01_Run():
             solver = obj.dmisc['solver']
             assert obj == self.dmodel[model][solver]
 
-    def test09_copy(self):
+    def test10_copy(self):
         for model in self.dmodel.keys():
             for solver in self.lsolvers:
                 obj = self.dmodel[model][solver].copy()
                 assert obj == self.dmodel[model][solver]
                 assert obj is not self.dmodel[model][solver]
 
-    def test10_get_available_output(self):
+    def test11_get_available_output(self):
         # verb
         _core._saveload.get_available_output(path=_PATH_OUTPUT)
         # list
@@ -165,7 +170,7 @@ class Test01_Run():
             returnas=dict,
         )
 
-    def test11_nonregression_output(self):
+    def test12_nonregression_output(self):
 
         # load reference files
         df_ref = _core._saveload.get_available_output(
