@@ -510,9 +510,9 @@ class Hub():
         dic1['period_T_intervals'] = [[tim[idx[0], 0], tim[idx[1], 0]]
                                       for idx in dic1['period_indexes']]
         dic1['t_mean_cycle'] = [
-            (t[0]+t[1])/2 for t in dic1['period_T_intervals']]
+            (t[0] + t[1]) / 2 for t in dic1['period_T_intervals']]
         dic1['period_T'] = [
-            (t[1]-t[0]) for t in dic1['period_T_intervals']]
+            (t[1] - t[0]) for t in dic1['period_T_intervals']]
 
         # Detect the maximum as the boundaries
         values = dic['value']
@@ -545,24 +545,24 @@ class Hub():
         val = self.__dparam[refval]['value']
 
         # identification loop
-        while id1 < len(val)-2:
-            if (val[id1] > val[id1-1] and
-                    val[id1] > val[id1+1]):
-                periods.append(1*id1)
+        while id1 < len(val) - 2:
+            if (val[id1] > val[id1 - 1] and
+                    val[id1] > val[id1 + 1]):
+                periods.append(1 * id1)
             id1 += 1
 
         # Fill the formalism
         self.__dparam[refval]['cycles']['period_indexes'] = [
-            [periods[i], periods[i+1]] for i in range(len(periods)-1)
+            [periods[i], periods[i + 1]] for i in range(len(periods) - 1)
         ]
         tim = self.__dparam['time']['value']
         dic1 = self.__dparam[refval]['cycles']
         dic1['period_T_intervals'] = [[tim[idx[0]], tim[idx[1]]]
                                       for idx in dic1['period_indexes']]
         dic1['t_mean_cycle'] = [
-            (t[0]+t[1])/2 for t in dic1['period_T_intervals']]
+            (t[0] + t[1]) / 2 for t in dic1['period_T_intervals']]
         dic1['period_T'] = [
-            (t[1]-t[0]) for t in dic1['period_T_intervals']]
+            (t[1] - t[0]) for t in dic1['period_T_intervals']]
         dic1['reference'] = refval
 
         # ##############################
