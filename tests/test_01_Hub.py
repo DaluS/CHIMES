@@ -126,8 +126,9 @@ class Test01_Run():
 
     def test07_get_summary_repr_after_run(self):
         for model in self.dmodel.keys():
-            print(self.dmodel[model])
-            self.dmodel[model].get_summary()
+            for jj, solver in enumerate(self.lsolvers):
+                print(self.dmodel[model][solver])
+                self.dmodel[model][solver].get_summary()
 
     def test08_save(self):
         # list of entry parameters to try
@@ -135,7 +136,7 @@ class Test01_Run():
             for jj, solver in enumerate(self.lsolvers):
                 self.dmodel[model][solver].save(
                     name=str(ii * 10 + jj),
-                    path=_PATH_OUTPUT,
+                    path=_PATH_OUTPUT,  # _PATH_OUTPUT_REF to update ref
                 )
 
     def test09_load_and_equal(self):
