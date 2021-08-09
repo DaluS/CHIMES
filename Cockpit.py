@@ -50,10 +50,18 @@ Result = hub.get_dparam(returnas=dict)
 '''
 # #############################################################################
 hub = _core.Hub('GK')
-#hub.set_dparam(key='alpha', value=2.5)
+# hub.set_dparam(key='alpha', value=2.5)
 # hub.get_summary()
 hub.run(verb=1.1)
-hub.plot()
-#Result = hub.get_dparam(returnas=dict)
-plots.plotVar(hub, 'K', idx=0)
-plots.plotphasespace(hub, x='omega', y='lambda', idx=0)
+
+# hub.FillCyclesForAll(ref=None)
+hub.FillCyclesForAll(ref='lambda')
+
+Result = hub.get_dparam(returnas=dict)
+
+plots.AllVar(hub)
+plots.Var(hub, 'K', idx=0, cycles=True, log=True)
+plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)
+plots.phasespace(hub, x='omega', y='d', idx=0)
+plots.phasespace(hub, x='omega', y='lambda', color='time', idx=0)
+plots.phasespace(hub, x='omega', y='lambda', color='d', idx=0)
