@@ -465,6 +465,7 @@ class Hub():
     # ##############################
     #       Deep analysis methods
     # ##############################
+
     def FillCyclesForAll(self, ref=None):
         '''
         This function is a wrap-up on GetCycle to do it on all variables.
@@ -515,15 +516,15 @@ class Hub():
         # check if reference has already calculated its period
         # the reference has cycle and this cycle has been calculated on itself
         dic1 = dic['cycles']
-        Ready = False
+        ready = False
         if 'cycles' in self.__dparam[ref].keys():
             dic2 = self.__dparam[ref]['cycles']
             if (dic2['reference'] == ref and 'period_indexes' in dic2):
                 # We can take the reference as the base
-                Ready = True
+                ready = True
         # If there is no good reference
         # We calculate it and put
-        if not Ready:
+        if not ready:
             self.findCycles(ref)
             dic2 = self.__dparam[ref]['cycles']
 
@@ -535,9 +536,9 @@ class Hub():
         dic1['period_T_intervals'] = [[tim[idx[0], 0], tim[idx[1], 0]]
                                       for idx in dic1['period_indexes']]
         dic1['t_mean_cycle'] = [
-            (t[0]+t[1])/2 for t in dic1['period_T_intervals']]
+            (t[0] + t[1]) / 2 for t in dic1['period_T_intervals']]
         dic1['period_T'] = [
-            (t[1]-t[0]) for t in dic1['period_T_intervals']]
+            (t[1] - t[0]) for t in dic1['period_T_intervals']]
 
         # Fill for each the characteristics
         values = dic['value']
@@ -557,7 +558,7 @@ class Hub():
         Detect all positions of local maximums and the time that is linked
         '''
         # initialisation
-        Periods = []
+        periods = []
         id1 = 1
 
         self.__dparam[refval]['cycles'] = {}
@@ -566,24 +567,24 @@ class Hub():
         val = self.__dparam[refval]['value']
 
         # identification loop
-        while id1 < len(val)-2:
-            if (val[id1] > val[id1-1] and
-                    val[id1] > val[id1+1]):
-                Periods.append(1*id1)
+        while id1 < len(val) - 2:
+            if (val[id1] > val[id1 - 1] and
+                    val[id1] > val[id1 + 1]):
+                periods.append(1 * id1)
             id1 += 1
 
         # Fill the formalism
         self.__dparam[refval]['cycles']['period_indexes'] = [
-            [Periods[i], Periods[i+1]] for i in range(len(Periods)-1)
+            [periods[i], periods[i + 1]] for i in range(len(periods) - 1)
         ]
         tim = self.__dparam['time']['value']
         dic1 = self.__dparam[refval]['cycles']
         dic1['period_T_intervals'] = [[tim[idx[0]], tim[idx[1]]]
                                       for idx in dic1['period_indexes']]
         dic1['t_mean_cycle'] = [
-            (t[0]+t[1])/2 for t in dic1['period_T_intervals']]
+            (t[0] + t[1]) / 2 for t in dic1['period_T_intervals']]
         dic1['period_T'] = [
-            (t[1]-t[0]) for t in dic1['period_T_intervals']]
+            (t[1] - t[0]) for t in dic1['period_T_intervals']]
         dic1['reference'] = refval
 
         # ##############################
@@ -609,7 +610,7 @@ class Hub():
         }
         return dout
 
-    @ classmethod
+    @classmethod
     def _from_dict(cls, dout=None):
         """ Create an instance from a dict """
 
