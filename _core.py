@@ -287,7 +287,7 @@ class Hub():
         # 2) Rewrite the change with new sizes
         if size != self.__dparam['nx']['value']:
             print('The system detected a new size :', size)
-            NewdictofChanges = self.ChangeSystemsize(self, dictofChanges, size)
+            NewdictofChanges = self.ChangeSystemsize(dictofChanges, size)
         else:
             NewdictofChanges = dict(dictofChanges)
 
@@ -307,6 +307,15 @@ class Hub():
 
         # reset everything
         self.reset()
+
+    def ChangeSystemsize(self, dictofChanges, size):
+        '''
+        rewrite dictofChanges with explicit arrays each time
+        '''
+
+        self.__dparam['nx']['value'] = size
+
+        for key, val in self.__dparam.items():
 
     def set_preset(self, name, verb=False):
         if name not in self.__dmisc['preset'].keys():

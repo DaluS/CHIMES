@@ -102,12 +102,6 @@ _LOGICS = {
             'com': 'relative profit',
         },
     },
-    'parameters': {
-        'nu': {
-            'logic': 3,
-            'com': 'OVERLOADING A DEFINITION',
-        }
-    }
 }
 
 
