@@ -314,26 +314,27 @@ class Hub():
         # Numerical parameters
         col0 = ['Numerical param.', 'value', 'units', 'comment']
         ar0 = [
-            tuple([
+            [
                 k0,
                 str(v0['value']),
                 str(v0['units']),
                 v0['com'],
-            ])
+            ]
             for k0, v0 in self.__dparam.items() if v0['group'] == 'Numerical'
         ]
+        ar0.append(['run', str(self.__dmisc['run']), '', ''])
 
         # ----------
         # parameters
         col1 = ['Model param.', 'value', 'units', 'group', 'comment']
         ar1 = [
-            tuple([
+            [
                 k0,
                 str(v0['value']),
                 str(v0['units']),
                 v0['group'],
                 v0['com'],
-            ])
+            ]
             for k0, v0 in self.__dparam.items()
             if v0['group'] != 'Numerical'
             and v0.get('func') is None
@@ -341,41 +342,43 @@ class Hub():
 
         # ----------
         # functions
-        if self.__dmisc['run']:
-            col2 = ['function', 'source', 'initial',
-                    'final', 'units', 'eqtype', 'comment']
-            ar2 = [
-                tuple([
-                    k0,
-                    v0['source_exp'],
-                    "{:.2e}".format(v0.get('value')[0, idx]),
-                    "{:.2e}".format(v0.get('value')[-1, idx]),
-                    str(v0['units']),
-                    v0['eqtype'].replace('intermediary', 'inter').replace(
-                        'auxiliary', 'aux',
-                    ),
-                    v0['com'],
-                ])
-                for k0, v0 in self.__dparam.items()
-                if v0.get('func') is not None
+        col2 = ['function', 'source', 'initial',
+                'units', 'eqtype', 'comment']
+        ar2 = [
+            [
+                k0,
+                v0['source_exp'],
+                "{:.2e}".format(v0.get('value')[0, idx]),
+                str(v0['units']),
+                v0['eqtype'].replace('intermediary', 'inter').replace(
+                    'auxiliary', 'aux',
+                ),
+                v0['com'],
             ]
-        else:
-            col2 = ['function', 'source', 'initial',
-                    'units', 'eqtype', 'comment']
-            ar2 = [
-                tuple([
-                    k0,
-                    v0['source_exp'],
-                    "{:.2e}".format(v0.get('value')[0, idx]),
-                    str(v0['units']),
-                    v0['eqtype'].replace('intermediary', 'inter').replace(
-                        'auxiliary', 'aux',
-                    ),
-                    v0['com'],
-                ])
-                for k0, v0 in self.__dparam.items()
-                if v0.get('func') is not None
-            ]
+            for k0, v0 in self.__dparam.items()
+            if v0.get('func') is not None
+        ]
+
+        # --------------------------
+        # Add solver and final value if has run
+        if self.__dmisc['run'] is True:
+
+            # add solver
+            ar0.append(['solver', self.__dmisc['solver'], '', ''])
+
+            # add column title
+            col2.insert(3, 'final')
+
+            # add value to each variable
+            ii = 0
+            for k0, v0 in self.__dparam.items():
+                if v0.get('func') is not None:
+                    ar2[ii].insert(
+                        3,
+                        "{:.2e}".format(v0.get('value')[-1, idx]),
+                    )
+                    ii += 1
+
         # ----------
         # format output
         return _utils._get_summary(
@@ -465,6 +468,7 @@ class Hub():
     # ##############################
     #       Deep analysis methods
     # ##############################
+
     def FillCyclesForAll(self, ref=None):
         '''
         This function is a wrap-up on GetCycle to do it on all variables.
@@ -515,15 +519,15 @@ class Hub():
         # check if reference has already calculated its period
         # the reference has cycle and this cycle has been calculated on itself
         dic1 = dic['cycles']
-        Ready = False
+        ready = False
         if 'cycles' in self.__dparam[ref].keys():
             dic2 = self.__dparam[ref]['cycles']
             if (dic2['reference'] == ref and 'period_indexes' in dic2):
                 # We can take the reference as the base
-                Ready = True
+                ready = True
         # If there is no good reference
         # We calculate it and put
-        if not Ready:
+        if not ready:
             self.findCycles(ref)
             dic2 = self.__dparam[ref]['cycles']
 
@@ -535,9 +539,9 @@ class Hub():
         dic1['period_T_intervals'] = [[tim[idx[0], 0], tim[idx[1], 0]]
                                       for idx in dic1['period_indexes']]
         dic1['t_mean_cycle'] = [
-            (t[0]+t[1])/2 for t in dic1['period_T_intervals']]
+            (t[0] + t[1]) / 2 for t in dic1['period_T_intervals']]
         dic1['period_T'] = [
-            (t[1]-t[0]) for t in dic1['period_T_intervals']]
+            (t[1] - t[0]) for t in dic1['period_T_intervals']]
 
         # Fill for each the characteristics
         values = dic['value']
@@ -557,7 +561,7 @@ class Hub():
         Detect all positions of local maximums and the time that is linked
         '''
         # initialisation
-        Periods = []
+        periods = []
         id1 = 1
 
         self.__dparam[refval]['cycles'] = {}
@@ -566,24 +570,24 @@ class Hub():
         val = self.__dparam[refval]['value']
 
         # identification loop
-        while id1 < len(val)-2:
-            if (val[id1] > val[id1-1] and
-                    val[id1] > val[id1+1]):
-                Periods.append(1*id1)
+        while id1 < len(val) - 2:
+            if (val[id1] > val[id1 - 1] and
+                    val[id1] > val[id1 + 1]):
+                periods.append(1 * id1)
             id1 += 1
 
         # Fill the formalism
         self.__dparam[refval]['cycles']['period_indexes'] = [
-            [Periods[i], Periods[i+1]] for i in range(len(Periods)-1)
+            [periods[i], periods[i + 1]] for i in range(len(periods) - 1)
         ]
         tim = self.__dparam['time']['value']
         dic1 = self.__dparam[refval]['cycles']
         dic1['period_T_intervals'] = [[tim[idx[0]], tim[idx[1]]]
                                       for idx in dic1['period_indexes']]
         dic1['t_mean_cycle'] = [
-            (t[0]+t[1])/2 for t in dic1['period_T_intervals']]
+            (t[0] + t[1]) / 2 for t in dic1['period_T_intervals']]
         dic1['period_T'] = [
-            (t[1]-t[0]) for t in dic1['period_T_intervals']]
+            (t[1] - t[0]) for t in dic1['period_T_intervals']]
         dic1['reference'] = refval
 
         # ##############################
@@ -609,7 +613,7 @@ class Hub():
         }
         return dout
 
-    @ classmethod
+    @classmethod
     def _from_dict(cls, dout=None):
         """ Create an instance from a dict """
 

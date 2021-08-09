@@ -50,7 +50,7 @@ Result = hub.get_dparam(returnas=dict)
 '''
 # #############################################################################
 hub = _core.Hub('GK')
-#hub.set_dparam(key='alpha', value=2.5)
+# hub.set_dparam(key='alpha', value=2.5)
 # hub.get_summary()
 hub.run(verb=1.1)
 hub.get_summary()

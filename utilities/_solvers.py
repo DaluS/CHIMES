@@ -241,9 +241,12 @@ def _solver_scipy(
     # ---------------------
     # dispatch results
 
-    dparam['time']['value'] = sol.t
     for ii, k0 in enumerate(lode_notime):
         dparam[k0]['value'][:, 0] = sol.y[ii, :]
-    dparam['time']['value'] = t_eval
+    dparam['time']['value'] = np.repeat(
+        sol.t[:, None],
+        dparam['nx']['value'],
+        axis=1,
+    )
 
     return sol
