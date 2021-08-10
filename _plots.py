@@ -12,13 +12,23 @@ from matplotlib.collections import LineCollection
 import matplotlib.gridspec as gridspec
 
 
-def AllVar(sol, ncols=1, idx=0, dmargin=Nonei, fs=None, show=None):
+def AllVar(
+    hub,
+    ncols=None,
+    idx=None,
+    sharex=None,
+    tit=None,
+    wintit=None,
+    dmargin=None,
+    fs=None,
+    show=None,
+):
     '''
     Plot all the variables in the system on a same figure
 
     Parameters
     ----------
-    sol : The hub of the system
+    hub : The hub of the system
         DESCRIPTION.
     ncols : the number of column in the figure
         DESCRIPTION. The default is 2.
@@ -35,51 +45,80 @@ def AllVar(sol, ncols=1, idx=0, dmargin=Nonei, fs=None, show=None):
 
     # -----------
     # Check inputs
+
+    if ncols is None:
+        ncols = 2
+    if idx is None:
+        idx = 0
     if dmargin is None:
         dmargin = {
-            'left': 0.10, 'right': 0.90,
-            'bottom': 0.10, 'top': 0.90,
-            'wspace': 0.10, 'hspace': 0.10,
+            'left': 0.05, 'right': 0.98,
+            'bottom': 0.06, 'top': 0.95,
+            'wspace': 0.15, 'hspace': 0.20,
         }
+    if sharex is None:
+        sharex = True
+    if tit is None:
+        model = list(hub.model.keys())[0]
+        solver = hub.dmisc['solver']
+        tit = f'{model} - {solver} ||| system number: {idx}'
+    if wintit is None:
+        wintit = 'All variables'
     if fs is None:
         fs = (20, 20)
     if show is None:
         show = True
 
-
     # -----------
-    # Prepare data to be printed
+    # Prepare data to be plotted
 
-    # if sol.__dmisc['run']:
-    lkeys, array = sol.get_variables_compact()
-
-    t = array[:, -1]
+    lkeys, array = hub.get_variables_compact()
+    t = array[:, lkeys.tolist().index('time'), 0]
+    lkeys_notime = [kk for kk in lkeys if kk != 'time']
+    nkeys = len(lkeys_notime)
 
     # derive nrows
-    nrows = len(lkeys) // ncols + 1
+    nrows = nkeys // ncols + 1
 
     # -----------
-    # Prepare figure and axes
-    fig = plt.figure('All variables', figsize=fs)
-    gs = gridspec.GridSpec(ncols=ncols, nrows=nrows, **dmargin)
+    # Prepare figure and axes dict
 
-    tit = f'{list(sol.model.keys())[0]} ||| system number: {idx}'
+    fig = plt.figure(wintit, figsize=fs)
     fig.suptitle(tit)
 
-    for ii in range(len(lkeys) - 1):
-        lk = lkeys[i]
-        val = array[:, ii, idx]
-        plt.subplot(len(lkeys) - 1, rows, ii + 1)
+    # axes coordinates array
+    gs = gridspec.GridSpec(ncols=ncols, nrows=nrows, **dmargin)
 
-        plt.plot(t, val)
-        plt.ylabel(lk)
+    dax = {}
+    shx = None
+    for ii, key in enumerate(lkeys_notime):
 
+        # create axes and store in dict
+        row = ii % nrows
+        col = ii // nrows
+        dax[key] = fig.add_subplot(gs[row, col], sharex=shx)
 
+        # sharex if relevant
+        if ii == 0 and sharex is True:
+            shx = dax[key]
 
-    if show is True
+        # set labels
+        dax[key].set_ylabel(key)
+        if row == nrows - 1 or ii == nkeys - 1:
+            dax[key].set_xlabel('time (s)')
+
+    # -----------
+    # plot data on axes
+
+    for ii, key in enumerate(lkeys_notime):
+        dax[key].plot(t, array[:, ii, idx])
+
+    # -----------
+    # show and return axes dict
+
+    if show is True:
         plt.show()
-    # else:
-    #    print('Plot simple could not be done as the simulation did not run')
+    return dax
 
 
 def Var(sol, key, idx=0, cycles=False, log=False):
