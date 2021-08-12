@@ -47,7 +47,7 @@ def AllVar(
     # Check inputs
 
     if ncols is None:
-        ncols = 2
+        ncols = 3
     if idx is None:
         idx = 0
     if dmargin is None:
@@ -72,9 +72,13 @@ def AllVar(
     # -----------
     # Prepare data to be plotted
 
-    lkeys, array = hub.get_variables_compact()
-    t = array[:, lkeys.tolist().index('time'), 0]
-    lkeys_notime = [kk for kk in lkeys if kk != 'time']
+    dpar = hub.get_dparam(returnas=dict)
+    t = dpar['time']['value'][:, idx]
+    lkeys_notime = [
+        k0 for k0, v0 in dpar.items()
+        if v0.get('func') is not None
+        and k0 != 'time'
+    ]
     nkeys = len(lkeys_notime)
 
     # derive nrows
@@ -102,16 +106,25 @@ def AllVar(
         if ii == 0 and sharex is True:
             shx = dax[key]
 
-        # set labels
-        dax[key].set_ylabel(key)
+        # set ylabels
+        if dpar[key]['symbol'] is None:
+            ylab = key
+        else:
+            ylab = dpar[key]['symbol']
+        if dpar[key]['units'] not in [None, '']:
+            ylab += f" ({dpar[key]['units']})"
+        dax[key].set_ylabel(ylab)
+
+        # set xlabel if at bottom
         if row == nrows - 1 or ii == nkeys - 1:
-            dax[key].set_xlabel('time (s)')
+            xlab = f"time ({dpar['time']['units']})"
+            dax[key].set_xlabel(xlab)
 
     # -----------
     # plot data on axes
 
     for ii, key in enumerate(lkeys_notime):
-        dax[key].plot(t, array[:, ii, idx])
+        dax[key].plot(t, dpar[key]['value'][:, idx])
 
     # -----------
     # show and return axes dict
