@@ -1,29 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-Here we define the parameters and set of equation for a model of type 'GK'
+ABSTRACT: This is the simplest economic post-keynesian model
+TYPICAL BEHAVIOR : metastable oscillations around a solow point
+LINKTOARTICLE : Goodwin, Richard, 1967. ‘A growth cycle’, in:
+    Carl Feinstein, editor, Socialism, capitalism
+    and economic growth. Cambridge, UK: Cambridge University Press.
 
-All parameters can have value:
-    - None: set to the default value found in _def_fields.py
-    - scalar: int or float
-    - list or np.ndarray used for benchmarks
-    - function (callable): in that can it will be treated as a variable
-                            the function will be called at each time step
-
+Created on Wed Jul 21 15:11:15 2021
+@author: Paul Valcke
 """
 
 
 # ---------------------------
 # user-defined function order (optional)
 
-_FUNC_ORDER = None
 
-_DESCRIPTION = """
-    DESCRIPTION : This is the simplest economic post-keynesian model
-    TYPICAL BEHAVIOR : metastable oscillations around a solow point
-    LINKTOARTICLE : Goodwin, Richard, 1967. ‘A growth cycle’, in:
-        Carl Feinstein, editor, Socialism, capitalism
-        and economic growth. Cambridge, UK: Cambridge University Press.
-        """
+_FUNC_ORDER = None
 
 
 # ---------------------------
@@ -75,6 +67,43 @@ _DPARAM = {
         'eqtype': 'auxiliary',
     },
 }
+
+
+# ---------------------------
+# New formalism
+
+
+_LOGICS = {
+    'ode': {
+        'lambda': {
+            'logic': lambda itself=0, g=0, alpha=0, beta=0: itself * (
+                g - alpha - beta),
+            'com': 'reduced 2variables dynamical expression'
+        },
+        'omega': {
+            'logic': lambda itself=0, phillips=0: itself * phillips,
+            'com': 'reduced 2variables dynamical expression',
+            # 'initial': 0.8,
+        },
+    },
+    'statevar': {
+        'phillips': {
+            'logic': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (
+                1 - lamb)**2,
+            'com': 'diverging Philips',
+        },
+        'g': {
+            'logic': lambda pi=0, nu=1, delta=0: pi / nu - delta,
+            'com': 'Goodwin explicit Growth',
+        },
+        'pi': {
+            'logic': lambda omega=0: 1. - omega,
+            'com': 'Goodwin relative profit',
+        },
+    },
+}
+
+
 
 # ---------------------------
 # List of presets for specific interesting simulations

@@ -1,14 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-Here we define the parameters and set of equation for a model of type 'GK'
+DESCRIPTION : This is a Goodwin model based on extensive variables.
+Inflation not integrated to the process
+TYPICAL BEHAVIOR : Convergence toward solow point ( good equilibrium) or debt crisis
+LINKTOARTICLE:
 
-All parameters can have value:
-    - None: set to the default value found in _def_fields.py
-    - scalar: int or float
-    - list or np.ndarray used for benchmarks
-    - function (callable): in that can it will be treated as a variable
-                            the function will be called at each time step
-
+Created on Wed Jul 21 15:11:15 2021
+@author: Paul Valcke
 """
 
 
@@ -18,10 +16,10 @@ import numpy as np
 # ---------------------------
 # user-defined function order (optional)
 
+
 _FUNC_ORDER = None
 
-_DESCRIPTION = ""
-_PRESETS = {}
+
 # ---------------------------
 # user-defined model
 # contains parameters and functions of various types
@@ -136,5 +134,52 @@ _DPARAM = {
     'phi1': {
         'func': lambda phinull=0: phinull**3 / (1 - phinull**2),
         'eqtype': 'auxiliary',
+    },
+}
+
+
+# ---------------------------
+# New formalism
+
+
+_PRESETS = {
+    'default': {
+        'fields': {
+            'a': 1,
+            'N': 1,
+            'K': 2.7,
+            'D': 0.2,
+            'W': .85,
+            'p': 1,
+            'alpha': 0.02,
+            'beta': 0.025,
+            'nu': 3,
+            'delta': .005,
+            # 'phinull': .04,
+            'k0': -0.0065,
+            'k1': np.exp(-5),
+            'k2': 20,
+            'r': 0.03,
+        },
+        'com': (
+            'This is a run that should give simple '
+            'convergent oscillations'),
+        'plots': [],
+    },
+    'crisis': {
+        'fields': {
+            'a': 1,
+            'N': 1,
+            'K': 2.7,
+            'D': 10,
+            'W': .85,
+            'p': 1,
+
+            'r': 0.0
+        },
+        'com': (
+            'This is a run that should create a debt crisis'
+        ),
+        'plots': [],
     },
 }

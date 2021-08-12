@@ -33,7 +33,7 @@ for k0, v0 in _df.items():
         'dparam': foo._DPARAM,
         'func_order': foo._FUNC_ORDER,
         'file': foo.__file__,
-        'description': foo._DESCRIPTION,
+        'description': foo.__doc__,
         'presets': foo._PRESETS
     }
 
