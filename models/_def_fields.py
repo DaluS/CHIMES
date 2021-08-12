@@ -75,6 +75,7 @@ _DALLOWED_FIELDS = {
     # ],
 }
 
+
 # #############################################################################
 # #############################################################################
 #                   Dict of default fields
@@ -439,6 +440,231 @@ _DFIELDS = {
         'type': 'intensive',
         'symbol': r'$i$',
         'group': 'Economy',
+    },
+}
+
+
+# #############################################################################
+# #############################################################################
+#                   Library (new formalism)
+# #############################################################################
+
+
+_LIBRARY = {
+
+    'Numerical': {
+        'Tmax': {
+            'value': 100,
+            'units': 'y',
+            'definition': 'Total simulated time',
+        },
+        'dt': {
+            'value': 0.01,
+            'units': 'y',
+            'definition': 'time between two steps',
+        },
+        'nt': {
+            'func': lambda Tmax=0, dt=1: int(Tmax / dt),
+            'units': None,
+            'definition': 'Number of timestep',
+            'com': 'Constant dt'
+        },
+        'nx': {
+            'value': 1,
+            'units': 'y',
+            'definition': 'NUMBER OF PARRALLEL SYSTEMS',
+        },
+        'time': {
+            'value': 0,
+            'ode': lambda dt=0: 1.,
+            'definition': 'Time vector',
+            'com': 'dt/dt=1, time as ODE',
+            'units': 'y',
+        },
+    },
+
+    'CORE': {
+
+        # Population
+        'N': {
+            'value': 1.,
+            'definition': 'Population',
+            'units': 'humans',
+        },
+        'beta': {
+            'value': 0.025,
+            'definition': 'Rate of population growth',
+            'units': 'y^{-1}',
+        },
+
+        # Productivity
+        'a': {
+            'value': 1,
+            'units': 'units.humans^{-1}.years^{-1}',
+            'definition': 'Productivity',
+        },
+        'alpha': {
+            'value': 0.02,
+            'definition': 'Rate of productivity increase',
+            'units': 'y^{-1}',
+        },
+        'W': {
+            'value': 0.85,
+            'definition': 'Wage value',
+            'units': 'dollars'
+        },
+
+        # Capital
+        'delta': {
+            'value': 0.005,
+            'definition': 'Rate of capital depletion',
+            'units': 'y^{-1}',
+        },
+        'nu': {
+            'value': 3,
+            'definition': 'Kapital to output ratio',
+            'units': None,
+        },
+        'K': {
+            'value': 2.7,
+            'units': 'units',
+            'definition': 'Capital',
+        },
+
+        # others
+        'pi': {
+            'value': None,
+            'definition': 'relative profit',
+            'units': None,
+            'symbol': r'$\pi$',
+        },
+        'g': {
+            'value': None,
+            'definition': 'Relative growth',
+            'units': 'y^{-1}',
+        },
+        'Y': {
+            'value': None,
+            'definition': 'GDP in output quantity',
+            'units': 'units.years^{-1}',
+        },
+        'L': {
+            'value': None,
+            'definition': 'Workers',
+            'units': 'humans',
+        },
+        'I': {
+            'value': None,
+            'definition': 'Investment',
+            'units': 'dollars',
+        },
+        'Pi': {
+            'value': None,
+            'definition': 'Absolute profit',
+            'units': 'dollars',
+        },
+        'lambda': {
+            'value': .97,
+            'definition': 'employement rate',
+            'units': None,
+        },
+        'omega': {
+            'value': .85,
+            'definition': 'wage share',
+            'units': None,
+        },
+    },
+
+    'Salary Negociation': {
+        'phillips': {
+            'value': None,
+            'definition': 'Wage inflation rate',
+            'units': 'y^{-1}',
+            'symbol': r'$\phi$',
+        },
+        'phinull': {
+            'value': 0.04,
+            'definition': 'Unemployment rate with no salary increase',
+            'units': None,
+        },
+        'phi0': {
+            'value': 0.04006410256410257,
+            'definition': 'Parameter1 for diverving squared',
+            'com': '',
+            'units': None,
+        },
+        'phi1': {
+            'value': 6.410256410256412*0.00001,
+            'definition': 'Parameter1 for diverving squared',
+            'com': '',
+            'units': None,
+        },
+    },
+
+    'Investment': {
+        'kappa': {
+            'value': None,
+            'definition': 'Part of GDP in investment',
+            'units': None,
+            'symbol': r'$\kappa$',
+        },
+        'k0': {
+            'value': -0.0065,
+            'definition': 'Percent of GDP invested when profit is zero',
+            'units': None,
+        },
+        'k1': {
+            'value': np.exp(-5),
+            'definition': 'Investment slope',
+            'units': None,
+        },
+        'k2': {
+            'value': 20,
+            'definition': 'Investment power in kappa',
+            'units': None,
+        },
+    },
+
+    'Debt': {
+        'r': {
+            'value': .03,
+            'definition': 'Interest on debt',
+            'units': 'y^{-1}',
+        },
+        'D': {
+            'value': 0.1,
+            'definition': 'Debt of private sector',
+            'units': 'dollars',
+        },
+        'd': {
+            # 'func': lambda GDP=0, D=0: D/GDP,
+            'value': 0.1,
+            'definition': 'relative debt',
+            'units': None,
+        },
+    },
+
+    'Prices': {
+        'mu': {
+            'value': 2,
+            'definition': 'Markup on prices',
+            'units': None,
+        },
+        'eta': {
+            'value': 1,
+            'definition': 'timerate of price adjustment',
+            'units': 'y^{-1}',
+        },
+        'GDP': {
+            'value': None,
+            'definition': 'GDP in nominal term',
+            'units': 'dollars',
+        },
+        'i': {
+            'value': None,
+            'definition': 'inflation rate',
+            'units': 'y^{-1}',
+        },
     },
 }
 
