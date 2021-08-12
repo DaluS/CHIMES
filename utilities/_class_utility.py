@@ -30,8 +30,9 @@ def _get_dict_subset(
     """ Return a copy of the input parameters dict
 
     Return as:
+        - list: list of keys
         - dict: dict
-        - 'DataGFrame': a pandas DataFrame
+        - 'DataFrame': a pandas DataFrame
         - np.ndarray: a dict of np.ndarrays
         - False: return nothing (useful of verb=True)
 

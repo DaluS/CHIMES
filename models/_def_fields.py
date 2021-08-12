@@ -56,9 +56,9 @@ _DALLOWED_FIELDS = {
     'value': None,
     'com': None,
     'units': [
-        'Units',  #
-        'y',      # Time
-        '$',      # Money
+        'Real Units',  #
+        'yr',      # Time
+        'Dollars',      # Money
         'C',      # Concentration
         'Humans',  # Population
     ],
@@ -89,7 +89,7 @@ _DFIELDS = {
         'value': 100,
         'com': 'Duration of simulation',
         'dimension': 'time',
-        'units': 'y',
+        'units': 'yr',
         'type': None,
         'symbol': None,
         'group': 'Numerical',
@@ -98,7 +98,7 @@ _DFIELDS = {
         'value': 0.01,
         'com': 'Time step (fixed timestep method)',
         'dimension': 'time',
-        'units': 'y',
+        'units': 'yr',
         'type': None,
         'symbol': None,
         'group': 'Numerical',
@@ -130,12 +130,22 @@ _DFIELDS = {
         'func': lambda dt=0: 1.,
         'com': 'Time vector',
         'dimension': 'time',
-        'units': 'y',
+        'units': 'yr',
         'type': 'extensive',
         'symbol': r'$t$',
         'group': 'Time',
         'eqtype': 'ode',
         'initial': 0,
+    },
+    
+    'tau': {
+        'value': 1,
+        'com': 'Adjustment timescale',
+        'dimension': 'time',
+        'units': 'yr',
+        'type': 'intensive',
+        'symbol': r'$\tau$',
+        'group': 'Time',
     },
 
     # PARAMETERS #############################################################
@@ -146,7 +156,7 @@ _DFIELDS = {
         'value': 0.025,
         'com': 'Rate of population growth',
         'dimension': 'time rate',
-        'units': 'y^{-1}',
+        'units': 'yr^{-1}',
         'type': 'intensive',
         'symbol': r'$beta$',
         'group': 'Population',
@@ -155,7 +165,7 @@ _DFIELDS = {
         'value': 0.02,
         'com': 'Rate of productivity increase',
         'dimension': 'time rate',
-        'units': 'y^{-1}',
+        'units': 'yr^{-1}',
         'type': 'intensive',
         'symbol': r'$alpha$',
         'group': 'Population',
@@ -167,9 +177,27 @@ _DFIELDS = {
         'value': 0.005,
         'com': 'Rate of capital depletion',
         'dimension': 'time rate',
-        'units': 'y^{-1}',
+        'units': 'yr^{-1}',
         'type': 'intensive',
         'symbol': r'$\delta$',
+        'group': 'Capital',
+    },    
+    's_p': {
+        'value': 1,
+        'com': 'Proportion of profit invested in capital',
+        'dimension': '',
+        'units': '',
+        'type': 'intensive',
+        'symbol': r'$s_p$',
+        'group': 'Capital',
+    },
+    's_w': {
+        'value': 0,
+        'com': 'Proportion of wages invested in capital',
+        'dimension': '',
+        'units': '',
+        'type': 'intensive',
+        'symbol': r'$s_w$',
         'group': 'Capital',
     },
 
@@ -185,20 +213,18 @@ _DFIELDS = {
         'group': 'Production',
     },
 
-
     # --------------
     # INTEREST / Price
     'r': {
         'value': .03,
         'com': 'Interest at the bank',
         'dimension': 'time rate',
-        'units': 'y^{-1}',
+        'units': 'yr^{-1}',
         'type': 'intensive',
         'symbol': None,
         'group': 'Prices',
     },
-
-
+    
     # --------------
     # PHILIPS CURVE (employement-salary increase)
     'phinull': {
@@ -259,6 +285,72 @@ _DFIELDS = {
         'group': 'Keen',
     },
 
+    # --------------
+    # PUTTY-CLAY MODEL FOR CAPITAL INVESTMENT
+    'kl_ratios': {
+        'value': np.arange(100),
+        'com': 'Spread of investment around optimal capital-labor ratio',
+        'dimension': 'Capital-labor ratio',
+        'units': 'Dollars Humans^{-1}',
+        'type': 'intensive',
+        'symbol': r'$\sigma_{kl}$',
+        'group': 'Putty-Clay',
+    },    
+    'productivity_fn': {
+        'value': np.arange(100),
+        'com': 'Labor productivity as a function of capital-labor ratio',
+        'dimension': 'Labor productivity',
+        'units': 'Dollars Human^{-1} yr^{-1}',
+        'type': 'intensive',
+        'symbol': r'$f$',
+        'group': 'Production',
+    },
+    'labor_density': {
+        'value': np.zeros(100),
+        'com': 'Labor employable on machines of varying capital-labor ratio',
+        'dimension': 'Labor density',
+        'units': 'Humans^{2] Dollars^{-1}',
+        'type': 'extensive',
+        'symbol': r'$l$',
+        'group': 'Putty-Clay',
+    },
+    'id_kl_min': {
+        'value': 0,
+        'com': 'Minimum capital-labor ratio for operation',
+        'dimension': 'Capital-labor ratio',
+        'units': 'Dollars Humans^{-1}',
+        'type': 'intensive',
+        'symbol': r'$k_{min}$',
+        'group': 'Putty-Clay',
+    },
+    'kl_optimum': {
+        'value': 0,
+        'com': 'Profit-optimal capital-labor ratio',
+        'dimension': 'Capital-labor ratio',
+        'units': 'Dollars Humans^{-1}',
+        'type': 'intensive',
+        'symbol': r'$k_{opt}$',
+        'group': 'Putty-Clay',
+    },    
+    'kl_sigma': {
+        'value': 0.1,
+        'com': 'Spread of investment around optimal capital-labor ratio',
+        'dimension': 'Capital-labor ratio',
+        'units': 'Dollars Humans^{-1}',
+        'type': 'intensive',
+        'symbol': r'$\sigma_{kl}$',
+        'group': 'Putty-Clay',
+    },
+    'I_distribution': {
+        'value': np.ones(100),
+        'com': 'Distribution of investment around optimal capital-labor ratio',
+        'dimension': 'Labor-capital ratio',
+        'units': 'Humans Dollar^{-1}',
+        'type': 'intensive',
+        'symbol': r'$\delta_{D}$',
+        'group': 'Putty-Clay',
+    },
+
     # DYNAMICAL VARIABLES ####################################################
     # ------------------------------------------------------------------------
     # ------------------------------------------------------------------------
@@ -297,7 +389,7 @@ _DFIELDS = {
         'value': None,
         'com': 'productivity per worker',
         'dimension': 'Productivity',
-        'units': 'Output Humans^{-1}',
+        'units': 'Real Units Humans^{-1} yr^{-1}',
         'type': 'intensive',
         'symbol': r'$a$',
         'group': 'Economy',
@@ -326,7 +418,7 @@ _DFIELDS = {
         'value': None,
         'com': 'Salary',
         'dimension': 'Money',
-        'units': 'Dollars',
+        'units': 'Dollars Humans^{-1} yr^{-1}',
         'type': 'extensive',
         'symbol': r'$W$',
         'group': 'Economy',
@@ -359,7 +451,7 @@ _DFIELDS = {
         'value': None,
         'com': 'Wage inflation rate',
         'dimension': 'time rate',
-        'units': 'y^{-1}',
+        'units': 'yr^{-1}',
         'type': 'intensive',
         'symbol': r'$\phi$',
         'group': 'Economy',
@@ -380,7 +472,7 @@ _DFIELDS = {
         'value': None,
         'com': 'Relative growth',
         'dimension': 'time rate',
-        'units': 'y^{-1}',
+        'units': 'yr^{-1}',
         'type': 'intensive',
         'symbol': r'$g$',
         'group': 'Economy',
@@ -389,7 +481,7 @@ _DFIELDS = {
         'value': None,
         'com': 'GDP in nominal term',
         'dimension': 'Money',
-        'units': 'Dollars',
+        'units': 'Dollars yr^{-1}',
         'type': 'extensive',
         'symbol': r'$GDP$',
         'group': 'Economy',
@@ -398,9 +490,9 @@ _DFIELDS = {
         'value': None,
         'com': 'GDP in output quantity',
         'dimension': 'Real Units',
-        'units': 'Real units',
+        'units': 'Real units yr^{-1}',
         'type': 'extensive',
-        'symbol': r'$Y$',
+        'symbol': r'$yr$',
         'group': 'Missing',
     },
     'L': {
@@ -416,7 +508,7 @@ _DFIELDS = {
         'value': None,
         'com': 'Investment',
         'dimension': 'Money',
-        'units': 'Dollars',
+        'units': 'Dollars yr^{-1}',
         'type': 'extensive',
         'symbol': r'$I$',
         'group': 'Economy',
@@ -425,7 +517,7 @@ _DFIELDS = {
         'value': None,
         'com': 'Absolute profit',
         'dimension': 'Money',
-        'units': 'Dollars',
+        'units': 'Dollars yr^{-1}',
         'type': 'extensive',
         'symbol': r'$\Pi$',
         'group': 'Economy',
@@ -435,7 +527,7 @@ _DFIELDS = {
         'value': None,
         'com': 'Inflation rate',
         'dimension': 'time rate',
-        'units': 'y^{-1}',
+        'units': 'yr^{-1}',
         'type': 'intensive',
         'symbol': r'$i$',
         'group': 'Economy',

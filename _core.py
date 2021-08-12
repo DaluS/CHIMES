@@ -75,7 +75,7 @@ class Hub():
             msg = (
                 "Please provide dparam/func_order xor (key, value)!\n"
                 + "You provided:\n"
-                + "\n".format(lstr)
+                + "{}\n".format(lstr)
             )
             raise Exception(msg)
 
@@ -105,36 +105,6 @@ class Hub():
             dparam=dparam, func_order=func_order, method=method,
             model=self.__dmisc.get('model')
         )
-
-        # store a simplified dict of variable arguments
-        # used in reset() and run()
-        lode = self.get_dparam(eqtype='ode', returnas=list)
-        linter = self.__dmisc['func_order']
-        laux = self.get_dparam(eqtype='auxiliary', returnas=list)
-
-        self.__dargs = {
-            k0: {
-                k1: self.__dparam[k1]['value']
-                for k1 in (
-                    self.__dparam[k0]['args']['ode']
-                    + self.__dparam[k0]['args']['intermediary']
-                    + self.__dparam[k0]['args']['auxiliary']
-                )
-                if k1 != 'lambda'
-            }
-            for k0 in lode + linter + laux
-        }
-
-        # Handle the lambda exception here to avoid test at every time step
-        # if lambda exists and is a function
-        c0 = (
-            'lambda' in self.__dparam.keys()
-            and self.__dparam['lambda'].get('func') is not None
-        )
-        # then handle the exception
-        for k0, v0 in self.__dargs.items():
-            if c0 and 'lambda' in self.__dparam[k0]['kargs']:
-                self.__dargs[k0]['lamb'] = self.__dparam['lambda']['value']
 
         # reset all variables
         self.reset()
@@ -211,33 +181,51 @@ class Hub():
         Only the first time step (initial values) is preserved
         All other time steps are set to nan
         """
-
-        # reset ode variables
-        for k0 in self.lfunc:
-            if k0 == 'time':
-                self.__dparam[k0]['value'][0] = self.__dparam[k0]['initial']
-                self.__dparam[k0]['value'][1:] = np.nan
-            elif self.__dparam[k0]['eqtype'] == 'ode':
-                self.__dparam[k0]['value'][0, :] = self.__dparam[k0]['initial']
-                self.__dparam[k0]['value'][1:, :] = np.nan
-            else:
-                self.__dparam[k0]['value'][:, :] = np.nan
-
-        # reset intermediary variables and auxiliary variables
+        # Define shape of model system
+        sys_shape = [self.__dparam['nt']['value'],
+                     self.__dparam['nx']['value']]
+        lode = self.get_dparam(eqtype='ode', returnas=list)
+        lpde = self.get_dparam(eqtype='pde', returnas=list)
+        linter = self.__dmisc['func_order']
         laux = self.get_dparam(eqtype='auxiliary', returnas=list)
-        linter_aux = self.__dmisc['func_order'] + laux
-        for k0 in linter_aux:
-            # prepare dict of args
-            kwdargs = {
-                k1: v1[0, :]
-                for k1, v1 in self.__dargs[k0].items()
+
+        # Create and initialize evolving variables
+        for k0 in lode + lpde:
+            var_shape = ([] if self.__dparam[k0]['eqtype'] == 'ode'
+                         else list(self.__dparam[k0]['initial'].shape))
+            self.__dparam[k0]['value'] = np.full(sys_shape + var_shape, np.nan)
+            self.__dparam[k0]['value'][0] = self.__dparam[k0]['initial']
+        
+        # Add references in dict of arguments to newly initialized values
+        # handling any lambda exception here rather than at each time step
+        self.__dargs = {
+            k0: {
+                'lamb' if k1 == 'lambda' else k1: self.__dparam[k1]['value']
+                for k1 in (self.__dparam[k0]['args']['ode']
+                           + self.__dparam[k0]['args']['pde'])
             }
-            # run function
-            self.__dparam[k0]['value'][0, :] = (
-                self.__dparam[k0]['func'](**kwdargs)
-            )
-            # set other time steps to nan
-            self.__dparam[k0]['value'][1:, :] = np.nan
+            for k0 in lode + lpde + linter + laux
+        }
+
+        # Create and initialize intermediary variables and auxiliary variables
+        for k0 in linter + laux:
+            # prepare dict of args
+            kwdargs = {k1: v1[0] for k1, v1 in self.__dargs[k0].items()}
+            # calculate inital value and use it to initialize the value array
+            initial_value = self.__dparam[k0]['func'](**kwdargs)
+            var_shape = ([] if type(initial_value) != np.ndarray
+                         else list(initial_value.shape))
+            self.__dparam[k0]['value'] = np.full(sys_shape + var_shape, np.nan)
+            self.__dparam[k0]['value'][0] = initial_value
+            # Add references in dict of arguments to newly initialized values,
+            # handling any lambda exception here rather than at each time step
+            ref = 'lamb' if k0 == 'lambda' else k0
+            for k1 in lode + lpde + linter + laux:
+                if k0 in (self.__dparam[k1]['args']['ode']
+                          + self.__dparam[k1]['args']['pde']
+                          + self.__dparam[k1]['args']['intermediary']
+                          + self.__dparam[k1]['args']['auxiliary']):
+                    self.__dargs[k1][ref] = self.__dparam[k0]['value']
 
         # set run to False
         self.__dmisc['run'] = False
@@ -255,9 +243,9 @@ class Hub():
             - array of indices
         """
         # check inputs
-        leqtype = ['ode', 'intermediary', 'auxiliary']
+        leqtype = ['ode', 'pde', 'intermediary', 'auxiliary']
         if eqtype is None:
-            eqtype = ['ode', 'intermediary']
+            eqtype = ['ode', 'pde', 'intermediary']
         if isinstance(eqtype, str):
             eqtype = [eqtype]
             if any([ss not in leqtype for ss in eqtype]):
@@ -273,6 +261,8 @@ class Hub():
             if v0.get('eqtype') in leqtype
         ], dtype=str)
 
+        print('\n'.join([f"{k}: {type(v)}, {v.shape if type(v) == np.ndarray else v}"
+                         for k in keys for v in [self.__dparam[k]['value']]]))
         # get compact variable array
         variables = np.swapaxes([
             self.__dparam[k0]['value'] for k0 in keys

@@ -7,6 +7,7 @@ import inspect
 import itertools as itt
 import warnings
 import time
+import copy
 
 # common
 import numpy as np
@@ -27,7 +28,7 @@ _PATH_MODELS = os.path.join(os.path.dirname(_PATH_HERE), 'models')
 
 
 _LTYPES = [int, float, np.int_, np.float_]
-_LEQTYPES = ['ode', 'intermediary', 'auxiliary']
+_LEQTYPES = ['ode', 'pde', 'intermediary', 'auxiliary']
 _LEXTRAKEYS = [
     'func', 'kargs', 'args', 'initial',
     'source_kargs', 'source_exp',
@@ -40,7 +41,7 @@ def _check_dparam(dparam=None):
     It must be a dict
     with only str as keys
     with only some fields allowed for each key
-    with values that can be scalars or functions
+    with values that can be scalars, arrays, or functions
 
     <Missing fields are filled in from defaults values in models._DFIELDS
 
@@ -189,10 +190,7 @@ def check_dparam(dparam=None, func_order=None, method=None, model=None):
         model = {dparam: models._DMODEL[dparam]['file']}
         if func_order is None:
             func_order = models._DMODEL[dparam]['func_order']
-        dparam = {
-            k0: dict(v0) if hasattr(v0, '__iter__') else v0
-            for k0, v0 in models._DMODEL[dparam]['dparam'].items()
-        }
+        dparam = copy.deepcopy(models._DMODEL[dparam]['dparam'])
     else:
         if model is None:
             model = {"custom": ''}
@@ -208,9 +206,7 @@ def check_dparam(dparam=None, func_order=None, method=None, model=None):
     )
 
     # Make sure to copy to avoid passing by reference
-    dparam = {
-        k0: dict(v0) for k0, v0 in dparam.items()
-    }
+    dparam = copy.deepcopy(dparam)
 
     return dparam, model, func_order
 
@@ -266,15 +262,24 @@ def _check_func(dparam=None, func_order=None, method=None):
             dfail[k0] = f"depend on unknown parameters: {lkout}"
             continue
 
-        # check ode
-        if 'itself' in kargs and v0['eqtype'] != 'ode':
-            dfail[k0] = f"itself in args => eqtype = 'ode' ({v0['eqtype']})!"
+        # check that only evolving parameters' func calls their own value
+        if 'itself' in kargs and v0['eqtype'] not in ['ode', 'pde']:
+            dfail[k0] = f"itself in args, eqtype not o/p de ({v0['eqtype']})!"
             continue
 
         # if ode => inital value necessary
         if v0['eqtype'] == 'ode' and type(v0.get('initial')) not in _LTYPES:
-            dfail[k0] = "ode equation needs a 'initial' value"
+            dfail[k0] = "ode equation needs an 'initial' value"
             continue
+
+        # if pde => inital value array necessary
+        if v0['eqtype'] == 'pde':
+            if type(v0.get('initial')) != np.ndarray:
+                dfail[k0] = "pde equation needs an 'initial' value array"
+                continue
+            elif v0.get('initial').dtype not in _LTYPES:
+                dfail[k0] = "'initial' values must be numeric"                
+                continue
 
         # Check is there is a circular dependency
         if k0 in kargs:
@@ -293,7 +298,7 @@ def _check_func(dparam=None, func_order=None, method=None):
         # Replace by computed value and remove from list of functions
         c0 = (
             not any([kk in lf for kk in kargs])
-            and dparam[k0]['eqtype'] != 'ode'
+            and dparam[k0]['eqtype'] not in ['ode', 'pde']
         )
         if c0:
             din = {kk: dparam[kk]['value'] for kk in kargs if kk != 'lambda'}
@@ -337,13 +342,23 @@ def _check_func(dparam=None, func_order=None, method=None):
     # --------------------------------
     # classify input args per category
     for k0 in lfi:
-        kargs = [kk for kk in dparam[k0]['kargs'] if kk != 'itself']
+        try:
+            kargs = [kk for kk in dparam[k0]['kargs'] if kk != 'itself']
+        except Exception as err:
+            kargs = []
+            print(f"Error with parameter {k0}: {err}")
+            print(dparam[k0])
+                
         argsf = [kk for kk in kargs if kk in lfi]
         dparam[k0]['args'] = {
             'param': [kk for kk in kargs if kk not in lfi],
             'ode': [
                 kk for kk in argsf
                 if dparam[kk]['eqtype'] == 'ode'
+            ],
+            'pde': [
+                kk for kk in argsf
+                if dparam[kk]['eqtype'] == 'pde'
             ],
             'auxiliary': [
                 kk for kk in argsf
@@ -383,31 +398,66 @@ def _check_func(dparam=None, func_order=None, method=None):
     for k0 in lfi:
         if dparam[k0].get('source_kargs') is None:
             assert dparam[k0].get('source_exp') is None
+            # Read the function definition (or its first line if a lambda fn)
             source = inspect.getsource(dparam[k0]['func'])
-            if source.count('lambda') != 1 or not source.endswith(',\n'):
-                msg = (
-                    f"The source line function {k0} is non-valid\n"
-                    "It must be a single-line lambda function, "
-                    "ending with ',\n'"
-                    f"Provided source:\n{source}"
-                )
-                raise Exception(msg)
-            source = source.strip().replace(',\n', '')
-            source = source[source.index('lambda') + len('lambda'):]
-            if source.count(':') != 1:
-                msg = (
-                    "Provided source is non-valid\n"
-                    "It should have a single ':'\n"
-                    f"Provided:\n{source}"
-                )
-                raise Exception(msg)
-            kargs, exp = source.split(':')
+            
+            if source[:4] == "def ":
+                # Remove newlines and "def {func}(" from the string
+                source = source.strip().replace('\n', '')
+                source = source[source.index('(') + 1:]
+                # Identify the index of the colon that ends the function header
+                n_braces = (np.cumsum(np.array([c == '[' for c in source]))
+                            - np.cumsum(np.array([c == ']' for c in source])))
+                id_sep = (np.logical_not(n_braces)
+                          & np.array([c == ':' for c in source])).nonzero()[0]    
+                if id_sep.size == 0:
+                    msg = (
+                        f"The source function for {k0} is non-valid\n"
+                        "It should have a ':' to end the function header\n"
+                        f"Provided:\n{source}"
+                        )
+                    raise Exception(msg)
+                # Separate parameters, before "):", and expression, after
+                kargs, exp = source[:id_sep[0] - 1], source[id_sep[0] + 1:]
+            else:
+                if source.count('lambda') != 1 or not source.endswith(',\n'):
+                    msg = (
+                        f"The source function for {k0} is non-valid\n"
+                        "If not defined with 'def ', it must be a single-line "
+                        "lambda function with non-lambda function arguments, "
+                        "ending with ',\n'"
+                        f"Provided source:\n{source}"
+                        )
+                    raise Exception(msg)                
+                source = source.strip().replace(',\n', '')
+                source = source[source.index('lambda') + len('lambda'):]
+                # Identify the index of the colon that ends the parameter list            
+                n_braces = (np.cumsum(np.array([c == '[' for c in source]))
+                            - np.cumsum(np.array([c == ']' for c in source])))
+                id_sep = (np.logical_not(n_braces)
+                          & np.array([c == ':' for c in source])).nonzero()[0]    
+                if id_sep.size != 1:
+                    msg = (
+                        f"The source function for {k0} is non-valid\n"
+                        "Outside slices, it should have a single ':'\n"
+                        f"Provided:\n{source}"
+                        )
+                    raise Exception(msg)
+                # Separate parameters, before ":", and expression, after
+                kargs, exp = source[:id_sep[0]], source[id_sep[0] + 1:]
             exp = exp.strip()
-            kargs = [kk.strip() for kk in kargs.strip().split(',')]
+            # Identify the indices of commas that separate the parameter list            
+            n_parens = (np.cumsum(np.array([c == '(' for c in kargs]))
+                        - np.cumsum(np.array([c == ')' for c in kargs])))
+            id_sep = list((np.logical_not(n_parens)
+                           & np.array([c == ',' for c in kargs])).nonzero()[0])
+            # Separate parameters
+            kargs = [kargs[i+1:j].strip()
+                     for (i, j) in zip([-1] + id_sep, id_sep + [None])]
             if not all(['=' in kk for kk in kargs]):
                 msg = (
                     'Only keyword args can be used for lambda functions!\n'
-                    f'Provided:\n{source}'
+                    f'Provided:\n{kargs}'
                 )
                 raise Exception(msg)
             kargs = ', '.join(kargs)
@@ -429,12 +479,6 @@ def _check_func(dparam=None, func_order=None, method=None):
                 kargs[ind[0]] = "{}={}".format(k1, dparam[k1]['value'])
             dparam[k0]['func'].__defaults__ = tuple(defaults)
             dparam[k0]['source_kargs'] = ', '.join(kargs)
-
-    # -------------------------------------------
-    # Create variables for all varying quantities
-    shape = (dparam['nt']['value'], dparam['nx']['value'])
-    for k0 in lfi:
-        dparam[k0]['value'] = np.full(shape, np.nan)
 
     # ----------------------------
     # Determine order of functions
