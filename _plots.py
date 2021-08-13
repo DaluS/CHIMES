@@ -98,8 +98,8 @@ def Var(sol, key, idx=0, cycles=False, log=False):
 
     if log is True:
         ax.set_yscale('log')
-    plt.title("Evolution of {key} in model #{idx}"
-              + sol.model['name'] + '| system number' + str(idx))
+    plt.title(f"Evolution of {key} in model {sol.model['name']} | "
+              f"system number {idx}")
     plt.ylabel(key)
     plt.xlabel('time')
     plt.show()

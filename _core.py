@@ -127,9 +127,6 @@ class Hub():
             'parameter', 'value', 'units', 'dimension', 'symbol',
             'type', 'eqtype', 'group', 'comment',
         ]
-        
-        if verb is None and returnas is None:
-            print("")
 
         return _class_utility._get_dict_subset(
             indict=self.__dparam,
