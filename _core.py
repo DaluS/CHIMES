@@ -195,7 +195,7 @@ class Hub():
                          else list(self.__dparam[k0]['initial'].shape))
             self.__dparam[k0]['value'] = np.full(sys_shape + var_shape, np.nan)
             self.__dparam[k0]['value'][0] = self.__dparam[k0]['initial']
-        
+
         # Add references in dict of arguments to newly initialized values
         # handling any lambda exception here rather than at each time step
         self.__dargs = {
@@ -258,14 +258,13 @@ class Hub():
         # Define shape of model system
         sys_shape = [self.__dparam['nt']['value'],
                      self.__dparam['nx']['value']]
-        
 
         # list of keys of variables
         keys = np.hstack([
-            np.repeat(k0, np.prod(v0['value'].shape[len(sys_shape):])) 
+            np.repeat(k0, np.prod(v0['value'].shape[len(sys_shape):]))
             for k0, v0 in self.__dparam.items()
             if v0.get('eqtype') in leqtype
-            ])
+        ])
         
         # Get compact variable array
         variables = np.concatenate([
@@ -307,7 +306,7 @@ class Hub():
         """
         value_str = (lambda value, fmt="{}":
             fmt.format(value) if np.isscalar(value) else "Array")
-            
+
         # ----------
         # Numerical parameters
         col0 = ['Numerical param.', 'value', 'units', 'comment']
@@ -321,7 +320,7 @@ class Hub():
             for k0, v0 in self.__dparam.items() if v0['group'] == 'Numerical'
         ]
         ar0.append(['run', str(self.__dmisc['run']), '', ''])
-        
+
         larr = [f"{k0}:\n"
                 f"    {v0['value']}" for k0, v0 in self.__dparam.items()
                 if v0['group'] == 'Numerical' and not np.isscalar(v0['value'])]
@@ -332,7 +331,6 @@ class Hub():
                    + '\n'.join(larr))
         else:
             ps0 = ""
-            
 
         # ----------
         # parameters
@@ -348,8 +346,8 @@ class Hub():
             for k0, v0 in self.__dparam.items()
             if v0['group'] != 'Numerical'
             and v0.get('func') is None
-        ]        
-        
+        ]
+
         larr = [f"{k0}:\n"
                 f"    {v0['value']}" for k0, v0 in self.__dparam.items()
                 if v0['group'] != 'Numerical'
@@ -382,14 +380,14 @@ class Hub():
             for k0, v0 in self.__dparam.items()
             if v0.get('func') is not None
         ]
-        
+
         lexp = [(f"def d_t {k0}:" if v0['eqtype'] == 'ode' else
-                 f"def \partial_t {k0}:" if v0['eqtype'] == 'pde' else
+                 f"def \\partial_t {k0}:" if v0['eqtype'] == 'pde' else
                  f"def {k0}:")
-                 + v0['source_exp']
-                 for k0, v0 in self.__dparam.items()
-                 if v0.get('func') is not None
-                 and 'return' in v0['source_exp']]
+                + v0['source_exp']
+                for k0, v0 in self.__dparam.items()
+                if v0.get('func') is not None
+                and 'return' in v0['source_exp']]
         if len(lexp) > 0:
             ps2 = ("\n\n"
                    "Multi-line functions:\n"
@@ -428,7 +426,7 @@ class Hub():
                         value_str(v0.get('value')[-1, idx], fmt="{:.2e}"),
                     )
                     ii += 1
-                    
+
             # add final values to postscript
             larr = [f"{k0}:\n"
                     f"    {v0['value'][0, idx]}"

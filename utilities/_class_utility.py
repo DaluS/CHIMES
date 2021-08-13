@@ -157,7 +157,7 @@ def _dict_equal(dict1, dict2, dd=None):
         msg = None
 
         # check type
-        if type(v0) != type(dict2[k0]):
+        if isinstance(v0, type(dict2[k0])):
             msg = f"different type ({type(v0)} vs {type(dict2[k0])})"
             dfail[key] = msg
             continue

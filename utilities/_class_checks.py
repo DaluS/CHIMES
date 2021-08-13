@@ -278,7 +278,7 @@ def _check_func(dparam=None, func_order=None, method=None):
                 dfail[k0] = "pde equation needs an 'initial' value array"
                 continue
             elif v0.get('initial').dtype not in _LTYPES:
-                dfail[k0] = "'initial' values must be numeric"                
+                dfail[k0] = "'initial' values must be numeric"
                 continue
 
         # Check is there is a circular dependency
@@ -348,7 +348,7 @@ def _check_func(dparam=None, func_order=None, method=None):
             kargs = []
             print(f"Error with parameter {k0}: {err}")
             print(dparam[k0])
-                
+
         argsf = [kk for kk in kargs if kk in lfi]
         dparam[k0]['args'] = {
             'param': [kk for kk in kargs if kk not in lfi],
@@ -400,7 +400,7 @@ def _check_func(dparam=None, func_order=None, method=None):
             assert dparam[k0].get('source_exp') is None
             # Read the function definition (or its first line if a lambda fn)
             source = inspect.getsource(dparam[k0]['func'])
-            
+
             if source[:4] == "def ":
                 # Remove "def {func}(" from the string
                 source = source[source.index('(') + 1:]
@@ -408,13 +408,13 @@ def _check_func(dparam=None, func_order=None, method=None):
                 n_braces = (np.cumsum(np.array([c == '[' for c in source]))
                             - np.cumsum(np.array([c == ']' for c in source])))
                 id_sep = (np.logical_not(n_braces)
-                          & np.array([c == ':' for c in source])).nonzero()[0]    
+                          & np.array([c == ':' for c in source])).nonzero()[0]
                 if id_sep.size == 0:
                     msg = (
                         f"The source function for {k0} is non-valid\n"
                         "It should have a ':' to end the function header\n"
                         f"Provided:\n{source}"
-                        )
+                    )
                     raise Exception(msg)
                 # Separate parameters, before "):", and expression, after
                 kargs, exp = source[:id_sep[0] - 1], source[id_sep[0] + 1:]
@@ -426,32 +426,32 @@ def _check_func(dparam=None, func_order=None, method=None):
                         "lambda function with non-lambda function arguments, "
                         "ending with ',\n'"
                         f"Provided source:\n{source}"
-                        )
-                    raise Exception(msg)                
+                    )
+                    raise Exception(msg)
                 source = source.strip().replace(',\n', '')
                 source = source[source.index('lambda') + len('lambda'):]
-                # Identify the index of the colon that ends the parameter list            
+                # Identify the index of the colon that ends the parameter list
                 n_braces = (np.cumsum(np.array([c == '[' for c in source]))
                             - np.cumsum(np.array([c == ']' for c in source])))
                 id_sep = (np.logical_not(n_braces)
-                          & np.array([c == ':' for c in source])).nonzero()[0]    
+                          & np.array([c == ':' for c in source])).nonzero()[0]
                 if id_sep.size != 1:
                     msg = (
                         f"The source function for {k0} is non-valid\n"
                         "Outside slices, it should have a single ':'\n"
                         f"Provided:\n{source}"
-                        )
+                    )
                     raise Exception(msg)
                 # Separate parameters, before ":", and expression, after
                 kargs, exp = source[:id_sep[0]], source[id_sep[0] + 1:]
                 exp = exp.strip()
-            # Identify the indices of commas that separate the parameter list            
+            # Identify the indices of commas that separate the parameter list
             n_parens = (np.cumsum(np.array([c == '(' for c in kargs]))
                         - np.cumsum(np.array([c == ')' for c in kargs])))
             id_sep = list((np.logical_not(n_parens)
                            & np.array([c == ',' for c in kargs])).nonzero()[0])
             # Separate parameters
-            kargs = [kargs[i+1:j].strip()
+            kargs = [kargs[i + 1:j].strip()
                      for (i, j) in zip([-1] + id_sep, id_sep + [None])]
             if not all(['=' in kk for kk in kargs]):
                 msg = (

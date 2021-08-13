@@ -29,30 +29,35 @@ _DESCRIPTION = """
     LINKTOARTICLE: Akerlof, G. A. and Stiglitz, J. E., 1969. 'Capital, Wages
         and Structural Unemployment', The Economic Journal, Vol. 79, No. 314
         http://www.jstor.org/stable/2230168
-    
     """
+
 _PRESETS = {}
 # ---------------------------
 # user-defined model
 # contains parameters and functions of various types
 
+
 def del_t_labor_density(I=0, I_distribution=np.ones(n_kl), delta=0,
-                        kl_ratios=np.arange(1, n_kl+1), itself=np.zeros(n_kl)):
+                        kl_ratios=np.arange(1, n_kl + 1), itself=np.zeros(n_kl)):
     return I * I_distribution / kl_ratios - delta * itself
+
 
 def minimum_profitable_kl_ratio_index(productivity_fn=np.arange(n_kl), w=0):
     return np.nonzero(productivity_fn >= w)[0][0]
+
 
 def profit_maximising_kl_ratio(productivity_fn=np.arange(n_kl), w=0,
                                kl_ratios=np.arange(1, n_kl + 1)):
     return kl_ratios[np.argmax((productivity_fn - w) / kl_ratios)]
 
-def lognormal_distribution(kl_optimum=1, kl_sigma=1, 
+
+def lognormal_distribution(kl_optimum=1, kl_sigma=1,
                            kl_ratios=np.arange(1, n_kl + 1)):
     gaussian = (np.exp(-0.5 * np.log(kl_ratios / kl_optimum)**2 / kl_sigma**2)
                 / kl_ratios)
     weighted_sum = (gaussian[:-1] * np.diff(kl_ratios)).sum()
     return np.pad(gaussian[:-1], (0, 1)) / weighted_sum
+
 
 def total_production(id_kl_min=0, productivity_fn=np.arange(n_kl),
                      labor_density=np.ones(n_kl),
@@ -64,6 +69,7 @@ def total_production(id_kl_min=0, productivity_fn=np.arange(n_kl),
            for i, ld in zip(id_kl_min.astype(int), labor_density)]
     return np.array(ltp)
 
+
 def total_labor(id_kl_min=0, labor_density=np.ones(n_kl),
                 kl_ratios=np.arange(1, n_kl + 1)):
     if np.isscalar(id_kl_min):
@@ -71,6 +77,7 @@ def total_labor(id_kl_min=0, labor_density=np.ones(n_kl),
     ltl = [(ld[i:-1] * np.diff(kl_ratios[i:])).sum()
            for i, ld in zip(id_kl_min.astype(int), labor_density)]
     return np.array(ltl)
+
 
 _DPARAM = {
     # ---------
@@ -84,7 +91,7 @@ _DPARAM = {
     's_w': 0,
     'kl_sigma': 0.1,
     'kl_ratios': kl_ratios,
-    
+
     # ---------
     # endogeneous functions
 
@@ -93,7 +100,7 @@ _DPARAM = {
         'func': lambda beta=0, itself=0: beta * itself,
         'initial': 6e6,
         'eqtype': 'ode',
-    },    
+    },
     'w': {
         'func': lambda L=0, N=1, itself=0, tau=1: (1e4 * L / (N - L) - itself) / tau,
         'initial': 5e4,
@@ -118,7 +125,7 @@ _DPARAM = {
     'kl_optimum': {
         'func': profit_maximising_kl_ratio,
         'eqtype': 'intermediary',
-    },        
+    },
     'I_distribution': {
         'func': lognormal_distribution,
         'eqtype': 'intermediary',

@@ -137,7 +137,6 @@ _DFIELDS = {
         'eqtype': 'ode',
         'initial': 0,
     },
-    
     'tau': {
         'value': 1,
         'com': 'Adjustment timescale',
@@ -181,7 +180,7 @@ _DFIELDS = {
         'type': 'intensive',
         'symbol': r'$\delta$',
         'group': 'Capital',
-    },    
+    },
     's_p': {
         'value': 1,
         'com': 'Proportion of profit invested in capital',
@@ -224,7 +223,7 @@ _DFIELDS = {
         'symbol': None,
         'group': 'Prices',
     },
-    
+
     # --------------
     # PHILIPS CURVE (employement-salary increase)
     'phinull': {
@@ -295,7 +294,7 @@ _DFIELDS = {
         'type': 'intensive',
         'symbol': r'$\sigma_{kl}$',
         'group': 'Putty-Clay',
-    },    
+    },
     'productivity_fn': {
         'value': np.arange(100),
         'com': 'Labor productivity as a function of capital-labor ratio',
@@ -331,7 +330,7 @@ _DFIELDS = {
         'type': 'intensive',
         'symbol': r'$k_{opt}$',
         'group': 'Putty-Clay',
-    },    
+    },
     'kl_sigma': {
         'value': 0.1,
         'com': 'Spread of investment around optimal capital-labor ratio',

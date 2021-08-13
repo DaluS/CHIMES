@@ -40,19 +40,19 @@ def _eRK4_homemade(
                 timewait=timewait, end=end, flush=flush,
                 t0=t0,
             )
-            
+
         # compute ode variables from ii-1, using solver
         for k0 in lode + lpde:
             kwdargs = {
-                k1: v1[ii-1, :] for k1, v1 in dargs[k0].items()
+                k1: v1[ii - 1, :] for k1, v1 in dargs[k0].items()
             }
 
             dparam[k0]['value'][ii] = (
-                dparam[k0]['value'][ii-1]
+                dparam[k0]['value'][ii - 1]
                 + _rk4(
                     dparam=dparam,
                     k0=k0,
-                    y=dparam[k0]['value'][ii-1],
+                    y=dparam[k0]['value'][ii - 1],
                     kwdargs=kwdargs,
                 )
             )
