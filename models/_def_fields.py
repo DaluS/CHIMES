@@ -492,7 +492,7 @@ _DFIELDS = {
         'dimension': 'Real Units',
         'units': 'Real units yr^{-1}',
         'type': 'extensive',
-        'symbol': r'$yr$',
+        'symbol': r'$Y$',
         'group': 'Missing',
     },
     'L': {
