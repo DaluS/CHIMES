@@ -127,6 +127,9 @@ class Hub():
             'parameter', 'value', 'units', 'dimension', 'symbol',
             'type', 'eqtype', 'group', 'comment',
         ]
+        
+        if verb is None and returnas is None:
+            print("")
 
         return _class_utility._get_dict_subset(
             indict=self.__dparam,
@@ -305,7 +308,8 @@ class Hub():
 
         """
         value_str = (lambda value, fmt="{}":
-                         fmt.format(value) if np.isscalar(value) else "Array")
+                     fmt.format(value) if np.isscalar(value)
+                     else f"{value.shape} array")
 
         # ----------
         # Numerical parameters
@@ -435,7 +439,7 @@ class Hub():
                     and v0.get('func') is not None
                     and not np.isscalar(v0['value'][-1, idx])]
             if len(larr) > 0:
-                ps2 += ("\n"
+                ps2 += ("\n\n"
                         "Final array values:\n"
                         "------------------\n"
                         + '\n'.join(larr))

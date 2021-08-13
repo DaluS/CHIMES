@@ -94,7 +94,7 @@ def _get_dict_subset(
         for ii, k0 in enumerate(lk):
             for ss in lprint[1:]:
                 if ss == 'value':
-                    if indict[k0].get('func') is not None:
+                    if isinstance(indict[k0].get('value'), np.ndarray):
                         ar0[ii].append(str(indict[k0]['value'].shape))
                     else:
                         ar0[ii].append(str(indict[k0]['value']))
@@ -106,6 +106,7 @@ def _get_dict_subset(
             _utils._get_summary(
                 lar=[ar0],
                 lcol=[col0],
+                lps=['' ] * len(lprint),
                 verb=True,
                 returnas=False,
             )

@@ -288,7 +288,7 @@ _DFIELDS = {
     # PUTTY-CLAY MODEL FOR CAPITAL INVESTMENT
     'kl_ratios': {
         'value': np.arange(100),
-        'com': 'Spread of investment around optimal capital-labor ratio',
+        'com': 'Possible capital-labor ratios',
         'dimension': 'Capital-labor ratio',
         'units': 'Dollars Humans^{-1}',
         'type': 'intensive',

@@ -52,7 +52,7 @@ def _getcharray(ar, col=None, sep='  ', line='-', just='l', msg=True):
 def _get_summary(
     lar=None,       # list of data arrays
     lcol=None,      # list of column headers
-    lps=None,
+    lps=None,       # list of postscripts
     sep='  ',
     line='-',
     just='l',
