@@ -20,18 +20,234 @@ _PATH_HERE = os.path.dirname(__file__)
 _PATH_MODELS = os.path.join(os.path.dirname(_PATH_HERE), 'models')
 
 
-# #############################################################################
-# #############################################################################
-#                       dparam checks - low-level basis
-# #############################################################################
-
-
+_LMODEL_ATTR = ['_LOGICS', 'presets']
+_DMODEL_KEYS = {
+    'logics': dict,
+    'presets': dict,
+    'file': str,
+    'description': str,
+}
 _LTYPES = [int, float, np.int_, np.float_]
-_LEQTYPES = ['ode', 'intermediary', 'auxiliary']
+_LEQTYPES = ['ode', 'pde', 'statevar']
+
 _LEXTRAKEYS = [
     'func', 'kargs', 'args', 'initial',
     'source_kargs', 'source_exp',
 ]
+
+
+# #############################################################################
+# #############################################################################
+#                       Load library
+# #############################################################################
+
+
+def load_model(model):
+    """ Load a model from a model file
+
+    model can be:
+        - a model name, taken from directory {}
+        - the absolute path to an abitrary model file
+
+    """.format(_PATH_MODELS)
+
+    # -------------
+    # check inputs
+
+    if model in models._DMODEL.keys():
+        model_file = models._DMODEL[model]['file']
+        dmodel = models._DMODEL[model]
+
+    elif os.path.isfile(model) and model.endswith('.py'):
+        model_file = str(model)
+
+        # trying to derive model name from file name
+        model = os.path.split(model_file)[-1]
+        if model.startswith('_model_') and model.count('_') == 2:
+            model = model[model.index('_model_') + len('_model_'):-3]
+        else:
+            msg = (
+                "model file has non-standard name:\n"
+                f"\t- model file: {model_file}\n"
+                "  => setting model name to 'custom'"
+            )
+            warnings.warn(msg)
+            model = 'custom'
+
+        # load model file
+        spec = importlib.util.spec_from_file_location(k0, model_file)
+        foo = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(foo)
+
+        # checking attributes
+        lattr = [att for att in _MODEL_ATTR if not hasattr(foo, att)]
+        if len(lattr) > 0:
+            lstr = [f'\t- {att}' for att in lattr]
+            msg = (
+                "The provided model file should have at least attributes:\n"
+                + "\n".join(lstr)
+            )
+            raise Exception(msg)
+
+        # loading attributes
+        dmodel = {
+            'logics': foo._LOGICS,
+            'presets': foo._PRESETS,
+            'description': foo.__doc__,
+            'file': model_file,
+        }
+
+    else:
+        msg = (
+            "Arg model must be either:\n"
+            "\t- the absolute path to valid .py file\n"
+            f"\t- the valid name of an existing model in {_PATH_MODELS}\n"
+            f"You provided:\n{model}"
+        )
+        raise Exception(msg)
+
+    # -------------
+    # check conformity of dmodel
+    _check_dmodel(dmodel)
+
+    # --------------------
+    # check logics
+    dmodel['logic'] = _check_logic(dmodel['logic'])
+
+    # --------------------
+    # check presets
+
+    # --------------------
+    # check func_order
+
+    return dmodel
+
+
+# #############################################################################
+# #############################################################################
+#                       check dmodel
+# #############################################################################
+
+
+def _check_dmodel(dmodel=None):
+
+    c0 = (
+        isinstance(dmodel, dict)
+        and all([
+            type(dmodel.get(k0)) is v0 for k0, v0 in _DMODEL_KEYS.items()
+        ])
+    )
+    if not c0:
+        lstr = [f'\t- {k0}: {v0}' for k0, v0 in _DMODEL_KEYS.items()]
+        msg = (
+            "dmodel must be a dict with keys:\n"
+            + "\n".join(lstr)
+        )
+        raise Exception(msg)
+
+
+# #############################################################################
+# #############################################################################
+#                       check logic
+# #############################################################################
+
+
+def _check_logic(dmodel=None):
+
+    # ---------------
+    # list non-conform keys
+
+    kout = [
+        k0 for k0, v0 in dmodel['logic'].items()
+        if not (
+            k0 in _LEQTYPES
+            and isinstance(v0, dict)
+        )
+    ]
+    if len(lkout) > 0:
+        lstr = []
+        msg = [f'\t- {kk}' for kk in lkout]
+            "The following keys in _LOGIC are not supported:\n"
+            + "\n".join(lstr)
+        )
+        raise Exception(msg)
+
+    # --------------------
+    # List all keys in all dict that are not known to _LIBRARY
+
+    dkout = {
+        k0: [k1 for k1 in v0.keys() if k1 not in models._LIBRARY]
+        for k0, v0 in dmodel['logic'].items()
+        if any([k1 for k1 in v0.keys() if k1 not in models._LIBRARY])
+    }
+    if len(dkout) > 0:
+        lstr = [
+            '\n'.join(["\t- {k0}['{k1}']" for k1 in v0.keys()])
+            for k0, v0 in dkout.items()
+        ]
+        msg = (
+            "The following keys are not known to _LIBRARY:\n"
+            + "\n".join(lstr)
+        )
+        raise Exception(msg)
+
+    # -----------------------
+    # check ode
+
+    if 'ode' in dmodel['logic'].keys():
+
+        # list non-conform keys (must have a 'logic' function)
+        lkout = [
+            k1 for k1, v1 in dmodel['logic']['ode'].items()
+            if not (
+                isinstance(v1, dict)
+                and hasattr(v1.get('func'), '__call__')
+            )
+        ]
+        if len(lkout) > 0:
+            lstr = [f'\t- {kk}' for kk in lkout]
+            msg = (
+                "The following ode have non-conform 'func':\n"
+                "\n".join(lstr)
+            )
+            raise Exception(msg)
+
+        # if initial not defined, get from _LIBRARY
+        for k1, v1 in dmodel['logic']['ode'].items():
+            if v1.get('initial') is None:
+                dmodel['logic']['ode'][k1]['initial'] = models._LIBRARY[k1]['value']
+
+        # set all other fields from _LIBRARY
+        for k1, v1 in dmodel['logic']['ode'].items():
+            for k2, v2 in models._LIBRARY[k1].items():
+                if k2 == 'value':
+                    continue
+                if  v1.get(k2) is None:
+                    dmodel['logic']['ode'][k1][k2] = v2
+
+    # -----------------------
+    # check pde
+
+
+    # -----------------------
+    # check statevar
+
+
+    # -----------------------
+    # check parameters
+
+
+    # -----------------------
+    # add numerical parameters if not included
+
+    # -----------------------
+    # Add time vector if missing
+
+
+# #############################################################################
+# #############################################################################
+#                       dparam checks - low-level basis
+# #############################################################################
 
 
 def _check_dparam(dparam=None):

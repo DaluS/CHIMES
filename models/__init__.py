@@ -5,7 +5,7 @@ import os
 import importlib
 
 
-from ._def_fields import _DFIELDS
+from ._def_fields import _DFIELDS, _LIBRARY
 
 
 _PATH_HERE = os.path.dirname(__file__)
@@ -30,7 +30,7 @@ for k0, v0 in _df.items():
     foo = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(foo)
     _DMODEL[v0] = {
-        'dparam': foo._DPARAM,
+        'logics': foo._LOGICS,
         'func_order': foo._FUNC_ORDER,
         'file': foo.__file__,
         'description': foo.__doc__,
