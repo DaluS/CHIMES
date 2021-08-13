@@ -265,13 +265,13 @@ class Hub():
             for k0, v0 in self.__dparam.items()
             if v0.get('eqtype') in leqtype
         ])
-        
+
         # Get compact variable array
         variables = np.concatenate([
             v0['value'].reshape(sys_shape + [-1])
             for k0, v0 in self.__dparam.items()
             if v0.get('eqtype') in leqtype
-            ], axis=len(sys_shape))
+        ], axis=len(sys_shape))
 
         return keys, variables
 
@@ -305,7 +305,7 @@ class Hub():
 
         """
         value_str = (lambda value, fmt="{}":
-            fmt.format(value) if np.isscalar(value) else "Array")
+                         fmt.format(value) if np.isscalar(value) else "Array")
 
         # ----------
         # Numerical parameters

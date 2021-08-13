@@ -62,7 +62,7 @@ def lognormal_distribution(kl_optimum=1, kl_sigma=1,
 def total_production(id_kl_min=0, productivity_fn=np.arange(n_kl),
                      labor_density=np.ones(n_kl),
                      kl_ratios=np.arange(1, n_kl + 1)):
-    if np.isscalar(id_kl_min):        
+    if np.isscalar(id_kl_min):
         return (productivity_fn[id_kl_min:-1] * labor_density[id_kl_min:-1]
                 * np.diff(kl_ratios[id_kl_min:])).sum()
     ltp = [(productivity_fn[i:-1] * ld[i:-1] * np.diff(kl_ratios[i:])).sum()
