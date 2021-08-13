@@ -40,12 +40,12 @@ def del_t_labor_density(I=0, I_distribution=np.ones(n_kl), delta=0,
                         kl_ratios=np.arange(1, n_kl+1), itself=np.zeros(n_kl)):
     return I * I_distribution / kl_ratios - delta * itself
 
-def minimum_profitable_kl_ratio_index(productivity_fn=np.arange(n_kl), W=0):
-    return np.nonzero(productivity_fn >= W)[0][0]
+def minimum_profitable_kl_ratio_index(productivity_fn=np.arange(n_kl), w=0):
+    return np.nonzero(productivity_fn >= w)[0][0]
 
-def profit_maximising_kl_ratio(productivity_fn=np.arange(n_kl), W=0,
+def profit_maximising_kl_ratio(productivity_fn=np.arange(n_kl), w=0,
                                kl_ratios=np.arange(1, n_kl + 1)):
-    return kl_ratios[np.argmax((productivity_fn - W) / kl_ratios)]
+    return kl_ratios[np.argmax((productivity_fn - w) / kl_ratios)]
 
 def lognormal_distribution(kl_optimum=1, kl_sigma=1, 
                            kl_ratios=np.arange(1, n_kl + 1)):
@@ -94,7 +94,7 @@ _DPARAM = {
         'initial': 6e6,
         'eqtype': 'ode',
     },    
-    'W': {
+    'w': {
         'func': lambda L=0, N=1, itself=0, tau=1: (1e4 * L / (N - L) - itself) / tau,
         'initial': 5e4,
         'eqtype': 'ode',
@@ -132,11 +132,11 @@ _DPARAM = {
         'eqtype': 'intermediary',
     },
     'Pi': {
-        'func': lambda GDP=0, W=0, L=0: GDP - W * L,
+        'func': lambda GDP=0, w=0, L=0: GDP - w * L,
         'eqtype': 'intermediary',
     },
     'I': {
-        'func': lambda s_p=1, s_w=0, Pi=0, W=0, L=0: s_p * Pi + s_w * W * L,
+        'func': lambda s_p=1, s_w=0, Pi=0, w=0, L=0: s_p * Pi + s_w * w * L,
         'eqtype': 'intermediary',
     },
 
@@ -147,7 +147,7 @@ _DPARAM = {
         'eqtype': 'auxiliary',
     },
     'omega': {
-        'func': lambda W=0, L=0, GDP=1: W * L / GDP,
+        'func': lambda w=0, L=0, GDP=1: w * L / GDP,
         'eqtype': 'auxiliary',
     }
 }
