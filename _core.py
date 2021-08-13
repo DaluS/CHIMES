@@ -283,8 +283,8 @@ class Hub():
         """ This is automatically called when only the instance is entered """
         col0 = ['model', 'source', 'nb. model param', 'nb. functions', 'run']
         ar0 = [
-            list(self.__dmisc['model']['name'],
-            list(self.__dmisc['model']['file'],
+            self.__dmisc['model']['name'],
+            self.__dmisc['model']['file'],
             len([
                 k0 for k0, v0 in self.__dparam.items()
                 if v0.get('func') is None
