@@ -402,8 +402,7 @@ def _check_func(dparam=None, func_order=None, method=None):
             source = inspect.getsource(dparam[k0]['func'])
             
             if source[:4] == "def ":
-                # Remove newlines and "def {func}(" from the string
-                source = source.strip().replace('\n', '')
+                # Remove "def {func}(" from the string
                 source = source[source.index('(') + 1:]
                 # Identify the index of the colon that ends the function header
                 n_braces = (np.cumsum(np.array([c == '[' for c in source]))
@@ -445,7 +444,7 @@ def _check_func(dparam=None, func_order=None, method=None):
                     raise Exception(msg)
                 # Separate parameters, before ":", and expression, after
                 kargs, exp = source[:id_sep[0]], source[id_sep[0] + 1:]
-            exp = exp.strip()
+                exp = exp.strip()
             # Identify the indices of commas that separate the parameter list            
             n_parens = (np.cumsum(np.array([c == '(' for c in kargs]))
                         - np.cumsum(np.array([c == ')' for c in kargs])))

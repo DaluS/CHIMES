@@ -213,8 +213,8 @@ class Hub():
             kwdargs = {k1: v1[0] for k1, v1 in self.__dargs[k0].items()}
             # calculate inital value and use it to initialize the value array
             initial_value = self.__dparam[k0]['func'](**kwdargs)
-            var_shape = ([] if type(initial_value) != np.ndarray
-                         else list(initial_value.shape))
+            is_scalar = np.isscalar(initial_value) or initial_value.size == 1
+            var_shape = [] if is_scalar else list(initial_value.shape)
             self.__dparam[k0]['value'] = np.full(sys_shape + var_shape, np.nan)
             self.__dparam[k0]['value'][0] = initial_value
             # Add references in dict of arguments to newly initialized values,
@@ -255,18 +255,24 @@ class Hub():
                 )
                 raise Exception(msg)
 
-        # list of keys of variables
-        keys = np.array([
-            k0 for k0, v0 in self.__dparam.items()
-            if v0.get('eqtype') in leqtype
-        ], dtype=str)
+        # Define shape of model system
+        sys_shape = [self.__dparam['nt']['value'],
+                     self.__dparam['nx']['value']]
+        
 
-        print('\n'.join([f"{k}: {type(v)}, {v.shape if type(v) == np.ndarray else v}"
-                         for k in keys for v in [self.__dparam[k]['value']]]))
-        # get compact variable array
-        variables = np.swapaxes([
-            self.__dparam[k0]['value'] for k0 in keys
-        ], 0, 1)
+        # list of keys of variables
+        keys = np.hstack([
+            np.repeat(k0, np.prod(v0['value'].shape[len(sys_shape):])) 
+            for k0, v0 in self.__dparam.items()
+            if v0.get('eqtype') in leqtype
+            ])
+        
+        # Get compact variable array
+        variables = np.concatenate([
+            v0['value'].reshape(sys_shape + [-1])
+            for k0, v0 in self.__dparam.items()
+            if v0.get('eqtype') in leqtype
+            ], axis=len(sys_shape))
 
         return keys, variables
 
@@ -299,20 +305,34 @@ class Hub():
         Print a str summary of the solver
 
         """
-
+        value_str = (lambda value, fmt="{}":
+            fmt.format(value) if np.isscalar(value) else "Array")
+            
         # ----------
         # Numerical parameters
         col0 = ['Numerical param.', 'value', 'units', 'comment']
         ar0 = [
             [
                 k0,
-                str(v0['value']),
+                value_str(v0['value']),
                 str(v0['units']),
                 v0['com'],
             ]
             for k0, v0 in self.__dparam.items() if v0['group'] == 'Numerical'
         ]
         ar0.append(['run', str(self.__dmisc['run']), '', ''])
+        
+        larr = [f"{k0}:\n"
+                f"    {v0['value']}" for k0, v0 in self.__dparam.items()
+                if v0['group'] == 'Numerical' and not np.isscalar(v0['value'])]
+        if len(larr) > 0:
+            ps0 = ("\n"
+                   "Numerical param. array values:\n"
+                   "-----------------------------\n"
+                   + '\n'.join(larr))
+        else:
+            ps0 = ""
+            
 
         # ----------
         # parameters
@@ -320,7 +340,7 @@ class Hub():
         ar1 = [
             [
                 k0,
-                str(v0['value']),
+                value_str(v0['value']),
                 str(v0['units']),
                 v0['group'],
                 v0['com'],
@@ -328,7 +348,20 @@ class Hub():
             for k0, v0 in self.__dparam.items()
             if v0['group'] != 'Numerical'
             and v0.get('func') is None
-        ]
+        ]        
+        
+        larr = [f"{k0}:\n"
+                f"    {v0['value']}" for k0, v0 in self.__dparam.items()
+                if v0['group'] != 'Numerical'
+                and v0.get('func') is None
+                and not np.isscalar(v0['value'])]
+        if len(larr) > 0:
+            ps1 = ("\n\n\n"
+                   "Model param. array values:\n"
+                   "-------------------------\n"
+                   + '\n'.join(larr))
+        else:
+            ps1 = ""
 
         # ----------
         # functions
@@ -337,8 +370,9 @@ class Hub():
         ar2 = [
             [
                 k0,
-                v0['source_exp'],
-                "{:.2e}".format(v0.get('value')[0, idx]),
+                'See below' if 'return' in v0['source_exp']
+                else v0['source_exp'],
+                value_str(v0['value'][0, idx], fmt="{:.2e}"),
                 str(v0['units']),
                 v0['eqtype'].replace('intermediary', 'inter').replace(
                     'auxiliary', 'aux',
@@ -348,6 +382,32 @@ class Hub():
             for k0, v0 in self.__dparam.items()
             if v0.get('func') is not None
         ]
+        
+        lexp = [(f"def d_t {k0}:" if v0['eqtype'] == 'ode' else
+                 f"def \partial_t {k0}:" if v0['eqtype'] == 'pde' else
+                 f"def {k0}:")
+                 + v0['source_exp']
+                 for k0, v0 in self.__dparam.items()
+                 if v0.get('func') is not None
+                 and 'return' in v0['source_exp']]
+        if len(lexp) > 0:
+            ps2 = ("\n\n"
+                   "Multi-line functions:\n"
+                   "--------------------\n"
+                   + '\n'.join(lexp))
+        else:
+            ps2 = ""
+        larr = [f"{k0}:\n"
+                f"    {v0['value'][0, idx]}"
+                for k0, v0 in self.__dparam.items()
+                if v0['group'] != 'Numerical'
+                and v0.get('func') is not None
+                and not np.isscalar(v0['value'][0, idx])]
+        if len(larr) > 0:
+            ps2 += ("\n"
+                    "Initial array values:\n"
+                    "--------------------\n"
+                    + '\n'.join(larr))
 
         # --------------------------
         # Add solver and final value if has run
@@ -365,15 +425,29 @@ class Hub():
                 if v0.get('func') is not None:
                     ar2[ii].insert(
                         3,
-                        "{:.2e}".format(v0.get('value')[-1, idx]),
+                        value_str(v0.get('value')[-1, idx], fmt="{:.2e}"),
                     )
                     ii += 1
+                    
+            # add final values to postscript
+            larr = [f"{k0}:\n"
+                    f"    {v0['value'][0, idx]}"
+                    for k0, v0 in self.__dparam.items()
+                    if v0['group'] != 'Numerical'
+                    and v0.get('func') is not None
+                    and not np.isscalar(v0['value'][-1, idx])]
+            if len(larr) > 0:
+                ps2 += ("\n"
+                        "Final array values:\n"
+                        "------------------\n"
+                        + '\n'.join(larr))
 
         # ----------
         # format output
         return _utils._get_summary(
             lar=[ar0, ar1, ar2],
             lcol=[col0, col1, col2],
+            lps=[ps0, ps1, ps2],
             verb=True,
             returnas=False,
         )
@@ -418,6 +492,7 @@ class Hub():
         # ------------
         # temporary dict of input
         lode = self.get_dparam(eqtype='ode', returnas=list)
+        lpde = self.get_dparam(eqtype='pde', returnas=list)
         linter = self.__dmisc['func_order']
         laux = self.get_dparam(eqtype='auxiliary', returnas=list)
 
@@ -428,6 +503,7 @@ class Hub():
             _solvers._eRK4_homemade(
                 dparam=self.__dparam,
                 lode=lode,
+                lpde=lpde,
                 linter=linter,
                 laux=laux,
                 dargs=self.__dargs,

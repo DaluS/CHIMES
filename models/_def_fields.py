@@ -335,8 +335,8 @@ _DFIELDS = {
     'kl_sigma': {
         'value': 0.1,
         'com': 'Spread of investment around optimal capital-labor ratio',
-        'dimension': 'Capital-labor ratio',
-        'units': 'Dollars Humans^{-1}',
+        'dimension': '',
+        'units': '',
         'type': 'intensive',
         'symbol': r'$\sigma_{kl}$',
         'group': 'Putty-Clay',
@@ -414,13 +414,13 @@ _DFIELDS = {
         'symbol': r'$K$',
         'group': 'Economy',
     },
-    'W': {
+    'w': {
         'value': None,
         'com': 'Salary',
         'dimension': 'Money',
         'units': 'Dollars Humans^{-1} yr^{-1}',
         'type': 'extensive',
-        'symbol': r'$W$',
+        'symbol': r'$w$',
         'group': 'Economy',
     },
     'D': {

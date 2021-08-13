@@ -52,6 +52,7 @@ def _getcharray(ar, col=None, sep='  ', line='-', just='l', msg=True):
 def _get_summary(
     lar=None,       # list of data arrays
     lcol=None,      # list of column headers
+    lps=None,
     sep='  ',
     line='-',
     just='l',
@@ -70,8 +71,8 @@ def _get_summary(
     # Out
     if verb or returnas in [True, str]:
         lmsg = [
-            _getcharray(ar, col, sep=sep, line=line, just=just)
-            for ar, col in zip(*[lar, lcol])
+            _getcharray(ar, col, sep=sep, line=line, just=just) + ps
+            for ar, col, ps in zip(*[lar, lcol, lps])
         ]
         if verb:
             msg = table_sep.join(lmsg)
