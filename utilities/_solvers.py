@@ -104,10 +104,6 @@ def _rk4(dparam=None, k0=None, y=None, kwdargs=None):
         dy2 = dparam[k0]['func'](**kwdargs)
         dy3 = dparam[k0]['func'](**kwdargs)
         dy4 = dparam[k0]['func'](**kwdargs)
-    # DEBUG
-    if k0 == 'W':
-        print(", ".join([f"{k}: {v}" for k, v in kwdargs.items()]))
-        print(f"W: {y}, W': {dy1}")
     return (dy1 + 2*dy2 + 2*dy3 + dy4) * dparam['dt']['value']/6.
 
 
