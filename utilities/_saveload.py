@@ -160,7 +160,7 @@ def save(
     # --------------
     # Make full name
     dinclude = {
-        'model': list(obj.model.keys())[0].replace('_', '-').replace(' ', '-'),
+        'model': obj.model['name'].replace('_', '-').replace(' ', '-'),
         'solver': obj.dmisc['solver'],
         'name': name,
         'user': getpass.getuser(),

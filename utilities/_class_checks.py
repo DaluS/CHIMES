@@ -187,13 +187,13 @@ def check_dparam(dparam=None, func_order=None, method=None, model=None):
                 + models.get_available_models(returnas=str, verb=False)
             )
             raise Exception(msg)
-        model = {dparam: models._DMODEL[dparam]['file']}
+        model = {'name': dparam, 'file': models._DMODEL[dparam]['file']}
         if func_order is None:
             func_order = models._DMODEL[dparam]['func_order']
         dparam = copy.deepcopy(models._DMODEL[dparam]['dparam'])
     else:
         if model is None:
-            model = {"custom": ''}
+            model = {'name': "custom", 'file': ""}
 
     # check conformity
     dparam = _check_dparam(dparam)

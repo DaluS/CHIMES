@@ -40,7 +40,7 @@ def AllVar(sol, rows=1, idx=0):
 
         plt.plot(t, val)
         plt.ylabel(lk)
-    plt.suptitle(list(sol.model.keys())[0] + '||| system number :' + str(idx))
+    plt.suptitle(sol.model['name'] + '||| system number :' + str(idx))
     plt.show()
     # else:
     #    print('Plot simple could not be done as the simulation did not run')
@@ -62,7 +62,7 @@ def Var(sol, key, idx=0, cycles=False, log=False):
     None.
 
     '''
-    plt.figure('key :' + key + '| system idx' + str(idx), figsize=(10, 5))
+    plt.figure(f"key : {key} | system idx : {idx}", figsize=(10, 5))
     fig = plt.gcf()
     ax = plt.gca()
 
@@ -98,8 +98,8 @@ def Var(sol, key, idx=0, cycles=False, log=False):
 
     if log is True:
         ax.set_yscale('log')
-    plt.title('Evolution of :' + key + ' in model : '
-              + list(sol.model.keys())[0] + '| system number' + str(idx))
+    plt.title("Evolution of {key} in model #{idx}"
+              + sol.model['name'] + '| system number' + str(idx))
     plt.ylabel(key)
     plt.xlabel('time')
     plt.show()
@@ -145,14 +145,14 @@ def phasespace(sol, x='omega', y='lambda', color='time', idx=0):
     plt.ylim([np.amin(yval), np.amax(yval)])
     plt.axis('scaled')
     plt.title('Phasespace ' + x + '-' + y + ' for model : '
-              + list(sol.model.keys())[0] + '| system number' + str(idx))
+              + sol.model['name'] + '| system number' + str(idx))
 
     plt.show()
 
 
 def AllPhaseSpace(sol, variablesREF, idx=0):
     plt.figure('All Phasespace for system :'+str(idx)+' for model : ' +
-               list(sol.model.keys())[0], figsize=(10, 7))
+               sol.model['name'], figsize=(10, 7))
     fig = plt.gcf()
     leng = len(variablesREF)
     NumbOfSubplot = int(leng*(leng-1)/2)
@@ -185,5 +185,5 @@ def AllPhaseSpace(sol, variablesREF, idx=0):
             idd += 1
     fig.colorbar(line, ax=ax, label='time')
     plt.suptitle('All Phasespace for system :'+str(idx)+' for model : ' +
-                 list(sol.model.keys())[0])
+                 sol.model['name'])
     plt.show()
