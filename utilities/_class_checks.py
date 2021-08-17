@@ -26,13 +26,14 @@ _DMODEL_KEYS = {
     'presets': dict,
     'file': str,
     'description': str,
+    'name': str,
 }
 _LTYPES = [int, float, np.int_, np.float_]
-_LEQTYPES = ['ode', 'pde', 'statevar']
+_LEQTYPES = ['ode', 'pde', 'statevar', 'undeclared']
 
 _LEXTRAKEYS = [
     'func', 'kargs', 'args', 'initial',
-    'source_kargs', 'source_exp',
+    'source_kargs', 'source_exp', 'isneeded',
 ]
 
 
@@ -42,7 +43,7 @@ _LEXTRAKEYS = [
 # #############################################################################
 
 
-def load_model(model):
+def load_model(model, func_order=None, method=None):
     """ Load a model from a model file
 
     model can be:
@@ -57,7 +58,7 @@ def load_model(model):
     if model in models._DMODEL.keys():
         # Get from known models
         model_file = models._DMODEL[model]['file']
-        dmodel = models._DMODEL[model]
+        dmodel = dict(models._DMODEL[model])
 
     elif os.path.isfile(model) and model.endswith('.py'):
         # get from arbitrary model file
@@ -118,19 +119,19 @@ def load_model(model):
     _check_logics(dmodel)
 
     # convert logics (new formalism) to dparam
-    dparam = _get_dparam_from_logics(dmodel['logics'])
+    dparam = get_dparam_from_logics(dmodel)
+    del dmodel['logics']
 
     # --------------------
-    # check dparam
-    dparam = _check_dparam(dparam)
+    # re-check dparam + Identify functions order + get dargs
+    dparam, func_order, dargs = check_dparam(
+        dparam=dparam, func_order=func_order, method=method,
+    )
 
     # --------------------
     # check presets
 
-    # --------------------
-    # check func_order
-
-    return dmodel
+    return dmodel, dparam, func_order, dargs
 
 
 # #############################################################################
@@ -142,14 +143,20 @@ def load_model(model):
 def _check_dmodel(dmodel=None):
     """ Check dmodel is a dict with proper keys """
 
-    c0 = (
-        isinstance(dmodel, dict)
-        and all([
-            type(dmodel.get(k0)) is v0 for k0, v0 in _DMODEL_KEYS.items()
-        ])
-    )
-    if not c0:
-        lstr = [f'\t- {k0}: {v0}' for k0, v0 in _DMODEL_KEYS.items()]
+    if not isinstance(dmodel, dict):
+        msg = f"Arg dmodel must be a dict\nProvided: {type(dmodel)}"
+        raise Exception(msg)
+
+    dkout = {
+        k0: type(dmodel.get(k0))
+        for k0, v0 in _DMODEL_KEYS.items()
+        if not isinstance(dmodel.get(k0), v0)
+    }
+    if len(dkout) > 0:
+        lstr = [
+            f'\t- {k0}: {_DMODEL_KEYS[k0]} vs {v0}'
+            for k0, v0 in dkout.items()
+        ]
         msg = (
             "dmodel must be a dict with keys:\n"
             + "\n".join(lstr)
@@ -249,7 +256,7 @@ def _check_logics(dmodel=None):
         for k1, v1 in dmodel['logics']['ode'].items():
             if v1.get('initial') is None:
                 dmodel['logics']['ode'][k1]['initial'] \
-                        = models._LIBRARY[k1]['value']
+                        = models._DFIELDS[k1]['value']
 
     # -----------------------
     # check pde
@@ -261,6 +268,36 @@ def _check_logics(dmodel=None):
 
         # list non-conform keys (must have a 'func' function)
         _check_are_functions(indict=dmodel['logics']['statevar'])
+
+
+# #############################################################################
+# #############################################################################
+#                       convert logic to dparam
+# #############################################################################
+
+
+def get_dparam_from_logics(dmodel=None):
+    """ Convert logic (from dmodel) to dparam (used in instance)
+
+    """
+
+    lk = [dict.fromkeys(v0.keys(), k0) for k0, v0 in dmodel['logics'].items()]
+    for ii, dd in enumerate(lk[1:]):
+        lk[0].update(dd)
+
+    dparam = {
+        k0: dict(dmodel['logics'][v0][k0]) for k0, v0 in lk[0].items()
+    }
+
+    # ---------------
+    # Add eqtype
+    for k0 in dparam.keys():
+        dparam[k0]['eqtype'] = lk[0][k0]
+
+    # --------------
+    # add parameters
+
+    return dparam
 
 
 # #############################################################################
@@ -281,7 +318,9 @@ def _check_dparam(dparam=None):
 
     """
 
-    # check type
+    # -----------------
+    # check type is dict
+
     if not isinstance(dparam, dict):
         msg = (
             "dparam must be a dict!\n"
@@ -289,7 +328,9 @@ def _check_dparam(dparam=None):
         )
         raise Exception(msg)
 
-    # check keys
+    # ---------------
+    # check keys are known to models._DFIELDS
+
     lk0 = [
         k0 for k0 in dparam.keys() if k0 not in models._DFIELDS.keys()
     ]
@@ -300,7 +341,9 @@ def _check_dparam(dparam=None):
         )
         raise Exception(msg)
 
+    # ---------------------------------------
     # add numerical parameters if not included
+
     lknum = [
         k0 for k0, v0 in models._DFIELDS.items()
         if v0['group'] == 'Numerical'
@@ -309,21 +352,29 @@ def _check_dparam(dparam=None):
         if k0 not in dparam.keys():
             dparam[k0] = models._DFIELDS[k0]
 
+    # --------------------------
     # Add time vector if missing
-    if 'time' not in dparam.keys():
-        dparam['time'] = models._DFIELDS['time']
 
+    if 'time' not in dparam.keys():
+        dparam['time'] = dict(models._DFIELDS['time'])
+        dparam['time']['eqtype'] = 'ode'
+
+    # ------------
     # check values
+
     dfail = {}
     for k0, v0 in dparam.items():
 
+        # if value directly provided => put into dict
         if v0 is None or type(v0) in _LTYPES + [list, np.ndarray, str, bool]:
             dparam[k0] = {'value': v0}
 
+        # if function directly provided => put inot dict
         if hasattr(v0, '__call__'):
             dfail[k0] = "Function must be in a dict {'value': func, 'eqtype':}"
             continue
 
+        # if dict => investigate
         if isinstance(dparam[k0], dict):
 
             # set missing field to default
@@ -341,7 +392,7 @@ def _check_dparam(dparam=None):
                 dfail[k0] = f"Invalid keys: {lk}"
                 continue
 
-            # check value xor func
+            # check at least value xor func is present
             c0 = (
                 'value' not in dparam[k0].keys()
                 and 'func' not in v0.keys()
@@ -361,19 +412,26 @@ def _check_dparam(dparam=None):
                     list, np.ndarray, str, bool,
                 ]
             )
+
             if c0:
+                # func
                 if 'eqtype' not in dparam[k0].keys():
-                    dfail[k0] = "For a function, key 'eqtype' must be provided"
-                    continue
+                    dparam[k0]['eqtype'] = 'undeclared'
+                    # dfail[k0] = "For a func, 'eqtype' must be provided"
+                    # continue
                 if dparam[k0]['eqtype'] not in _LEQTYPES:
                     dfail[k0] = (
                         f"Invalid eqtype ({v0['eqtype']}), "
                         f"allowed: {_LEQTYPES}"
                     )
                     continue
+
             elif not c1:
+                # fixed valkue
                 dfail[k0] = f"Invalid value type ({type(v0['value'])})"
 
+    # ----------------
+    # Raise Exception if any failure
     if len(dfail) > 0:
         lstr = [f'\t- {kk}: {vv}' for kk, vv in dfail.items()]
         msg = (
@@ -398,7 +456,7 @@ def _check_dparam(dparam=None):
 # #############################################################################
 
 
-def check_dparam(dparam=None, func_order=None, method=None, model=None):
+def check_dparam(dparam=None, func_order=None, method=None):
     """ Check user-provided dparam
 
     dparam can be:
@@ -411,30 +469,16 @@ def check_dparam(dparam=None, func_order=None, method=None, model=None):
 
     """
 
-    # if str => load from file
-    if isinstance(dparam, str):
-        # In this case, dparam is the name of a model
-        # Get list of available models in models/, as a dict
-        if dparam not in models._DMODEL.keys():
-            msg = (
-                f"Requested pre-defined model ('{dparam}') not available!\n"
-                + models.get_available_models(returnas=str, verb=False)
-            )
-            raise Exception(msg)
-        model = {dparam: models._DMODEL[dparam]['file']}
-        if func_order is None:
-            func_order = models._DMODEL[dparam]['func_order']
-        dparam = {
-            k0: dict(v0) if hasattr(v0, '__iter__') else v0
-            for k0, v0 in models._DMODEL[dparam]['dparam'].items()
-        }
-    else:
-        if model is None:
-            model = {"custom": ''}
-
+    # --------------------
     # check conformity
     dparam = _check_dparam(dparam)
 
+    # -------------------
+    # if any unidentified parameter => load them and re-check conformity
+    _extract_parameters(dparam)
+    dparam = _check_dparam(dparam)
+
+    # ----------------
     # Identify functions
     dparam, func_order = _check_func(
         dparam,
@@ -442,18 +486,94 @@ def check_dparam(dparam=None, func_order=None, method=None, model=None):
         method=method,
     )
 
+    # ----------------
     # Make sure to copy to avoid passing by reference
     dparam = {
         k0: dict(v0) for k0, v0 in dparam.items()
     }
 
-    return dparam, model, func_order
+    # ---------------
+    # dargs
+    lode = [
+        k0 for k0, v0 in dparam.items()
+        if v0.get('eqtype') == 'ode'
+    ]
+    lstate = func_order
+
+    dargs = {
+        k0: {
+            k1: dparam[k1]['value']
+            for k1 in (
+                dparam[k0]['args']['ode']
+                + dparam[k0]['args']['statevar']
+            )
+            if k1 != 'lambda'
+        }
+        for k0 in lode + lstate
+    }
+
+    # Handle the lambda exception here to avoid test at every time step
+    # if lambda exists and is a function
+    c0 = (
+        'lambda' in dparam.keys()
+        and dparam['lambda'].get('func') is not None
+    )
+    # then handle the exception
+    for k0, v0 in dargs.items():
+        if c0 and 'lambda' in dparam[k0]['kargs']:
+            dargs[k0]['lamb'] = dparam['lambda']['value']
+
+    return dparam, func_order, dargs
 
 
 # #############################################################################
 # #############################################################################
 #                       functions checks - low-level basis
 # #############################################################################
+
+
+def _extract_parameters(dparam):
+    """ Extract fixed-value parameters
+
+    If relevant, the list of fixed-value parameters is extracted from
+        the func kwdargs
+    """
+
+    lf = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
+    lparameters = []
+
+    # ---------------------------------------
+    # extract input args and check conformity
+    for k0 in lf:
+        kargs = inspect.getfullargspec(dparam[k0]['func']).args
+
+        # check if any parameter is unknown
+        lkok = ['itself'] + list(dparam.keys())
+        lparameters += [kk for kk in kargs if kk not in lkok]
+
+    # ----------------------------------------
+    # check parameters
+    if len(lparameters) > 0:
+        dfail = {}
+        for k0 in lparameters:
+            if k0 == 'lamb':
+                key = 'lambda'
+            else:
+                key = k0
+            if key not in models._DFIELDS.keys():
+                dfail[k0] = "Unknown parameter"
+                continue
+            dparam[key] = dict(models._DFIELDS[key])
+
+        # -------------------
+        # Raise Exception if any
+        if len(dfail) > 0:
+            lstr = [f'\t- {k0}: {v0}' for k0, v0 in dfail.items()]
+            msg = (
+                "The following unknown parameters have been identified:\n"
+                + "\n".join(lstr)
+            )
+            raise Exception(msg)
 
 
 def _check_func(dparam=None, func_order=None, method=None):
@@ -464,7 +584,6 @@ def _check_func(dparam=None, func_order=None, method=None):
         - no circular dependency
         - the right type (e.g.: itself in args => ode)
         - must work with default value (to detect typos)
-        - no auxiliary function should be used for computation
 
     Functions that depend only on fixed parameters are replaced by the computed
     parameter value
@@ -552,6 +671,21 @@ def _check_func(dparam=None, func_order=None, method=None):
         )
         raise Exception(msg)
 
+    # Raise Exception if any 'undeclared' function remains
+    lundeclared = [
+        k0 for k0, v0 in dparam.items()
+        if k0 in lfi
+        and v0['eqtype'] == 'undeclared'
+    ]
+    if len(lundeclared) > 0:
+        lstr = [f'\t- {k0}' for k0 in lundeclared]
+        msg = (
+            "The following undeclared functions (unknown eqtype) remain:\n"
+            + "\n".join(lstr)
+        )
+        raise Exception(msg)
+
+
     # check lfi is still consistent
     c0 = (
         all([
@@ -580,38 +714,24 @@ def _check_func(dparam=None, func_order=None, method=None):
                 kk for kk in argsf
                 if dparam[kk]['eqtype'] == 'ode'
             ],
-            'auxiliary': [
+            'statevar': [
                 kk for kk in argsf
-                if dparam[kk]['eqtype'] == 'auxiliary'
-            ],
-            'intermediary': [
-                kk for kk in argsf
-                if dparam[kk]['eqtype'] == 'intermediary'
+                if dparam[kk]['eqtype'] == 'statevar'
             ],
         }
 
-    # -------------------------------
-    # Make sure no auxiliary function is needed for the computation
-    dfail = {}
-    for k0 in lfi:
-        if dparam[k0]['eqtype'] == 'auxiliary':
-            lk1 = [
-                k1 for k1 in lfi
-                if dparam[k1]['eqtype'] != 'auxiliary'
-                and k0 in dparam[k1]['args']['auxiliary']
-            ]
-            if len(lk1) > 0:
-                dfail[k0] = lk1
 
-    # raise Exception if any
-    if len(dfail) > 0:
-        lstr = [f"\t- {kk}: {vv}" for kk, vv in dfail.items()]
-        msg = (
-            "The following auxiliary functions are necessary for computation\n"
-            + "\n".join(lstr)
-            + "\n=> Consider setting them to 'intermediary'"
+    # -----------------------------
+    # Identify non-necessary functions
+    for k0 in lfi:
+        c0 = (
+            dparam[k0]['eqtype'] == 'ode'
+            or any([k0 in dparam[k1]['kargs'] for k1 in lfi])
         )
-        raise Exception(msg)
+        if c0:
+            dparam[k0]['isneeded'] = True
+        else:
+            dparam[k0]['isneeded'] = False
 
     # -------------------------------
     # Store the source for later use (doc, saving...)
@@ -687,8 +807,10 @@ def _check_func(dparam=None, func_order=None, method=None):
 
 
 def _suggest_funct_order(
-    dparam=None, func_order=None,
-    lfunc=None, method=None,
+    dparam=None,
+    func_order=None,
+    lfunc=None,
+    method=None,
 ):
     """ Propose a logical order for computing the functions
 
@@ -705,18 +827,18 @@ def _suggest_funct_order(
     if method is None:
         method = 'other'
 
-    included = ['intermediary']
-    lfunc_inter = [
+    included = ['statevar']
+    lfunc_state = [
         kk for kk in lfunc if dparam[kk]['eqtype'] in included
     ]
 
     # ---------------------------
     # func_order is user-provided
     if func_order is not None:
-        if len(set(func_order)) != len(lfunc_inter):
+        if len(set(func_order)) != len(lfunc_state):
             msg = (
                 "Provided order of functions is incomplete / too large!\n"
-                + f"\t- functions: {lfunc_inter}\n"
+                + f"\t- functions: {lfunc_state}\n"
                 + f"\t- provided order: {func_order}"
             )
             raise Exception(msg)
@@ -733,11 +855,11 @@ def _suggest_funct_order(
             if v0.get('eqtype') == 'intermediary'
         }
         # The list of variable still to find
-        var_still_in_list = [kk for kk in lfunc_inter]
+        var_still_in_list = [kk for kk in lfunc_state]
 
         # Initialize and loop
         func_order = []
-        for ii in range(len(lfunc_inter)):
+        for ii in range(len(lfunc_state)):
             for jj in range(len(var_still_in_list)):
 
                 # add to a temporary list
@@ -794,12 +916,12 @@ def _suggest_funct_order(
         nbargs = np.array([
             (
                 len(dparam[k0]['args']['param']),
-                len(dparam[k0]['args']['intermediary']),
-                # len(dparam[k0]['args']['auxiliary']),     # not considered
+                len(dparam[k0]['args']['statevar']),
                 # len(dparam[k0]['args']['ode']),           # not considered
             )
-            for k0 in lfunc_inter
+            for k0 in lfunc_state
         ])
+
         if np.all(np.sum(nbargs[:, 1:], axis=1) > 0):
             msg = "No sorting order of functions can be identified!"
             raise Exception(msg)
@@ -807,12 +929,12 @@ def _suggest_funct_order(
         # first: functions that only depend on parameters (and self if ode)
         isort = (np.sum(nbargs[:, 1:], axis=1) == 0).nonzero()[0]
         isort = isort[np.argsort(nbargs[isort, 0])]
-        func_order = [lfunc_inter[ii] for ii in isort]
+        func_order = [lfunc_state[ii] for ii in isort]
 
         # ---------------------------
         # try to identify a natural sorting order
         # i.e.: functions that only depend on the previously sorted functions
-        while isort.size < len(lfunc_inter):
+        while isort.size < len(lfunc_state):
 
             # list of conditions (True, False) for each function
             lc = [
@@ -822,17 +944,16 @@ def _suggest_funct_order(
                     all([                                  # only sorted args
                         ss in func_order
                         for ss in (
-                            dparam[lfunc_inter[ii]]['args']['intermediary']
-                            # + dparam[lfunc[ii]]['args']['auxiliary']
+                            dparam[lfunc_state[ii]]['args']['statevar']
                             # + dparam[lfunc[ii]]['args']['ode']
                         )
                     ])
                 )
-                for ii in range(len(lfunc_inter))
+                for ii in range(len(lfunc_state))
             ]
 
             # indices of functions matching all conditions
-            indi = [ii for ii in range(len(lfunc_inter)) if all(lc[ii])]
+            indi = [ii for ii in range(len(lfunc_state)) if all(lc[ii])]
 
             # If none => no easy solution
             if len(indi) == 0:
@@ -841,14 +962,14 @@ def _suggest_funct_order(
 
             # Concantenate with already sorted indices
             isort = np.concatenate((isort, indi))
-            func_order += [lfunc_inter[ii] for ii in indi]
+            func_order += [lfunc_state[ii] for ii in indi]
 
     # safety checks
-    if len(set(lfunc_inter)) != len(func_order):
+    if len(set(lfunc_state)) != len(func_order):
         msg = (
             "Suggested func_order does not seem to include all functions!\n"
             + f"\t- suggested: {func_order}\n"
-            + f"\t- available: {lfunc_inter}\n"
+            + f"\t- available: {lfunc_state}\n"
         )
         raise Exception(msg)
 
