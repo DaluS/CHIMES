@@ -56,7 +56,7 @@ class Test01_Run():
 
     @classmethod
     def setup_class(cls):
-        cls.dmodel = {}
+        cls.dhub = {}
         cls.lsolvers = [
             'eRK4-homemade',
             'eRK2-scipy', 'eRK4-scipy', 'eRK8-scipy',
@@ -85,32 +85,32 @@ class Test01_Run():
             returnas=list,
         )
         for model in lmodel:
-            self.dmodel[model] = _core.Hub(model)
+            self.dhub[model] = _core.Hub(model)
 
     def test02_get_summary_repr(self):
-        for model in self.dmodel.keys():
-            print(self.dmodel[model])
-            self.dmodel[model].get_summary()
+        for model in self.dhub.keys():
+            print(self.dhub[model])
+            self.dhub[model].get_summary()
 
     def test03_get_dparam(self):
-        for model in self.dmodel.keys():
-            out = self.dmodel[model].get_dparam(group='Numerical')
-            out = self.dmodel[model].get_dparam(eqtype='ode')
+        for model in self.dhub.keys():
+            out = self.dhub[model].get_dparam(group='Numerical')
+            out = self.dhub[model].get_dparam(eqtype='ode')
 
     def test04_get_variables_compact(self):
-        for model in self.dmodel.keys():
-            out = self.dmodel[model].get_variables_compact()
+        for model in self.dhub.keys():
+            out = self.dhub[model].get_variables_compact()
 
     def test05_set_single_param(self):
-        for model in self.dmodel.keys():
-            self.dmodel[model].set_dparam(key='Tmax', value=20)
+        for model in self.dhub.keys():
+            self.dhub[model].set_dparam(key='Tmax', value=20)
 
     def test06_run_all_models_all_solvers(self):
         """ Make sure the main function runs as executable from terminal """
 
         # list of entry parameters to try
-        for ii, model in enumerate(self.dmodel.keys()):
-            self.dmodel[model] = {
+        for ii, model in enumerate(self.dhub.keys()):
+            self.dhub[model] = {
                 solver: _core.Hub(model) for solver in self.lsolvers
             }
             for jj, solver in enumerate(self.lsolvers):
@@ -122,19 +122,19 @@ class Test01_Run():
                     # testing verb = float
                     verb = ii + jj / len(self.lsolvers)
 
-                self.dmodel[model][solver].run(solver=solver, verb=verb)
+                self.dhub[model][solver].run(solver=solver, verb=verb)
 
     def test07_get_summary_repr_after_run(self):
-        for model in self.dmodel.keys():
+        for model in self.dhub.keys():
             for jj, solver in enumerate(self.lsolvers):
-                print(self.dmodel[model][solver])
-                self.dmodel[model][solver].get_summary()
+                print(self.dhub[model][solver])
+                self.dhub[model][solver].get_summary()
 
     def test08_save(self):
         # list of entry parameters to try
-        for ii, model in enumerate(self.dmodel.keys()):
+        for ii, model in enumerate(self.dhub.keys()):
             for jj, solver in enumerate(self.lsolvers):
-                self.dmodel[model][solver].save(
+                self.dhub[model][solver].save(
                     name=str(ii * 10 + jj),
                     path=_PATH_OUTPUT,  # _PATH_OUTPUT_REF to update ref
                 )
@@ -147,16 +147,16 @@ class Test01_Run():
         ]
         for ff in lf:
             obj = _core._saveload.load(ff)[0]
-            model = list(obj.model.keys())[0]
+            model = obj.dmodel['name']
             solver = obj.dmisc['solver']
-            assert obj == self.dmodel[model][solver]
+            assert obj == self.dhub[model][solver]
 
     def test10_copy(self):
-        for model in self.dmodel.keys():
+        for model in self.dhub.keys():
             for solver in self.lsolvers:
-                obj = self.dmodel[model][solver].copy()
-                assert obj == self.dmodel[model][solver]
-                assert obj is not self.dmodel[model][solver]
+                obj = self.dhub[model][solver].copy()
+                assert obj == self.dhub[model][solver]
+                assert obj is not self.dhub[model][solver]
 
     def test11_get_available_output(self):
         # verb
@@ -183,9 +183,9 @@ class Test01_Run():
         # compare to current output
         dfail = {}
         for ii, (ff, v0) in enumerate(df_ref.items()):
-            model = list(lobj_ref[ii].dmisc['model'].keys())[0]
+            model = lobj_ref[ii].dmodel['name']
             solver = lobj_ref[ii].dmisc['solver']
-            obj = self.dmodel[model][solver]
+            obj = self.dhub[model][solver]
 
             isok, dfaili = obj.__eq__(
                 lobj_ref[ii],
