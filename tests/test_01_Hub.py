@@ -27,6 +27,7 @@ _PATH_OUTPUT_REF = os.path.join(_PATH_HERE, 'output_ref')
 # library-specific
 sys.path.insert(0, _PATH_PCK)   # ensure Main comes from .. => add PYTHONPATH
 import _core
+import _plots
 sys.path.pop(0)                 # clean PYTHONPATH
 
 
@@ -215,3 +216,14 @@ class Test01_Hub():
                 + "\n".join(lstr)
             )
             raise Exception(msg)
+
+    def test13_plot_AllVar(self):
+        ii = 0
+        for model in self.dmodel.keys():
+            for solver in self.lsolvers:
+                dax = _plots.AllVar(
+                    self.dmodel[model][solver],
+                    ncols=1 + ii % 4,
+                )
+                ii += 1
+            plt.close('all')

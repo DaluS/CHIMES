@@ -5,45 +5,133 @@ Created on Mon Jul 26 16:16:01 2021
 @author: Paul Valcke
 """
 
-import matplotlib.pyplot as plt
+
 import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
+import matplotlib.gridspec as gridspec
 
 
-def AllVar(sol, rows=1, idx=0):
+def AllVar(
+    hub,
+    ncols=None,
+    idx=None,
+    sharex=None,
+    tit=None,
+    wintit=None,
+    dmargin=None,
+    fs=None,
+    show=None,
+):
     '''
     Plot all the variables in the system on a same figure
 
     Parameters
     ----------
-    sol : The hub of the system
+    hub : The hub of the system
         DESCRIPTION.
-    rows : the number of column on the plot
+    ncols : the number of column in the figure
         DESCRIPTION. The default is 2.
     idx : the index of the system you want to print
         DESCRIPTION. The default is 0.
+    dmargin: dict
+        dict defining the margins to be used for defining the axes
 
     Returns
     -------
     None.
 
     '''
-    # if sol.__dmisc['run']:
-    lkeys, array = sol.get_variables_compact()
 
-    t = array[:, -1]
-    plt.figure('All variables', figsize=(20, 20))
-    for i in range(len(lkeys) - 1):
-        lk = lkeys[i]
-        val = array[:, i, idx]
-        plt.subplot(len(lkeys) - 1, rows, i + 1)
+    # -----------
+    # Check inputs
 
-        plt.plot(t, val)
-        plt.ylabel(lk)
-    plt.suptitle(list(sol.model.keys())[0] + '||| system number :' + str(idx))
-    plt.show()
-    # else:
-    #    print('Plot simple could not be done as the simulation did not run')
+    if ncols is None:
+        ncols = 3
+    if idx is None:
+        idx = 0
+    if dmargin is None:
+        dmargin = {
+            'left': 0.05, 'right': 0.98,
+            'bottom': 0.06, 'top': 0.95,
+            'wspace': 0.15, 'hspace': 0.20,
+        }
+    if sharex is None:
+        sharex = True
+    if tit is None:
+        model = list(hub.model.keys())[0]
+        solver = hub.dmisc['solver']
+        tit = f'{model} - {solver} ||| system number: {idx}'
+    if wintit is None:
+        wintit = 'All variables'
+    if fs is None:
+        fs = (20, 20)
+    if show is None:
+        show = True
+
+    # -----------
+    # Prepare data to be plotted
+
+    dpar = hub.get_dparam(returnas=dict)
+    t = dpar['time']['value'][:, idx]
+    lkeys_notime = [
+        k0 for k0, v0 in dpar.items()
+        if v0.get('func') is not None
+        and k0 != 'time'
+    ]
+    nkeys = len(lkeys_notime)
+
+    # derive nrows
+    nrows = nkeys // ncols + 1
+
+    # -----------
+    # Prepare figure and axes dict
+
+    fig = plt.figure(wintit, figsize=fs)
+    fig.suptitle(tit)
+
+    # axes coordinates array
+    gs = gridspec.GridSpec(ncols=ncols, nrows=nrows, **dmargin)
+
+    dax = {}
+    shx = None
+    for ii, key in enumerate(lkeys_notime):
+
+        # create axes and store in dict
+        row = ii % nrows
+        col = ii // nrows
+        dax[key] = fig.add_subplot(gs[row, col], sharex=shx)
+
+        # sharex if relevant
+        if ii == 0 and sharex is True:
+            shx = dax[key]
+
+        # set ylabels
+        if dpar[key]['symbol'] is None:
+            ylab = key
+        else:
+            ylab = dpar[key]['symbol']
+        if dpar[key]['units'] not in [None, '']:
+            ylab += f" ({dpar[key]['units']})"
+        dax[key].set_ylabel(ylab)
+
+        # set xlabel if at bottom
+        if row == nrows - 1 or ii == nkeys - 1:
+            xlab = f"time ({dpar['time']['units']})"
+            dax[key].set_xlabel(xlab)
+
+    # -----------
+    # plot data on axes
+
+    for ii, key in enumerate(lkeys_notime):
+        dax[key].plot(t, dpar[key]['value'][:, idx])
+
+    # -----------
+    # show and return axes dict
+
+    if show is True:
+        plt.show()
+    return dax
 
 
 def Var(sol, key, idx=0, cycles=False, log=False):
