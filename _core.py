@@ -20,22 +20,35 @@ class Hub():
     """ Generic class
     """
 
-    _MODEL = 'GK'
-
     def __init__(self, model=None):
         self.__dparam = {}
-        self.__dmisc = dict.fromkeys(['model', 'func_order', 'run', 'solver'])
+        self.__dmodel = {}
+        self.__dmisc = dict.fromkeys(['func_order', 'run', 'solver'])
         self.__dargs = {}
-        if model is not False:
-            self.set_model(model)
-            self.set_dparam(dparam=model)
+        if model is not None:
+            self.load_model(model)
 
     # ##############################
     # %% Setting / getting parameters
     # ##############################
 
-    def set_model(self, model=None):
-        self.__dmodel, self.__dparam = _class_checks.load_model(model)
+    def load_model(self, model=None):
+        """ Load a model from a model file """
+
+        if model is None:
+            model = False
+        if model is False:
+            msg = (
+                "Select a model, see get_available_models()"
+            )
+            raise Exception(msg)
+
+        (
+            self.__dmodel,
+            self.__dparam,
+            self.__dmisc['func_order'],
+            self.__dargs,
+        ) = _class_checks.load_model(model)
 
     def set_dparam(
         self,
@@ -57,13 +70,6 @@ class Hub():
 
         """
 
-        # If all None => set to self._MODEL
-        c0 = dparam is None and key is None and value is None
-
-        if c0 is True:
-            print()
-            dparam = self._MODEL
-
         # Check input: dparam xor (key, value)
         lc = [
             dparam is not None or func_order is not None,
@@ -78,8 +84,8 @@ class Hub():
             ]
             msg = (
                 "Please provide dparam/func_order xor (key, value)!\n"
-                + "You provided:\n"
-                + "\n".format(lstr)
+                "You provided:\n"
+                + "\n".join(lstr)
             )
             raise Exception(msg)
 
@@ -103,42 +109,11 @@ class Hub():
         # Update to check consistency
         (
             self.__dparam,
-            self.__dmisc['model'],
             self.__dmisc['func_order'],
+            self.__dargs,
         ) = _class_checks.check_dparam(
             dparam=dparam, func_order=func_order, method=method,
-            model=self.__dmisc.get('model')
         )
-
-        # store a simplified dict of variable arguments
-        # used in reset() and run()
-        lode = self.get_dparam(eqtype='ode', returnas=list)
-        linter = self.__dmisc['func_order']
-        laux = self.get_dparam(eqtype='auxiliary', returnas=list)
-
-        self.__dargs = {
-            k0: {
-                k1: self.__dparam[k1]['value']
-                for k1 in (
-                    self.__dparam[k0]['args']['ode']
-                    + self.__dparam[k0]['args']['intermediary']
-                    + self.__dparam[k0]['args']['auxiliary']
-                )
-                if k1 != 'lambda'
-            }
-            for k0 in lode + linter + laux
-        }
-
-        # Handle the lambda exception here to avoid test at every time step
-        # if lambda exists and is a function
-        c0 = (
-            'lambda' in self.__dparam.keys()
-            and self.__dparam['lambda'].get('func') is not None
-        )
-        # then handle the exception
-        for k0, v0 in self.__dargs.items():
-            if c0 and 'lambda' in self.__dparam[k0]['kargs']:
-                self.__dargs[k0]['lamb'] = self.__dparam['lambda']['value']
 
         # reset all variables
         self.reset()
@@ -189,21 +164,21 @@ class Hub():
         return self.__dmisc['func_order']
 
     @property
-    def model(self):
-        """ The model identifier """
-        return self.__dmisc['model']
+    def dmodel(self):
+        """ The model identifiers """
+        return self.__dmodel
 
     @property
     def dargs(self):
         return self.__dargs
 
     @property
-    def dmisc(self):
-        return self.__dmisc
-
-    @property
     def dparam(self):
         return self.get_dparam(returnas=dict, verb=False)
+
+    @property
+    def dmisc(self):
+        return self.__dmisc
 
     # ##############################
     # reset
@@ -292,8 +267,8 @@ class Hub():
         """ This is automatically called when only the instance is entered """
         col0 = ['model', 'source', 'nb. model param', 'nb. functions', 'run']
         ar0 = [
-            list(self.__dmisc['model'].keys())[0],
-            list(self.__dmisc['model'].values())[0],
+            self.__dmodel['name'],
+            self.__dmodel['file'],
             len([
                 k0 for k0, v0 in self.__dparam.items()
                 if v0.get('func') is None
@@ -346,8 +321,9 @@ class Hub():
 
         # ----------
         # functions
-        col2 = ['function', 'source', 'initial',
-                'units', 'eqtype', 'comment']
+        col2 = [
+            'function', 'source', 'initial', 'units', 'eqtype', 'comment',
+        ]
         ar2 = [
             [
                 k0,
@@ -611,6 +587,7 @@ class Hub():
         """ Convert instance to dict """
 
         dout = {
+            'dmodel': dict(self.__dmodel),
             'dparam': self.get_dparam(returnas=dict, verb=False),
             'dmisc': dict(self.__dmisc),
             'dargs': dict(self.__dargs),
@@ -625,7 +602,7 @@ class Hub():
         # check inputs
         c0 = (
             isinstance(dout, dict)
-            and sorted(dout.keys()) == ['dargs', 'dmisc', 'dparam']
+            and sorted(dout.keys()) == ['dargs', 'dmisc', 'dmodel', 'dparam']
             and all([isinstance(dd, dict) for dd in dout.values()])
         )
         if not c0:
@@ -647,7 +624,8 @@ class Hub():
 
         # -------------------
         # create instance
-        obj = cls(model=False)
+        obj = cls()
+        obj.__dmodel = dict(dout['dmodel'])
         obj.__dparam = {k0: dict(v0) for k0, v0 in dout['dparam'].items()}
         obj.__dmisc = dict(dout['dmisc'])
         obj.__dargs = dict(dout['dargs'])
