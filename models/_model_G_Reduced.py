@@ -131,7 +131,7 @@ _PRESETS = {
     },
     'badnegociation': {
         'fields': {
-            'phinull': .3,
+            'phi0': .3,
         },
         'com': (
             'displace the Solow Point and '
