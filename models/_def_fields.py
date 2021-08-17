@@ -519,16 +519,19 @@ _LIBRARY = {
             'units': 'y',
             'definition': 'NUMBER OF PARRALLEL SYSTEMS',
         },
-        'time': {
-            'value': 0,
-            'ode': lambda dt=0: 1.,
-            'definition': 'Time vector',
-            'com': 'dt/dt=1, time as ODE',
-            'units': 'y',
-        },
     },
 
     'CORE': {
+
+        # Time
+        'time': {
+            'initial': 0.,
+            'func': lambda dt=0: 1.,
+            'definition': 'Time vector',
+            'com': 'dt/dt=1, time as ODE',
+            'units': 'y',
+            'eqtype': 'ode',
+        },
 
         # Population
         'N': {
