@@ -52,7 +52,7 @@ def teardown_module():
 #######################################################
 
 
-class Test01_Run():
+class Test01_Hub():
 
     @classmethod
     def setup_class(cls):
@@ -81,63 +81,77 @@ class Test01_Run():
 
     def test01_init_from_all_models(self):
         """ Make sure the main function runs from a python console """
-        lmodel = _core._class_checks.models.get_available_models(
-            returnas=list,
+        dmodel = _core._class_checks.models.get_available_models(
+            returnas=dict,
         )
-        for model in lmodel:
-            self.dhub[model] = _core.Hub(model)
+        for model in dmodel.keys():
+            lpresets = [None] + dmodel[model]['presets']
+            self.dhub[model] = dict.fromkeys(lpresets)
+            for preset in lpresets:
+                self.dhub[model][preset] = _core.Hub(model, preset=preset)
 
     def test02_get_summary_repr(self):
         for model in self.dhub.keys():
-            print(self.dhub[model])
-            self.dhub[model].get_summary()
+            for preset in self.dhub[model].keys():
+                print(self.dhub[model][preset])
+                self.dhub[model][preset].get_summary()
 
     def test03_get_dparam(self):
         for model in self.dhub.keys():
-            out = self.dhub[model].get_dparam(group='Numerical')
-            out = self.dhub[model].get_dparam(eqtype='ode')
+            for preset in self.dhub[model].keys():
+                out = self.dhub[model][preset].get_dparam(group='Numerical')
+                out = self.dhub[model][preset].get_dparam(eqtype='ode')
 
     def test04_get_variables_compact(self):
         for model in self.dhub.keys():
-            out = self.dhub[model].get_variables_compact()
+            for preset in self.dhub[model].keys():
+                out = self.dhub[model][preset].get_variables_compact()
 
     def test05_set_single_param(self):
         for model in self.dhub.keys():
-            self.dhub[model].set_dparam(key='Tmax', value=20)
+            for preset in self.dhub[model].keys():
+                self.dhub[model][preset].set_dparam(key='Tmax', value=20)
 
     def test06_run_all_models_all_solvers(self):
         """ Make sure the main function runs as executable from terminal """
 
         # list of entry parameters to try
         for ii, model in enumerate(self.dhub.keys()):
-            self.dhub[model] = {
-                solver: _core.Hub(model) for solver in self.lsolvers
-            }
-            for jj, solver in enumerate(self.lsolvers):
+            for jj, preset in enumerate(self.dhub[model].keys()):
+                self.dhub[model][preset] = {
+                    solver: _core.Hub(model, preset=preset)
+                    for solver in self.lsolvers
+                }
+                for kk, solver in enumerate(self.lsolvers):
 
-                if ii % 2 == 0:
-                    # testing verb = 0, 1, 2
-                    verb = (ii + jj) % 3
-                else:
-                    # testing verb = float
-                    verb = ii + jj / len(self.lsolvers)
+                    if ii % 2 == 0:
+                        # testing verb = 0, 1, 2
+                        verb = (ii + jj) % 3
+                    else:
+                        # testing verb = float
+                        verb = ii + jj + kk / len(self.lsolvers)
 
-                self.dhub[model][solver].run(solver=solver, verb=verb)
+                    self.dhub[model][preset][solver].run(
+                        solver=solver,
+                        verb=verb,
+                    )
 
     def test07_get_summary_repr_after_run(self):
         for model in self.dhub.keys():
-            for jj, solver in enumerate(self.lsolvers):
-                print(self.dhub[model][solver])
-                self.dhub[model][solver].get_summary()
+            for preset in self.dhub[model].keys():
+                for solver in self.lsolvers:
+                    print(self.dhub[model][preset][solver])
+                    self.dhub[model][preset][solver].get_summary()
 
     def test08_save(self):
         # list of entry parameters to try
         for ii, model in enumerate(self.dhub.keys()):
-            for jj, solver in enumerate(self.lsolvers):
-                self.dhub[model][solver].save(
-                    name=str(ii * 10 + jj),
-                    path=_PATH_OUTPUT,  # _PATH_OUTPUT_REF to update ref
-                )
+            for jj, preset in enumerate(self.dhub[model].keys()):
+                for kk, solver in enumerate(self.lsolvers):
+                    self.dhub[model][preset][solver].save(
+                        name=str(ii * 100 + jj*10 + kk),
+                        path=_PATH_OUTPUT,  # _PATH_OUTPUT_REF to update ref
+                    )
 
     def test09_load_and_equal(self):
         lf = [
@@ -148,30 +162,19 @@ class Test01_Run():
         for ff in lf:
             obj = _core._saveload.load(ff)[0]
             model = obj.dmodel['name']
+            preset = obj.dmodel['preset']
             solver = obj.dmisc['solver']
-            assert obj == self.dhub[model][solver]
+            assert obj == self.dhub[model][preset][solver]
 
     def test10_copy(self):
         for model in self.dhub.keys():
-            for solver in self.lsolvers:
-                obj = self.dhub[model][solver].copy()
-                assert obj == self.dhub[model][solver]
-                assert obj is not self.dhub[model][solver]
+            for preset in self.dhub[model].keys():
+                for solver in self.lsolvers:
+                    obj = self.dhub[model][preset][solver].copy()
+                    assert obj == self.dhub[model][preset][solver]
+                    assert obj is not self.dhub[model][preset][solver]
 
-    def test11_get_available_output(self):
-        # verb
-        _core._saveload.get_available_output(path=_PATH_OUTPUT)
-        # list
-        _core._saveload.get_available_output(path=_PATH_OUTPUT, returnas=list)
-        # dict, with filters
-        _core._saveload.get_available_output(
-            path=_PATH_OUTPUT,
-            model='GK',
-            name='2',
-            returnas=dict,
-        )
-
-    def test12_nonregression_output(self):
+    def test11_nonregression_output(self):
 
         # load reference files
         df_ref = _core._saveload.get_available_output(
@@ -184,8 +187,9 @@ class Test01_Run():
         dfail = {}
         for ii, (ff, v0) in enumerate(df_ref.items()):
             model = lobj_ref[ii].dmodel['name']
+            preset = lobj_ref[ii].dmodel['preset']
             solver = lobj_ref[ii].dmisc['solver']
-            obj = self.dhub[model][solver]
+            obj = self.dhub[model][preset][solver]
 
             isok, dfaili = obj.__eq__(
                 lobj_ref[ii],
