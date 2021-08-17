@@ -55,10 +55,12 @@ def load_model(model):
     # check inputs
 
     if model in models._DMODEL.keys():
+        # Get from known models
         model_file = models._DMODEL[model]['file']
         dmodel = models._DMODEL[model]
 
     elif os.path.isfile(model) and model.endswith('.py'):
+        # get from arbitrary model file
         model_file = str(model)
 
         # trying to derive model name from file name
@@ -91,10 +93,11 @@ def load_model(model):
 
         # loading attributes
         dmodel = {
-            'logics': foo._LOGICS,
-            'presets': foo._PRESETS,
+            'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
+            'presets': {k0: v0 for k0, v0 in foo._PRESETS.items()},
             'description': foo.__doc__,
             'file': model_file,
+            'name': model,
         }
 
     else:
@@ -107,12 +110,19 @@ def load_model(model):
         raise Exception(msg)
 
     # -------------
-    # check conformity of dmodel
+    # check conformity of dmodel (has 'file', 'name', 'logics', ...)
     _check_dmodel(dmodel)
 
+    # --------------
+    # check conformity of logics (has 'ode', 'pde', 'statevar'...)
+    _check_logics(dmodel)
+
+    # convert logics (new formalism) to dparam
+    dparam = _get_dparam_from_logics(dmodel['logics'])
+
     # --------------------
-    # check logics
-    dmodel['logic'] = _check_logic(dmodel['logic'])
+    # check dparam
+    dparam = _check_dparam(dparam)
 
     # --------------------
     # check presets
@@ -130,6 +140,7 @@ def load_model(model):
 
 
 def _check_dmodel(dmodel=None):
+    """ Check dmodel is a dict with proper keys """
 
     c0 = (
         isinstance(dmodel, dict)
@@ -148,45 +159,80 @@ def _check_dmodel(dmodel=None):
 
 # #############################################################################
 # #############################################################################
-#                       check logic
+#                       check logics
 # #############################################################################
 
 
-def _check_logic(dmodel=None):
+def _check_are_functions(indict=None):
+    """ Check that all values have a 'func' key that contain a callable
+
+    Raise Exc eption with list of non-conform keys if any
+
+    """
+
+    # list non-conform keys (must have a 'logics' function)
+    lkout = [
+        k1 for k1, v1 in indict.items()
+        if not (
+            isinstance(v1, dict)
+            and hasattr(v1.get('func'), '__call__')
+        )
+    ]
+    if len(lkout) > 0:
+        lstr = [f'\t- {kk}' for kk in lkout]
+        msg = (
+            "The following ode have non-conform 'func':\n"
+            + "\n".join(lstr)
+        )
+        raise Exception(msg)
+
+
+def _check_logics(dmodel=None):
+    """ Check conformity of the 'logics' sub-dict
+
+    In particulart, checks:
+        - ode
+        - pde
+        - statevar
+
+    If necessary, add initial values
+    Checks all keys are known to models._DFIELDS
+    """
 
     # ---------------
     # list non-conform keys
 
-    kout = [
-        k0 for k0, v0 in dmodel['logic'].items()
+    lkout = [
+        k0 for k0, v0 in dmodel['logics'].items()
         if not (
             k0 in _LEQTYPES
             and isinstance(v0, dict)
         )
     ]
     if len(lkout) > 0:
-        lstr = []
-        msg = [f'\t- {kk}' for kk in lkout]
+        lstr = [f'\t- {kk}' for kk in lkout]
+        msg = (
             "The following keys in _LOGIC are not supported:\n"
             + "\n".join(lstr)
         )
         raise Exception(msg)
 
     # --------------------
-    # List all keys in all dict that are not known to _LIBRARY
+    # List all keys in all dict that are not known to _DFIELDS
 
     dkout = {
-        k0: [k1 for k1 in v0.keys() if k1 not in models._LIBRARY]
-        for k0, v0 in dmodel['logic'].items()
-        if any([k1 for k1 in v0.keys() if k1 not in models._LIBRARY])
+        k0: [k1 for k1 in v0.keys() if k1 not in models._DFIELDS]
+        for k0, v0 in dmodel['logics'].items()
+        if any([k1 for k1 in v0.keys() if k1 not in models._DFIELDS])
     }
     if len(dkout) > 0:
         lstr = [
-            '\n'.join(["\t- {k0}['{k1}']" for k1 in v0.keys()])
+            '\n'.join([f"\t- {k0}['{k1}']" for k1 in v0])
             for k0, v0 in dkout.items()
         ]
         msg = (
-            "The following keys are not known to _LIBRARY:\n"
+            "The following keys are not known to _LIBRARY / _DFIELDS:\n"
+            f"From model: {dmodel['name']} ({dmodel['file']})\n"
             + "\n".join(lstr)
         )
         raise Exception(msg)
@@ -194,36 +240,16 @@ def _check_logic(dmodel=None):
     # -----------------------
     # check ode
 
-    if 'ode' in dmodel['logic'].keys():
+    if 'ode' in dmodel['logics'].keys():
 
-        # list non-conform keys (must have a 'logic' function)
-        lkout = [
-            k1 for k1, v1 in dmodel['logic']['ode'].items()
-            if not (
-                isinstance(v1, dict)
-                and hasattr(v1.get('func'), '__call__')
-            )
-        ]
-        if len(lkout) > 0:
-            lstr = [f'\t- {kk}' for kk in lkout]
-            msg = (
-                "The following ode have non-conform 'func':\n"
-                "\n".join(lstr)
-            )
-            raise Exception(msg)
+        # list non-conform keys (must have a 'func' function)
+        _check_are_functions(indict=dmodel['logics']['ode'])
 
         # if initial not defined, get from _LIBRARY
-        for k1, v1 in dmodel['logic']['ode'].items():
+        for k1, v1 in dmodel['logics']['ode'].items():
             if v1.get('initial') is None:
-                dmodel['logic']['ode'][k1]['initial'] = models._LIBRARY[k1]['value']
-
-        # set all other fields from _LIBRARY
-        for k1, v1 in dmodel['logic']['ode'].items():
-            for k2, v2 in models._LIBRARY[k1].items():
-                if k2 == 'value':
-                    continue
-                if  v1.get(k2) is None:
-                    dmodel['logic']['ode'][k1][k2] = v2
+                dmodel['logics']['ode'][k1]['initial'] \
+                        = models._LIBRARY[k1]['value']
 
     # -----------------------
     # check pde
@@ -231,17 +257,10 @@ def _check_logic(dmodel=None):
 
     # -----------------------
     # check statevar
+    if 'statevar' in dmodel['logics'].keys():
 
-
-    # -----------------------
-    # check parameters
-
-
-    # -----------------------
-    # add numerical parameters if not included
-
-    # -----------------------
-    # Add time vector if missing
+        # list non-conform keys (must have a 'func' function)
+        _check_are_functions(indict=dmodel['logics']['statevar'])
 
 
 # #############################################################################

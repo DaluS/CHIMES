@@ -30,11 +30,12 @@ for k0, v0 in _df.items():
     foo = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(foo)
     _DMODEL[v0] = {
-        'logics': foo._LOGICS,
+        'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
         'func_order': foo._FUNC_ORDER,
         'file': foo.__file__,
         'description': foo.__doc__,
-        'presets': foo._PRESETS
+        'presets': {k0: dict(v0) for k0, v0 in foo._PRESETS.items()},
+        'name': v0,
     }
 
 

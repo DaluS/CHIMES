@@ -33,47 +33,92 @@ import warnings
 
 import numpy as np
 
-__DOTHECHECK = False
+
+__DOTHECHECK = True
 __FILLDEFAULTVALUES = True
+
 
 # #############################################################################
 # #############################################################################
 #                   FIELDS OF FIELDS AND EXPECTED VALUES
 # #############################################################################
 # dict of default value in fields
-_DEFAULTFIELDS = {
-    'value': None,
-    'com': 'No comment',
-    'dimension': 'undefined',
-    'units': 'undefined',
-    'type': 'undefined',
-    'group': None,
-    # 'symbol' : this is the key of the variable
+
+
+__DEFAULTFIELDS = {
+    'value': {
+        'default': None,
+        'type': (int, float, np.int_, np.float_, np.ndarray, list),
+        'allowed': None,
+    },
+    'definition': {
+        'default': '',
+        'type': str,
+        'allowed': None,
+    },
+    'com': {
+        'default': 'No comment',
+        'type': str,
+        'allowed': None,
+    },
+    'dimension': {
+        'default': 'undefined',
+        'type': str,
+        'allowed': None,
+    },
+    'units': {
+        'default': 'undefined',
+        'type': str,
+        'allowed': [
+            'Units',  #
+            'y',      # Time
+            '$',      # Money
+            'C',      # Concentration
+            'Humans',  # Population
+        ],
+    },
+    'type': {
+        'default': 'undefined',
+        'type': str,
+        'allowed': [
+            'intensive',
+            'extensive',
+            'dimensionless',
+        ],
+    },
+    'symbol': {
+        'default': '',
+        'type': str,
+        'allowed': None,
+    },
+    'group': {
+        'default': '',
+        'type': str,
+        'allowed': None,
+        # 'Numerical',
+        # 'Population',
+        # 'Prices', 'Capital', 'Philips', 'Gemmes',
+        # 'Keen', 'Dividends', 'Economy', 'Production',
+        # 'Coupling',
+        # 'RelaxBuffer',
+        # 'Climate', 'Damage',
+    },
 }
 
-# dict of allowed fields (None => no restriction)
-_DALLOWED_FIELDS = {
-    'value': None,
-    'com': None,
-    'units': [
-        'Units',  #
-        'y',      # Time
-        '$',      # Money
-        'C',      # Concentration
-        'Humans',  # Population
-    ],
-    'type': ['intensive', 'extensive', 'dimensionless'],
-    'symbol': None,
-    'group': None,  # [
-    # 'Numerical',
-    # 'Population',
-    # 'Prices', 'Capital', 'Philips', 'Gemmes',
-    # 'Keen', 'Dividends', 'Economy', 'Production',
-    # 'Coupling',
-    # 'RelaxBuffer',
-    # 'Climate', 'Damage',
-    # ],
-}
+
+# ----------------
+# For units add inverses
+
+__DEFAULTFIELDS['units']['allowed'] += [
+    ss + '^{-1}' for ss in __DEFAULTFIELDS['units']['allowed']
+]
+
+
+# --------------------
+# Make sure the default is allowed
+for k0, v0 in __DEFAULTFIELDS.items():
+    if v0.get('allowed') is not None:
+        __DEFAULTFIELDS[k0]['allowed'].append(v0['default'])
 
 
 # #############################################################################
@@ -81,8 +126,8 @@ _DALLOWED_FIELDS = {
 #                   Dict of default fields
 # #############################################################################
 
-
-_DFIELDS = {
+# DEPRECATED
+_DFIELDS_DEPRECATED = {
 
     # --------------
     # Numerical
@@ -489,7 +534,7 @@ _LIBRARY = {
         'N': {
             'value': 1.,
             'definition': 'Population',
-            'units': 'humans',
+            'units': 'Humans',
         },
         'beta': {
             'value': 0.025,
@@ -500,7 +545,7 @@ _LIBRARY = {
         # Productivity
         'a': {
             'value': 1,
-            'units': 'units.humans^{-1}.years^{-1}',
+            'units': 'Units.Humans^{-1}.y^{-1}',
             'definition': 'Productivity',
         },
         'alpha': {
@@ -511,7 +556,7 @@ _LIBRARY = {
         'W': {
             'value': 0.85,
             'definition': 'Wage value',
-            'units': 'dollars'
+            'units': '$'
         },
 
         # Capital
@@ -527,7 +572,7 @@ _LIBRARY = {
         },
         'K': {
             'value': 2.7,
-            'units': 'units',
+            'units': 'Units',
             'definition': 'Capital',
         },
 
@@ -546,22 +591,22 @@ _LIBRARY = {
         'Y': {
             'value': None,
             'definition': 'GDP in output quantity',
-            'units': 'units.years^{-1}',
+            'units': 'Units.y^{-1}',
         },
         'L': {
             'value': None,
             'definition': 'Workers',
-            'units': 'humans',
+            'units': 'Humans',
         },
         'I': {
             'value': None,
             'definition': 'Investment',
-            'units': 'dollars',
+            'units': '$',
         },
         'Pi': {
             'value': None,
             'definition': 'Absolute profit',
-            'units': 'dollars',
+            'units': '$',
         },
         'lambda': {
             'value': .97,
@@ -634,7 +679,7 @@ _LIBRARY = {
         'D': {
             'value': 0.1,
             'definition': 'Debt of private sector',
-            'units': 'dollars',
+            'units': '$',
         },
         'd': {
             # 'func': lambda GDP=0, D=0: D/GDP,
@@ -658,78 +703,102 @@ _LIBRARY = {
         'GDP': {
             'value': None,
             'definition': 'GDP in nominal term',
-            'units': 'dollars',
+            'units': '$',
         },
-        'i': {
+        'inflation': {
             'value': None,
             'definition': 'inflation rate',
             'units': 'y^{-1}',
+        },
+        'p': {
+            'value': None,
+            'definition': 'prices?',
+            'units': '$',
         },
     },
 }
 
 
+
+# ------------------------------------
+# Derive new _DEF_FIELDS from _LIBRARY
+
+__LKLIB = [dict.fromkeys(v0.keys(), k0) for k0, v0 in _LIBRARY.items()]
+for ii, dd in enumerate(__LKLIB[1:]):
+    __LKLIB[0].update(dd)
+
+_DFIELDS = {
+    k0: dict(_LIBRARY[v0][k0]) for k0, v0 in __LKLIB[0].items()
+}
+
+for k0, v0 in __LKLIB[0].items():
+    _DFIELDS[k0]['group'] = v0
+
+
 # #############################################################################
 # #############################################################################
-#               Conformity checks (for saefty, to detect typos...)
+#               Conformity checks (for safety, to detect typos...)
 # #############################################################################
 
 
-def Complete_DFIELDS(_DFIELDS, _DEFAULTFIELDS):
-    for k in _DFIELDS.keys():
-        kkey = _DFIELDS[k].keys()
-        basekeys = ['value',
-                    'dimension',
-                    'symbol',
-                    'com',
-                    'units',
-                    'type',
-                    'group']
-        for v in basekeys:
-            if v not in kkey:
-                _DFIELDS[k][v] = _DEFAULTFIELDS[v]
-        if 'symbol' not in kkey:
-            _DFIELDS[k]['symbol'] = k
-    return _DFIELDS
+def _complete_DFIELDS(
+    dfields=_DFIELDS,
+    default_fields=__DEFAULTFIELDS,
+    complete=__FILLDEFAULTVALUES,
+    check=__DOTHECHECK,
+):
+    """ Complete dfields from default"""
 
+    # --------------
+    # run loop 
 
-def Check_DFIELDS(_DFIELDS, _DALLOWED_FIELDS):
-    # List non-conform keys in dict, for detailed error printing
-    dk0 = {
-        k0: [
-            v0[ss] for ss in _DALLOWED_FIELDS.keys()
-            if _DALLOWED_FIELDS[ss] is not None and not (
-                v0[ss] is None
-                or v0[ss] == ''
-                or v0[ss] in _DALLOWED_FIELDS[ss]
-            )
-        ]
-        for k0, v0 in _DFIELDS.items()
-        if not (
-            isinstance(v0, dict)
-            and sorted(_DALLOWED_FIELDS) == sorted(v0.keys())
-            and all([
-                v0[ss] is None
-                or v0[ss] == ''
-                or v0[ss] in _DALLOWED_FIELDS[ss]
-                for ss in _DALLOWED_FIELDS.keys()
-                if _DALLOWED_FIELDS[ss] is not None
-            ])
-        )
-    }
+    dfail = {}
+    for k0, v0 in dfields.items():
+        for k1, v1 in default_fields.items():
 
-    # Raise warning if any non-conformity
-    # Include details per key
-    if len(dk0) > 0:
-        lstr = [f'\t- {k0}: {v0}' for k0, v0 in dk0.items()]
+            # ---------
+            # complete
+            if complete and v0.get(k1) is None:
+                if k1 == 'symbol':
+                    dfields[k0][k1] = k0
+                else:
+                    dfields[k0][k1] = default_fields[k1]['default']
+
+            # ---------
+            # check
+            if check and v0.get(k1) is not None:
+
+                # check type
+                if not isinstance(v0[k1], default_fields[k1]['type']):
+                    dfail[k0] = (
+                        f"wrong type for {k1} "
+                        f"({default_fields[k1]['type']} vs {type(v0[k1])})"
+                    )
+
+                # check allowed values
+                elif default_fields[k1].get('allowed') is not None:
+                    if k1 == 'units' and '.' in v0[k1]:
+                        c0 = all([
+                            ss in default_fields[k1]['allowed']
+                            for ss in v0[k1].split('.')
+                        ])
+                    else:
+                        c0 = v0[k1] in default_fields[k1]['allowed']
+
+                    if not c0:
+                        dfail[k0] = (
+                            f"Non-allowed value for {k1} "
+                            f"({default_fields[k1]['allowed']} vs {v0[k1]})"
+                        )
+
+    # --------------
+    # Raise exception if relevant
+    if len(dfail) > 0:
+        lstr = [f'\t- {k0}: {v0}' for k0, v0 in dfail.items()]
         msg = (
-            "The following keys of _DFIELDS are non-conform:\n"
+            "The followinbg entries in _DFIELDS are not valid:\n"
             + "\n".join(lstr)
         )
-        warnings.warn(msg)
+        raise Exception(msg)
 
-
-if __FILLDEFAULTVALUES:
-    _DFIELDS = Complete_DFIELDS(_DFIELDS, _DEFAULTFIELDS)
-if __DOTHECHECK:
-    Check_DFIELDS(_DFIELDS, _DALLOWED_FIELDS)
+_complete_DFIELDS()

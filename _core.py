@@ -27,11 +27,15 @@ class Hub():
         self.__dmisc = dict.fromkeys(['model', 'func_order', 'run', 'solver'])
         self.__dargs = {}
         if model is not False:
+            self.set_model(model)
             self.set_dparam(dparam=model)
 
     # ##############################
     # %% Setting / getting parameters
     # ##############################
+
+    def set_model(self, model=None):
+        self.__dmodel, self.__dparam = _class_checks.load_model(model)
 
     def set_dparam(
         self,
