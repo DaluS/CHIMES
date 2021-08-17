@@ -43,7 +43,7 @@ _LEXTRAKEYS = [
 # #############################################################################
 
 
-def load_model(model, func_order=None, method=None):
+def load_model(model=None, preset=None, func_order=None, method=None):
     """ Load a model from a model file
 
     model can be:
@@ -112,7 +112,7 @@ def load_model(model, func_order=None, method=None):
 
     # -------------
     # check conformity of dmodel (has 'file', 'name', 'logics', ...)
-    _check_dmodel(dmodel)
+    _check_dmodel_preset(dmodel, preset=preset)
 
     # --------------
     # check conformity of logics (has 'ode', 'pde', 'statevar'...)
@@ -128,9 +128,6 @@ def load_model(model, func_order=None, method=None):
         dparam=dparam, func_order=func_order, method=method,
     )
 
-    # --------------------
-    # check presets
-
     return dmodel, dparam, func_order, dargs
 
 
@@ -140,9 +137,11 @@ def load_model(model, func_order=None, method=None):
 # #############################################################################
 
 
-def _check_dmodel(dmodel=None):
+def _check_dmodel_preset(dmodel=None, preset=None):
     """ Check dmodel is a dict with proper keys """
 
+    # ----------
+    # check dmodel
     if not isinstance(dmodel, dict):
         msg = f"Arg dmodel must be a dict\nProvided: {type(dmodel)}"
         raise Exception(msg)
@@ -162,6 +161,28 @@ def _check_dmodel(dmodel=None):
             + "\n".join(lstr)
         )
         raise Exception(msg)
+
+    # ----------
+    # check presets
+
+    lkout = [
+        k0 for k0, v0 in dmodel['presets'].items()
+        if not (
+            isinstance(v0, dict)
+            and all([ss in ['fields', 'com', 'plots'] for ss in v0.keys()])
+            and isinstance(v0['com'], str)
+            and isinstance(v0['fields'], dict)
+        )
+    ]
+
+    if len(lkout) > 0:
+        lstr = ["\t- {k0}" for k0 in lkout]
+        msg = (
+            "The following presets are non-valid:\n"
+            + "\n".join(lstr)
+        )
+        raise Exception(msg)
+
 
 
 # #############################################################################
@@ -293,9 +314,6 @@ def get_dparam_from_logics(dmodel=None):
     # Add eqtype
     for k0 in dparam.keys():
         dparam[k0]['eqtype'] = lk[0][k0]
-
-    # --------------
-    # add parameters
 
     return dparam
 
@@ -981,6 +999,64 @@ def _suggest_funct_order(
     print(msg)
 
     return func_order
+
+
+# #############################################################################
+# #############################################################################
+#                   update from preset
+# #############################################################################
+
+
+def update_from_preset(dparam=None, dmodel=None, preset=None):
+    """ Update the dparam dict from values taken from preset """
+
+    # ---------------
+    # check inputs
+
+    if preset is None:
+        return dparam
+
+    if preset not in dmodel['presets'].keys():
+        lstr = [
+            f"\t- {k0}: {v0['com']}" for k0, v0 in dmodel['presets'].items()
+        ]
+        msg = (
+            f"Please choose among the available presets for model"
+            " {dmodel['name']}:\n"
+            + "\n".join(lstr)
+        )
+        raise Exception(msg)
+
+    # ----------------------
+    # check fields in preset
+    lkout = [
+        k0 for k0, v0 in dmodel['presets'][preset]['fields'].items()
+        if not (
+            k0 in dparam.keys()
+            and isinstance(v0, tuple(_LTYPES))
+        )
+    ]
+    if len(lkout) > 0:
+        lstr = [f"\t- {k0}" for k0 in lkout]
+        msg = (
+            "The following non-conform fields have been detected in preset "
+            f"{preset} for model {dmodel['name']}:\n"
+            + "\n".join(lstr)
+            + "\nAll keys must correspond to existing fixed-value parameters!"
+        )
+        raise Exception(msg)
+
+    # ----------------------
+    # update from preset
+    for k0, v0 in dmodel['presets'][preset]['fields'].items():
+        if dparam[k0].get('func') is None:
+            dparam[k0]['value'] = v0
+        else:
+            dparam[k0]['initial'] = v0
+
+    # ------------
+    # update preset
+    dmodel['preset'] = preset
 
 
 # #############################################################################

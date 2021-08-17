@@ -20,28 +20,39 @@ class Hub():
     """ Generic class
     """
 
-    def __init__(self, model=None):
+    def __init__(self, model=None, preset=None):
         self.__dparam = {}
-        self.__dmodel = {}
+        self.__dmodel = dict.fromkeys(
+            ['name', 'file', 'description', 'presets', 'preset']
+        )
         self.__dmisc = dict.fromkeys(['func_order', 'run', 'solver'])
         self.__dargs = {}
         if model is not None:
-            self.load_model(model)
+            self.load_model(model, preset=preset)
 
     # ##############################
     # %% Setting / getting parameters
     # ##############################
 
-    def load_model(self, model=None):
+    def load_model(self, model=None, preset=None):
         """ Load a model from a model file """
 
+        # ------------
+        # check model
+
         if model is None:
-            model = False
+            if self.__dmodel.get('name') is not None:
+                model = self.__dmodel.get('name')
+            else:
+                model = False
         if model is False:
             msg = (
                 "Select a model, see get_available_models()"
             )
             raise Exception(msg)
+
+        # -------------
+        # load
 
         (
             self.__dmodel,
@@ -49,6 +60,19 @@ class Hub():
             self.__dmisc['func_order'],
             self.__dargs,
         ) = _class_checks.load_model(model)
+
+        # ------------
+        # update from preset if relevant
+        if preset is not None:
+            self.load_preset(preset)
+
+    def load_preset(self, preset=None):
+        """ For the current model, load desired preset """
+        _class_checks.update_from_preset(
+            dparam=self.__dparam,
+            dmodel=self.__dmodel,
+            preset=preset,
+        )
 
     def set_dparam(
         self,
