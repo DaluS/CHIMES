@@ -271,7 +271,7 @@ _DFIELDS_DEPRECATED = {
         'dimension': None,
         'units': None,
         'type': '',
-        'symbol': r'$\phi_0$',
+        'symbol': r'$\phi_1$',
         'group': 'Philips',
     },
 
