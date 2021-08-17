@@ -45,48 +45,88 @@ for k0, v0 in _df.items():
 # ####################################################
 
 
-def get_available_models(returnas=None, verb=None):
+def get_available_models(
+    model=None,
+    details=None,
+    returnas=None,
+    verb=None,
+):
+
+    # -----------------
+    # check inputs
+
+    if model is None:
+        model = sorted(_DMODEL.keys())
+    if isinstance(model, str):
+        model = [model]
     if returnas is None:
         returnas = False
     if verb is None:
         verb = returnas is False
+    if details is None:
+        details = returnas is False
 
-    lmod = sorted(_DMODEL.keys())
+    # -----------------
+    # get available models
+
+    dmod = {
+        k0: {
+            'file': str(_DMODEL[k0]['file']),
+            'name': str(_DMODEL[k0]['name']),
+            'description': str(_DMODEL[k0]['description']),
+            'presets': list(_DMODEL[k0]['presets']),
+        }
+        for k0, v0 in _DMODEL.items()
+        if k0 in model
+    }
+
+    # -----------------
+    # print
+
     if verb is True or returnas is str:
-        lstr = [f'\t- {k0}' for k0 in lmod]
-        msg = (
-            "The following predefined models are currently available:\n"
-            + "\n".join(lstr)
-        )
+
+        if details is True:
+            # detailed message
+            msg = "\n".join([
+                "\n#################################################\n"
+                f"################### DESCRIPTION OF {v0['name']}\n\n"
+                f"file: {v0['file']}\n"
+                f"presets:\n"
+                + "\n".join([
+                    f"\t- {k1.ljust(max(*[len(vv) for vv in v0['presets']]))}:"
+                    f" {v1['com']}"
+                    for k1, v1 in _DMODEL[k0]['presets'].items()
+                ])
+                + f"\nnb. of functions:\n"
+                + "\n".join([
+                    f"\t- {k1}: {len(v1)}"
+                    for k1, v1 in _DMODEL[k0]['logics'].items()
+                ])
+                + "\n\n------ description ----\n"
+                + v0['description']
+                for k0, v0 in dmod.items()
+            ])
+
+        else:
+            # compact message
+            lstr = [
+                f"\t- {v0['name']}: {v0['presets']}"
+                for k0, v0 in dmod.items()
+            ]
+            msg = (
+                "The following predefined models are currently available:\n"
+                + "\n".join(lstr)
+            )
+
         if verb is True:
             print(msg)
+
+    # -----------------
+    # return
+
     if returnas is list:
-        return lmod
+        return model
+    elif returnas is dict:
+        return dmod
     elif returnas is str:
         return msg
-
-
-def describe_ALL_available_models():
-    print(60*'#')
-    print('Description of each model :')
-    for k0, v0 in _DMODEL.items():
-        describe_available_model(k0)
-    print(60*'#')
-
-
-def describe_available_model(model):
-    k0 = model
-    v0 = _DMODEL[k0]
-
-    print('### DESCRIPTION OF', k0, (30-len(k0))*'#')
-    print('# Location    :', v0['file'])
-    print('# Description :\n', v0['description'])
-    print('# VARIABLES   :')
-    for key, val in v0['dparam'].items():
-        if type(val) is dict:
-            print('    ', key+(10-len(key))*' ',
-                  val.get('com', 'comment not given'))
-    print('# PRESETS     :')
-    for v1 in v0['presets']:
-        print('    ', v1+(15-len(v1))*' ', v0['presets'][v1]['com'])
-    print(2*'\n')
