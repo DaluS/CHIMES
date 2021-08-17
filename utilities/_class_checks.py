@@ -43,7 +43,7 @@ _LEXTRAKEYS = [
 # #############################################################################
 
 
-def load_model(model=None, preset=None, func_order=None, method=None):
+def load_model(model=None, func_order=None, method=None):
     """ Load a model from a model file
 
     model can be:
@@ -112,7 +112,8 @@ def load_model(model=None, preset=None, func_order=None, method=None):
 
     # -------------
     # check conformity of dmodel (has 'file', 'name', 'logics', ...)
-    _check_dmodel_preset(dmodel, preset=preset)
+    _check_dmodel_preset(dmodel)
+    dmodel['preset'] = None
 
     # --------------
     # check conformity of logics (has 'ode', 'pde', 'statevar'...)
@@ -137,7 +138,7 @@ def load_model(model=None, preset=None, func_order=None, method=None):
 # #############################################################################
 
 
-def _check_dmodel_preset(dmodel=None, preset=None):
+def _check_dmodel_preset(dmodel=None):
     """ Check dmodel is a dict with proper keys """
 
     # ----------
@@ -182,7 +183,6 @@ def _check_dmodel_preset(dmodel=None, preset=None):
             + "\n".join(lstr)
         )
         raise Exception(msg)
-
 
 
 # #############################################################################
@@ -1014,7 +1014,8 @@ def update_from_preset(dparam=None, dmodel=None, preset=None):
     # check inputs
 
     if preset is None:
-        return dparam
+        dmodel['preset'] = None
+        return
 
     if preset not in dmodel['presets'].keys():
         lstr = [
