@@ -219,11 +219,12 @@ class Test01_Hub():
 
     def test13_plot_AllVar(self):
         ii = 0
-        for model in self.dmodel.keys():
-            for solver in self.lsolvers:
-                dax = _plots.AllVar(
-                    self.dmodel[model][solver],
-                    ncols=1 + ii % 4,
-                )
-                ii += 1
-            plt.close('all')
+        for model in self.dhub.keys():
+            for preset in self.dhub[model].keys():
+                for solver in self.lsolvers:
+                    dax = _plots.AllVar(
+                        self.dhub[model][preset][solver],
+                        ncols=1 + ii % 4,
+                    )
+                    ii += 1
+                plt.close('all')

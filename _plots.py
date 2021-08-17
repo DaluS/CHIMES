@@ -53,15 +53,16 @@ def AllVar(
     if dmargin is None:
         dmargin = {
             'left': 0.05, 'right': 0.98,
-            'bottom': 0.06, 'top': 0.95,
+            'bottom': 0.06, 'top': 0.90,
             'wspace': 0.15, 'hspace': 0.20,
         }
     if sharex is None:
         sharex = True
     if tit is None:
-        model = list(hub.model.keys())[0]
+        model = hub.dmodel['name']
+        preset = hub.dmodel['preset']
         solver = hub.dmisc['solver']
-        tit = f'{model} - {solver} ||| system number: {idx}'
+        tit = f'{model} - {preset} - {solver}\nsystem number: {idx}'
     if wintit is None:
         wintit = 'All variables'
     if fs is None:
