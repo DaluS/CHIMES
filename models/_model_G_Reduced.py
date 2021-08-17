@@ -76,28 +76,28 @@ _DPARAM = {
 _LOGICS = {
     'ode': {
         'lambda': {
-            'logic': lambda itself=0, g=0, alpha=0, beta=0: itself * (
+            'func': lambda itself=0, g=0, alpha=0, beta=0: itself * (
                 g - alpha - beta),
             'com': 'reduced 2variables dynamical expression'
         },
         'omega': {
-            'logic': lambda itself=0, phillips=0: itself * phillips,
+            'func': lambda itself=0, phillips=0: itself * phillips,
             'com': 'reduced 2variables dynamical expression',
             # 'initial': 0.8,
         },
     },
     'statevar': {
         'phillips': {
-            'logic': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (
+            'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (
                 1 - lamb)**2,
             'com': 'diverging Philips',
         },
         'g': {
-            'logic': lambda pi=0, nu=1, delta=0: pi / nu - delta,
+            'func': lambda pi=0, nu=1, delta=0: pi / nu - delta,
             'com': 'Goodwin explicit Growth',
         },
         'pi': {
-            'logic': lambda omega=0: 1. - omega,
+            'func': lambda omega=0: 1. - omega,
             'com': 'Goodwin relative profit',
         },
     },
