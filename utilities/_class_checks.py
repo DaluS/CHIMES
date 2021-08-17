@@ -282,7 +282,6 @@ def _check_logics(dmodel=None):
     # -----------------------
     # check pde
 
-
     # -----------------------
     # check statevar
     if 'statevar' in dmodel['logics'].keys():
@@ -703,7 +702,6 @@ def _check_func(dparam=None, func_order=None, method=None):
         )
         raise Exception(msg)
 
-
     # check lfi is still consistent
     c0 = (
         all([
@@ -737,7 +735,6 @@ def _check_func(dparam=None, func_order=None, method=None):
                 if dparam[kk]['eqtype'] == 'statevar'
             ],
         }
-
 
     # -----------------------------
     # Identify non-necessary functions

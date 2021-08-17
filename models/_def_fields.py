@@ -642,7 +642,7 @@ _LIBRARY = {
             'units': None,
         },
         'phi1': {
-            'value': 6.410256410256412*0.00001,
+            'value': 6.410256410256412 * 0.00001,
             'definition': 'Parameter1 for diverving squared',
             'com': '',
             'units': None,
@@ -722,7 +722,6 @@ _LIBRARY = {
 }
 
 
-
 # ------------------------------------
 # Derive new _DEF_FIELDS from _LIBRARY
 
@@ -753,7 +752,7 @@ def _complete_DFIELDS(
     """ Complete dfields from default"""
 
     # --------------
-    # run loop 
+    # run loop
 
     dfail = {}
     for k0, v0 in dfields.items():
@@ -803,5 +802,6 @@ def _complete_DFIELDS(
             + "\n".join(lstr)
         )
         raise Exception(msg)
+
 
 _complete_DFIELDS()

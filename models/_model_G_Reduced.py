@@ -105,7 +105,6 @@ _LOGICS = {
 }
 
 
-
 # ---------------------------
 # List of presets for specific interesting simulations
 

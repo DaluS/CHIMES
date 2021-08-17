@@ -102,7 +102,7 @@ _DPARAM_DEPRECATED = {
         'eqtype': 'intermediary',
     },
     'kappa': {
-        'func': lambda k0=0, k1=0, k2=0, Pi=0, Y=1: k0 + k1 * np.exp(k2*Pi/Y),
+        'func': lambda k0=0, k1=0, k2=0, Pi=0, Y=1: k0 + k1 * np.exp(k2 * Pi / Y),
         'eqtype': 'intermediary',
     },
     'I': {
@@ -162,11 +162,11 @@ _LOGICS = {
             'com': 'Debt as Investment-Profit difference',
         },
         'W': {
-            'func': lambda phillips=0, itself=0: itself*phillips,
+            'func': lambda phillips=0, itself=0: itself * phillips,
             'com': 'salary through negociation',
         },
         'p': {
-            'func': lambda itself=0, inflation=0: itself*inflation,
+            'func': lambda itself=0, inflation=0: itself * inflation,
             'com': 'NO INFLATION FOR THE MOMENT',
             'initial': 1,
         },
@@ -178,7 +178,7 @@ _LOGICS = {
             'com': 'Leontiev optimized production function ',
         },
         'GDP': {
-            'func': lambda Y=0, p=0: Y*p,
+            'func': lambda Y=0, p=0: Y * p,
             'com': 'Output with selling price ',
         },
         'inflation': {
@@ -206,7 +206,7 @@ _LOGICS = {
             'com': 'Wage increase rate through employement',
         },
         'kappa': {
-            'func': lambda k0=0, k1=0, k2=0, Pi=0, Y=1: k0 + k1 * np.exp(k2*Pi/Y),
+            'func': lambda k0=0, k1=0, k2=0, Pi=0, Y=1: k0 + k1 * np.exp(k2 * Pi / Y),
             'com': 'Relative GDP investment through relative profit',
         },
         'I': {

@@ -13,7 +13,6 @@ _DSOLVERS = {
 }
 
 
-
 # #############################################################################
 # #############################################################################
 #                   user-interface to display solvers
@@ -58,15 +57,15 @@ def _eRK4_homemade(
         # compute ode variables from ii-1, using solver
         for k0 in lode:
             kwdargs = {
-                k1: v1[ii-1, :] for k1, v1 in dargs[k0].items()
+                k1: v1[ii - 1, :] for k1, v1 in dargs[k0].items()
             }
 
             dparam[k0]['value'][ii, :] = (
-                dparam[k0]['value'][ii-1, :]
+                dparam[k0]['value'][ii - 1, :]
                 + _rk4(
                     dparam=dparam,
                     k0=k0,
-                    y=dparam[k0]['value'][ii-1, :],
+                    y=dparam[k0]['value'][ii - 1, :],
                     kwdargs=kwdargs,
                 )
             )
@@ -118,7 +117,7 @@ def _rk4(dparam=None, k0=None, y=None, kwdargs=None):
         dy2 = dparam[k0]['func'](**kwdargs)
         dy3 = dparam[k0]['func'](**kwdargs)
         dy4 = dparam[k0]['func'](**kwdargs)
-    return (dy1 + 2*dy2 + 2*dy3 + dy4) * dparam['dt']['value']/6.
+    return (dy1 + 2*dy2 + 2*dy3 + dy4) * dparam['dt']['value'] / 6.
 
 
 # #############################################################################

@@ -150,7 +150,7 @@ class Test01_Hub():
             for jj, preset in enumerate(self.dhub[model].keys()):
                 for kk, solver in enumerate(self.lsolvers):
                     self.dhub[model][preset][solver].save(
-                        name=str(ii * 100 + jj*10 + kk),
+                        name=str(ii * 100 + jj * 10 + kk),
                         path=_PATH_OUTPUT,  # _PATH_OUTPUT_REF to update ref
                     )
 
