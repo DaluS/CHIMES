@@ -29,7 +29,7 @@ _DMODEL_KEYS = {
     'name': str,
 }
 _LTYPES = [int, float, np.int_, np.float_]
-_LEQTYPES = ['ode', 'pde', 'statevar', 'undeclared']
+_LEQTYPES = ['ode', 'pde', 'statevar', 'param', 'undeclared']
 
 _LEXTRAKEYS = [
     'func', 'kargs', 'args', 'initial',
@@ -43,7 +43,7 @@ _LEXTRAKEYS = [
 # #############################################################################
 
 
-def load_model(model=None, func_order=None, method=None):
+def load_model(model=None, method=None):
     """ Load a model from a model file
 
     model can be:
@@ -125,11 +125,9 @@ def load_model(model=None, func_order=None, method=None):
 
     # --------------------
     # re-check dparam + Identify functions order + get dargs
-    dparam, func_order, dargs = check_dparam(
-        dparam=dparam, func_order=func_order, method=method,
-    )
+    dparam, dfunc_order, dargs = check_dparam(dparam=dparam)
 
-    return dmodel, dparam, func_order, dargs
+    return dmodel, dparam, dfunc_order, dargs
 
 
 # #############################################################################
@@ -374,7 +372,6 @@ def _check_dparam(dparam=None):
 
     if 'time' not in dparam.keys():
         dparam['time'] = dict(models._DFIELDS['time'])
-        dparam['time']['eqtype'] = 'ode'
 
     # ------------
     # check values
@@ -388,7 +385,7 @@ def _check_dparam(dparam=None):
 
         # if function directly provided => put inot dict
         if hasattr(v0, '__call__'):
-            dfail[k0] = "Function must be in a dict {'value': func, 'eqtype':}"
+            dfail[k0] = "Function must be in a dict {'func': func, 'eqtype':}"
             continue
 
         # if dict => investigate
@@ -415,7 +412,7 @@ def _check_dparam(dparam=None):
                 and 'func' not in v0.keys()
             )
             if c0:
-                dfail[k0] = "dict must have key 'value' or 'func'"
+                dfail[k0] = "dict must have key 'value' or 'func' (or both)"
                 continue
 
             # check function or value
@@ -433,7 +430,7 @@ def _check_dparam(dparam=None):
             if c0:
                 # func
                 if 'eqtype' not in dparam[k0].keys():
-                    dparam[k0]['eqtype'] = 'undeclared'
+                    dparam[k0]['eqtype'] = 'param'
                     # dfail[k0] = "For a func, 'eqtype' must be provided"
                     # continue
                 if dparam[k0]['eqtype'] not in _LEQTYPES:
@@ -473,7 +470,7 @@ def _check_dparam(dparam=None):
 # #############################################################################
 
 
-def check_dparam(dparam=None, func_order=None, method=None):
+def check_dparam(dparam=None):
     """ Check user-provided dparam
 
     dparam can be:
@@ -497,11 +494,7 @@ def check_dparam(dparam=None, func_order=None, method=None):
 
     # ----------------
     # Identify functions
-    dparam, func_order = _check_func(
-        dparam,
-        func_order=func_order,
-        method=method,
-    )
+    dparam, dfunc_order = _check_func(dparam)
 
     # ----------------
     # Make sure to copy to avoid passing by reference
@@ -510,12 +503,13 @@ def check_dparam(dparam=None, func_order=None, method=None):
     }
 
     # ---------------
-    # dargs
+    # dargs (to be used in solver, faster to define it here)
+
     lode = [
         k0 for k0, v0 in dparam.items()
         if v0.get('eqtype') == 'ode'
     ]
-    lstate = func_order
+    lstate = dfunc_order
 
     dargs = {
         k0: {
@@ -526,7 +520,7 @@ def check_dparam(dparam=None, func_order=None, method=None):
             )
             if k1 != 'lambda'
         }
-        for k0 in lode + lstate
+        for k0 in dfunc_order['statevar'] + dfunc_order['ode']
     }
 
     # Handle the lambda exception here to avoid test at every time step
@@ -540,7 +534,7 @@ def check_dparam(dparam=None, func_order=None, method=None):
         if c0 and 'lambda' in dparam[k0]['kargs']:
             dargs[k0]['lamb'] = dparam['lambda']['value']
 
-    return dparam, func_order, dargs
+    return dparam, dfunc_order, dargs
 
 
 # #############################################################################
@@ -625,7 +619,123 @@ def _extract_parameters(dparam):
             raise Exception(msg)
 
 
-def _check_func(dparam=None, func_order=None, method=None):
+def _check_func_time_dependence(lfunc=None, dparam=None):
+    """ Safety check on time dependence
+
+    Here we:
+        - identify functions that depend on time
+        - make sure that time-dependent functions are 'ode' or 'statevar'
+        - make sure that time-independent functions are 'param'
+
+    """
+
+    # ----------------
+    #  Get list of func that depend on time
+
+    # first functions that explicitly depend on time
+    lft = [kk for kk in lfunc if 'time' in dparam[kk]['kargs']]
+
+    # then ode
+    for kk in lfunc:
+        if kk not in lft and dparam[kk]['eqtype'] == 'ode':
+            lft.append(kk)
+
+    # Then function that depend on time-dependent functions
+    keepon = True
+    while keepon:
+        lft_new = []
+        for kk in lfunc:
+            if kk not in lft and any([k1 in dparam[kk]['kargs'] for k1 in lft]):
+                lft_new.append(kk)
+        if len(lft_new) > 0:
+            lft += lft_new
+        else:
+            keepon = False
+
+    # ----------------
+    # check consistency with declared eqtype
+    dfail = {}
+    for kk in lfunc:
+
+        if kk in lft and dparam[kk]['eqtype'] not in ['ode', 'statevar']:
+            dfail[kk] = f"Time dependent but eqtype='{dparam[kk]['eqtype']}'"
+        elif kk not in lft and dparam[kk]['eqtype'] not in ['param']:
+            dfail[kk] = f"Time independent but eqtype='{dparam[kk]['eqtype']}'"
+
+    if len(dfail) > 0:
+        lstr = [f"\t- {k0}: {v0}" for k0, v0 in dfail.items()]
+        msg = (
+            "The following inconsistencies have been found:\n"
+            + "\n".join(lstr)
+        )
+        raise Exception(msg)
+
+
+def _check_func_get_source(lfunc=None, dparam=None):
+    """ Extract the source code of functions
+
+    Useful for:
+        - extracting default values of keyword args and changing them
+        - displaying the function in get_summary() (for one-liners only)
+
+    """
+
+    for k0 in lfunc:
+        if dparam[k0].get('source_kargs') is None:
+            assert dparam[k0].get('source_exp') is None
+
+            # extract source and check if lambda
+            sour = inspect.getsource(dparam[k0]['func'])
+
+            c0 = (
+                sour.count(':') >= 1
+                and (
+                    sour.count('lambda') == 1
+                    and sour.count(':') == 2
+                    and 'lambda' in sour.split(':')[1]
+                    and sour.count('\n') == 1
+                    and sour.endswith(',\n')
+                )
+                or (
+                    sour.count('lambda') == 0
+                    and sour.count('def') == 1
+                    and sour.startswith('def ')
+                )
+            )
+            if not c0:
+                msg = (
+                    f"Non-valid function for {k0}: "
+                    "Should be either 'lambda' (one-liner) or a 'def():'"
+                )
+                raise Exception(msg)
+
+            # Extract kargs and exp(for lambda only)
+            if sour.count('lambda') == 1:
+                # clean-up source
+                sour = sour.strip().replace(',\n', '').replace('\n', '')
+                sour = sour[sour.index('lambda') + len('lambda'):]
+                # separate keyword args from expression
+                kargs, exp = sour.split(':')
+
+                # store exp for lambda only
+                dparam[k0]['source_exp'] = exp.strip()
+            else:
+                kargs = sour[sour.index('(')+1:sour.index(')')]
+
+            kargs = [kk.strip() for kk in kargs.strip().split(',')]
+            if not all(['=' in kk for kk in kargs]):
+                msg = (
+                    'Only keyword args can be used for lambda functions!\n'
+                    f'Provided:\n{source}'
+                )
+                raise Exception(msg)
+
+            # store keyword args and cleaned-up expression separately
+            kargs = ', '.join(kargs)
+            dparam[k0]['source_kargs'] = kargs
+
+
+def _check_func(dparam=None):
     """ Check basic conformity of functions
 
     They must:
@@ -648,13 +758,12 @@ def _check_func(dparam=None, func_order=None, method=None):
 
     # -------------------------------------
     # extract parameters that are functions
-    lf = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
-    lfi = list(lf)
+    lfunc = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
 
     # ---------------------------------------
     # extract input args and check conformity
     dfail = {}
-    for k0 in lf:
+    for k0 in lfunc:
         v0 = dparam[k0]
         kargs = inspect.getfullargspec(v0['func']).args
 
@@ -692,22 +801,6 @@ def _check_func(dparam=None, func_order=None, method=None):
             dfail[k0] = f"Function doesn't work with default values ({err})"
             continue
 
-        # Identify function depending on static parameters and update
-        # Replace by computed value and remove from list of functions
-        c0 = (
-            not any([kk in lf for kk in kargs])
-            and dparam[k0]['eqtype'] != 'ode'
-        )
-        if c0:
-            din = {kk: dparam[kk]['value'] for kk in kargs if kk != 'lambda'}
-            if 'lambda' in kargs:
-                din['lamb'] = dparam['lambda']['value']
-            dparam[k0]['value'] = dparam[k0]['func'](**din)
-            lfi.remove(k0)
-            del dparam[k0]['eqtype']
-            del dparam[k0]['func']
-            continue
-
         # store keyword args
         dparam[k0]['kargs'] = kargs
 
@@ -720,131 +813,99 @@ def _check_func(dparam=None, func_order=None, method=None):
         )
         raise Exception(msg)
 
-    # Raise Exception if any 'undeclared' function remains
-    lundeclared = [
-        k0 for k0, v0 in dparam.items()
-        if k0 in lfi
-        and v0['eqtype'] == 'undeclared'
-    ]
-    if len(lundeclared) > 0:
-        lstr = [f'\t- {k0}' for k0 in lundeclared]
-        msg = (
-            "The following undeclared functions (unknown eqtype) remain:\n"
-            + "\n".join(lstr)
-        )
-        raise Exception(msg)
-
+    # ----------------------
     # check lfi is still consistent
     c0 = (
         all([
             hasattr(dparam[k0]['func'], '__call__')
             and dparam[k0].get('eqtype') is not None
-            for k0 in lfi
+            for k0 in lfunc
         ])
         and [
             not (hasattr(dparam[k0]['value'], '__call__'))
             and dparam[k0].get('eqtype') is None
-            for k0 in dparam.keys() if k0 not in lfi
+            for k0 in dparam.keys() if k0 not in lfunc
         ]
     )
     if not c0:
-        msg = "Inconsistency in lfi identified!"
+        msg = "Inconsistency in lfunc identified!"
         raise Exception(msg)
+
+    # ----------------------
+    # check time dependence
+    _check_func_time_dependence(lfunc=lfunc, dparam=dparam)
 
     # --------------------------------
     # classify input args per category
-    for k0 in lfi:
+    for k0 in lfunc:
         kargs = [kk for kk in dparam[k0]['kargs'] if kk != 'itself']
-        argsf = [kk for kk in kargs if kk in lfi]
         dparam[k0]['args'] = {
-            'param': [kk for kk in kargs if kk not in lfi],
+            None: [
+                kk for kk in kargs
+                if kk not in lfunc
+            ],
+            'param': [
+                kk for kk in kargs
+                if kk in lfunc
+                and dparam[kk]['eqtype'] == 'param'
+            ],
             'ode': [
-                kk for kk in argsf
-                if dparam[kk]['eqtype'] == 'ode'
+                kk for kk in kargs
+                if kk in lfunc
+                and dparam[kk]['eqtype'] == 'ode'
             ],
             'statevar': [
-                kk for kk in argsf
-                if dparam[kk]['eqtype'] == 'statevar'
+                kk for kk in kargs
+                if kk in lfunc
+                and dparam[kk]['eqtype'] == 'statevar'
             ],
         }
 
     # -----------------------------
     # Identify non-necessary functions
-    for k0 in lfi:
+    for k0 in lfunc:
         c0 = (
-            dparam[k0]['eqtype'] == 'ode'
-            or any([k0 in dparam[k1]['kargs'] for k1 in lfi])
+            dparam[k0]['eqtype'] == 'statevar'
+            and not any([k0 in dparam[k1]['kargs'] for k1 in lfunc])
         )
         if c0:
-            dparam[k0]['isneeded'] = True
-        else:
             dparam[k0]['isneeded'] = False
+        else:
+            dparam[k0]['isneeded'] = True
 
     # -------------------------------
     # Store the source for later use (doc, saving...)
-    for k0 in lfi:
-        if dparam[k0].get('source_kargs') is None:
-            assert dparam[k0].get('source_exp') is None
-            source = inspect.getsource(dparam[k0]['func'])
-            if source.count('lambda') != 1 or not source.endswith(',\n'):
-                msg = (
-                    f"The source line function {k0} is non-valid\n"
-                    "It must be a single-line lambda function, "
-                    "ending with ',\n'"
-                    f"Provided source:\n{source}"
-                )
-                raise Exception(msg)
-            source = source.strip().replace(',\n', '')
-            source = source[source.index('lambda') + len('lambda'):]
-            if source.count(':') != 1:
-                msg = (
-                    "Provided source is non-valid\n"
-                    "It should have a single ':'\n"
-                    f"Provided:\n{source}"
-                )
-                raise Exception(msg)
-            kargs, exp = source.split(':')
-            exp = exp.strip()
-            kargs = [kk.strip() for kk in kargs.strip().split(',')]
-            if not all(['=' in kk for kk in kargs]):
-                msg = (
-                    'Only keyword args can be used for lambda functions!\n'
-                    f'Provided:\n{source}'
-                )
-                raise Exception(msg)
-            kargs = ', '.join(kargs)
-            dparam[k0]['source_kargs'], dparam[k0]['source_exp'] = kargs, exp
+    _check_func_get_source(lfunc=lfunc, dparam=dparam)
+
+    # ----------------------------
+    # Determine order of functions
+    dfunc_order = _suggest_funct_order(dparam=dparam)
+
+    # --------------------------------
+    # run all param func to set their values
+    for k0 in dfunc_order['param']:
+        dargs = {
+            k1: dparam[k1]['value']
+            for k1 in dparam[k0]['args'][None]
+        }
+        dargs.update({
+            k1: dparam[k1]['value']
+            for k1 in dparam[k0]['args']['param']
+        })
+        dparam[k0]['value'] = dparam[k0]['func'](**dargs)
 
     # --------------------------------
     # set default values of parameters to their real values
     # this way we don't have to feed the parameters value inside the loop
-    for k0 in lfi:
-        if len(dparam[k0]['args']) > 0:
-            defaults = list(dparam[k0]['func'].__defaults__)
-            kargs = dparam[k0]['source_kargs'].split(', ')
-            for k1 in dparam[k0]['args']['param']:
-                defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
-                ind = [ii for ii, vv in enumerate(kargs) if k1 in vv]
-                if len(ind) != 1:
-                    msg = f"Inconsistency in kargs for {k0}, {k1}"
-                    raise Exception(msg)
-                kargs[ind[0]] = "{}={}".format(k1, dparam[k1]['value'])
-            dparam[k0]['func'].__defaults__ = tuple(defaults)
-            dparam[k0]['source_kargs'] = ', '.join(kargs)
+    _update_func_default_kwdargs(lfunc=lfunc, dparam=dparam)
 
     # -------------------------------------------
     # Create variables for all varying quantities
     shape = (dparam['nt']['value'], dparam['nx']['value'])
-    for k0 in lfi:
+    for k0 in lfunc:
         dparam[k0]['value'] = np.full(shape, np.nan)
 
-    # ----------------------------
-    # Determine order of functions
-    func_order = _suggest_funct_order(
-        dparam=dparam, func_order=func_order, lfunc=lfi, method=method,
-    )
-
-    return dparam, func_order
+    return dparam, dfunc_order
 
 
 # #############################################################################
@@ -853,7 +914,71 @@ def _check_func(dparam=None, func_order=None, method=None):
 # #############################################################################
 
 
+def _suggest_funct_order_by_group(eqtype=None, dparam=None):
+    """ Here we find a natural order for function of the same group
+
+    """
+
+    # Prepare list of relevant functsions
+    lf = [kk for kk, vv in dparam.items() if vv.get('eqtype') == eqtype]
+
+    lfsort = []
+    keepon = True
+    ntry = 0
+    while keepon:
+
+        # Identify func that can be sorted
+        for kk in lf:
+            if kk in lfsort:
+                continue
+            elif len(dparam[kk]['args'][eqtype]) == 0:
+                lfsort.append(kk)
+            elif all([k1 in lfsort for k1 in dparam[kk]['args'][eqtype]]):
+                lfsort.append(kk)
+
+        # evaluate termination condition
+        ntry += 1
+        if set(lf) == set(lfsort):
+            keepon = False
+        elif ntry == len(lf)-1:
+            msg = f"No sorting order of func could be found for {eqtype}"
+            raise Exception(msg)
+
+    return lfsort
+
+
 def _suggest_funct_order(
+    dparam=None,
+):
+    """ Propose a logical order for computing the functions
+
+    Strategy:
+        1) Determine if a natural order exists (i.e. no cyclical dependency)
+        2) if no => identify functions that, if updated from the previous time
+        step, allow to compute the maximum number of other functions without
+        having to rely on the previous time step for them
+
+        Auxiliary functions are not considered
+    """
+
+    # -------------
+    # we want a function order for statevar and param
+    dfunc_order = {
+        k0: _suggest_funct_order_by_group(eqtype=k0, dparam=dparam)
+        for k0 in ['param', 'statevar', 'ode']
+    }
+
+    return dfunc_order
+
+
+# #############################################################################
+# #############################################################################
+#               DEPRECATED for Back-up            
+# #############################################################################
+
+
+# DEPRECATED
+def _suggest_funct_order_DEPRECATED(
     dparam=None,
     func_order=None,
     lfunc=None,
@@ -870,9 +995,11 @@ def _suggest_funct_order(
         Auxiliary functions are not considered
     """
 
+    # -------------
     # check inputs
     if method is None:
         method = 'other'
+
 
     included = ['statevar']
     lfunc_state = [
@@ -959,6 +1086,7 @@ def _suggest_funct_order(
         """
 
     elif method == 'other':
+
         # count the number of args in each category, for each function
         nbargs = np.array([
             (
@@ -1022,12 +1150,56 @@ def _suggest_funct_order(
 
     # print suggested order
     msg = (
-        'Suggested order for intermediary functions (func_order):\n'
+        'Suggested order for statevar functions (func_order):\n'
         f'{func_order}'
     )
     print(msg)
 
     return func_order
+
+
+# #############################################################################
+# #############################################################################
+#               func: update default values of keyword args
+# #############################################################################
+
+
+def _update_func_default_kwdargs(lfunc=None, dparam=None):
+    """ Here we update the default valuee of all functions """
+
+    for k0 in lfunc:
+
+        # skip trivial
+        if len(dparam[k0]['args']) == 0:
+            continue
+
+        # get defaults
+        defaults = list(dparam[k0]['func'].__defaults__)
+        kargs = dparam[k0]['source_kargs'].split(', ')
+
+        # update using fixed param (eqtype = None)
+        for k1 in dparam[k0]['args'][None]:
+            key = 'lamb' if k1 == 'lambda' else k1
+            defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
+            ind = [ii for ii, vv in enumerate(kargs) if key in vv]
+            if len(ind) != 1:
+                msg = f"Inconsistency in kargs for {k0}, {k1}"
+                raise Exception(msg)
+            kargs[ind[0]] = "{}={}".format(key, dparam[k1]['value'])
+
+        # update using param
+        for k1 in dparam[k0]['args']['param']:
+            key = 'lamb' if k1 == 'lambda' else k1
+            defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
+            ind = [ii for ii, vv in enumerate(kargs) if key in vv]
+            if len(ind) != 1:
+                msg = f"Inconsistency in kargs for {k0}, {k1}"
+                raise Exception(msg)
+            kargs[ind[0]] = "{}={}".format(key, dparam[k1]['value'])
+
+        # update
+        dparam[k0]['func'].__defaults__ = tuple(defaults)
+        dparam[k0]['source_kargs'] = ', '.join(kargs)
 
 
 # #############################################################################
