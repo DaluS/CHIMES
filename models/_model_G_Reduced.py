@@ -25,8 +25,7 @@ _FUNC_ORDER = None
 _LOGICS = {
     'ode': {
         'lambda': {
-            'func': lambda itself=0, g=0, alpha=0, beta=0: itself * (
-                g - alpha - beta),
+            'func': lambda itself=0, g=0, alpha=0, beta=0: itself * (g - alpha - beta),
             'com': 'reduced 2variables dynamical expression'
         },
         'omega': {
@@ -37,8 +36,7 @@ _LOGICS = {
     },
     'statevar': {
         'phillips': {
-            'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (
-                1 - lamb)**2,
+            'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
             'com': 'diverging Philips',
         },
         'g': {
@@ -79,7 +77,7 @@ _PRESETS = {
     },
     'badnegociation': {
         'fields': {
-            'phi0': .3,
+            'phinull': .3,
         },
         'com': (
             'displace the Solow Point and '

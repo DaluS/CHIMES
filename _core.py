@@ -437,37 +437,42 @@ class Hub():
 
         # ------------
         # start time loop
-        if solver == 'eRK4-homemade':
 
-            _solvers._eRK4_homemade(
-                dparam=self.__dparam,
-                lode=lode,
-                linter=linter,
-                laux=laux,
-                dargs=self.__dargs,
-                nt=nt,
-                verb=verb,
-                timewait=timewait,
-                end=end,
-                flush=flush,
-                compute_auxiliary=compute_auxiliary,
-            )
+        try:
+            if solver == 'eRK4-homemade':
 
-        elif 'scipy' in solver:
-            sol = _solvers._solver_scipy(
-                dparam=self.__dparam,
-                lode=lode,
-                linter=linter,
-                dargs=self.__dargs,
-                verb=verb,
-                rtol=rtol,
-                atol=atol,
-                max_time_step=max_time_step,
-                solver_scipy=solver_scipy,
-            )
+                _solvers._eRK4_homemade(
+                    dparam=self.__dparam,
+                    lode=lode,
+                    linter=linter,
+                    laux=laux,
+                    dargs=self.__dargs,
+                    nt=nt,
+                    verb=verb,
+                    timewait=timewait,
+                    end=end,
+                    flush=flush,
+                    compute_auxiliary=compute_auxiliary,
+                )
 
-        self.__dmisc['run'] = True
-        self.__dmisc['solver'] = solver
+            elif 'scipy' in solver:
+                sol = _solvers._solver_scipy(
+                    dparam=self.__dparam,
+                    lode=lode,
+                    linter=linter,
+                    dargs=self.__dargs,
+                    verb=verb,
+                    rtol=rtol,
+                    atol=atol,
+                    max_time_step=max_time_step,
+                    solver_scipy=solver_scipy,
+                )
+            self.__dmisc['run'] = True
+            self.__dmisc['solver'] = solver
+
+        except Exception as err:
+            self.__dmisc['run'] = False
+            raise err
 
     # ##############################
     #       Deep analysis methods

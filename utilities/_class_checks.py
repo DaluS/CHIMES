@@ -549,6 +549,32 @@ def check_dparam(dparam=None, func_order=None, method=None):
 # #############################################################################
 
 
+def _extract_par_from_func(lfunc=None, lpar=None, dparam=None):
+
+    lpar_add, lfunc_add = [], []
+    lkok = ['itself'] + lpar + lfunc
+    for k0 in lfunc:
+        key = 'lambda' if k0 == 'lamb' else k0
+
+        if k0 in dparam.keys():
+            kargs = inspect.getfullargspec(dparam[key]['func']).args
+        else:
+            kargs = inspect.getfullargspec(models._DFIELDS[key]['func']).args
+
+        # check if any parameter is unknown
+        for kk in kargs:
+            key = 'lambda' if kk == 'lamb' else kk
+            if key not in lkok:
+                if models._DFIELDS[key].get('func') is None:
+                    if key not in lpar_add:
+                        lpar_add.append(key)
+                elif key not in lfunc_add:
+                    lfunc_add.append(key)
+
+    return lpar_add, lfunc_add
+
+
+
 def _extract_parameters(dparam):
     """ Extract fixed-value parameters
 
@@ -556,27 +582,33 @@ def _extract_parameters(dparam):
         the func kwdargs
     """
 
-    lf = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
-    lparameters = []
+    lpar = [k0 for k0, v0 in dparam.items() if v0.get('func') is None]
+    lfunc = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
+    lpar_new = []
+    lfunc_new = []
 
     # ---------------------------------------
     # extract input args and check conformity
-    for k0 in lf:
-        kargs = inspect.getfullargspec(dparam[k0]['func']).args
-
-        # check if any parameter is unknown
-        lkok = ['itself'] + list(dparam.keys())
-        lparameters += [kk for kk in kargs if kk not in lkok]
+    keepon = True
+    while keepon:
+        lp, lf = _extract_par_from_func(
+            lfunc=lfunc + lfunc_new,
+            lpar=lpar + lpar_new,
+            dparam=dparam,
+        )
+        if len(lp) > 0:
+            lpar_new += lp
+        if len(lf) > 0:
+            lfunc_new += lf
+        else:
+            keepon = False
 
     # ----------------------------------------
     # check parameters
-    if len(lparameters) > 0:
+    if len(lpar_new + lfunc_new) > 0:
         dfail = {}
-        for k0 in lparameters:
-            if k0 == 'lamb':
-                key = 'lambda'
-            else:
-                key = k0
+        for k0 in lpar_new + lfunc_new:
+            key = 'lambda' if k0 == 'lamb' else k0
             if key not in models._DFIELDS.keys():
                 dfail[k0] = "Unknown parameter"
                 continue

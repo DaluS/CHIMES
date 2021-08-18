@@ -245,13 +245,17 @@ def _solver_scipy(
 
     # ----------------
     # verbosity
-    if verb > 0:
-        msg = (
-            f"{sol.message}\nSuccess: {sol.success}\n"
-            f"Nb. fev: {sol.nfev} for {sol.t.size} time steps"
-            f" ({sol.nfev/sol.t.size} per time step)"
-        )
-        print(msg)
+    if sol.success is True:
+        if verb > 0:
+            msg = (
+                f"{sol.message}\nSuccess: {sol.success}\n"
+                f"Nb. fev: {sol.nfev} for {sol.t.size} time steps"
+                f" ({sol.nfev/sol.t.size} per time step)"
+            )
+            print(msg)
+    else:
+        msg = f"Solver failed with status {sol.status}: {sol.message}"
+        raise Exception(msg)
 
     # ---------------------
     # dispatch results

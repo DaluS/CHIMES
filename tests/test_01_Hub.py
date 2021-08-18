@@ -117,6 +117,7 @@ class Test01_Hub():
         """ Make sure the main function runs as executable from terminal """
 
         # list of entry parameters to try
+        dfail = {}
         for ii, model in enumerate(self.dhub.keys()):
             for jj, preset in enumerate(self.dhub[model].keys()):
                 self.dhub[model][preset] = {
@@ -132,10 +133,21 @@ class Test01_Hub():
                         # testing verb = float
                         verb = ii + jj + kk / len(self.lsolvers)
 
-                    self.dhub[model][preset][solver].run(
-                        solver=solver,
-                        verb=verb,
-                    )
+                    try:
+                        self.dhub[model][preset][solver].run(
+                            solver=solver,
+                            verb=verb,
+                        )
+                    except Exception as err:
+                        dfail[f'{model} {preset} {solver}'] = str(err)
+
+        if len(dfail) > 0:
+            lstr = [f'\t- {k0}: {v0}' for k0, v0 in dfail.items()]
+            msg = (
+                "The following solvers failed:\n"
+                + "\n".join(lstr)
+            )
+            raise Exception(msg)
 
     def test07_get_summary_repr_after_run(self):
         for model in self.dhub.keys():
