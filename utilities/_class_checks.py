@@ -673,6 +673,9 @@ def _run_check(
         'eRK4-homemade': {
             'com': 'explicit Runge_Kutta order 4 homemade',
         },
+        'eRK4-homemade-bis': {
+            'com': 'explicit Runge_Kutta order 4 homemade, inclusive',
+        },
         'eRK2-scipy': {
             'scipy': 'RK23',
             'com': 'explicit Runge_Kutta order 2 from scipy',
@@ -687,7 +690,7 @@ def _run_check(
         },
     }
     if solver is None:
-        solver = 'eRK4-homemade'
+        solver = 'eRK4-homemade-bis'
     if solver not in dsolver.keys():
         lstr = [f"\t- '{k0}': {v0['com']}" for k0, v0 in dsolver.items()]
         msg = (
