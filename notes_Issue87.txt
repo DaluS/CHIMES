@@ -1,0 +1,50 @@
+
+CORE:
+-----
+* Shall we use dparam['eqtype'] = 'parameter' ?
+
+
+MODELS:
+-------
+* Replaced _DESCRIPTION by __doc__
+* hub.model dict vs str ?
+* __ini__.PrintDFIELDS() and subsequent thnigs (_get_summary()) => To be done later
+* 'i' vs 'inflation'?
+* 'p' vs 'prices'
+* 'K' vs 'Capital'
+* 'D' vs 'Debt'
+* 'N' vs 'Population'
+* ...
+* 'phinull' defined in G_REduced preset 'badnegociation', but not used...
+
+
+Class utility:
+--------------
+* _get_DicOfSameUnits() seems redundant with hub.get_dparam(unit=...)
+* fromOldToNewModelFormalism() seems incomplete and unused 
+* 'func': funcs['logic']: 2 different names for the same thing!
+* Preserving _check_dparam because:
+    - more complete checks (better more than less)
+    - preserves functionality of load directly from a saved dict
+
+
+SOLVER:
+-------
+* RK4 seems to be wrong for some reason => to be done later
+
+
+PLOT:
+-----
+* => To be done later
+
+TESTS:
+------
+* import _core at the top of the file => no
+
+
+LEFT TO DO:
+-----------
+* Cycles analysis
+* Change system size
+* Run multiple systems
+* debug solvers
