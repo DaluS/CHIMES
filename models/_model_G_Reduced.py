@@ -22,58 +22,6 @@ _FUNC_ORDER = None
 # user-defined model
 # contains parameters and functions of various types
 
-# DEPRECATED
-_DPARAM_DEPRECATED = {
-
-    # ---------
-    # %% Fixed-value parameters
-    'alpha': None,
-    'delta': None,
-    'beta': None,
-    'nu': None,
-    'phinull': None,
-
-    # ---------
-    # %% functions
-    'lambda': {
-        'func': lambda itself=0, g=0, alpha=0, beta=0: itself * (g - alpha - beta),
-        'eqtype': 'ode',
-        'initial': 0.97,
-    },
-    'omega': {
-        'func': lambda itself=0, phillips=0: itself * phillips,
-        'eqtype': 'ode',
-        'initial': 0.85,
-    },
-
-    # Intermediary
-    'phillips': {
-        'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
-        'eqtype': 'intermediary',
-    },
-    'g': {
-        'func': lambda pi=0, nu=1, delta=0: pi / nu - delta,
-        'eqtype': 'intermediary',
-    },
-    'pi': {
-        'func': lambda omega=0: 1. - omega,
-        'eqtype': 'intermediary',
-    },
-    'phi0': {
-        'func': lambda phinull=0: phinull / (1 - phinull**2),
-        'eqtype': 'auxiliary',
-    },
-    'phi1': {
-        'func': lambda phinull=0: phinull**3 / (1 - phinull**2),
-        'eqtype': 'auxiliary',
-    },
-}
-
-
-# ---------------------------
-# New formalism
-
-
 _LOGICS = {
     'ode': {
         'lambda': {

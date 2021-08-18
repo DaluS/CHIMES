@@ -123,7 +123,327 @@ for k0, v0 in __DEFAULTFIELDS.items():
 
 # #############################################################################
 # #############################################################################
-#                   Dict of default fields
+#                   Library (new formalism)
+# #############################################################################
+
+
+_LIBRARY = {
+
+    'Numerical': {
+        'Tmax': {
+            'value': 100,
+            'units': 'y',
+            'definition': 'Total simulated time',
+        },
+        'dt': {
+            'value': 0.01,
+            'units': 'y',
+            'definition': 'time between two steps',
+        },
+        'nt': {
+            'func': lambda Tmax=0, dt=1: int(Tmax / dt),
+            'units': None,
+            'definition': 'Number of timestep',
+            'com': 'Constant dt'
+        },
+        'nx': {
+            'value': 1,
+            'units': 'y',
+            'definition': 'NUMBER OF PARRALLEL SYSTEMS',
+        },
+    },
+
+    'CORE': {
+
+        # Time
+        'time': {
+            'initial': 0.,
+            'func': lambda dt=0: 1.,
+            'definition': 'Time vector',
+            'com': 'dt/dt=1, time as ODE',
+            'units': 'y',
+            'eqtype': 'ode',
+        },
+
+        # Population
+        'N': {
+            'value': 1.,
+            'definition': 'Population',
+            'units': 'Humans',
+        },
+        'beta': {
+            'value': 0.025,
+            'definition': 'Rate of population growth',
+            'units': 'y^{-1}',
+        },
+
+        # Productivity
+        'a': {
+            'value': 1,
+            'units': 'Units.Humans^{-1}.y^{-1}',
+            'definition': 'Productivity',
+        },
+        'alpha': {
+            'value': 0.02,
+            'definition': 'Rate of productivity increase',
+            'units': 'y^{-1}',
+        },
+        'W': {
+            'value': 0.85,
+            'definition': 'Wage value',
+            'units': '$'
+        },
+
+        # Capital
+        'delta': {
+            'value': 0.005,
+            'definition': 'Rate of capital depletion',
+            'units': 'y^{-1}',
+        },
+        'nu': {
+            'value': 3,
+            'definition': 'Kapital to output ratio',
+            'units': None,
+        },
+        'K': {
+            'value': 2.7,
+            'units': 'Units',
+            'definition': 'Capital',
+        },
+
+        # others
+        'pi': {
+            'value': None,
+            'definition': 'relative profit',
+            'units': None,
+            'symbol': r'$\pi$',
+        },
+        'g': {
+            'value': None,
+            'definition': 'Relative growth',
+            'units': 'y^{-1}',
+        },
+        'Y': {
+            'value': None,
+            'definition': 'GDP in output quantity',
+            'units': 'Units.y^{-1}',
+        },
+        'L': {
+            'value': None,
+            'definition': 'Workers',
+            'units': 'Humans',
+        },
+        'I': {
+            'value': None,
+            'definition': 'Investment',
+            'units': '$',
+        },
+        'Pi': {
+            'value': None,
+            'definition': 'Absolute profit',
+            'units': '$',
+        },
+        'lambda': {
+            'value': .97,
+            'definition': 'employement rate',
+            'units': None,
+        },
+        'omega': {
+            'value': .85,
+            'definition': 'wage share',
+            'units': None,
+        },
+    },
+
+    'Salary Negociation': {
+        'phillips': {
+            'value': None,
+            'definition': 'Wage inflation rate',
+            'units': 'y^{-1}',
+            'symbol': r'$\phi$',
+        },
+        'phinull': {
+            'value': 0.04,
+            'definition': 'Unemployment rate with no salary increase',
+            'units': None,
+        },
+        'phi0': {
+            'value': 0.04006410256410257,
+            'definition': 'Parameter1 for diverving squared',
+            'com': '',
+            'units': None,
+        },
+        'phi1': {
+            'value': 6.410256410256412 * 0.00001,
+            'definition': 'Parameter1 for diverving squared',
+            'com': '',
+            'units': None,
+        },
+    },
+
+    'Investment': {
+        'kappa': {
+            'value': None,
+            'definition': 'Part of GDP in investment',
+            'units': None,
+            'symbol': r'$\kappa$',
+        },
+        'k0': {
+            'value': -0.0065,
+            'definition': 'Percent of GDP invested when profit is zero',
+            'units': None,
+        },
+        'k1': {
+            'value': np.exp(-5),
+            'definition': 'Investment slope',
+            'units': None,
+        },
+        'k2': {
+            'value': 20,
+            'definition': 'Investment power in kappa',
+            'units': None,
+        },
+    },
+
+    'Debt': {
+        'r': {
+            'value': .03,
+            'definition': 'Interest on debt',
+            'units': 'y^{-1}',
+        },
+        'D': {
+            'value': 0.1,
+            'definition': 'Debt of private sector',
+            'units': '$',
+        },
+        'd': {
+            # 'func': lambda GDP=0, D=0: D/GDP,
+            'value': 0.1,
+            'definition': 'relative debt',
+            'units': None,
+        },
+    },
+
+    'Prices': {
+        'mu': {
+            'value': 2,
+            'definition': 'Markup on prices',
+            'units': None,
+        },
+        'eta': {
+            'value': 1,
+            'definition': 'timerate of price adjustment',
+            'units': 'y^{-1}',
+        },
+        'GDP': {
+            'value': None,
+            'definition': 'GDP in nominal term',
+            'units': '$',
+        },
+        'inflation': {
+            'value': None,
+            'definition': 'inflation rate',
+            'units': 'y^{-1}',
+        },
+        'p': {
+            'value': None,
+            'definition': 'prices?',
+            'units': '$',
+        },
+    },
+}
+
+
+# ------------------------------------
+# Derive new _DFIELDS from _LIBRARY
+
+__LKLIB = [dict.fromkeys(v0.keys(), k0) for k0, v0 in _LIBRARY.items()]
+for ii, dd in enumerate(__LKLIB[1:]):
+    __LKLIB[0].update(dd)
+
+_DFIELDS = {
+    k0: dict(_LIBRARY[v0][k0]) for k0, v0 in __LKLIB[0].items()
+}
+
+for k0, v0 in __LKLIB[0].items():
+    _DFIELDS[k0]['group'] = v0
+
+
+# #############################################################################
+# #############################################################################
+#               Conformity checks (for safety, to detect typos...)
+# #############################################################################
+
+
+def _complete_DFIELDS(
+    dfields=_DFIELDS,
+    default_fields=__DEFAULTFIELDS,
+    complete=__FILLDEFAULTVALUES,
+    check=__DOTHECHECK,
+):
+    """ Complete dfields from default"""
+
+    # --------------
+    # run loop
+
+    dfail = {}
+    for k0, v0 in dfields.items():
+        for k1, v1 in default_fields.items():
+
+            # ---------
+            # complete
+            if complete and v0.get(k1) is None:
+                # set symbol to key if not defined
+                if k1 == 'symbol':
+                    dfields[k0][k1] = k0
+                else:
+                    dfields[k0][k1] = default_fields[k1]['default']
+
+            # ---------
+            # check
+            if check and v0.get(k1) is not None:
+
+                # check type
+                if not isinstance(v0[k1], default_fields[k1]['type']):
+                    dfail[k0] = (
+                        f"wrong type for {k1} "
+                        f"({default_fields[k1]['type']} vs {type(v0[k1])})"
+                    )
+
+                # check allowed values
+                elif default_fields[k1].get('allowed') is not None:
+                    if k1 == 'units' and '.' in v0[k1]:
+                        c0 = all([
+                            ss in default_fields[k1]['allowed']
+                            for ss in v0[k1].split('.')
+                        ])
+                    else:
+                        c0 = v0[k1] in default_fields[k1]['allowed']
+
+                    if not c0:
+                        dfail[k0] = (
+                            f"Non-allowed value for {k1} "
+                            f"({default_fields[k1]['allowed']} vs {v0[k1]})"
+                        )
+
+    # --------------
+    # Raise exception if relevant
+    if len(dfail) > 0:
+        lstr = [f'\t- {k0}: {v0}' for k0, v0 in dfail.items()]
+        msg = (
+            "The followinbg entries in _DFIELDS are not valid:\n"
+            + "\n".join(lstr)
+        )
+        raise Exception(msg)
+
+
+_complete_DFIELDS()
+
+
+
+# #############################################################################
+# #############################################################################
+#                  DEPRECATED (Back-up)
 # #############################################################################
 
 # DEPRECATED
@@ -489,319 +809,3 @@ _DFIELDS_DEPRECATED = {
 }
 
 
-# #############################################################################
-# #############################################################################
-#                   Library (new formalism)
-# #############################################################################
-
-
-_LIBRARY = {
-
-    'Numerical': {
-        'Tmax': {
-            'value': 100,
-            'units': 'y',
-            'definition': 'Total simulated time',
-        },
-        'dt': {
-            'value': 0.01,
-            'units': 'y',
-            'definition': 'time between two steps',
-        },
-        'nt': {
-            'func': lambda Tmax=0, dt=1: int(Tmax / dt),
-            'units': None,
-            'definition': 'Number of timestep',
-            'com': 'Constant dt'
-        },
-        'nx': {
-            'value': 1,
-            'units': 'y',
-            'definition': 'NUMBER OF PARRALLEL SYSTEMS',
-        },
-    },
-
-    'CORE': {
-
-        # Time
-        'time': {
-            'initial': 0.,
-            'func': lambda dt=0: 1.,
-            'definition': 'Time vector',
-            'com': 'dt/dt=1, time as ODE',
-            'units': 'y',
-            'eqtype': 'ode',
-        },
-
-        # Population
-        'N': {
-            'value': 1.,
-            'definition': 'Population',
-            'units': 'Humans',
-        },
-        'beta': {
-            'value': 0.025,
-            'definition': 'Rate of population growth',
-            'units': 'y^{-1}',
-        },
-
-        # Productivity
-        'a': {
-            'value': 1,
-            'units': 'Units.Humans^{-1}.y^{-1}',
-            'definition': 'Productivity',
-        },
-        'alpha': {
-            'value': 0.02,
-            'definition': 'Rate of productivity increase',
-            'units': 'y^{-1}',
-        },
-        'W': {
-            'value': 0.85,
-            'definition': 'Wage value',
-            'units': '$'
-        },
-
-        # Capital
-        'delta': {
-            'value': 0.005,
-            'definition': 'Rate of capital depletion',
-            'units': 'y^{-1}',
-        },
-        'nu': {
-            'value': 3,
-            'definition': 'Kapital to output ratio',
-            'units': None,
-        },
-        'K': {
-            'value': 2.7,
-            'units': 'Units',
-            'definition': 'Capital',
-        },
-
-        # others
-        'pi': {
-            'value': None,
-            'definition': 'relative profit',
-            'units': None,
-            'symbol': r'$\pi$',
-        },
-        'g': {
-            'value': None,
-            'definition': 'Relative growth',
-            'units': 'y^{-1}',
-        },
-        'Y': {
-            'value': None,
-            'definition': 'GDP in output quantity',
-            'units': 'Units.y^{-1}',
-        },
-        'L': {
-            'value': None,
-            'definition': 'Workers',
-            'units': 'Humans',
-        },
-        'I': {
-            'value': None,
-            'definition': 'Investment',
-            'units': '$',
-        },
-        'Pi': {
-            'value': None,
-            'definition': 'Absolute profit',
-            'units': '$',
-        },
-        'lambda': {
-            'value': .97,
-            'definition': 'employement rate',
-            'units': None,
-        },
-        'omega': {
-            'value': .85,
-            'definition': 'wage share',
-            'units': None,
-        },
-    },
-
-    'Salary Negociation': {
-        'phillips': {
-            'value': None,
-            'definition': 'Wage inflation rate',
-            'units': 'y^{-1}',
-            'symbol': r'$\phi$',
-        },
-        'phinull': {
-            'value': 0.04,
-            'definition': 'Unemployment rate with no salary increase',
-            'units': None,
-        },
-        'phi0': {
-            'value': 0.04006410256410257,
-            'definition': 'Parameter1 for diverving squared',
-            'com': '',
-            'units': None,
-        },
-        'phi1': {
-            'value': 6.410256410256412 * 0.00001,
-            'definition': 'Parameter1 for diverving squared',
-            'com': '',
-            'units': None,
-        },
-    },
-
-    'Investment': {
-        'kappa': {
-            'value': None,
-            'definition': 'Part of GDP in investment',
-            'units': None,
-            'symbol': r'$\kappa$',
-        },
-        'k0': {
-            'value': -0.0065,
-            'definition': 'Percent of GDP invested when profit is zero',
-            'units': None,
-        },
-        'k1': {
-            'value': np.exp(-5),
-            'definition': 'Investment slope',
-            'units': None,
-        },
-        'k2': {
-            'value': 20,
-            'definition': 'Investment power in kappa',
-            'units': None,
-        },
-    },
-
-    'Debt': {
-        'r': {
-            'value': .03,
-            'definition': 'Interest on debt',
-            'units': 'y^{-1}',
-        },
-        'D': {
-            'value': 0.1,
-            'definition': 'Debt of private sector',
-            'units': '$',
-        },
-        'd': {
-            # 'func': lambda GDP=0, D=0: D/GDP,
-            'value': 0.1,
-            'definition': 'relative debt',
-            'units': None,
-        },
-    },
-
-    'Prices': {
-        'mu': {
-            'value': 2,
-            'definition': 'Markup on prices',
-            'units': None,
-        },
-        'eta': {
-            'value': 1,
-            'definition': 'timerate of price adjustment',
-            'units': 'y^{-1}',
-        },
-        'GDP': {
-            'value': None,
-            'definition': 'GDP in nominal term',
-            'units': '$',
-        },
-        'inflation': {
-            'value': None,
-            'definition': 'inflation rate',
-            'units': 'y^{-1}',
-        },
-        'p': {
-            'value': None,
-            'definition': 'prices?',
-            'units': '$',
-        },
-    },
-}
-
-
-# ------------------------------------
-# Derive new _DEF_FIELDS from _LIBRARY
-
-__LKLIB = [dict.fromkeys(v0.keys(), k0) for k0, v0 in _LIBRARY.items()]
-for ii, dd in enumerate(__LKLIB[1:]):
-    __LKLIB[0].update(dd)
-
-_DFIELDS = {
-    k0: dict(_LIBRARY[v0][k0]) for k0, v0 in __LKLIB[0].items()
-}
-
-for k0, v0 in __LKLIB[0].items():
-    _DFIELDS[k0]['group'] = v0
-
-
-# #############################################################################
-# #############################################################################
-#               Conformity checks (for safety, to detect typos...)
-# #############################################################################
-
-
-def _complete_DFIELDS(
-    dfields=_DFIELDS,
-    default_fields=__DEFAULTFIELDS,
-    complete=__FILLDEFAULTVALUES,
-    check=__DOTHECHECK,
-):
-    """ Complete dfields from default"""
-
-    # --------------
-    # run loop
-
-    dfail = {}
-    for k0, v0 in dfields.items():
-        for k1, v1 in default_fields.items():
-
-            # ---------
-            # complete
-            if complete and v0.get(k1) is None:
-                if k1 == 'symbol':
-                    dfields[k0][k1] = k0
-                else:
-                    dfields[k0][k1] = default_fields[k1]['default']
-
-            # ---------
-            # check
-            if check and v0.get(k1) is not None:
-
-                # check type
-                if not isinstance(v0[k1], default_fields[k1]['type']):
-                    dfail[k0] = (
-                        f"wrong type for {k1} "
-                        f"({default_fields[k1]['type']} vs {type(v0[k1])})"
-                    )
-
-                # check allowed values
-                elif default_fields[k1].get('allowed') is not None:
-                    if k1 == 'units' and '.' in v0[k1]:
-                        c0 = all([
-                            ss in default_fields[k1]['allowed']
-                            for ss in v0[k1].split('.')
-                        ])
-                    else:
-                        c0 = v0[k1] in default_fields[k1]['allowed']
-
-                    if not c0:
-                        dfail[k0] = (
-                            f"Non-allowed value for {k1} "
-                            f"({default_fields[k1]['allowed']} vs {v0[k1]})"
-                        )
-
-    # --------------
-    # Raise exception if relevant
-    if len(dfail) > 0:
-        lstr = [f'\t- {k0}: {v0}' for k0, v0 in dfail.items()]
-        msg = (
-            "The followinbg entries in _DFIELDS are not valid:\n"
-            + "\n".join(lstr)
-        )
-        raise Exception(msg)
-
-
-_complete_DFIELDS()
