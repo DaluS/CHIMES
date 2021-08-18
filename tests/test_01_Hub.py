@@ -217,7 +217,7 @@ class Test01_Hub():
             )
             raise Exception(msg)
 
-    def test13_plot_AllVar(self):
+    def test12_plot_AllVar(self):
         ii = 0
         for model in self.dhub.keys():
             for preset in self.dhub[model].keys():

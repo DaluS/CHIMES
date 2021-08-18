@@ -674,6 +674,9 @@ class Hub():
 
         """
 
+        if name is None and self.dmodel['preset'] is not None:
+            name = self.dmodel['preset']
+
         return _saveload.save(
             self,
             path=path,
