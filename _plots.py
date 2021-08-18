@@ -87,7 +87,8 @@ def AllVar(
     # -----------
     # Prepare figure and axes dict
 
-    fig = plt.figure(wintit, figsize=fs)
+    fig = plt.figure(figsize=fs)
+    fig.canvas.set_window_title(wintit)
     fig.suptitle(tit)
 
     # axes coordinates array
