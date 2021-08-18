@@ -449,6 +449,22 @@ class Hub():
                 compute_auxiliary=compute_auxiliary,
             )
 
+        elif solver == 'eRK4-homemade-bis':
+
+            _solvers._eRK4_homemade_bis(
+                dparam=self.__dparam,
+                lode=lode,
+                linter=linter,
+                laux=laux,
+                dargs=self.__dargs,
+                nt=nt,
+                verb=verb,
+                timewait=timewait,
+                end=end,
+                flush=flush,
+                compute_auxiliary=compute_auxiliary,
+            )
+
         elif 'scipy' in solver:
             sol = _solvers._solver_scipy(
                 dparam=self.__dparam,
