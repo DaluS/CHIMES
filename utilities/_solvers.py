@@ -81,12 +81,6 @@ def get_func_dydt(
 
             dparam[k0]['value'][-1, :] = dparam[k0]['func'](**kwdargs)
 
-        # ------ debug
-        ind = lode_solve.index('lambda')
-        print(f"{y[ind, 0]} vs {dargs['phillips']['lamb'][-1, 0]}")
-
-        # -------------
-
         # ------------
         # Then compute derivative functions (ode)
 
@@ -257,8 +251,6 @@ def _eRK4_homemade_bis(
             )
         )
 
-        import pdb; pdb.set_trace()     # DB
-
         # dispatch to store result of ode
         for jj, k0 in enumerate(lode_solve):
             dparam[k0]['value'][ii, :] = y[jj, :]
@@ -267,30 +259,30 @@ def _eRK4_homemade_bis(
         # Now that inermediary functions are computed at t=0 in reset()
         # we have to reverse the order of resolution:
         # first ode then intermediary
-        for k0 in linter:
-            kwdargs = {
-                k1: v1[ii, :]
-                for k1, v1 in dargs[k0].items()
-            }
-            dparam[k0]['value'][ii, :] = (
-                dparam[k0]['func'](
-                    **kwdargs,
-                )
-            )
+        # for k0 in linter:
+            # kwdargs = {
+                # k1: v1[ii, :]
+                # for k1, v1 in dargs[k0].items()
+            # }
+            # dparam[k0]['value'][ii, :] = (
+                # dparam[k0]['func'](
+                    # **kwdargs,
+                # )
+            # )
 
-        # Since the computation is fast we can also compute auxiliary
-        # TBC: there might be a function order here too!
-        if compute_auxiliary:
-            for k0 in laux:
-                kwdargs = {
-                    k1: v1[ii, :]
-                    for k1, v1 in dargs[k0].items()
-                }
-                dparam[k0]['value'][ii, :] = (
-                    dparam[k0]['func'](
-                        **kwdargs
-                    )
-                )
+        # # Since the computation is fast we can also compute auxiliary
+        # # TBC: there might be a function order here too!
+        # if compute_auxiliary:
+            # for k0 in laux:
+                # kwdargs = {
+                    # k1: v1[ii, :]
+                    # for k1, v1 in dargs[k0].items()
+                # }
+                # dparam[k0]['value'][ii, :] = (
+                    # dparam[k0]['func'](
+                        # **kwdargs
+                    # )
+                # )
 
 
 def _rk4_bis(func=None, dt=None, y=None, t=None):
@@ -397,7 +389,7 @@ def _solver_scipy(
     # ---------------------
     # dispatch results
 
-    for ii, k0 in enumerate_solve(lode):
+    for ii, k0 in enumerate(lode_solve):
         dparam[k0]['value'][:, 0] = sol.y[ii, :]
 
     dparam['time']['value'] = np.repeat(
