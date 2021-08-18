@@ -89,9 +89,10 @@ def get_available_models(
             # detailed message
             msg = "\n".join([
                 "\n#################################################\n"
-                f"################### DESCRIPTION OF {v0['name']}\n\n"
-                f"file: {v0['file']}\n"
-                f"presets:\n"
+                f"################### DESCRIPTION OF {v0['name']}\n"
+                + v0['description']
+                + "\n\n"
+                + f"presets:\n"
                 + "\n".join([
                     f"\t- {k1.ljust(max(*[len(vv) for vv in v0['presets']]))}:"
                     f" {v1['com']}"
@@ -102,8 +103,7 @@ def get_available_models(
                     f"\t- {k1}: {len(v1)}"
                     for k1, v1 in _DMODEL[k0]['logics'].items()
                 ])
-                + "\n\n------ description ----\n"
-                + v0['description']
+                + f"\nfile: {v0['file']}\n"
                 for k0, v0 in dmod.items()
             ])
 
