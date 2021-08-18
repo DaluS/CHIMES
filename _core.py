@@ -25,7 +25,7 @@ class Hub():
         self.__dmodel = dict.fromkeys(
             ['name', 'file', 'description', 'presets', 'preset']
         )
-        self.__dmisc = dict.fromkeys(['func_order', 'run', 'solver'])
+        self.__dmisc = dict.fromkeys(['dfunc_order', 'run', 'solver'])
         self.__dargs = {}
         if model is not None:
             self.load_model(model, preset=preset)
@@ -57,7 +57,7 @@ class Hub():
         (
             self.__dmodel,
             self.__dparam,
-            self.__dmisc['func_order'],
+            self.__dmisc['dfunc_order'],
             self.__dargs,
         ) = _class_checks.load_model(model)
 
@@ -78,8 +78,6 @@ class Hub():
         self,
         dparam=None,
         key=None, value=None,
-        func_order=None,
-        method=None,
     ):
         """ Set the dict of input parameters (dparam) or a single param
 
@@ -96,7 +94,7 @@ class Hub():
 
         # Check input: dparam xor (key, value)
         lc = [
-            dparam is not None or func_order is not None,
+            dparam is not None,
             key is not None and value is not None,
         ]
         if np.sum(lc) != 1:
@@ -107,7 +105,7 @@ class Hub():
                 ]
             ]
             msg = (
-                "Please provide dparam/func_order xor (key, value)!\n"
+                "Please provide dparam xor (key, value)!\n"
                 "You provided:\n"
                 + "\n".join(lstr)
             )
@@ -115,9 +113,7 @@ class Hub():
 
         # set dparam or update desired key
         if dparam is None:
-            if func_order is not None:
-                dparam = self.__dparam
-            elif key not in self.__dparam.keys():
+            if key not in self.__dparam.keys():
                 msg = (
                     "key {} is not identified!\n".format(key)
                     + "See get_dparam() method"
@@ -126,23 +122,17 @@ class Hub():
             dparam = dict(self.__dparam)
             dparam[key]['value'] = value
 
-        # func_order as previous if not provided
-        if func_order is None:
-            func_order = self.__dmisc['func_order']
-
         # Update to check consistency
         (
             self.__dparam,
-            self.__dmisc['func_order'],
+            self.__dmisc['dfunc_order'],
             self.__dargs,
-        ) = _class_checks.check_dparam(
-            dparam=dparam, func_order=func_order, method=method,
-        )
+        ) = _class_checks.check_dparam(dparam=dparam)
 
         # reset all variables
         self.reset()
 
-    def get_dparam(self, verb=None, returnas=None, **kwdargs):
+    def get_dparam(self, verb=None, returnas=None, isfunc=None, **kwdargs):
         """ Return a copy of the input parameters dict
 
         Return as:
@@ -167,6 +157,7 @@ class Hub():
             returnas=returnas,
             lcrit=lcrit,
             lprint=lprint,
+            isfunc=isfunc,
             **kwdargs,
         )
 
@@ -175,17 +166,9 @@ class Hub():
     # ##############################
 
     @property
-    def lfunc(self):
-        """ List of parameters names that are actually functions """
-        return [
-            k0 for k0, v0 in self.__dparam.items()
-            if v0.get('eqtype') is not None
-        ]
-
-    @property
-    def func_order(self):
+    def dfunc_order(self):
         """ The ordered list of intermediary function names """
-        return self.__dmisc['func_order']
+        return self.__dmisc['dfunc_order']
 
     @property
     def dmodel(self):
@@ -216,14 +199,14 @@ class Hub():
         """
 
         # reset ode variables
-        for k0 in self.lfunc:
+        for k0 in self.get_dparam(isfunc=True, returnas=list):
             if k0 == 'time':
                 self.__dparam[k0]['value'][0] = self.__dparam[k0]['initial']
-                self.__dparam[k0]['value'][1:] = np.nan
+                self.__dparam[k0]['value'][1:, :] = np.nan
             elif self.__dparam[k0]['eqtype'] == 'ode':
                 self.__dparam[k0]['value'][0, :] = self.__dparam[k0]['initial']
                 self.__dparam[k0]['value'][1:, :] = np.nan
-            else:
+            elif self.__dparam[k0]['eqtype'] == 'statevar':
                 self.__dparam[k0]['value'][:, :] = np.nan
 
         # reset intermediary variables and auxiliary variables
