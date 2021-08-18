@@ -25,6 +25,7 @@ def _get_dict_subset(
     returnas=None,
     lcrit=None,
     lprint=None,
+    isfunc=None,
     **kwdargs,
 ):
     """ Return a copy of the input parameters dict
@@ -66,10 +67,11 @@ def _get_dict_subset(
     # ----------------------
     # select relevant parameters
 
-    if len(kwdargs) > 0:
+    if isfunc is not None or len(kwdargs) > 0:
         # isolate relevant criteria
         dcrit = {
-            k0: v0 for k0, v0 in kwdargs.items()
+            k0: v0 if isinstance(v0, list) else [v0]
+            for k0, v0 in kwdargs.items()
             if k0 in lcrit
         }
 
@@ -77,10 +79,15 @@ def _get_dict_subset(
         lk = [
             k0 for k0 in indict.keys()
             if all([
-                indict[k0].get(k1) == dcrit[k1]
+                indict[k0].get(k1) in dcrit[k1]
                 for k1 in dcrit.keys()
             ])
         ]
+
+        # isfunc
+        if isfunc is not None:
+            lk = [kk for kk in lk if indict[kk].get('func') is not None]
+
     else:
         lk = list(indict.keys())
 
