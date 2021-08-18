@@ -60,10 +60,17 @@ class Hub():
 
         # Mixing both into the dic we will edit (__dparam)
         self.Dparam_from_dfields_and_dmodel()
+
+        # Verify that's not nonsense
         _class_checks.CheckDparam(self.__dparam)
+
+        #
         self.__dparam, _, self.__dmisc['func_order'] = \
             _class_checks.check_dparam(self.__dparam)
+
         self.CreateDargs()
+
+        # Misc :
         self.__dmisc['unitgroups'] = \
             _class_utility._get_DicOfSameUnits(self.__dparam)
 
@@ -223,6 +230,9 @@ class Hub():
         # reset all variables
         self.reset()
 
+    ##########################################
+    # %% Change attributes
+    ##########################################
     def Change_Attributes(self, dictofChanges):
         '''
         Change a set of attributes in dparam.
@@ -291,11 +301,16 @@ class Hub():
         else:
             NewdictofChanges = dict(dictofChanges)
 
-            # 2) ADD THE UPDATES
+        # 2) ADD THE UPDATES
+        shape = (self.__dparam['nt']['value'],
+                 self.__dparam['nx']['value'])
+
         for key, var in NewdictofChanges.items():
-            # Change the value or the initial
+
+            # b) Change the value or the initial
             if self.__dparam[key]['eqtype'] == 'ode':
                 self.__dparam[key]['initial'] = var
+                self.__dparam[key]['value'] = np.full(shape, np.nan)
             else:
                 self.__dparam[key]['value'] = var
 
@@ -354,7 +369,7 @@ class Hub():
                     newdict[key] = np.logspace(
                         np.log10(val[0]), np.log10(val[1]), num=size)
             else:
-                newdict[key] = val
+                newdict[key] = np.array(val)
         return newdict
 
     def set_preset(self, name, verb=False):
@@ -463,30 +478,22 @@ class Hub():
         '''
         Create the structure that will contains
         '''
+        Prefill = ['period_indexes',  # [[idx1,idx2],[idx2,idx3],] borders
+                   'period_T_intervals',   # [t[idx1,t[idx2]],..] borders time
+                   't_mean_cycle',  # time of the middle of the cycle
+                   'period_T',  # duration of the cycle
+                   'meanval',  # mean value during the interval
+                   'stdval',  # standard deviation during the interval
+                   'minval',  # minimal value in the interval
+                   'medval',  # minimal value in the interval
+                   'maxval',  # maximal value in the interval
+                   'reference',  # the variable that has been used to detect
+                   ]
+
         for var, dic1 in self.__dparam.items():
             if 'func' in dic1.keys():
-                dic1['cycles'] = {
-                    'period_indexes':  # [[idx1,idx2],[idx2,idx3],] borders
-                    [self.__dparam['nx']['value']*[None]],
-                    'period_T_intervals':  # [t[idx1,t[idx2]],..] borders time
-                    [self.__dparam['nx']['value']*[None]],
-                    't_mean_cycle':  # time of the middle of the cycle
-                    [self.__dparam['nx']['value']*[None]],
-                    'period_T':  # duration of the cycle
-                    [self.__dparam['nx']['value']*[None]],
-                    'meanval':  # mean value during the interval
-                    [self.__dparam['nx']['value']*[None]],
-                    'stdval':  # standard deviation during the interval
-                    [self.__dparam['nx']['value']*[None]],
-                    'minval':  # minimal value in the interval
-                    [self.__dparam['nx']['value']*[None]],
-                    'medval':  # minimal value in the interval
-                    [self.__dparam['nx']['value']*[None]],
-                    'maxval':  # maximal value in the interval
-                    [self.__dparam['nx']['value']*[None]],
-                    'reference':  # the variable that has been used to detect
-                    [self.__dparam['nx']['value']*[None]],
-                }
+                dic1['cycles'] = {key: [self.__dparam['nx']
+                                        ['value']*[None]] for key in Prefill}
 
     def FillCyclesForAllVar(self, idx='all', ref=None):
         '''

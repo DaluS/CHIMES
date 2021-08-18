@@ -50,6 +50,10 @@ def loadmodel(mod):
 
 
 def ModelNewFormalism(initialLogics):
+    '''
+    Temporary function, to translate new formalism into previous formalism
+    Should be removed as the core is reworked
+    '''
     ModelDict = {}
     for keys, funcs in initialLogics.get('ode', {}).items():
         ModelDict[keys] = {

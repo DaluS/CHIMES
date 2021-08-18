@@ -128,3 +128,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 Untitled.ipynb
+.pylint.d/Cockpit1.stats
