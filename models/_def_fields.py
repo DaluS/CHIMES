@@ -144,7 +144,8 @@ _LIBRARY = {
             'func': lambda Tmax=0, dt=1: int(Tmax / dt),
             'units': None,
             'definition': 'Number of timestep',
-            'com': 'Constant dt'
+            'com': 'Constant dt',
+            'eqtype': 'param',
         },
         'nx': {
             'value': 1,
@@ -272,12 +273,14 @@ _LIBRARY = {
             'definition': 'Parameter1 for diverving squared',
             'com': '',
             'units': None,
+            'eqtype': 'param',
         },
         'phi1': {
             'func': lambda phinull=0: phinull**3 / (1 - phinull**2),
             'definition': 'Parameter1 for diverving squared',
             'com': '',
             'units': None,
+            'eqtype': 'param',
         },
     },
 
