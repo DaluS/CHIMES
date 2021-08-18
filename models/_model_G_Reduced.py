@@ -18,6 +18,11 @@ Created on Wed Jul 21 15:11:15 2021
 _FUNC_ORDER = None
 
 
+def omega(itself=0, phillips=0):
+    """ bla bla"""
+    a = itself * phillips
+    return a
+
 # ---------------------------
 # user-defined model
 # contains parameters and functions of various types
@@ -29,7 +34,7 @@ _LOGICS = {
             'com': 'reduced 2variables dynamical expression'
         },
         'omega': {
-            'func': lambda itself=0, phillips=0: itself * phillips,
+            'func': omega,  # lambda itself=0, phillips=0: itself * phillips,
             'com': 'reduced 2variables dynamical expression',
             # 'initial': 0.8,
         },
