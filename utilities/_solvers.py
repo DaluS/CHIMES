@@ -1,10 +1,18 @@
 # -*- coding: utf-8 -*-
 
+
+# built-in
 import time
+import warnings
+
+
+# common
 import numpy as np
 import scipy.integrate as scpinteg
+import matplotlib.pyplot as plt     # DB
 
 
+# specific
 from . import _class_checks
 
 
@@ -246,6 +254,7 @@ def _solver_scipy(
     # ----------------
     # verbosity
     if sol.success is True:
+        indmax = dparam['nt']['value']
         if verb > 0:
             msg = (
                 f"{sol.message}\nSuccess: {sol.success}\n"
@@ -254,15 +263,32 @@ def _solver_scipy(
             )
             print(msg)
     else:
-        msg = f"Solver failed with status {sol.status}: {sol.message}"
-        raise Exception(msg)
+        c0 = (
+            sol.message == (
+                'Required step size is less than spacing between numbers.'
+            )
+            and sol.t.max() < t_span[1]
+            and sol.t.size > 0
+        )
+        if c0:
+            indmax = sol.t.size
+            # keep the first steps until it failed + warn
+            msg = (
+                f"Solver stoped at t = {sol.t.max()} "
+                f"({sol.t.size} / {dparam['nt']['value']} time steps) "
+                "=> divergence?"
+            )
+            warnings.warn(msg)
+        else:
+            msg = f"Solver failed with status {sol.status}: {sol.message}"
+            raise Exception(msg)
 
     # ---------------------
     # dispatch results
 
     for ii, k0 in enumerate(lode_notime):
-        dparam[k0]['value'][:, 0] = sol.y[ii, :]
-    dparam['time']['value'] = np.repeat(
+        dparam[k0]['value'][:indmax, 0] = sol.y[ii, :]
+    dparam['time']['value'][:indmax, :] = np.repeat(
         sol.t[:, None],
         dparam['nx']['value'],
         axis=1,
