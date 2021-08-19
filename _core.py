@@ -78,7 +78,9 @@ class Hub():
     def set_dparam(
         self,
         dparam=None,
-        key=None, value=None,
+        key=None,
+        value=None,
+        verb=None,
     ):
         """ Set the dict of input parameters (dparam) or a single param
 
@@ -128,7 +130,7 @@ class Hub():
             self.__dparam,
             self.__dmisc['dfunc_order'],
             self.__dargs,
-        ) = _class_checks.check_dparam(dparam=dparam)
+        ) = _class_checks.check_dparam(dparam=dparam, verb=verb)
 
         # reset all variables
         self.reset()
