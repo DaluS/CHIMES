@@ -903,7 +903,8 @@ def _check_func(dparam=None):
     # Create variables for all varying quantities
     shape = (dparam['nt']['value'], dparam['nx']['value'])
     for k0 in lfunc:
-        dparam[k0]['value'] = np.full(shape, np.nan)
+        if dparam[k0]['eqtype'] not in ['param']:
+            dparam[k0]['value'] = np.full(shape, np.nan)
 
     return dparam, dfunc_order
 
