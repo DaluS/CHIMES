@@ -101,7 +101,12 @@ class Test01_Hub():
         for model in self.dhub.keys():
             for preset in self.dhub[model].keys():
                 out = self.dhub[model][preset].get_dparam(group='Numerical')
-                out = self.dhub[model][preset].get_dparam(eqtype='ode')
+                out = self.dhub[model][preset].get_dparam(
+                    eqtype=['ode', 'param'], group='CORE',
+                )
+                out = self.dhub[model][preset].get_dparam(
+                    eqtype=('ode',), group=['CORE', 'Debt'], key=('lambda'),
+                )
 
     def test04_get_variables_compact(self):
         for model in self.dhub.keys():
