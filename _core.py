@@ -557,12 +557,12 @@ class Hub():
         by default the variable detect cycles in itself
         '''
 
-        for var, dic1 in self.__dparam.items():
-            if 'func' in dic1.keys():
-                if ref is None:
-                    self.FillCycles(var, var)
-                else:
-                    self.FillCycles(var, ref)
+        leq = ['ode', 'statevar']
+        for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
+            if ref is None:
+                self.FillCycles(var, var)
+            else:
+                self.FillCycles(var, ref)
 
     def FillCycles(self, var, ref='lambda'):
         '''
