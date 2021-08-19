@@ -108,17 +108,30 @@ class Test01_Hub():
                     eqtype=('ode',), group=['CORE', 'Debt'], key=('lambda'),
                 )
 
-    def test04_get_variables_compact(self):
+    def test04_get_dparam_as_reverse_dict(self):
+        for model in self.dhub.keys():
+            for preset, hub in self.dhub[model].items():
+                out = hub.get_dparam_as_reverse_dict(
+                    crit='units',
+                )
+                out = hub.get_dparam_as_reverse_dict(
+                    crit='units', group='CORE', key=('time',),
+                )
+                out = hub.get_dparam_as_reverse_dict(
+                    crit='units', verb=True,
+                )
+
+    def test05_get_variables_compact(self):
         for model in self.dhub.keys():
             for preset in self.dhub[model].keys():
                 out = self.dhub[model][preset].get_variables_compact()
 
-    def test05_set_single_param(self):
+    def test06_set_single_param(self):
         for model in self.dhub.keys():
             for preset in self.dhub[model].keys():
                 self.dhub[model][preset].set_dparam(key='Tmax', value=20)
 
-    def test06_run_all_models_all_solvers(self):
+    def test07_run_all_models_all_solvers(self):
         """ Make sure the main function runs as executable from terminal """
 
         # list of entry parameters to try
@@ -154,14 +167,14 @@ class Test01_Hub():
             )
             raise Exception(msg)
 
-    def test07_get_summary_repr_after_run(self):
+    def test08_get_summary_repr_after_run(self):
         for model in self.dhub.keys():
             for preset in self.dhub[model].keys():
                 for solver in self.lsolvers:
                     print(self.dhub[model][preset][solver])
                     self.dhub[model][preset][solver].get_summary()
 
-    def test08_save(self):
+    def test09_save(self):
         # list of entry parameters to try
         for ii, model in enumerate(self.dhub.keys()):
             for jj, preset in enumerate(self.dhub[model].keys()):
@@ -170,7 +183,7 @@ class Test01_Hub():
                         path=_PATH_OUTPUT,  # _PATH_OUTPUT_REF to update ref
                     )
 
-    def test09_load_and_equal(self):
+    def test10_load_and_equal(self):
         lf = [
             os.path.join(_PATH_OUTPUT, ff)
             for ff in os.listdir(_PATH_OUTPUT)
@@ -183,7 +196,7 @@ class Test01_Hub():
             solver = obj.dmisc['solver']
             assert obj == self.dhub[model][preset][solver]
 
-    def test10_copy(self):
+    def test11_copy(self):
         for model in self.dhub.keys():
             for preset in self.dhub[model].keys():
                 for solver in self.lsolvers:
@@ -191,7 +204,7 @@ class Test01_Hub():
                     assert obj == self.dhub[model][preset][solver]
                     assert obj is not self.dhub[model][preset][solver]
 
-    def test11_nonregression_output(self):
+    def test12_nonregression_output(self):
 
         # load reference files
         df_ref = _core._saveload.get_available_output(
@@ -233,7 +246,7 @@ class Test01_Hub():
             )
             raise Exception(msg)
 
-    def test12_plot_AllVar(self):
+    def test13_plot_AllVar(self):
         ii = 0
         for model in self.dhub.keys():
             for preset in self.dhub[model].keys():
