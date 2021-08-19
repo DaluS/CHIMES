@@ -199,20 +199,16 @@ class Hub():
         """
 
         # reset ode variables
-        for k0 in self.get_dparam(isfunc=True, returnas=list):
-            if k0 == 'time':
-                self.__dparam[k0]['value'][0] = self.__dparam[k0]['initial']
-                self.__dparam[k0]['value'][1:, :] = np.nan
-            elif self.__dparam[k0]['eqtype'] == 'ode':
+        for k0 in self.get_dparam(eqtype=['ode', 'statevar'], returnas=list):
+            if self.__dparam[k0]['eqtype'] == 'ode':
                 self.__dparam[k0]['value'][0, :] = self.__dparam[k0]['initial']
                 self.__dparam[k0]['value'][1:, :] = np.nan
             elif self.__dparam[k0]['eqtype'] == 'statevar':
                 self.__dparam[k0]['value'][:, :] = np.nan
 
-        # reset intermediary variables and auxiliary variables
-        laux = self.get_dparam(eqtype='auxiliary', returnas=list)
-        linter_aux = self.__dmisc['func_order'] + laux
-        for k0 in linter_aux:
+        # recompute inital value for statevar
+        lstate = self.__dmisc['dfunc_order']['statevar']
+        for k0 in lstate:
             # prepare dict of args
             kwdargs = {
                 k1: v1[0, :]
@@ -222,8 +218,6 @@ class Hub():
             self.__dparam[k0]['value'][0, :] = (
                 self.__dparam[k0]['func'](**kwdargs)
             )
-            # set other time steps to nan
-            self.__dparam[k0]['value'][1:, :] = np.nan
 
         # set run to False
         self.__dmisc['run'] = False
@@ -272,15 +266,24 @@ class Hub():
 
     def __repr__(self):
         """ This is automatically called when only the instance is entered """
-        col0 = ['model', 'source', 'nb. model param', 'nb. functions', 'run']
+        col0 = [
+            'model',
+            'preset',
+            'source',
+            'nb. param (fixed)',
+            'nb. param (func.)',
+            'nb. ode',
+            'nb. statevar',
+            'run',
+        ]
         ar0 = [
             self.__dmodel['name'],
+            self.__dmodel['preset'],
             self.__dmodel['file'],
-            len([
-                k0 for k0, v0 in self.__dparam.items()
-                if v0.get('func') is None
-            ]),
-            len(self.lfunc),
+            len(self.get_dparam(returnas=list, eqtype=None)),
+            len(self.get_dparam(returnas=list, eqtype='param')),
+            len(self.get_dparam(returnas=list, eqtype='ode')),
+            len(self.get_dparam(returnas=list, eqtype='statevar')),
             self.__dmisc['run'],
         ]
         return _utils._get_summary(
@@ -297,16 +300,23 @@ class Hub():
         """
 
         # ----------
+        # Handling str repr
+
+        # ----------
         # Numerical parameters
         col0 = ['Numerical param.', 'value', 'units', 'comment']
         ar0 = [
             [
                 k0,
-                str(v0['value']),
-                str(v0['units']),
+                _class_utility.paramfunc2str(dparam=self.__dparam, key=k0),
+                v0['units'],
                 v0['com'],
             ]
-            for k0, v0 in self.__dparam.items() if v0['group'] == 'Numerical'
+            for k0, v0 in self.get_dparam(
+                returnas=dict,
+                eqtype=[None, 'param'],
+                group='Numerical',
+            ).items()
         ]
         ar0.append(['run', str(self.__dmisc['run']), '', ''])
 
@@ -316,14 +326,16 @@ class Hub():
         ar1 = [
             [
                 k0,
-                str(v0['value']),
+                _class_utility.paramfunc2str(dparam=self.__dparam, key=k0),
                 str(v0['units']),
                 v0['group'],
                 v0['com'],
             ]
-            for k0, v0 in self.__dparam.items()
-            if v0['group'] != 'Numerical'
-            and v0.get('func') is None
+            for k0, v0 in self.get_dparam(
+                returnas=dict,
+                eqtype=[None, 'param'],
+                group=('Numerical',),
+            ).items()
         ]
 
         # ----------
@@ -334,16 +346,16 @@ class Hub():
         ar2 = [
             [
                 k0,
-                v0['source_exp'],
+                _class_utility.paramfunc2str(dparam=self.__dparam, key=k0),
                 "{:.2e}".format(v0.get('value')[0, idx]),
-                str(v0['units']),
-                v0['eqtype'].replace('intermediary', 'inter').replace(
-                    'auxiliary', 'aux',
-                ),
+                v0['units'],
+                v0['eqtype'],
                 v0['com'],
             ]
-            for k0, v0 in self.__dparam.items()
-            if v0.get('func') is not None
+            for k0, v0 in self.get_dparam(
+                returnas=dict,
+                eqtype=['ode', 'statevar'],
+            ).items()
         ]
 
         # --------------------------
@@ -356,10 +368,10 @@ class Hub():
             # add column title
             col2.insert(3, 'final')
 
-            # add value to each variable
+            # add final value to each variable
             ii = 0
             for k0, v0 in self.__dparam.items():
-                if v0.get('func') is not None:
+                if v0.get('eqtype') in ['ode', 'statevar']:
                     ar2[ii].insert(
                         3,
                         "{:.2e}".format(v0.get('value')[-1, idx]),
@@ -414,9 +426,9 @@ class Hub():
 
         # ------------
         # temporary dict of input
-        lode = self.get_dparam(eqtype='ode', returnas=list)
-        linter = self.__dmisc['func_order']
-        laux = self.get_dparam(eqtype='auxiliary', returnas=list)
+        lode = self.__dmisc['dfunc_order']['ode']
+        lstate = self.__dmisc['dfunc_order']['statevar']
+        laux = []
 
         # ------------
         # start time loop
@@ -427,7 +439,7 @@ class Hub():
                 _solvers._eRK4_homemade(
                     dparam=self.__dparam,
                     lode=lode,
-                    linter=linter,
+                    linter=lstate,
                     laux=laux,
                     dargs=self.__dargs,
                     nt=nt,
@@ -442,7 +454,7 @@ class Hub():
                 sol = _solvers._solver_scipy(
                     dparam=self.__dparam,
                     lode=lode,
-                    linter=linter,
+                    linter=lstate,
                     dargs=self.__dargs,
                     verb=verb,
                     rtol=rtol,
