@@ -132,7 +132,7 @@ class Hub():
         # reset all variables
         self.reset()
 
-    def get_dparam(self, verb=None, returnas=None, **kwdargs):
+    def get_dparam(self, condition=None, verb=None, returnas=None, **kwdargs):
         """ Return a copy of the input parameters dict
 
         Return as:
@@ -145,7 +145,7 @@ class Hub():
             - True: pretty-print the chosen parameters
             - False: print nothing
         """
-        lcrit = ['dimension', 'units', 'type', 'group', 'eqtype']
+        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype']
         lprint = [
             'parameter', 'value', 'units', 'dimension', 'symbol',
             'type', 'eqtype', 'group', 'comment',
@@ -157,6 +157,7 @@ class Hub():
             returnas=returnas,
             lcrit=lcrit,
             lprint=lprint,
+            condition=condition,
             **kwdargs,
         )
 

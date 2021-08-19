@@ -21,6 +21,7 @@ _LTYPES = [int, float, np.int_, np.float_]
 
 def _get_dict_subset(
     indict=None,
+    condition=None,
     verb=None,
     returnas=None,
     lcrit=None,
@@ -43,6 +44,11 @@ def _get_dict_subset(
     # ----------------------
     # check input
 
+    if condition is None:
+        condition = 'all'
+    if condition not in ['all', 'any']:
+        msg = f"Arg condition must be 'all' or 'any'!\nProvided: {condition}"
+        raise Exception(msg)
     if returnas is None:
         returnas = False
     if verb is None:
@@ -75,14 +81,22 @@ def _get_dict_subset(
         }
 
         # select param keys matching all critera
-        lk = [
-            k0 for k0 in indict.keys()
-            if all([
-                indict[k0].get(k1) in dcrit[k1] if isinstance(dcrit[k1], list)
-                else indict[k0].get(k1) not in dcrit[k1]
-                for k1 in dcrit.keys()
-            ])
-        ]
+        arok = np.zeros((len(dcrit), len(indict)), dtype=bool)
+        lk0 = np.array(list(indict.keys()))
+        for ii, (k1, v1) in enumerate(dcrit.items()):
+            if k1 == 'key':
+                arok[ii, :] = [k0 in v1 for k0 in lk0]
+            else:
+                arok[ii, :] = [indict[k0].get(k1) in v1 for k0 in lk0]
+            if isinstance(v1, tuple):
+                arok[ii, :] = ~arok[ii, :]
+
+        # Apply condition
+        if condition  == 'all':
+            ind = np.all(arok, axis=0)
+        elif condition == 'any':
+            ind = np.any(arok, axis=0)
+        lk = lk0[ind].tolist()
 
     else:
         lk = list(indict.keys())
