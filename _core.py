@@ -132,7 +132,7 @@ class Hub():
         # reset all variables
         self.reset()
 
-    def get_dparam(self, verb=None, returnas=None, isfunc=None, **kwdargs):
+    def get_dparam(self, verb=None, returnas=None, **kwdargs):
         """ Return a copy of the input parameters dict
 
         Return as:
@@ -157,7 +157,6 @@ class Hub():
             returnas=returnas,
             lcrit=lcrit,
             lprint=lprint,
-            isfunc=isfunc,
             **kwdargs,
         )
 
@@ -269,22 +268,23 @@ class Hub():
         col0 = [
             'model',
             'preset',
-            'source',
-            'nb. param (fixed)',
-            'nb. param (func.)',
-            'nb. ode',
-            'nb. statevar',
+            'param (fix + func)',
+            'ode',
+            'statevar',
             'run',
+            'source',
         ]
         ar0 = [
             self.__dmodel['name'],
             self.__dmodel['preset'],
-            self.__dmodel['file'],
-            len(self.get_dparam(returnas=list, eqtype=None)),
-            len(self.get_dparam(returnas=list, eqtype='param')),
+            '{} + {}'.format(
+                len(self.get_dparam(returnas=list, eqtype=None)),
+                len(self.get_dparam(returnas=list, eqtype='param')),
+            ),
             len(self.get_dparam(returnas=list, eqtype='ode')),
             len(self.get_dparam(returnas=list, eqtype='statevar')),
             self.__dmisc['run'],
+            self.__dmodel['file'],
         ]
         return _utils._get_summary(
             lar=[ar0],
