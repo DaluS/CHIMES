@@ -17,6 +17,12 @@ import numpy as np
 
 _PATH_HERE = os.path.dirname(__file__)
 _PATH_OUTPUT = os.path.join(os.path.dirname(_PATH_HERE), 'output')
+_PATH_OUTPUT_REF = os.path.join(
+    os.path.dirname(_PATH_HERE),
+    'tests',
+    'output_ref',
+)
+
 
 _INCLUDE_NAME = ['model', 'solver', 'name', 'user', 'date']
 
@@ -254,27 +260,34 @@ def rebuild_func_from_source(dout=None):
                 mod = dout['dmodel']['name']
                 pfe = dout['dmodel']['file']
                 fname = dout['dparam'][k0]['source_name']
-                if os.path.isfile(pfe):
-                    spec = importlib.util.spec_from_file_location(mod, pfe)
-                    foo = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(foo)
-
-                    c0 = (
-                        hasattr(foo, fname)
-                        and hasattr(getattr(foo, fname), '__call__')
-                    )
-                    if not c0:
+                if not os.path.isfile(pfe):
+                    # try loading from local output ref (for unit tests)
+                    path, tail = os.path.split(pfe)
+                    pfe1 = os.path.join(_PATH_OUTPUT_REF, tail)
+                    if not os.path.isfile(pfe):
+                        lstr = [f'\t- {pp}' for pp in [pfe, pfe1]]
                         msg = (
-                            f"Module {mod} has no callable attribute "
-                            f"named {fname}"
+                            f"Function {k0} could not be re-loaded from:\n"
+                            f"\n".join(lstr)
                         )
                         raise Exception(msg)
-                    dout['dparam'][k0]['func'] = getattr(foo, fname)
-                else:
+                    pfe = pfe1
+
+                spec = importlib.util.spec_from_file_location(mod, pfe)
+                foo = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(foo)
+
+                c0 = (
+                    hasattr(foo, fname)
+                    and hasattr(getattr(foo, fname), '__call__')
+                )
+                if not c0:
                     msg = (
-                        f"Function {k0} could not be re-loaded from {pfe}"
+                        f"Module {mod} has no callable attribute "
+                        f"named {fname}"
                     )
                     raise Exception(msg)
+                dout['dparam'][k0]['func'] = getattr(foo, fname)
 
             else:
                 # Rebuild from source str
