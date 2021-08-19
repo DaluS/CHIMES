@@ -162,9 +162,9 @@ def _dict_equal(dict1, dict2, dd=None):
     # check they have identical keys
     c0 = dict1.keys() == dict2.keys()
     if not c0:
-        lk = set(dict1.keys()).difference(dict2.keys())
-        lk = set(dict2.keys()).difference(dict1.keys())
-        dfail[dd] = f"non-common keys: {lk}"
+        lk1 = set(dict1.keys()).difference(dict2.keys())
+        lk2 = set(dict2.keys()).difference(dict1.keys())
+        dfail[dd] = f"non-common keys: {lk1.union(lk2)}"
         return dfail
 
     # check the content of each key
