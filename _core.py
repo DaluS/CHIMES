@@ -17,7 +17,8 @@ import _plots as plots
 
 
 class Hub():
-    """ Generic class
+    """
+    Generic class to stock every data and method for the user to interac with
     """
 
     def __init__(self, model=None, preset=None):
@@ -160,6 +161,24 @@ class Hub():
             condition=condition,
             **kwdargs,
         )
+
+    def get_param_by_dict_of_crit(self, crit=None):
+
+        # -------------
+        # check input
+
+        lcrit = ['dimension', 'units', 'type', 'group', 'eqtype']
+        if crit not in lcrit:
+            msg = (
+            )
+            raise Exception(msg)
+
+        # -------------
+        # create dict
+
+        dout = {}
+        return dout
+
 
     # ##############################
     # %% Read-only properties
