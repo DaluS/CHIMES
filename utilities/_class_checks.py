@@ -568,7 +568,6 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None):
     return lpar_add, lfunc_add
 
 
-
 def _extract_parameters(dparam):
     """ Extract fixed-value parameters
 
@@ -720,7 +719,7 @@ def _check_func_get_source(lfunc=None, dparam=None):
                 # store exp for lambda only
                 dparam[k0]['source_exp'] = exp.strip()
             else:
-                kargs = sour[sour.index('(')+1:sour.index(')')]
+                kargs = sour[sour.index('(') + 1:sour.index(')')]
                 dparam[k0]['source_name'] = dparam[k0]['func'].__name__
 
             kargs = [kk.strip() for kk in kargs.strip().split(',')]
@@ -942,7 +941,7 @@ def _suggest_funct_order_by_group(eqtype=None, dparam=None):
         ntry += 1
         if set(lf) == set(lfsort):
             keepon = False
-        elif ntry == len(lf)-1:
+        elif ntry == len(lf) - 1:
             msg = f"No sorting order of func could be found for {eqtype}"
             raise Exception(msg)
 
@@ -975,7 +974,7 @@ def _suggest_funct_order(
 
 # #############################################################################
 # #############################################################################
-#               DEPRECATED for Back-up            
+#               DEPRECATED for Back-up
 # #############################################################################
 
 
@@ -1001,7 +1000,6 @@ def _suggest_funct_order_DEPRECATED(
     # check inputs
     if method is None:
         method = 'other'
-
 
     included = ['statevar']
     lfunc_state = [

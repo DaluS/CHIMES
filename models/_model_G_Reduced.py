@@ -23,9 +23,11 @@ def omega(itself=0, phillips=0):
     a = itself * phillips
     return a
 
+
 # ---------------------------
 # user-defined model
 # contains parameters and functions of various types
+
 
 _LOGICS = {
     'ode': {

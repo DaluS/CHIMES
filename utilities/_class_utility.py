@@ -92,7 +92,7 @@ def _get_dict_subset(
                 arok[ii, :] = ~arok[ii, :]
 
         # Apply condition
-        if condition  == 'all':
+        if condition == 'all':
             ind = np.all(arok, axis=0)
         elif condition == 'any':
             ind = np.any(arok, axis=0)
@@ -173,7 +173,7 @@ def _dict_equal(dict1, dict2, dd=None):
         msg = None
 
         # check type
-        if type(v0) != type(dict2[k0]):
+        if not isinstance(v0, type(dict2[k0])):
             msg = f"different type ({type(v0)} vs {type(dict2[k0])})"
             dfail[key] = msg
             continue

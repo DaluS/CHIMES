@@ -219,7 +219,7 @@ class Test01_Hub():
                 if keyok in dfaili.keys():
                     del dfaili[keyok]
 
-                if  len(dfaili) > 0:
+                if len(dfaili) > 0:
                     msg = (
                         f"Differs from reference for: {list(dfaili.keys())}"
                     )
