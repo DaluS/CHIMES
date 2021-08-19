@@ -21,7 +21,7 @@ class Hub():
     Generic class to stock every data and method for the user to interac with
     """
 
-    def __init__(self, model=None, preset=None):
+    def __init__(self, model=None, preset=None, verb=None):
         self.__dparam = {}
         self.__dmodel = dict.fromkeys(
             ['name', 'file', 'description', 'presets', 'preset']
@@ -29,13 +29,13 @@ class Hub():
         self.__dmisc = dict.fromkeys(['dfunc_order', 'run', 'solver'])
         self.__dargs = {}
         if model is not None:
-            self.load_model(model, preset=preset)
+            self.load_model(model, preset=preset, verb=verb)
 
     # ##############################
     # %% Setting / getting parameters
     # ##############################
 
-    def load_model(self, model=None, preset=None):
+    def load_model(self, model=None, preset=None, verb=None):
         """ Load a model from a model file """
 
         # ------------
@@ -60,7 +60,7 @@ class Hub():
             self.__dparam,
             self.__dmisc['dfunc_order'],
             self.__dargs,
-        ) = _class_checks.load_model(model)
+        ) = _class_checks.load_model(model, verb=verb)
 
         # ------------
         # update from preset if relevant

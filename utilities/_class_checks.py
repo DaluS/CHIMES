@@ -43,7 +43,7 @@ _LEXTRAKEYS = [
 # #############################################################################
 
 
-def load_model(model=None, method=None):
+def load_model(model=None, verb=None):
     """ Load a model from a model file
 
     model can be:
@@ -117,7 +117,7 @@ def load_model(model=None, method=None):
 
     # --------------
     # check conformity of logics (has 'ode', 'pde', 'statevar'...)
-    _check_logics(dmodel)
+    _check_logics(dmodel, verb=verb)
 
     # convert logics (new formalism) to dparam
     dparam = get_dparam_from_logics(dmodel)
@@ -125,7 +125,7 @@ def load_model(model=None, method=None):
 
     # --------------------
     # re-check dparam + Identify functions order + get dargs
-    dparam, dfunc_order, dargs = check_dparam(dparam=dparam)
+    dparam, dfunc_order, dargs = check_dparam(dparam=dparam, verb=verb)
 
     return dmodel, dparam, dfunc_order, dargs
 
@@ -213,7 +213,7 @@ def _check_are_functions(indict=None):
         raise Exception(msg)
 
 
-def _check_logics(dmodel=None):
+def _check_logics(dmodel=None, verb=None):
     """ Check conformity of the 'logics' sub-dict
 
     In particulart, checks:
@@ -224,6 +224,16 @@ def _check_logics(dmodel=None):
     If necessary, add initial values
     Checks all keys are known to models._DFIELDS
     """
+
+    if verb is None:
+        verb = True
+
+    if verb is True:
+        msg = (
+            "#"*20
+            + f"\nLoading model {dmodel['name']} from {dmodel['file']}"
+        )
+        print(msg)
 
     # ---------------
     # list non-conform keys
@@ -252,16 +262,15 @@ def _check_logics(dmodel=None):
         if any([k1 for k1 in v0.keys() if k1 not in models._DFIELDS])
     }
     if len(dkout) > 0:
-        lstr = [
-            '\n'.join([f"\t- {k0}['{k1}']" for k1 in v0])
-            for k0, v0 in dkout.items()
-        ]
-        msg = (
-            "The following keys are unknown to _LIBRARY, adding from model:\n"
-            f"From model: {dmodel['name']} ({dmodel['file']})\n"
-            + "\n".join(lstr)
-        )
-        warnings.warn(msg)
+
+        if verb is True:
+            lstr = [f'\t- {k0}: {v0}' for k0, v0 in dkout.items()]
+            msg = (
+                "\nThe following keys are unknown to _LIBRARY, "
+                "adding from model:\n"
+                + "\n".join(lstr)
+            )
+            print(msg)
 
         # adding to local models._DFIELDS
         for k0, v0 in dkout.items():
@@ -483,7 +492,7 @@ def _check_dparam(dparam=None):
 # #############################################################################
 
 
-def check_dparam(dparam=None):
+def check_dparam(dparam=None, verb=None):
     """ Check user-provided dparam
 
     dparam can be:
@@ -502,12 +511,12 @@ def check_dparam(dparam=None):
 
     # -------------------
     # if any unidentified parameter => load them and re-check conformity
-    _extract_parameters(dparam)
+    _extract_parameters(dparam, verb=verb)
     dparam = _check_dparam(dparam)
 
     # ----------------
     # Identify functions
-    dparam, dfunc_order = _check_func(dparam)
+    dparam, dfunc_order = _check_func(dparam, verb=verb)
 
     # ----------------
     # Make sure to copy to avoid passing by reference
@@ -581,12 +590,15 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None):
     return lpar_add, lfunc_add
 
 
-def _extract_parameters(dparam):
+def _extract_parameters(dparam, verb=None):
     """ Extract fixed-value parameters
 
     If relevant, the list of fixed-value parameters is extracted from
         the func kwdargs
     """
+
+    if verb is None:
+        verb = True
 
     lpar = [k0 for k0, v0 in dparam.items() if v0.get('func') is None]
     lfunc = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
@@ -629,6 +641,16 @@ def _extract_parameters(dparam):
                 + "\n".join(lstr)
             )
             raise Exception(msg)
+
+    # -------------
+    # print 
+    if verb is True:
+        msg = (
+            "\nThe following undeclared parameters have been identified:\n"
+            f"\t- param (fixed): {lpar_new}\n"
+            f"\t- param (func.): {lfunc_new}"
+        )
+        print(msg)
 
 
 def _check_func_time_dependence(lfunc=None, dparam=None):
@@ -748,7 +770,7 @@ def _check_func_get_source(lfunc=None, dparam=None):
             dparam[k0]['source_kargs'] = kargs
 
 
-def _check_func(dparam=None):
+def _check_func(dparam=None, verb=None):
     """ Check basic conformity of functions
 
     They must:
@@ -892,7 +914,7 @@ def _check_func(dparam=None):
 
     # ----------------------------
     # Determine order of functions
-    dfunc_order = _suggest_funct_order(dparam=dparam)
+    dfunc_order = _suggest_funct_order(dparam=dparam, verb=verb)
 
     # --------------------------------
     # run all param func to set their values
@@ -936,33 +958,46 @@ def _suggest_funct_order_by_group(eqtype=None, dparam=None):
     # Prepare list of relevant functsions
     lf = [kk for kk, vv in dparam.items() if vv.get('eqtype') == eqtype]
 
-    lfsort = []
-    keepon = True
-    ntry = 0
-    while keepon:
+    try:
+        lfsort = []
+        keepon = True
+        ntry = 0
+        while keepon:
 
-        # Identify func that can be sorted
-        for kk in lf:
-            if kk in lfsort:
-                continue
-            elif len(dparam[kk]['args'][eqtype]) == 0:
-                lfsort.append(kk)
-            elif all([k1 in lfsort for k1 in dparam[kk]['args'][eqtype]]):
-                lfsort.append(kk)
+            # Identify func that can be sorted
+            for kk in lf:
+                if kk in lfsort:
+                    continue
+                elif len(dparam[kk]['args'][eqtype]) == 0:
+                    lfsort.append(kk)
+                elif all([k1 in lfsort for k1 in dparam[kk]['args'][eqtype]]):
+                    lfsort.append(kk)
 
-        # evaluate termination condition
-        ntry += 1
-        if set(lf) == set(lfsort):
-            keepon = False
-        elif ntry == len(lf) - 1:
-            msg = f"No sorting order of func could be found for {eqtype}"
-            raise Exception(msg)
+            # evaluate termination condition
+            ntry += 1
+            if set(lf) == set(lfsort):
+                keepon = False
+            elif ntry == len(lf) - 1:
+                msg = f"No sorting order of func could be found for {eqtype}"
+                raise Exception(msg)
+
+    except Exception as err:
+        if eqtype == 'ode':
+            # function order not necessary => pick any order
+            lfsort = [
+                kk for kk, vv in dparam.items()
+                if vv.get('eqtype') == eqtype
+            ]
+        else:
+            # For 'statevar' and 'param' a function order is necessary => raise
+            raise err
 
     return lfsort
 
 
 def _suggest_funct_order(
     dparam=None,
+    verb=None,
 ):
     """ Propose a logical order for computing the functions
 
@@ -975,12 +1010,29 @@ def _suggest_funct_order(
         Auxiliary functions are not considered
     """
 
+    # -----------
+    # check inputs
+
+    if verb is None:
+        verb = True
+
     # -------------
     # we want a function order for statevar and param
     dfunc_order = {
         k0: _suggest_funct_order_by_group(eqtype=k0, dparam=dparam)
         for k0 in ['param', 'statevar', 'ode']
     }
+
+    # -----------
+    # print
+
+    if verb is True:
+        lstr = [f'\t- {k0}: {v0}' for k0, v0 in dfunc_order.items()]
+        msg = (
+            "\nThe following order has been determined for functions:\n"
+            + "\n".join(lstr)
+        )
+        print(msg)
 
     return dfunc_order
 
