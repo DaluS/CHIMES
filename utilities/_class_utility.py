@@ -271,3 +271,27 @@ def _equal(obj1, obj2, verb=None, return_dfail=None):
             return False, dfail
         else:
             return False
+
+
+# #############################################################################
+# #############################################################################
+#           str representation
+# #############################################################################
+
+
+def paramfunc2str(dparam=None, key=None):
+
+    eqtype = dparam[key].get('eqtype')
+    if eqtype is None:
+        msg = str(dparam[key]['value'])
+    elif eqtype in ['param', 'ode', 'statevar']:
+        if dparam[key].get('source_exp') is None:
+            kargs = ', '.join([
+                kk.split('=')[0]
+                for kk in dparam[key]['source_kargs'].split(', ')
+            ])
+            msg = f"f({kargs})"
+        else:
+            msg = dparam[key]['source_exp']
+
+    return msg
