@@ -184,7 +184,6 @@ class Hub():
         The selection is done using self.get_dparam() (single-sourced)
         """
 
-
         # -------------
         # check input
 
@@ -230,7 +229,6 @@ class Hub():
 
         if returnas is dict:
             return dout
-
 
     # ##############################
     # %% Read-only properties

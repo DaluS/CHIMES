@@ -230,7 +230,7 @@ def _check_logics(dmodel=None, verb=None):
 
     if verb is True:
         msg = (
-            "#"*20
+            "#" * 20
             + f"\nLoading model {dmodel['name']} from {dmodel['file']}"
         )
         print(msg)
@@ -643,7 +643,7 @@ def _extract_parameters(dparam, verb=None):
             raise Exception(msg)
 
     # -------------
-    # print 
+    # print
     if verb is True:
         msg = (
             "\nThe following undeclared parameters have been identified:\n"

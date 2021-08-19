@@ -193,7 +193,7 @@ class Test01_Hub():
             model0 = vv['model'].replace('-', '_')
             preset0 = vv['preset']
             solver0 = vv['solver']
-            if ii%2 == 0:
+            if ii % 2 == 0:
                 model_file = os.path.join(_PATH_MODELS, f'_model_{model0}.py')
             else:
                 model_file = None
