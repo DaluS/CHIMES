@@ -219,7 +219,7 @@ class Test01_Hub():
                     msg = (
                         f"Differs from reference for: {list(dfaili.keys())}"
                     )
-                    dfail[f'{model}_{solver}'] = msg
+                    dfail[f'{model}_{preset}_{solver}'] = msg
 
         if len(dfail) > 0:
             lstr = [f'\t- {k0}: {v0}' for k0, v0 in dfail.items()]
