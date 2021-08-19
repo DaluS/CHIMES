@@ -336,9 +336,10 @@ def get_file_parsing(pfe=None):
         fn = os.path.split(ff)[-1]
         fmt = fn.split('.')[-1]
         fn = fn[:fn.index(f'.{fmt}')]
-        model, solver, name, user, date = fn.split('_')[1:]
+        model, preset, solver, name, user, date = fn.split('_')[1:]
         df[ff] = {
             'model': model,
+            'preset': preset,
             'solver': solver,
             'name': name,
             'user': user,
@@ -351,6 +352,7 @@ def get_file_parsing(pfe=None):
 def _get_available_output_check(
     path=None,
     model=None,
+    preset=None,
     user=None,
     solver=None,
     name=None,
@@ -375,6 +377,7 @@ def _get_available_output_check(
 
     dcrit = {
         'model': model,
+        'preset': preset,
         'user': user,
         'solver': solver,
         'name': name,
@@ -403,7 +406,7 @@ def _get_available_output_check(
             continue
 
         # format model and name
-        if k0 in ['model', 'name']:
+        if k0 in ['model', 'preset', 'name']:
             dcrit[k0] = dcrit[k0].replace('_', '-').replace(' ', '-')
 
     if len(dfail) > 0:
@@ -441,6 +444,7 @@ def _get_available_output_check(
 def get_available_output(
     path=None,
     model=None,
+    preset=None,
     user=None,
     solver=None,
     name=None,
@@ -455,6 +459,7 @@ def get_available_output(
     path, dcrit, verb, returnas = _get_available_output_check(
         path=path,
         model=model,
+        preset=preset,
         user=user,
         solver=solver,
         name=name,
