@@ -6,6 +6,7 @@ import os
 import inspect
 import itertools as itt
 import getpass
+import importlib
 import datetime as dtm
 import warnings
 
@@ -16,8 +17,13 @@ import numpy as np
 
 _PATH_HERE = os.path.dirname(__file__)
 _PATH_OUTPUT = os.path.join(os.path.dirname(_PATH_HERE), 'output')
+_PATH_MODELS = os.path.join(
+    os.path.dirname(_PATH_HERE),
+    'models',
+)
 
-_INCLUDE_NAME = ['model', 'solver', 'name', 'user', 'date']
+
+_INCLUDE_NAME = ['model', 'preset', 'solver', 'name', 'user', 'date']
 
 
 # #############################################################################
@@ -160,7 +166,8 @@ def save(
     # --------------
     # Make full name
     dinclude = {
-        'model': list(obj.model.keys())[0].replace('_', '-').replace(' ', '-'),
+        'model': obj.dmodel['name'].replace('_', '-').replace(' ', '-'),
+        'preset': obj.dmodel['preset'],
         'solver': obj.dmisc['solver'],
         'name': name,
         'user': getpass.getuser(),
@@ -209,8 +216,15 @@ def save(
 # #############################################################################
 
 
-def load(pfe):
-    """ Load a save output file """
+def load(pfe, model_file=None):
+    """ Load a save output file
+
+    model_file can be used to specify the model file from which to load the
+    non-lambda functions that need to be reconstructed
+
+    Only necessary if the original model file cannot be found automatically
+
+    """
 
     # --------------
     # check inputs
@@ -225,11 +239,81 @@ def load(pfe):
             {
                 k0: v0.tolist()
                 for k0, v0 in dict(np.load(ff, allow_pickle=True)).items()
-            }
+            },
+            model_file=model_file,
         )
         for ff in pfe
     ]
     return lobj
+
+
+# #############################################################################
+# #############################################################################
+#           Rebuild function from source (for loading)
+# #############################################################################
+
+
+def rebuild_func_from_source(dout=None, model_file=None):
+    """ Rebuild functions (that can't be saved) for saved source
+
+    When saving a Hub, the functions are lost
+    They have to be re-built from source at loading time
+    """
+
+    for k0, v0 in dout['dparam'].items():
+        if dout['dparam'][k0].get('func') is not None:
+
+            if dout['dparam'][k0].get('source_exp') is None:
+
+                # Rebuild from source file
+                mod = dout['dmodel']['name']
+                fname = dout['dparam'][k0]['source_name']
+                if isinstance(model_file, str):
+                    if not os.path.isfile(model_file):
+                        msg = (
+                            "Provided model_file does not exist:\n"
+                            f"{model_file}"
+                        )
+                        raise Exception(msg)
+                    pfe = model_file
+                else:
+                    pfe = dout['dmodel']['file']
+                    if not os.path.isfile(pfe):
+                        # try loading from local output ref (for unit tests)
+                        path, tail = os.path.split(pfe)
+                        pfe1 = os.path.join(_PATH_MODELS, tail)
+                        if not os.path.isfile(pfe1):
+                            lstr = [f'\t- {pp}' for pp in [pfe, pfe1]]
+                            msg = (
+                                f"Function {k0} could not be re-loaded from:\n"
+                                + f"\n".join(lstr)
+                            )
+                            raise Exception(msg)
+                        pfe = pfe1
+
+                spec = importlib.util.spec_from_file_location(mod, pfe)
+                foo = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(foo)
+
+                c0 = (
+                    hasattr(foo, fname)
+                    and hasattr(getattr(foo, fname), '__call__')
+                )
+                if not c0:
+                    msg = (
+                        f"Module {mod} has no callable attribute "
+                        f"named {fname}\n"
+                        f"file: {pfe}"
+                    )
+                    raise Exception(msg)
+                dout['dparam'][k0]['func'] = getattr(foo, fname)
+
+            else:
+                # Rebuild from source str
+                dout['dparam'][k0]['func'] = eval(
+                    f"lambda {dout['dparam'][k0]['source_kargs']}: "
+                    f"{dout['dparam'][k0]['source_exp']}"
+                )[0]
 
 
 # #############################################################################
@@ -252,9 +336,10 @@ def get_file_parsing(pfe=None):
         fn = os.path.split(ff)[-1]
         fmt = fn.split('.')[-1]
         fn = fn[:fn.index(f'.{fmt}')]
-        model, solver, name, user, date = fn.split('_')[1:]
+        model, preset, solver, name, user, date = fn.split('_')[1:]
         df[ff] = {
             'model': model,
+            'preset': preset,
             'solver': solver,
             'name': name,
             'user': user,
@@ -267,6 +352,7 @@ def get_file_parsing(pfe=None):
 def _get_available_output_check(
     path=None,
     model=None,
+    preset=None,
     user=None,
     solver=None,
     name=None,
@@ -291,6 +377,7 @@ def _get_available_output_check(
 
     dcrit = {
         'model': model,
+        'preset': preset,
         'user': user,
         'solver': solver,
         'name': name,
@@ -319,7 +406,7 @@ def _get_available_output_check(
             continue
 
         # format model and name
-        if k0 in ['model', 'name']:
+        if k0 in ['model', 'preset', 'name']:
             dcrit[k0] = dcrit[k0].replace('_', '-').replace(' ', '-')
 
     if len(dfail) > 0:
@@ -357,6 +444,7 @@ def _get_available_output_check(
 def get_available_output(
     path=None,
     model=None,
+    preset=None,
     user=None,
     solver=None,
     name=None,
@@ -371,6 +459,7 @@ def get_available_output(
     path, dcrit, verb, returnas = _get_available_output_check(
         path=path,
         model=model,
+        preset=preset,
         user=user,
         solver=solver,
         name=name,

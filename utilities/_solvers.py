@@ -1,11 +1,34 @@
 # -*- coding: utf-8 -*-
 
+
+# built-in
 import time
+import warnings
+
+
+# common
 import numpy as np
 import scipy.integrate as scpinteg
+import matplotlib.pyplot as plt     # DB
 
 
+# specific
 from . import _class_checks
+
+
+_DSOLVERS = {
+    ''
+}
+
+
+# #############################################################################
+# #############################################################################
+#                   user-interface to display solvers
+# #############################################################################
+
+
+def get_available_solvers():
+    pass
 
 
 # #############################################################################
@@ -42,15 +65,15 @@ def _eRK4_homemade(
         # compute ode variables from ii-1, using solver
         for k0 in lode:
             kwdargs = {
-                k1: v1[ii-1, :] for k1, v1 in dargs[k0].items()
+                k1: v1[ii - 1, :] for k1, v1 in dargs[k0].items()
             }
 
             dparam[k0]['value'][ii, :] = (
-                dparam[k0]['value'][ii-1, :]
+                dparam[k0]['value'][ii - 1, :]
                 + _rk4(
                     dparam=dparam,
                     k0=k0,
-                    y=dparam[k0]['value'][ii-1, :],
+                    y=dparam[k0]['value'][ii - 1, :],
                     kwdargs=kwdargs,
                 )
             )
@@ -102,7 +125,7 @@ def _rk4(dparam=None, k0=None, y=None, kwdargs=None):
         dy2 = dparam[k0]['func'](**kwdargs)
         dy3 = dparam[k0]['func'](**kwdargs)
         dy4 = dparam[k0]['func'](**kwdargs)
-    return (dy1 + 2*dy2 + 2*dy3 + dy4) * dparam['dt']['value']/6.
+    return (dy1 + 2*dy2 + 2*dy3 + dy4) * dparam['dt']['value'] / 6.
 
 
 # #############################################################################
@@ -230,20 +253,42 @@ def _solver_scipy(
 
     # ----------------
     # verbosity
-    if verb > 0:
-        msg = (
-            f"{sol.message}\nSuccess: {sol.success}\n"
-            f"Nb. fev: {sol.nfev} for {sol.t.size} time steps"
-            f" ({sol.nfev/sol.t.size} per time step)"
+    if sol.success is True:
+        indmax = dparam['nt']['value']
+        if verb > 0:
+            msg = (
+                f"{sol.message}\nSuccess: {sol.success}\n"
+                f"Nb. fev: {sol.nfev} for {sol.t.size} time steps"
+                f" ({sol.nfev/sol.t.size} per time step)"
+            )
+            print(msg)
+    else:
+        c0 = (
+            sol.message == (
+                'Required step size is less than spacing between numbers.'
+            )
+            and sol.t.max() < t_span[1]
+            and sol.t.size > 0
         )
-        print(msg)
+        if c0:
+            indmax = sol.t.size
+            # keep the first steps until it failed + warn
+            msg = (
+                f"Solver stoped at t = {sol.t.max()} "
+                f"({sol.t.size} / {dparam['nt']['value']} time steps) "
+                "=> divergence?"
+            )
+            warnings.warn(msg)
+        else:
+            msg = f"Solver failed with status {sol.status}: {sol.message}"
+            raise Exception(msg)
 
     # ---------------------
     # dispatch results
 
     for ii, k0 in enumerate(lode_notime):
-        dparam[k0]['value'][:, 0] = sol.y[ii, :]
-    dparam['time']['value'] = np.repeat(
+        dparam[k0]['value'][:indmax, 0] = sol.y[ii, :]
+    dparam['time']['value'][:indmax, :] = np.repeat(
         sol.t[:, None],
         dparam['nx']['value'],
         axis=1,
