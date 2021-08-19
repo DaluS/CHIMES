@@ -75,11 +75,11 @@ def AllVar(
 
     dpar = hub.get_dparam(returnas=dict)
     t = dpar['time']['value'][:, idx]
-    lkeys_notime = [
-        k0 for k0, v0 in dpar.items()
-        if v0.get('func') is not None
-        and k0 != 'time'
-    ]
+    lkeys_notime = hub.get_dparam(
+        returnas=list,
+        eqtype=['ode', 'statevar'],
+        key=('time',),
+    )
     nkeys = len(lkeys_notime)
 
     # derive nrows
