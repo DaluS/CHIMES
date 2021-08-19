@@ -70,7 +70,7 @@ def _get_dict_subset(
     if isfunc is not None or len(kwdargs) > 0:
         # isolate relevant criteria
         dcrit = {
-            k0: v0 if isinstance(v0, list) else [v0]
+            k0: v0 if isinstance(v0, (list, tuple)) else [v0]
             for k0, v0 in kwdargs.items()
             if k0 in lcrit
         }
@@ -79,7 +79,8 @@ def _get_dict_subset(
         lk = [
             k0 for k0 in indict.keys()
             if all([
-                indict[k0].get(k1) in dcrit[k1]
+                indict[k0].get(k1) in dcrit[k1] if isinstance(dcrit[k1], list)
+                else indict[k0].get(k1) not in dcrit[k1]
                 for k1 in dcrit.keys()
             ])
         ]
@@ -100,7 +101,7 @@ def _get_dict_subset(
         for ii, k0 in enumerate(lk):
             for ss in lprint[1:]:
                 if ss == 'value':
-                    if indict[k0].get('func') is not None:
+                    if indict[k0].get('eqtype') not in [None, 'param']:
                         ar0[ii].append(str(indict[k0]['value'].shape))
                     else:
                         ar0[ii].append(str(indict[k0]['value']))
