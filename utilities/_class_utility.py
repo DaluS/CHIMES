@@ -160,7 +160,7 @@ def _dict_equal(dict1, dict2, dd=None):
     dfail = {}
 
     # check they have identical keys
-    c0 = sorted(dict1.keys()) == sorted(dict2.keys())
+    c0 = dict1.keys() == dict2.keys()
     if not c0:
         lk = set(dict1.keys()).difference(dict2.keys())
         lk = set(dict2.keys()).difference(dict1.keys())
