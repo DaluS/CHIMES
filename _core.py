@@ -706,7 +706,7 @@ class Hub():
         return dout
 
     @classmethod
-    def _from_dict(cls, dout=None):
+    def _from_dict(cls, dout=None, model_file=None):
         """ Create an instance from a dict """
 
         # --------------
@@ -725,8 +725,14 @@ class Hub():
             raise Exception(msg)
 
         # -------------
-        # rebuild all functions from source
-        _saveload.rebuild_func_from_source(dout)
+        # rebuild all functions from source, if necessary
+        c0 = any([
+            v0.get('source_kargs') is not None
+            and not hasattr(v0.get('func'), '__call__')
+            for k0, v0 in dout['dparam'].items()
+        ])
+        if c0:
+            _saveload.rebuild_func_from_source(dout, model_file=model_file)
 
         # -------------------
         # create instance
@@ -755,9 +761,6 @@ class Hub():
         By default path is set to 'output/', but the user can overload it
 
         """
-
-        if name is None and self.dmodel['preset'] is not None:
-            name = self.dmodel['preset']
 
         return _saveload.save(
             self,
