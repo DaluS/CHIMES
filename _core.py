@@ -304,12 +304,13 @@ class Hub():
 
         # ----------
         # Numerical parameters
-        col0 = ['Numerical param.', 'value', 'units', 'comment']
+        col0 = ['Numerical param.', 'value', 'units', 'definition', 'comment']
         ar0 = [
             [
                 k0,
                 _class_utility.paramfunc2str(dparam=self.__dparam, key=k0),
                 v0['units'],
+                v0['definition'],
                 v0['com'],
             ]
             for k0, v0 in self.get_dparam(
@@ -318,17 +319,20 @@ class Hub():
                 group='Numerical',
             ).items()
         ]
-        ar0.append(['run', str(self.__dmisc['run']), '', ''])
+        ar0.append(['run', str(self.__dmisc['run']), '', '', ''])
 
         # ----------
         # parameters
-        col1 = ['Model param.', 'value', 'units', 'group', 'comment']
+        col1 = [
+            'Model param.', 'value', 'units', 'group', 'definition', 'comment',
+        ]
         ar1 = [
             [
                 k0,
                 _class_utility.paramfunc2str(dparam=self.__dparam, key=k0),
                 str(v0['units']),
                 v0['group'],
+                v0['definition'],
                 v0['com'],
             ]
             for k0, v0 in self.get_dparam(
@@ -341,7 +345,8 @@ class Hub():
         # ----------
         # functions
         col2 = [
-            'function', 'source', 'initial', 'units', 'eqtype', 'comment',
+            'function', 'source', 'initial', 'units', 'eqtype',
+            'definition', 'comment',
         ]
         ar2 = [
             [
@@ -350,6 +355,7 @@ class Hub():
                 "{:.2e}".format(v0.get('value')[0, idx]),
                 v0['units'],
                 v0['eqtype'],
+                v0['definition'],
                 v0['com'],
             ]
             for k0, v0 in self.get_dparam(
