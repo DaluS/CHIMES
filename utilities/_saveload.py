@@ -17,10 +17,9 @@ import numpy as np
 
 _PATH_HERE = os.path.dirname(__file__)
 _PATH_OUTPUT = os.path.join(os.path.dirname(_PATH_HERE), 'output')
-_PATH_OUTPUT_REF = os.path.join(
+_PATH_MODELS = os.path.join(
     os.path.dirname(_PATH_HERE),
-    'tests',
-    'output_ref',
+    'models',
 )
 
 
@@ -263,7 +262,7 @@ def rebuild_func_from_source(dout=None):
                 if not os.path.isfile(pfe):
                     # try loading from local output ref (for unit tests)
                     path, tail = os.path.split(pfe)
-                    pfe1 = os.path.join(_PATH_OUTPUT_REF, tail)
+                    pfe1 = os.path.join(_PATH_MODELS, tail)
                     if not os.path.isfile(pfe):
                         lstr = [f'\t- {pp}' for pp in [pfe, pfe1]]
                         msg = (
