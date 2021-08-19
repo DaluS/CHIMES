@@ -5,7 +5,7 @@ import os
 import importlib
 
 
-from ._def_fields import _DFIELDS, _LIBRARY
+from ._def_fields import _DFIELDS, _LIBRARY, _complete_DFIELDS
 
 
 _PATH_HERE = os.path.dirname(__file__)

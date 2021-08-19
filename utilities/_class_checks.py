@@ -257,11 +257,24 @@ def _check_logics(dmodel=None):
             for k0, v0 in dkout.items()
         ]
         msg = (
-            "The following keys are not known to _LIBRARY / _DFIELDS:\n"
+            "The following keys are unknown to _LIBRARY, adding from model:\n"
             f"From model: {dmodel['name']} ({dmodel['file']})\n"
             + "\n".join(lstr)
         )
-        raise Exception(msg)
+        warnings.warn(msg)
+
+        # adding to local models._DFIELDS
+        for k0, v0 in dkout.items():
+            for k1 in v0:
+                models._DFIELDS[k1] = dict(dmodel['logics'][k0][k1])
+                models._DFIELDS[k1]['eqtype'] = k0
+
+        # Make sure all fields are set
+        models._complete_DFIELDS(
+            dfields=models._DFIELDS,
+            complete=True,
+            check=True,
+        )
 
     # -----------------------
     # check ode
