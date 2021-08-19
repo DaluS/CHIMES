@@ -216,9 +216,13 @@ class Hub():
         # print and/or return
 
         if verb is True:
+            lstr = [f'\t- {k0}: {v0}' for k0, v0 in dout.items()]
             msg = (
+                "The following selection has been identified:\n"
+                + "\n".join(lstr)
             )
             print(msg)
+
         if returnas is dict:
             return dout
 
