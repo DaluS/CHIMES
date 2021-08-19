@@ -66,6 +66,8 @@ class Hub():
         # update from preset if relevant
         if preset is not None:
             self.load_preset(preset)
+        else:
+            self.reset()
 
     def load_preset(self, preset=None):
         """ For the current model, load desired preset """
@@ -74,6 +76,7 @@ class Hub():
             dmodel=self.__dmodel,
             preset=preset,
         )
+        self.reset()
 
     def set_dparam(
         self,
