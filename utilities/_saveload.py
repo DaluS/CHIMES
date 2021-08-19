@@ -23,7 +23,7 @@ _PATH_MODELS = os.path.join(
 )
 
 
-_INCLUDE_NAME = ['model', 'solver', 'name', 'user', 'date']
+_INCLUDE_NAME = ['model', 'preset', 'solver', 'name', 'user', 'date']
 
 
 # #############################################################################
@@ -167,6 +167,7 @@ def save(
     # Make full name
     dinclude = {
         'model': obj.dmodel['name'].replace('_', '-').replace(' ', '-'),
+        'preset': obj.dmodel['preset'],
         'solver': obj.dmisc['solver'],
         'name': name,
         'user': getpass.getuser(),
@@ -215,8 +216,15 @@ def save(
 # #############################################################################
 
 
-def load(pfe):
-    """ Load a save output file """
+def load(pfe, model_file=None):
+    """ Load a save output file
+
+    model_file can be used to specify the model file from which to load the
+    non-lambda functions that need to be reconstructed
+
+    Only necessary if the original model file cannot be found automatically
+
+    """
 
     # --------------
     # check inputs
@@ -231,7 +239,8 @@ def load(pfe):
             {
                 k0: v0.tolist()
                 for k0, v0 in dict(np.load(ff, allow_pickle=True)).items()
-            }
+            },
+            model_file=model_file,
         )
         for ff in pfe
     ]
@@ -244,7 +253,7 @@ def load(pfe):
 # #############################################################################
 
 
-def rebuild_func_from_source(dout=None):
+def rebuild_func_from_source(dout=None, model_file=None):
     """ Rebuild functions (that can't be saved) for saved source
 
     When saving a Hub, the functions are lost
@@ -255,22 +264,32 @@ def rebuild_func_from_source(dout=None):
         if dout['dparam'][k0].get('func') is not None:
 
             if dout['dparam'][k0].get('source_exp') is None:
+
                 # Rebuild from source file
                 mod = dout['dmodel']['name']
-                pfe = dout['dmodel']['file']
                 fname = dout['dparam'][k0]['source_name']
-                if not os.path.isfile(pfe):
-                    # try loading from local output ref (for unit tests)
-                    path, tail = os.path.split(pfe)
-                    pfe1 = os.path.join(_PATH_MODELS, tail)
-                    if not os.path.isfile(pfe1):
-                        lstr = [f'\t- {pp}' for pp in [pfe, pfe1]]
+                if isinstance(model_file, str):
+                    if not os.path.isfile(model_file):
                         msg = (
-                            f"Function {k0} could not be re-loaded from:\n"
-                            + f"\n".join(lstr)
+                            "Provided model_file does not exist:\n"
+                            f"{model_file}"
                         )
                         raise Exception(msg)
-                    pfe = pfe1
+                    pfe = model_file
+                else:
+                    pfe = dout['dmodel']['file']
+                    if not os.path.isfile(pfe):
+                        # try loading from local output ref (for unit tests)
+                        path, tail = os.path.split(pfe)
+                        pfe1 = os.path.join(_PATH_MODELS, tail)
+                        if not os.path.isfile(pfe1):
+                            lstr = [f'\t- {pp}' for pp in [pfe, pfe1]]
+                            msg = (
+                                f"Function {k0} could not be re-loaded from:\n"
+                                + f"\n".join(lstr)
+                            )
+                            raise Exception(msg)
+                        pfe = pfe1
 
                 spec = importlib.util.spec_from_file_location(mod, pfe)
                 foo = importlib.util.module_from_spec(spec)
@@ -283,7 +302,8 @@ def rebuild_func_from_source(dout=None):
                 if not c0:
                     msg = (
                         f"Module {mod} has no callable attribute "
-                        f"named {fname}"
+                        f"named {fname}\n"
+                        f"file: {pfe}"
                     )
                     raise Exception(msg)
                 dout['dparam'][k0]['func'] = getattr(foo, fname)
