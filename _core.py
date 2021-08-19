@@ -162,22 +162,65 @@ class Hub():
             **kwdargs,
         )
 
-    def get_param_by_dict_of_crit(self, crit=None):
+    def get_dparam_as_reverse_dict(
+        self,
+        crit=None,
+        returnas=None,
+        verb=None,
+        **kwdargs,
+    ):
+        """ Return/prints a dict of units/eqtype... with a list of keys
+
+        if crit = 'units', return a dict with:
+            - keys: the unique possible values of field 'units'
+            - values: for each unique unit, the corresponding list of keys
+
+        Restrictions on the selection can be imposed by **kwdargs
+        The selection is done using self.get_dparam() (single-sourced)
+        """
+
 
         # -------------
         # check input
 
+        if verb is None:
+            verb = False
+        if returnas is None:
+            returnas = dict if verb is False else False
+
         lcrit = ['dimension', 'units', 'type', 'group', 'eqtype']
         if crit not in lcrit:
             msg = (
+                f"Arg crit must be in: {lcrit}\n"
+                f"Provided: {crit}"
+            )
+            raise Exception(msg)
+
+        if crit in kwdargs.keys():
+            msg = (
+                "Conflict detected!:\n"
+                f"{crit} is the sorting criterion => not usable for selection!"
             )
             raise Exception(msg)
 
         # -------------
         # create dict
 
-        dout = {}
-        return dout
+        lunique = set([v0.get(crit) for v0 in self.__dparam.values()])
+        dout = {
+            k0: self.get_dparam(returnas=list, **{crit: k0, **kwdargs})
+            for k0 in lunique
+        }
+
+        # -------------
+        # print and/or return
+
+        if verb is True:
+            msg = (
+            )
+            print(msg)
+        if returnas is dict:
+            return dout
 
 
     # ##############################
