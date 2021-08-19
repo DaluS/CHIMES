@@ -22,6 +22,7 @@ _PATH_HERE = os.path.abspath(os.path.dirname(__file__))
 _PATH_PCK = os.path.dirname(_PATH_HERE)
 _PATH_OUTPUT = os.path.join(_PATH_HERE, 'output_temp')
 _PATH_OUTPUT_REF = os.path.join(_PATH_HERE, 'output_ref')
+_PATH_MODELS = os.path.join(_PATH_PCK, 'models')
 
 
 # library-specific
@@ -184,16 +185,25 @@ class Test01_Hub():
                     )
 
     def test10_load_and_equal(self):
-        lf = [
-            os.path.join(_PATH_OUTPUT, ff)
-            for ff in os.listdir(_PATH_OUTPUT)
-            if ff.endswith('.npz')
-        ]
-        for ff in lf:
-            obj = _core._saveload.load(ff)[0]
+        df = _core._saveload.get_available_output(
+            path=_PATH_OUTPUT,
+            returnas=dict,
+        )
+        for ii, (ff, vv) in enumerate(df.items()):
+            model0 = vv['model'].replace('-', '_')
+            preset0 = vv['preset']
+            solver0 = vv['solver']
+            if ii%2 == 0:
+                model_file = os.path.join(_PATH_MODELS, f'_model_{model0}.py')
+            else:
+                model_file = None
+            obj = _core._saveload.load(ff, model_file=model_file)[0]
             model = obj.dmodel['name']
             preset = obj.dmodel['preset']
             solver = obj.dmisc['solver']
+            assert model == model0
+            assert str(preset) == preset0
+            assert solver == solver0
             assert obj == self.dhub[model][preset][solver]
 
     def test11_copy(self):
