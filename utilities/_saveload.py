@@ -263,11 +263,11 @@ def rebuild_func_from_source(dout=None):
                     # try loading from local output ref (for unit tests)
                     path, tail = os.path.split(pfe)
                     pfe1 = os.path.join(_PATH_MODELS, tail)
-                    if not os.path.isfile(pfe):
+                    if not os.path.isfile(pfe1):
                         lstr = [f'\t- {pp}' for pp in [pfe, pfe1]]
                         msg = (
                             f"Function {k0} could not be re-loaded from:\n"
-                            f"\n".join(lstr)
+                            + f"\n".join(lstr)
                         )
                         raise Exception(msg)
                     pfe = pfe1
