@@ -33,7 +33,7 @@ _LEQTYPES = ['ode', 'pde', 'statevar', 'param', 'undeclared']
 
 _LEXTRAKEYS = [
     'func', 'kargs', 'args', 'initial',
-    'source_kargs', 'source_exp', 'isneeded',
+    'source_kargs', 'source_exp', 'source_name', 'isneeded',
 ]
 
 
@@ -721,6 +721,7 @@ def _check_func_get_source(lfunc=None, dparam=None):
                 dparam[k0]['source_exp'] = exp.strip()
             else:
                 kargs = sour[sour.index('(')+1:sour.index(')')]
+                dparam[k0]['source_name'] = dparam[k0]['func'].__name__
 
             kargs = [kk.strip() for kk in kargs.strip().split(',')]
             if not all(['=' in kk for kk in kargs]):

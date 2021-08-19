@@ -6,6 +6,7 @@ import os
 import inspect
 import itertools as itt
 import getpass
+import importlib
 import datetime as dtm
 import warnings
 
@@ -230,6 +231,57 @@ def load(pfe):
         for ff in pfe
     ]
     return lobj
+
+
+# #############################################################################
+# #############################################################################
+#           Rebuild function from source (for loading)
+# #############################################################################
+
+
+def rebuild_func_from_source(dout=None):
+    """ Rebuild functions (that can't be saved) for saved source
+
+    When saving a Hub, the functions are lost
+    They have to be re-built from source at loading time
+    """
+
+    for k0, v0 in dout['dparam'].items():
+        if dout['dparam'][k0].get('func') is not None:
+
+            if dout['dparam'][k0].get('source_exp') is None:
+                # Rebuild from source file
+                mod = dout['dmodel']['name']
+                pfe = dout['dmodel']['file']
+                fname = dout['dparam'][k0]['source_name']
+                if os.path.isfile(pfe):
+                    spec = importlib.util.spec_from_file_location(mod, pfe)
+                    foo = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(foo)
+
+                    c0 = (
+                        hasattr(foo, fname)
+                        and hasattr(getattr(foo, fname), '__call__')
+                    )
+                    if not c0:
+                        msg = (
+                            f"Module {mod} has no callable attribute "
+                            f"named {fname}"
+                        )
+                        raise Exception(msg)
+                    dout['dparam'][k0]['func'] = getattr(foo, fname)
+                else:
+                    msg = (
+                        f"Function {k0} could not be re-loaded from {pfe}"
+                    )
+                    raise Exception(msg)
+
+            else:
+                # Rebuild from source str
+                dout['dparam'][k0]['func'] = eval(
+                    f"lambda {dout['dparam'][k0]['source_kargs']}: "
+                    f"{dout['dparam'][k0]['source_exp']}"
+                )[0]
 
 
 # #############################################################################
