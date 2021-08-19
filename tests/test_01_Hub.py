@@ -210,12 +210,12 @@ class Test01_Hub():
                 return_dfail=True,
             )
             if isok is False:
-                # only tolerated error: different absolte path to model file
-                keyok = f"dmisc['model']['{model}']"
+                # only tolerated error: different absolute path to model file
+                keyok = f"dmodel['file']"
                 if keyok in dfaili.keys():
                     del dfaili[keyok]
-                isok = len(dfaili) == 0
-                if isok is False:
+
+                if  len(dfaili) > 0:
                     msg = (
                         f"Differs from reference for: {list(dfaili.keys())}"
                     )
