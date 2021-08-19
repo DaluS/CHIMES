@@ -335,15 +335,10 @@ _LIBRARY = {
             'definition': 'GDP in nominal term',
             'units': '$',
         },
-        'inflation': {
+        'i': {
             'value': None,
             'definition': 'inflation rate',
             'units': 'y^{-1}',
-        },
-        'p': {
-            'value': None,
-            'definition': 'prices?',
-            'units': '$',
         },
     },
 }
