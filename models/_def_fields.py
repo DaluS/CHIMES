@@ -106,14 +106,6 @@ __DEFAULTFIELDS = {
 }
 
 
-# ----------------
-# For units add inverses
-
-__DEFAULTFIELDS['units']['allowed'] += [
-    ss + '^{-1}' for ss in __DEFAULTFIELDS['units']['allowed']
-]
-
-
 # --------------------
 # Make sure the default is allowed
 for k0, v0 in __DEFAULTFIELDS.items():
@@ -415,11 +407,40 @@ def _complete_DFIELDS(
 
                 # check allowed values
                 elif default_fields[k1].get('allowed') is not None:
-                    if k1 == 'units' and '.' in v0[k1]:
-                        c0 = all([
-                            ss in default_fields[k1]['allowed']
-                            for ss in v0[k1].split('.')
-                        ])
+
+                    # treat units spearately
+                    if k1 == 'units':
+                        unit = v0[k1].split('.') if '.' in v0[k1] else [v0[k1]]
+
+                        c0 = True
+                        lok = default_fields[k1]['allowed']
+                        for uu in unit:
+
+                            # simple case
+                            if '^{' not in uu:
+                                if uu not in lok:
+                                    c0 = False
+                                    break
+                                else:
+                                    continue
+
+                            # case with '^{'
+                            if not uu.endswith('}'):
+                                c0 = False
+                                break
+
+                            # check u0 is ok and u1 is a number
+                            u0, u1 = uu.split('^{')
+                            u1 = u1[:-1].split('.')
+                            c0 = (
+                                u0 in lok
+                                and all([
+                                    u11.strip('-').isdigit() for u11 in u1
+                                ])
+                            )
+                            if not c0:
+                                break
+
                     else:
                         c0 = v0[k1] in default_fields[k1]['allowed']
 
