@@ -332,8 +332,12 @@ class Hub():
     #  Introspection
     # ##############################
 
-    def __repr__(self):
+    def __repr__(self, verb=None):
         """ This is automatically called when only the instance is entered """
+
+        if verb is None:
+            verb = True
+
         col0 = [
             'model',
             'preset',
@@ -355,12 +359,15 @@ class Hub():
             self.__dmisc['run'],
             self.__dmodel['file'],
         ]
-        return _utils._get_summary(
-            lar=[ar0],
-            lcol=[col0],
-            verb=False,
-            returnas=str,
-        )
+        if verb is True:
+            return _utils._get_summary(
+                lar=[ar0],
+                lcol=[col0],
+                verb=False,
+                returnas=str,
+            )
+        else:
+            return col0, ar0
 
     def get_summary(self, idx=0):
         """
@@ -369,12 +376,14 @@ class Hub():
         """
 
         # ----------
-        # Handling str repr
+        # starting with headr from __repr__
+
+        col0, ar0 = self.__repr__(verb=False)
 
         # ----------
         # Numerical parameters
-        col0 = ['Numerical param.', 'value', 'units', 'definition', 'comment']
-        ar0 = [
+        col1 = ['Numerical param.', 'value', 'units', 'definition', 'comment']
+        ar1 = [
             [
                 k0,
                 _class_utility.paramfunc2str(dparam=self.__dparam, key=k0),
@@ -388,14 +397,14 @@ class Hub():
                 group='Numerical',
             ).items()
         ]
-        ar0.append(['run', str(self.__dmisc['run']), '', '', ''])
+        ar1.append(['run', str(self.__dmisc['run']), '', '', ''])
 
         # ----------
         # parameters
-        col1 = [
+        col2 = [
             'Model param.', 'value', 'units', 'group', 'definition', 'comment',
         ]
-        ar1 = [
+        ar2 = [
             [
                 k0,
                 _class_utility.paramfunc2str(dparam=self.__dparam, key=k0),
@@ -413,11 +422,11 @@ class Hub():
 
         # ----------
         # functions
-        col2 = [
+        col3 = [
             'function', 'source', 'initial', 'units', 'eqtype',
             'definition', 'comment',
         ]
-        ar2 = [
+        ar3 = [
             [
                 k0,
                 _class_utility.paramfunc2str(dparam=self.__dparam, key=k0),
@@ -438,16 +447,16 @@ class Hub():
         if self.__dmisc['run'] is True:
 
             # add solver
-            ar0.append(['solver', self.__dmisc['solver'], '', '', ''])
+            ar1.append(['solver', self.__dmisc['solver'], '', '', ''])
 
             # add column title
-            col2.insert(3, 'final')
+            col3.insert(3, 'final')
 
             # add final value to each variable
             ii = 0
             for k0, v0 in self.__dparam.items():
                 if v0.get('eqtype') in ['ode', 'statevar']:
-                    ar2[ii].insert(
+                    ar3[ii].insert(
                         3,
                         "{:.2e}".format(v0.get('value')[-1, idx]),
                     )
@@ -456,8 +465,8 @@ class Hub():
         # ----------
         # format output
         return _utils._get_summary(
-            lar=[ar0, ar1, ar2],
-            lcol=[col0, col1, col2],
+            lar=[ar0, ar1, ar2, ar3],
+            lcol=[col0, col1, col2, col3],
             verb=True,
             returnas=False,
         )
