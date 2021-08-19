@@ -370,7 +370,7 @@ class Hub():
         if self.__dmisc['run'] is True:
 
             # add solver
-            ar0.append(['solver', self.__dmisc['solver'], '', ''])
+            ar0.append(['solver', self.__dmisc['solver'], '', '', ''])
 
             # add column title
             col2.insert(3, 'final')
@@ -645,13 +645,8 @@ class Hub():
             raise Exception(msg)
 
         # -------------
-        # reformat func from source
-        for k0, v0 in dout['dparam'].items():
-            if dout['dparam'][k0].get('func') is not None:
-                dout['dparam'][k0]['func'] = eval(
-                    f"lambda {dout['dparam'][k0]['source_kargs']}: "
-                    f"{dout['dparam'][k0]['source_exp']}"
-                )[0]
+        # rebuild all functions from source
+        _saveload.rebuild_func_from_source(dout)
 
         # -------------------
         # create instance
