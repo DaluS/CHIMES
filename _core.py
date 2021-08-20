@@ -540,8 +540,7 @@ class Hub():
                 _solvers._eRK4_homemade_bis(
                     dparam=self.__dparam,
                     lode=lode,
-                    linter=lstate,
-                    laux=laux,
+                    lstate=lstate,
                     dargs=self.__dargs,
                     nt=nt,
                     verb=verb,
@@ -555,7 +554,7 @@ class Hub():
                 sol = _solvers._solver_scipy(
                     dparam=self.__dparam,
                     lode=lode,
-                    linter=lstate,
+                    lstate=lstate,
                     dargs=self.__dargs,
                     verb=verb,
                     rtol=rtol,

@@ -13,11 +13,50 @@ import matplotlib.pyplot as plt     # DB
 
 
 # specific
+from . import _utils
 from . import _class_checks
+
+_SCIPY_URL_BASE = 'https://docs.scipy.org/doc/scipy/reference/generated/'
+_SCIPY_URL = (
+    _SCIPY_URL_BASE
+    + 'scipy.integrate.solve_ivp.html#scipy.integrate.solve_ivp'
+)
 
 
 _DSOLVERS = {
-    ''
+    'eRK4-homemade': {
+        'type': 'explicit',
+        'step': 'fixed',
+        'com': 'Runge_Kutta order 4',
+        'source': __file__,
+    },
+    'eRK4-homemade-bis': {
+        'type': 'explicit',
+        'step': 'fixed',
+        'com': 'Runge_Kutta order 4',
+        'source': __file__,
+    },
+    'eRK2-scipy': {
+        'scipy': 'RK23',
+        'type': 'explicit',
+        'step': 'variable',
+        'com': 'Runge_Kutta order 2',
+        'source': _SCIPY_URL,
+    },
+    'eRK4-scipy': {
+        'scipy': 'RK45',
+        'type': 'explicit',
+        'step': 'variable',
+        'com': 'Runge_Kutta order 4',
+        'source': _SCIPY_URL,
+    },
+    'eRK8-scipy': {
+        'scipy': 'DOP853',
+        'type': 'explicit',
+        'step': 'variable',
+        'com': 'Runge_Kutta order 8',
+        'source': _SCIPY_URL,
+    },
 }
 
 
@@ -27,8 +66,55 @@ _DSOLVERS = {
 # #############################################################################
 
 
-def get_available_solvers():
-    pass
+def get_available_solvers(returnas=None, verb=None):
+
+    # ----------------
+    # check inputs
+
+    if verb is None:
+        verb = True
+    if returnas is None:
+        returnas = dict if verb is False else False
+    lreturnok = [False, list, dict, str]
+    if returnas not in lreturnok:
+        msg = (
+            f"Arg returnas must be in {lreturnok}\n"
+            f"Provided: {returnas}"
+        )
+
+    # ----------------
+    # print or return
+
+    if verb is True or returnas is str:
+        def make_source(k0, dsolvers=_DSOLVERS):
+            if 'scipy' in k0:
+                method = dsolvers[k0]['scipy']
+                source = f"scipy.integrate.solve_ivp(method='{method}')"
+            else:
+                source = dsolvers[k0]['source']
+            return source
+
+        col = ['key', 'type', 'step', 'comments', 'source']
+        ar = [
+            [
+                k0,
+                v0['type'],
+                v0['step'],
+                v0['com'],
+                make_source(k0),
+            ]
+            for k0, v0 in _DSOLVERS.items()
+        ]
+        return _utils._get_summary(
+                lar=[ar],
+                lcol=[col],
+                verb=verb,
+                returnas=returnas,
+            )
+    elif returnas is dict:
+        return {k0: dict(v0) for k0, v0 in _DSOLVERS.items()}
+    else:
+        return list(_DSOLVERS.keys())
 
 
 # #############################################################################
@@ -41,7 +127,7 @@ def get_func_dydt(
     dparam=None,
     dargs=None,
     lode=None,
-    linter=None,
+    lstate=None,
     inc_time=None,
 ):
 
@@ -74,7 +160,7 @@ def get_func_dydt(
         dparam=dparam,
         dargs=dargs,
         lode_solve=lode_solve,
-        linter=linter,
+        lstate=lstate,
     ):
         """ dydt = f(t, y)
 
@@ -95,7 +181,7 @@ def get_func_dydt(
 
         # ------------
         # First update intermediary functions based on provided y
-        for ii, k0 in enumerate(linter):
+        for ii, k0 in enumerate(lstate):
             # build kwdargs
             kwdargs = {
                 k1: v1[-1, :]
@@ -229,8 +315,7 @@ def _rk4(dparam=None, k0=None, y=None, kwdargs=None):
 def _eRK4_homemade_bis(
     dparam=None,
     lode=None,
-    linter=None,
-    laux=None,
+    lstate=None,
     dargs=None,
     nt=None,
     verb=None,
@@ -245,7 +330,7 @@ def _eRK4_homemade_bis(
     # Define the function that takes/returns all functions
 
     func, dydt, lode_solve = get_func_dydt(
-        dparam=dparam, dargs=dargs, lode=lode, linter=linter, inc_time=True,
+        dparam=dparam, dargs=dargs, lode=lode, lstate=lstate, inc_time=True,
     )
 
     # initialize y
@@ -264,14 +349,11 @@ def _eRK4_homemade_bis(
             )
 
         # compute ode variables from ii-1, using solver
-        y = (
-            y
-            + _rk4_bis(
-                func=func,
-                dt=dparam['dt']['value'],
-                y=y,
-                t=np.nan,
-            )
+        y += _rk4_bis(
+            func=func,
+            dt=dparam['dt']['value'],
+            y=y,
+            t=np.nan,
         )
 
         # dispatch to store result of ode
@@ -279,47 +361,29 @@ def _eRK4_homemade_bis(
             dparam[k0]['value'][ii, :] = y[jj, :]
 
         # compute intermediary functions, in good order
-        # Now that inermediary functions are computed at t=0 in reset()
-        # we have to reverse the order of resolution:
-        # first ode then intermediary
-        # for k0 in linter:
-            # kwdargs = {
-                # k1: v1[ii, :]
-                # for k1, v1 in dargs[k0].items()
-            # }
-            # dparam[k0]['value'][ii, :] = (
-                # dparam[k0]['func'](
-                    # **kwdargs,
-                # )
-            # )
-
-        # # Since the computation is fast we can also compute auxiliary
-        # # TBC: there might be a function order here too!
-        # if compute_auxiliary:
-            # for k0 in laux:
-                # kwdargs = {
-                    # k1: v1[ii, :]
-                    # for k1, v1 in dargs[k0].items()
-                # }
-                # dparam[k0]['value'][ii, :] = (
-                    # dparam[k0]['func'](
-                        # **kwdargs
-                    # )
-                # )
+        for k0 in lstate:
+            kwdargs = {
+                k1: v1[ii, :]
+                for k1, v1 in dargs[k0].items()
+            }
+            dparam[k0]['value'][ii, :] = (
+                dparam[k0]['func'](
+                    **kwdargs,
+                )
+            )
 
 
 def _rk4_bis(func=None, dt=None, y=None, t=None):
     """
     a traditional RK4 scheme, with:
-        - y = array of all variables
-        - p = parameter dictionnary
-    dt is contained within p
+        - y = array of all variables (all ode)
+        - dt = fixed time step
     """
-    dy1 = func(t, y)
-    dy2 = func(t + dt/2., y + dy1/2.)
-    dy3 = func(t + dt/2., y + dy2/2.)
-    dy4 = func(t + dt, y + dy3)
-    return (dy1 + 2*dy2 + 2*dy3 + dy4) * dt/6.
+    dy1_on_dt = func(t, y)
+    dy2_on_dt = func(t + dt/2., y + dy1_on_dt * dt/2.)
+    dy3_on_dt = func(t + dt/2., y + dy2_on_dt * dt/2.)
+    dy4_on_dt = func(t + dt, y + dy3_on_dt*dt)
+    return (dy1_on_dt + 2*dy2_on_dt + 2*dy3_on_dt + dy4_on_dt) * dt/6.
 
 
 # #############################################################################
@@ -331,7 +395,7 @@ def _rk4_bis(func=None, dt=None, y=None, t=None):
 def _solver_scipy(
     dparam=None,
     lode=None,
-    linter=None,
+    lstate=None,
     dargs=None,
     atol=None,
     rtol=None,
@@ -369,7 +433,7 @@ def _solver_scipy(
     # define f(t, y) (using pre-allocated array for speed
 
     func, dydt, lode_solve = get_func_dydt(
-        dparam=dparam, dargs=dargs, lode=lode, linter=linter, inc_time=False,
+        dparam=dparam, dargs=dargs, lode=lode, lstate=lstate, inc_time=False,
     )
 
     # -----------------
