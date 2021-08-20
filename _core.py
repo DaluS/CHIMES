@@ -13,7 +13,7 @@ import numpy as np
 # Library-specific
 from utilities import _utils, _class_checks, _class_utility
 from utilities import _solvers, _saveload
-from plots import _plot_basic
+from plots import _plot_timetraces
 
 
 class Hub():
@@ -707,7 +707,7 @@ class Hub():
         Launch the basic plot: time traces
         """
 
-        return _plot_basic.plot_timetraces(
+        return _plot_timetraces.plot_timetraces(
             self,
             # for forcing a color / label
             color=color,

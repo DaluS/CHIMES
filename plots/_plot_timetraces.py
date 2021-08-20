@@ -112,7 +112,7 @@ def _plot_timetraces_check_dax(
             ])
             if node == 0:
                 node = 4
-            ncols = (nkeys-1) // node + 1
+            ncols = (nkeys - 1) // node + 1
         if dmargin is None:
             dmargin = {
                 'left': 0.05, 'right': 0.98,
@@ -132,10 +132,7 @@ def _plot_timetraces_check_dax(
             fs = (20, 20)
 
         # derive nrows
-        if nkeys == 1:
-            nrows = 1
-        else:
-            nrows = nkeys // ncols + 1
+        nrows = (nkeys - 1) // ncols + 1
 
         # create figure
         fig = plt.figure(figsize=fs)
