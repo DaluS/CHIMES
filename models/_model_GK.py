@@ -64,7 +64,7 @@ _LOGICS = {
             'com': 'Output with selling price ',
         },
         'inflation': {
-            'func': lambda p=0: 0,
+            'func': lambda p=0: 0.*p,
             'com': 'INFLATION NOT CODED',
         },
         'L': {
