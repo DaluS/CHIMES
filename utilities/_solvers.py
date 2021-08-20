@@ -68,21 +68,22 @@ def get_available_solvers(returnas=None, verb=None):
     # ----------------
     # check inputs
 
-    if verb is None:
-        verb = True
     if returnas is None:
-        returnas = dict if verb is False else False
-    lreturnok = [False, list, dict, str]
+        returnas = False
+    lreturnok = [False, list, dict]
     if returnas not in lreturnok:
         msg = (
             f"Arg returnas must be in {lreturnok}\n"
             f"Provided: {returnas}"
         )
 
+    if verb is None:
+        verb = returnas is False
+
     # ----------------
     # print or return
 
-    if verb is True or returnas is str:
+    if verb is True:
         def make_source(k0, dsolvers=_DSOLVERS):
             if 'scipy' in k0:
                 method = dsolvers[k0]['scipy']
@@ -106,7 +107,7 @@ def get_available_solvers(returnas=None, verb=None):
                 lar=[ar],
                 lcol=[col],
                 verb=verb,
-                returnas=returnas,
+                returnas=False,
             )
     elif returnas is dict:
         return {k0: dict(v0) for k0, v0 in _DSOLVERS.items()}
