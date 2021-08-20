@@ -167,7 +167,7 @@ def solve(
     # -----------
     # create buffer for temp
     dargs_temp = {
-        k0: {k1: v1[-1, :] for k1, v1 in v0.items()}
+        k0: {k1: v1[-1, ...] for k1, v1 in v0.items()}
         for k0, v0 in dargs.items()
     }
 
@@ -182,7 +182,7 @@ def solve(
 
     # -----------
     # initialize y
-    y0 = np.array([dparam[k0]['value'][0, :] for k0 in lode_solve])
+    y0 = np.array([dparam[k0]['value'][0, ...] for k0 in lode_solve])
 
     # -------------
     # dispatch to relevant solver to solve ode using dydt_func
@@ -287,25 +287,25 @@ def get_func_dydt(
         # update cache => also updates dargs and dargs_temp by reference
         # used by dargs_temp (by reference)
         for ii, k0 in enumerate(lode_solve):
-            dparam[k0]['value'][-1, :] = y[ii, :]
+            dparam[k0]['value'][-1, ...] = y[ii, ...]
 
         # ------------
         # First update intermediary functions based on provided y
         # The last time step is used as temporary buffer
         # used by dargs_temp (by reference)
         for ii, k0 in enumerate(lstate):
-            dparam[k0]['value'][-1, :] = dparam[k0]['func'](**dargs_temp[k0])
+            dparam[k0]['value'][-1, ...] = dparam[k0]['func'](**dargs_temp[k0])
 
         # ------------
         # Then compute derivative dydt (ode)
 
         for ii, k0 in enumerate(lode_solve):
             if 'itself' in dparam[k0]['kargs']:
-                dydt[ii, :] = dparam[k0]['func'](
-                    itself=y[ii, :], **dargs_temp[k0],
+                dydt[ii, ...] = dparam[k0]['func'](
+                    itself=y[ii, ...], **dargs_temp[k0],
                 )
             else:
-                dydt[ii, :] = dparam[k0]['func'](**dargs_temp[k0])
+                dydt[ii, ...] = dparam[k0]['func'](**dargs_temp[k0])
 
         return dydt
 
@@ -351,7 +351,7 @@ def _eRK4_homemade(
 
         # dispatch to store result of ode
         for jj, k0 in enumerate(lode):
-            dparam[k0]['value'][ii, :] = y[jj, :]
+            dparam[k0]['value'][ii, ...] = y[jj, ...]
 
 
 
@@ -470,8 +470,8 @@ def _solver_scipy(
     # dispatch results
 
     for ii, k0 in enumerate(lode):
-        dparam[k0]['value'][:indmax, 0] = sol.y[ii, :]
-    dparam['time']['value'][:indmax, :] = np.repeat(
+        dparam[k0]['value'][:indmax, 0] = sol.y[ii, ...]
+    dparam['time']['value'][:indmax, ...] = np.repeat(
         sol.t[:, None],
         dparam['nx']['value'],
         axis=1,
