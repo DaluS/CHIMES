@@ -104,11 +104,11 @@ def get_available_solvers(returnas=None, verb=None):
             for k0, v0 in _DSOLVERS.items()
         ]
         return _utils._get_summary(
-                lar=[ar],
-                lcol=[col],
-                verb=verb,
-                returnas=False,
-            )
+            lar=[ar],
+            lcol=[col],
+            verb=verb,
+            returnas=False,
+        )
     elif returnas is dict:
         return {k0: dict(v0) for k0, v0 in _DSOLVERS.items()}
     else:
@@ -117,7 +117,7 @@ def get_available_solvers(returnas=None, verb=None):
 
 # #############################################################################
 # #############################################################################
-#                   check             
+#                   check
 # #############################################################################
 
 
@@ -143,7 +143,7 @@ def _check_solver(solver):
 
 # #############################################################################
 # #############################################################################
-#                   Main entry point             
+#                   Main entry point
 # #############################################################################
 
 
@@ -353,7 +353,6 @@ def _eRK4_homemade(
         # dispatch to store result of ode
         for jj, k0 in enumerate(lode):
             dparam[k0]['value'][ii, ...] = y[jj, ...]
-
 
 
 def _rk4(dydt_func=None, dt=None, y=None, t=None):
