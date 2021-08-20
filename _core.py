@@ -17,28 +17,73 @@ import _plots as plots
 
 
 class Hub():
-    """ Generic class
+    """
+    Generic class to stock every data and method for the user to interac with
     """
 
-    _MODEL = 'GK'
-
-    def __init__(self, model=None):
+    def __init__(self, model=None, preset=None, verb=None):
         self.__dparam = {}
-        self.__dmisc = dict.fromkeys(['model', 'func_order', 'run', 'solver'])
+        self.__dmodel = dict.fromkeys(
+            ['name', 'file', 'description', 'presets', 'preset']
+        )
+        self.__dmisc = dict.fromkeys(['dfunc_order', 'run', 'solver'])
         self.__dargs = {}
-        if model is not False:
-            self.set_dparam(dparam=model)
+        if model is not None:
+            self.load_model(model, preset=preset, verb=verb)
 
     # ##############################
     # %% Setting / getting parameters
     # ##############################
 
+    def load_model(self, model=None, preset=None, verb=None):
+        """ Load a model from a model file """
+
+        # ------------
+        # check model
+
+        if model is None:
+            if self.__dmodel.get('name') is not None:
+                model = self.__dmodel.get('name')
+            else:
+                model = False
+        if model is False:
+            msg = (
+                "Select a model, see get_available_models()"
+            )
+            raise Exception(msg)
+
+        # -------------
+        # load
+
+        (
+            self.__dmodel,
+            self.__dparam,
+            self.__dmisc['dfunc_order'],
+            self.__dargs,
+        ) = _class_checks.load_model(model, verb=verb)
+
+        # ------------
+        # update from preset if relevant
+        if preset is not None:
+            self.load_preset(preset)
+        else:
+            self.reset()
+
+    def load_preset(self, preset=None):
+        """ For the current model, load desired preset """
+        _class_checks.update_from_preset(
+            dparam=self.__dparam,
+            dmodel=self.__dmodel,
+            preset=preset,
+        )
+        self.reset()
+
     def set_dparam(
         self,
         dparam=None,
-        key=None, value=None,
-        func_order=None,
-        method=None,
+        key=None,
+        value=None,
+        verb=None,
     ):
         """ Set the dict of input parameters (dparam) or a single param
 
@@ -53,16 +98,9 @@ class Hub():
 
         """
 
-        # If all None => set to self._MODEL
-        c0 = dparam is None and key is None and value is None
-
-        if c0 is True:
-            print()
-            dparam = self._MODEL
-
         # Check input: dparam xor (key, value)
         lc = [
-            dparam is not None or func_order is not None,
+            dparam is not None,
             key is not None and value is not None,
         ]
         if np.sum(lc) != 1:
@@ -73,17 +111,15 @@ class Hub():
                 ]
             ]
             msg = (
-                "Please provide dparam/func_order xor (key, value)!\n"
-                + "You provided:\n"
-                + "\n".format(lstr)
+                "Please provide dparam xor (key, value)!\n"
+                "You provided:\n"
+                + "\n".join(lstr)
             )
             raise Exception(msg)
 
         # set dparam or update desired key
         if dparam is None:
-            if func_order is not None:
-                dparam = self.__dparam
-            elif key not in self.__dparam.keys():
+            if key not in self.__dparam.keys():
                 msg = (
                     "key {} is not identified!\n".format(key)
                     + "See get_dparam() method"
@@ -92,54 +128,17 @@ class Hub():
             dparam = dict(self.__dparam)
             dparam[key]['value'] = value
 
-        # func_order as previous if not provided
-        if func_order is None:
-            func_order = self.__dmisc['func_order']
-
         # Update to check consistency
         (
             self.__dparam,
-            self.__dmisc['model'],
-            self.__dmisc['func_order'],
-        ) = _class_checks.check_dparam(
-            dparam=dparam, func_order=func_order, method=method,
-            model=self.__dmisc.get('model')
-        )
-
-        # store a simplified dict of variable arguments
-        # used in reset() and run()
-        lode = self.get_dparam(eqtype='ode', returnas=list)
-        linter = self.__dmisc['func_order']
-        laux = self.get_dparam(eqtype='auxiliary', returnas=list)
-
-        self.__dargs = {
-            k0: {
-                k1: self.__dparam[k1]['value']
-                for k1 in (
-                    self.__dparam[k0]['args']['ode']
-                    + self.__dparam[k0]['args']['intermediary']
-                    + self.__dparam[k0]['args']['auxiliary']
-                )
-                if k1 != 'lambda'
-            }
-            for k0 in lode + linter + laux
-        }
-
-        # Handle the lambda exception here to avoid test at every time step
-        # if lambda exists and is a function
-        c0 = (
-            'lambda' in self.__dparam.keys()
-            and self.__dparam['lambda'].get('func') is not None
-        )
-        # then handle the exception
-        for k0, v0 in self.__dargs.items():
-            if c0 and 'lambda' in self.__dparam[k0]['kargs']:
-                self.__dargs[k0]['lamb'] = self.__dparam['lambda']['value']
+            self.__dmisc['dfunc_order'],
+            self.__dargs,
+        ) = _class_checks.check_dparam(dparam=dparam, verb=verb)
 
         # reset all variables
         self.reset()
 
-    def get_dparam(self, verb=None, returnas=None, **kwdargs):
+    def get_dparam(self, condition=None, verb=None, returnas=None, **kwdargs):
         """ Return a copy of the input parameters dict
 
         Return as:
@@ -152,7 +151,7 @@ class Hub():
             - True: pretty-print the chosen parameters
             - False: print nothing
         """
-        lcrit = ['dimension', 'units', 'type', 'group', 'eqtype']
+        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype']
         lprint = [
             'parameter', 'value', 'units', 'dimension', 'symbol',
             'type', 'eqtype', 'group', 'comment',
@@ -164,42 +163,98 @@ class Hub():
             returnas=returnas,
             lcrit=lcrit,
             lprint=lprint,
+            condition=condition,
             **kwdargs,
         )
+
+    def get_dparam_as_reverse_dict(
+        self,
+        crit=None,
+        returnas=None,
+        verb=None,
+        **kwdargs,
+    ):
+        """ Return/prints a dict of units/eqtype... with a list of keys
+
+        if crit = 'units', return a dict with:
+            - keys: the unique possible values of field 'units'
+            - values: for each unique unit, the corresponding list of keys
+
+        Restrictions on the selection can be imposed by **kwdargs
+        The selection is done using self.get_dparam() (single-sourced)
+        """
+
+        # -------------
+        # check input
+
+        if verb is None:
+            verb = False
+        if returnas is None:
+            returnas = dict if verb is False else False
+
+        lcrit = ['dimension', 'units', 'type', 'group', 'eqtype']
+        if crit not in lcrit:
+            msg = (
+                f"Arg crit must be in: {lcrit}\n"
+                f"Provided: {crit}"
+            )
+            raise Exception(msg)
+
+        if crit in kwdargs.keys():
+            msg = (
+                "Conflict detected!:\n"
+                f"{crit} is the sorting criterion => not usable for selection!"
+            )
+            raise Exception(msg)
+
+        # -------------
+        # create dict
+
+        lunique = set([v0.get(crit) for v0 in self.__dparam.values()])
+        dout = {
+            k0: self.get_dparam(returnas=list, **{crit: k0, **kwdargs})
+            for k0 in lunique
+        }
+
+        # -------------
+        # print and/or return
+
+        if verb is True:
+            lstr = [f'\t- {k0}: {v0}' for k0, v0 in dout.items()]
+            msg = (
+                "The following selection has been identified:\n"
+                + "\n".join(lstr)
+            )
+            print(msg)
+
+        if returnas is dict:
+            return dout
 
     # ##############################
     # %% Read-only properties
     # ##############################
 
     @property
-    def lfunc(self):
-        """ List of parameters names that are actually functions """
-        return [
-            k0 for k0, v0 in self.__dparam.items()
-            if v0.get('eqtype') is not None
-        ]
-
-    @property
-    def func_order(self):
+    def dfunc_order(self):
         """ The ordered list of intermediary function names """
-        return self.__dmisc['func_order']
+        return self.__dmisc['dfunc_order']
 
     @property
-    def model(self):
-        """ The model identifier """
-        return self.__dmisc['model']
+    def dmodel(self):
+        """ The model identifiers """
+        return self.__dmodel
 
     @property
     def dargs(self):
         return self.__dargs
 
     @property
-    def dmisc(self):
-        return self.__dmisc
-
-    @property
     def dparam(self):
         return self.get_dparam(returnas=dict, verb=False)
+
+    @property
+    def dmisc(self):
+        return self.__dmisc
 
     # ##############################
     # reset
@@ -213,20 +268,16 @@ class Hub():
         """
 
         # reset ode variables
-        for k0 in self.lfunc:
-            if k0 == 'time':
-                self.__dparam[k0]['value'][0] = self.__dparam[k0]['initial']
-                self.__dparam[k0]['value'][1:] = np.nan
-            elif self.__dparam[k0]['eqtype'] == 'ode':
+        for k0 in self.get_dparam(eqtype=['ode', 'statevar'], returnas=list):
+            if self.__dparam[k0]['eqtype'] == 'ode':
                 self.__dparam[k0]['value'][0, :] = self.__dparam[k0]['initial']
                 self.__dparam[k0]['value'][1:, :] = np.nan
-            else:
+            elif self.__dparam[k0]['eqtype'] == 'statevar':
                 self.__dparam[k0]['value'][:, :] = np.nan
 
-        # reset intermediary variables and auxiliary variables
-        laux = self.get_dparam(eqtype='auxiliary', returnas=list)
-        linter_aux = self.__dmisc['func_order'] + laux
-        for k0 in linter_aux:
+        # recompute inital value for statevar
+        lstate = self.__dmisc['dfunc_order']['statevar']
+        for k0 in lstate:
             # prepare dict of args
             kwdargs = {
                 k1: v1[0, :]
@@ -236,8 +287,6 @@ class Hub():
             self.__dparam[k0]['value'][0, :] = (
                 self.__dparam[k0]['func'](**kwdargs)
             )
-            # set other time steps to nan
-            self.__dparam[k0]['value'][1:, :] = np.nan
 
         # set run to False
         self.__dmisc['run'] = False
@@ -284,25 +333,42 @@ class Hub():
     #  Introspection
     # ##############################
 
-    def __repr__(self):
+    def __repr__(self, verb=None):
         """ This is automatically called when only the instance is entered """
-        col0 = ['model', 'source', 'nb. model param', 'nb. functions', 'run']
-        ar0 = [
-            list(self.__dmisc['model'].keys())[0],
-            list(self.__dmisc['model'].values())[0],
-            len([
-                k0 for k0, v0 in self.__dparam.items()
-                if v0.get('func') is None
-            ]),
-            len(self.lfunc),
-            self.__dmisc['run'],
+
+        if verb is None:
+            verb = True
+
+        col0 = [
+            'model',
+            'preset',
+            'param (fix + func)',
+            'ode',
+            'statevar',
+            'run',
+            'source',
         ]
-        return _utils._get_summary(
-            lar=[ar0],
-            lcol=[col0],
-            verb=False,
-            returnas=str,
-        )
+        ar0 = [
+            self.__dmodel['name'],
+            self.__dmodel['preset'],
+            '{} + {}'.format(
+                len(self.get_dparam(returnas=list, eqtype=None)),
+                len(self.get_dparam(returnas=list, eqtype='param')),
+            ),
+            len(self.get_dparam(returnas=list, eqtype='ode')),
+            len(self.get_dparam(returnas=list, eqtype='statevar')),
+            self.__dmisc['run'],
+            self.__dmodel['file'],
+        ]
+        if verb is True:
+            return _utils._get_summary(
+                lar=[ar0],
+                lcol=[col0],
+                verb=False,
+                returnas=str,
+            )
+        else:
+            return col0, ar0
 
     def get_summary(self, idx=0):
         """
@@ -311,52 +377,70 @@ class Hub():
         """
 
         # ----------
-        # Numerical parameters
-        col0 = ['Numerical param.', 'value', 'units', 'comment']
-        ar0 = [
-            [
-                k0,
-                str(v0['value']),
-                str(v0['units']),
-                v0['com'],
-            ]
-            for k0, v0 in self.__dparam.items() if v0['group'] == 'Numerical'
-        ]
-        ar0.append(['run', str(self.__dmisc['run']), '', ''])
+        # starting with headr from __repr__
+
+        col0, ar0 = self.__repr__(verb=False)
 
         # ----------
-        # parameters
-        col1 = ['Model param.', 'value', 'units', 'group', 'comment']
+        # Numerical parameters
+        col1 = ['Numerical param.', 'value', 'units', 'definition', 'comment']
         ar1 = [
             [
                 k0,
-                str(v0['value']),
-                str(v0['units']),
-                v0['group'],
+                _class_utility.paramfunc2str(dparam=self.__dparam, key=k0),
+                v0['units'],
+                v0['definition'],
                 v0['com'],
             ]
-            for k0, v0 in self.__dparam.items()
-            if v0['group'] != 'Numerical'
-            and v0.get('func') is None
+            for k0, v0 in self.get_dparam(
+                returnas=dict,
+                eqtype=[None, 'param'],
+                group='Numerical',
+            ).items()
+        ]
+        ar1.append(['run', str(self.__dmisc['run']), '', '', ''])
+
+        # ----------
+        # parameters
+        col2 = [
+            'Model param.', 'value', 'units', 'group', 'definition', 'comment',
+        ]
+        ar2 = [
+            [
+                k0,
+                _class_utility.paramfunc2str(dparam=self.__dparam, key=k0),
+                str(v0['units']),
+                v0['group'],
+                v0['definition'],
+                v0['com'],
+            ]
+            for k0, v0 in self.get_dparam(
+                returnas=dict,
+                eqtype=[None, 'param'],
+                group=('Numerical',),
+            ).items()
         ]
 
         # ----------
         # functions
-        col2 = ['function', 'source', 'initial',
-                'units', 'eqtype', 'comment']
-        ar2 = [
+        col3 = [
+            'function', 'source', 'initial', 'units', 'eqtype',
+            'definition', 'comment',
+        ]
+        ar3 = [
             [
                 k0,
-                v0['source_exp'],
+                _class_utility.paramfunc2str(dparam=self.__dparam, key=k0),
                 "{:.2e}".format(v0.get('value')[0, idx]),
-                str(v0['units']),
-                v0['eqtype'].replace('intermediary', 'inter').replace(
-                    'auxiliary', 'aux',
-                ),
+                v0['units'],
+                v0['eqtype'],
+                v0['definition'],
                 v0['com'],
             ]
-            for k0, v0 in self.__dparam.items()
-            if v0.get('func') is not None
+            for k0, v0 in self.get_dparam(
+                returnas=dict,
+                eqtype=['ode', 'statevar'],
+            ).items()
         ]
 
         # --------------------------
@@ -364,16 +448,16 @@ class Hub():
         if self.__dmisc['run'] is True:
 
             # add solver
-            ar0.append(['solver', self.__dmisc['solver'], '', ''])
+            ar1.append(['solver', self.__dmisc['solver'], '', '', ''])
 
             # add column title
-            col2.insert(3, 'final')
+            col3.insert(3, 'final')
 
-            # add value to each variable
+            # add final value to each variable
             ii = 0
             for k0, v0 in self.__dparam.items():
-                if v0.get('func') is not None:
-                    ar2[ii].insert(
+                if v0.get('eqtype') in ['ode', 'statevar']:
+                    ar3[ii].insert(
                         3,
                         "{:.2e}".format(v0.get('value')[-1, idx]),
                     )
@@ -382,8 +466,8 @@ class Hub():
         # ----------
         # format output
         return _utils._get_summary(
-            lar=[ar0, ar1, ar2],
-            lcol=[col0, col1, col2],
+            lar=[ar0, ar1, ar2, ar3],
+            lcol=[col0, col1, col2, col3],
             verb=True,
             returnas=False,
         )
@@ -427,59 +511,64 @@ class Hub():
 
         # ------------
         # temporary dict of input
-        lode = self.get_dparam(eqtype='ode', returnas=list)
-        linter = self.__dmisc['func_order']
-        laux = self.get_dparam(eqtype='auxiliary', returnas=list)
+        lode = self.__dmisc['dfunc_order']['ode']
+        lstate = self.__dmisc['dfunc_order']['statevar']
+        laux = []
 
         # ------------
         # start time loop
-        if solver == 'eRK4-homemade':
 
-            _solvers._eRK4_homemade(
-                dparam=self.__dparam,
-                lode=lode,
-                linter=linter,
-                laux=laux,
-                dargs=self.__dargs,
-                nt=nt,
-                verb=verb,
-                timewait=timewait,
-                end=end,
-                flush=flush,
-                compute_auxiliary=compute_auxiliary,
-            )
+        try:
+            if solver == 'eRK4-homemade':
 
-        elif solver == 'eRK4-homemade-bis':
+                _solvers._eRK4_homemade(
+                    dparam=self.__dparam,
+                    lode=lode,
+                    linter=lstate,
+                    laux=laux,
+                    dargs=self.__dargs,
+                    nt=nt,
+                    verb=verb,
+                    timewait=timewait,
+                    end=end,
+                    flush=flush,
+                    compute_auxiliary=compute_auxiliary,
+                )
 
-            _solvers._eRK4_homemade_bis(
-                dparam=self.__dparam,
-                lode=lode,
-                linter=linter,
-                laux=laux,
-                dargs=self.__dargs,
-                nt=nt,
-                verb=verb,
-                timewait=timewait,
-                end=end,
-                flush=flush,
-                compute_auxiliary=compute_auxiliary,
-            )
+            elif solver == 'eRK4-homemade-bis':
 
-        elif 'scipy' in solver:
-            sol = _solvers._solver_scipy(
-                dparam=self.__dparam,
-                lode=lode,
-                linter=linter,
-                dargs=self.__dargs,
-                verb=verb,
-                rtol=rtol,
-                atol=atol,
-                max_time_step=max_time_step,
-                solver_scipy=solver_scipy,
-            )
+                _solvers._eRK4_homemade_bis(
+                    dparam=self.__dparam,
+                    lode=lode,
+                    linter=lstate,
+                    laux=laux,
+                    dargs=self.__dargs,
+                    nt=nt,
+                    verb=verb,
+                    timewait=timewait,
+                    end=end,
+                    flush=flush,
+                    compute_auxiliary=compute_auxiliary,
+                )
 
-        self.__dmisc['run'] = True
-        self.__dmisc['solver'] = solver
+            elif 'scipy' in solver:
+                sol = _solvers._solver_scipy(
+                    dparam=self.__dparam,
+                    lode=lode,
+                    linter=lstate,
+                    dargs=self.__dargs,
+                    verb=verb,
+                    rtol=rtol,
+                    atol=atol,
+                    max_time_step=max_time_step,
+                    solver_scipy=solver_scipy,
+                )
+            self.__dmisc['run'] = True
+            self.__dmisc['solver'] = solver
+
+        except Exception as err:
+            self.__dmisc['run'] = False
+            raise err
 
     # ##############################
     #       Deep analysis methods
@@ -494,12 +583,12 @@ class Hub():
         by default the variable detect cycles in itself
         '''
 
-        for var, dic1 in self.__dparam.items():
-            if 'func' in dic1.keys():
-                if ref is None:
-                    self.FillCycles(var, var)
-                else:
-                    self.FillCycles(var, ref)
+        leq = ['ode', 'statevar']
+        for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
+            if ref is None:
+                self.FillCycles(var, var)
+            else:
+                self.FillCycles(var, ref)
 
     def FillCycles(self, var, ref='lambda'):
         '''
@@ -623,6 +712,7 @@ class Hub():
         """ Convert instance to dict """
 
         dout = {
+            'dmodel': dict(self.__dmodel),
             'dparam': self.get_dparam(returnas=dict, verb=False),
             'dmisc': dict(self.__dmisc),
             'dargs': dict(self.__dargs),
@@ -630,14 +720,14 @@ class Hub():
         return dout
 
     @classmethod
-    def _from_dict(cls, dout=None):
+    def _from_dict(cls, dout=None, model_file=None):
         """ Create an instance from a dict """
 
         # --------------
         # check inputs
         c0 = (
             isinstance(dout, dict)
-            and sorted(dout.keys()) == ['dargs', 'dmisc', 'dparam']
+            and sorted(dout.keys()) == ['dargs', 'dmisc', 'dmodel', 'dparam']
             and all([isinstance(dd, dict) for dd in dout.values()])
         )
         if not c0:
@@ -649,17 +739,19 @@ class Hub():
             raise Exception(msg)
 
         # -------------
-        # reformat func from source
-        for k0, v0 in dout['dparam'].items():
-            if dout['dparam'][k0].get('func') is not None:
-                dout['dparam'][k0]['func'] = eval(
-                    f"lambda {dout['dparam'][k0]['source_kargs']}: "
-                    f"{dout['dparam'][k0]['source_exp']}"
-                )[0]
+        # rebuild all functions from source, if necessary
+        c0 = any([
+            v0.get('source_kargs') is not None
+            and not hasattr(v0.get('func'), '__call__')
+            for k0, v0 in dout['dparam'].items()
+        ])
+        if c0:
+            _saveload.rebuild_func_from_source(dout, model_file=model_file)
 
         # -------------------
         # create instance
-        obj = cls(model=False)
+        obj = cls()
+        obj.__dmodel = dict(dout['dmodel'])
         obj.__dparam = {k0: dict(v0) for k0, v0 in dout['dparam'].items()}
         obj.__dmisc = dict(dout['dmisc'])
         obj.__dargs = dict(dout['dargs'])
