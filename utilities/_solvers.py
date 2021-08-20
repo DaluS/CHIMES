@@ -165,10 +165,18 @@ def solve(
     solver = _check_solver(solver)
 
     # -----------
+    # create buffer for temp
+    dargs_temp = {
+        k0: {k1: v1[-1, :] for k1, v1 in v0.items()}
+        for k0, v0 in dargs.items()
+    }
+
+    # -----------
     # Define the function that takes/returns all functions
 
     dydt_func, lode_solve = get_func_dydt(
-        dparam=dparam, dargs=dargs, lode=lode, lstate=lstate,
+        dparam=dparam, dargs_temp=dargs_temp,
+        lode=lode, lstate=lstate,
         inc_time='homemade' in solver,
     )
 
@@ -177,7 +185,7 @@ def solve(
     y0 = np.array([dparam[k0]['value'][0, :] for k0 in lode_solve])
 
     # -------------
-    # dispatch to relevant solver
+    # dispatch to relevant solver to solve ode using dydt_func
 
     if solver == 'eRK4-homemade':
         _eRK4_homemade(
@@ -186,7 +194,6 @@ def solve(
             dparam=dparam,
             lode=lode_solve,
             lstate=lstate,
-            dargs=dargs,
             nt=nt,
             dverb=dverb,
         )
@@ -201,13 +208,19 @@ def solve(
             dparam=dparam,
             lode=lode_solve,
             lstate=lstate,
-            dargs=dargs,
             atol=atol,
             rtol=rtol,
             max_time_step=max_time_step,
             solver=solver,
             dverb=dverb,
         )
+
+    # ----------------------
+    # Post-treatment
+
+    # compute statevar functions, in good order
+    for k0 in lstate:
+        dparam[k0]['value'][...] = dparam[k0]['func'](**dargs[k0])
 
     return solver
 
@@ -220,7 +233,7 @@ def solve(
 
 def get_func_dydt(
     dparam=None,
-    dargs=None,
+    dargs_temp=None,
     lode=None,
     lstate=None,
     inc_time=None,
@@ -254,7 +267,7 @@ def get_func_dydt(
         y,
         dydt=dydt,
         dparam=dparam,
-        dargs=dargs,
+        dargs_temp=dargs_temp,
         lode_solve=lode_solve,
         lstate=lstate,
     ):
@@ -271,35 +284,28 @@ def get_func_dydt(
         """
 
         # ------------
-        # update cache => also updates dargs by reference
+        # update cache => also updates dargs and dargs_temp by reference
+        # used by dargs_temp (by reference)
         for ii, k0 in enumerate(lode_solve):
             dparam[k0]['value'][-1, :] = y[ii, :]
 
         # ------------
         # First update intermediary functions based on provided y
+        # The last time step is used as temporary buffer
+        # used by dargs_temp (by reference)
         for ii, k0 in enumerate(lstate):
-            # build kwdargs
-            kwdargs = {
-                k1: v1[-1, :]
-                for k1, v1 in dargs[k0].items()
-            }
-
-            dparam[k0]['value'][-1, :] = dparam[k0]['func'](**kwdargs)
+            dparam[k0]['value'][-1, :] = dparam[k0]['func'](**dargs_temp[k0])
 
         # ------------
-        # Then compute derivative functions (ode)
+        # Then compute derivative dydt (ode)
 
         for ii, k0 in enumerate(lode_solve):
-            # build kwdargs
-            kwdargs = {
-                k1: v1[-1, :]
-                for k1, v1 in dargs[k0].items()
-            }
-
             if 'itself' in dparam[k0]['kargs']:
-                dydt[ii, :] = dparam[k0]['func'](itself=y[ii, :], **kwdargs)
+                dydt[ii, :] = dparam[k0]['func'](
+                    itself=y[ii, :], **dargs_temp[k0],
+                )
             else:
-                dydt[ii, :] = dparam[k0]['func'](**kwdargs)
+                dydt[ii, :] = dparam[k0]['func'](**dargs_temp[k0])
 
         return dydt
 
@@ -318,7 +324,6 @@ def _eRK4_homemade(
     dparam=None,
     lode=None,
     lstate=None,
-    dargs=None,
     nt=None,
     dverb=None,
 ):
@@ -348,17 +353,6 @@ def _eRK4_homemade(
         for jj, k0 in enumerate(lode):
             dparam[k0]['value'][ii, :] = y[jj, :]
 
-        # compute intermediary functions, in good order
-        for k0 in lstate:
-            kwdargs = {
-                k1: v1[ii, :]
-                for k1, v1 in dargs[k0].items()
-            }
-            dparam[k0]['value'][ii, :] = (
-                dparam[k0]['func'](
-                    **kwdargs,
-                )
-            )
 
 
 def _rk4(dydt_func=None, dt=None, y=None, t=None):
@@ -386,7 +380,6 @@ def _solver_scipy(
     dparam=None,
     lode=None,
     lstate=None,
-    dargs=None,
     atol=None,
     rtol=None,
     dverb=None,
