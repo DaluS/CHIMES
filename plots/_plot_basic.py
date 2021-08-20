@@ -132,7 +132,10 @@ def _plot_timetraces_check_dax(
             fs = (20, 20)
 
         # derive nrows
-        nrows = nkeys // ncols + 1
+        if nkeys == 1:
+            nrows = 1
+        else:
+            nrows = nkeys // ncols + 1
 
         # create figure
         fig = plt.figure(figsize=fs)
@@ -263,9 +266,12 @@ def plot_timetraces(
     dpar = hub.get_dparam(
         returnas=dict,
         eqtype=eqtype,
-        key=('time',),
         **kwdargs,
     )
+    if len(dpar) == 0:
+        return dax
+    if 'time' in dpar.keys():
+        del dpar['time']
     t = hub.dparam['time']['value'][:, idx]
 
     # -----------------------------------
