@@ -31,6 +31,7 @@ _DMODEL_KEYS = {
 _LTYPES = [int, float, np.int_, np.float_]
 _LEQTYPES = ['ode', 'pde', 'statevar', 'param', 'undeclared']
 
+
 _LEXTRAKEYS = [
     'func', 'kargs', 'args', 'initial',
     'source_kargs', 'source_exp', 'source_name', 'isneeded',
@@ -1248,7 +1249,7 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None):
             defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
             ind = [ii for ii, vv in enumerate(kargs) if key in vv]
             if len(ind) != 1:
-                msg = f"Inconsistency in kargs for {k0}, {k1}"
+                msg = f"Inconsistency in (fixed) kargs for {k0}, {k1}"
                 raise Exception(msg)
             kargs[ind[0]] = "{}={}".format(key, dparam[k1]['value'])
 
@@ -1258,7 +1259,7 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None):
             defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
             ind = [ii for ii, vv in enumerate(kargs) if key in vv]
             if len(ind) != 1:
-                msg = f"Inconsistency in kargs for {k0}, {k1}"
+                msg = f"Inconsistency in (func) kargs for {k0}, {k1}"
                 raise Exception(msg)
             kargs[ind[0]] = "{}={}".format(key, dparam[k1]['value'])
 
@@ -1332,9 +1333,7 @@ def update_from_preset(dparam=None, dmodel=None, preset=None):
 # #############################################################################
 
 
-def _run_check(
-    compute_auxiliary=None,
-    solver=None,
+def _run_verb_check(
     verb=None,
 ):
     # ------
@@ -1359,50 +1358,10 @@ def _run_check(
         timewait = True         # we will check real time between iterations
     else:
         timewait = False
-
-    # ------------
-    # compute auxiliary
-    if compute_auxiliary is None:
-        compute_auxiliary = True
-
-    # -------
-    # solver
-
-    dsolver = {
-        'eRK4-homemade': {
-            'com': 'explicit Runge_Kutta order 4 homemade',
-        },
-        'eRK4-homemade-bis': {
-            'com': 'explicit Runge_Kutta order 4 homemade, inclusive',
-        },
-        'eRK2-scipy': {
-            'scipy': 'RK23',
-            'com': 'explicit Runge_Kutta order 2 from scipy',
-        },
-        'eRK4-scipy': {
-            'scipy': 'RK45',
-            'com': 'explicit Runge_Kutta order 4 from scipy',
-        },
-        'eRK8-scipy': {
-            'scipy': 'DOP853',
-            'com': 'explicit Runge_Kutta order 8 from scipy',
-        },
+    return {
+        'verb': verb, 'end': end,
+        'flush': flush, 'timewait': timewait,
     }
-    if solver is None:
-        solver = 'eRK4-homemade-bis'
-    if solver not in dsolver.keys():
-        lstr = [f"\t- '{k0}': {v0['com']}" for k0, v0 in dsolver.items()]
-        msg = (
-            "Arg solver must be in:\n"
-            + "\n".join(lstr)
-        )
-        raise Exception(msg)
-
-    solver_scipy = None
-    if 'scipy' in solver:
-        solver_scipy = dsolver[solver]['scipy']
-
-    return verb, end, flush, timewait, compute_auxiliary, solver, solver_scipy
 
 
 def _print_or_wait(
