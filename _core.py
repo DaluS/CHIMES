@@ -13,7 +13,7 @@ import numpy as np
 # Library-specific
 from utilities import _utils, _class_checks, _class_utility
 from utilities import _solvers, _saveload
-import _plots as plots
+from plots import _plot_timetraces
 
 
 class Hub():
@@ -658,14 +658,54 @@ class Hub():
             (t[1] - t[0]) for t in dic1['period_T_intervals']]
         dic1['reference'] = refval
 
-        # ##############################
-        #       plotting methods
-        # ##############################
+    # ##############################
+    #       plotting methods
+    # ##############################
 
-    def plot(self):
+    def plot(
+        self,
+        # for forcing a color / label
+        color=None,
+        label=None,
+        # for figure creation
+        dax=None,
+        ncols=None,
+        sharex=None,
+        tit=None,
+        wintit=None,
+        dmargin=None,
+        fs=None,
+        dleg=None,
+        show=None,
+        # for selection of data
+        idx=None,
+        eqtype=None,
+        **kwdargs,
+    ):
         """
-        Launch all the basic plots
+        Launch the basic plot: time traces
         """
+
+        return _plot_timetraces.plot_timetraces(
+            self,
+            # for forcing a color / label
+            color=color,
+            label=label,
+            # for figure creation
+            dax=dax,
+            ncols=ncols,
+            sharex=sharex,
+            tit=tit,
+            wintit=wintit,
+            dmargin=dmargin,
+            fs=fs,
+            dleg=dleg,
+            show=show,
+            # for selection of data
+            idx=idx,
+            eqtype=eqtype,
+            **kwdargs,
+        )
 
     # ##############################
     #       data conversion

@@ -28,7 +28,6 @@ _PATH_MODELS = os.path.join(_PATH_PCK, 'models')
 # library-specific
 sys.path.insert(0, _PATH_PCK)   # ensure Main comes from .. => add PYTHONPATH
 import _core
-import _plots
 sys.path.pop(0)                 # clean PYTHONPATH
 
 
@@ -256,14 +255,23 @@ class Test01_Hub():
             )
             raise Exception(msg)
 
-    def test13_plot_AllVar(self):
-        ii = 0
+    def test13_plot(self):
+        lcol = ['k', 'r', 'g', 'b', 'c', 'm']
+        dcolor = {
+            k0: lcol[ii] for ii, k0 in enumerate(self.lsolvers)
+        }
         for model in self.dhub.keys():
             for preset in self.dhub[model].keys():
-                for solver in self.lsolvers:
-                    dax = _plots.AllVar(
-                        self.dhub[model][preset][solver],
-                        ncols=1 + ii % 4,
+                dax = None
+                units = None if preset is None else 'undefined'
+                key = ('phillips',) if preset is None else None
+                lab = None if preset is None else 'test'
+                for solver, hub in self.dhub[model][preset].items():
+                    dax = hub.plot(
+                        dax=dax,
+                        color=dcolor[solver],
+                        label=lab,
+                        units=units,
+                        key=key,
                     )
-                    ii += 1
                 plt.close('all')
