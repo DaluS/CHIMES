@@ -6,9 +6,10 @@ Contains all the possibilities of each _core interaction
 '''
 
 import _core
-import _plots as plots
+#import _plots as plots
 
 # %% SHORT RUN ###############################################################
+
 hub = _core.Hub('GK')
 hub.run(verb=1.1)
 

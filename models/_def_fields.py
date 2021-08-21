@@ -28,9 +28,6 @@ This file contains :
 """
 
 
-import warnings
-
-
 import numpy as np
 
 
@@ -71,10 +68,10 @@ __DEFAULTFIELDS = {
         'type': str,
         'allowed': [
             'Units',  #
-            'y',      # Time
             '$',      # Money
             'C',      # Concentration
             'Humans',  # Population
+            'yr',     # Time
         ],
     },
     'type': {
@@ -124,12 +121,12 @@ _LIBRARY = {
     'Numerical': {
         'Tmax': {
             'value': 100,
-            'units': 'y',
+            'units': 'yr',
             'definition': 'Total simulated time',
         },
         'dt': {
             'value': 0.01,
-            'units': 'y',
+            'units': 'yr',
             'definition': 'time between two steps',
         },
         'nt': {
@@ -141,8 +138,8 @@ _LIBRARY = {
         },
         'nx': {
             'value': 1,
-            'units': 'y',
-            'definition': 'NUMBER OF PARRALLEL SYSTEMS',
+            'units': 'yr',
+            'definition': 'NUMBER OF PARALLEL SYSTEMS',
         },
     },
 
@@ -154,7 +151,7 @@ _LIBRARY = {
             'func': lambda dt=0: 1.,
             'definition': 'Time vector',
             'com': 'dt/dt=1, time as ODE',
-            'units': 'y',
+            'units': 'yr',
             'eqtype': 'ode',
         },
 
@@ -167,7 +164,7 @@ _LIBRARY = {
         'beta': {
             'value': 0.025,
             'definition': 'Rate of population growth',
-            'units': 'y^{-1}',
+            'units': 'yr^{-1}',
         },
 
         # Productivity
@@ -179,19 +176,24 @@ _LIBRARY = {
         'alpha': {
             'value': 0.02,
             'definition': 'Rate of productivity increase',
-            'units': 'y^{-1}',
+            'units': 'yr^{-1}',
         },
         'W': {
             'value': 0.85,
-            'definition': 'Wage value',
+            'definition': 'Sum of all wages',
             'units': '$'
+        },
+        'w': {
+            'value': 0.85,
+            'definition': 'typical wage per person',
+            'units': '$.Humans^{-1}'
         },
 
         # Capital
         'delta': {
             'value': 0.005,
             'definition': 'Rate of capital depletion',
-            'units': 'y^{-1}',
+            'units': 'yr^{-1}',
         },
         'nu': {
             'value': 3,
@@ -214,9 +216,9 @@ _LIBRARY = {
         'g': {
             'value': None,
             'definition': 'Relative growth',
-            'units': 'y^{-1}',
+            'units': 'yr^{-1}',
         },
-        'Y': {
+        'yr': {
             'value': None,
             'definition': 'GDP in output quantity',
             'units': 'Units.y^{-1}',
@@ -252,7 +254,7 @@ _LIBRARY = {
         'phillips': {
             'value': None,
             'definition': 'Wage inflation rate',
-            'units': 'y^{-1}',
+            'units': 'yr^{-1}',
             'symbol': r'$\phi$',
         },
         'phinull': {
@@ -304,7 +306,7 @@ _LIBRARY = {
         'r': {
             'value': .03,
             'definition': 'Interest on debt',
-            'units': 'y^{-1}',
+            'units': 'yr^{-1}',
         },
         'D': {
             'value': 0.1,
@@ -328,7 +330,7 @@ _LIBRARY = {
         'eta': {
             'value': 1,
             'definition': 'timerate of price adjustment',
-            'units': 'y^{-1}',
+            'units': 'yr^{-1}',
         },
         'GDP': {
             'value': None,
@@ -338,7 +340,7 @@ _LIBRARY = {
         'i': {
             'value': None,
             'definition': 'inflation rate',
-            'units': 'y^{-1}',
+            'units': 'yr^{-1}',
         },
     },
 }
@@ -474,7 +476,7 @@ _DFIELDS_DEPRECATED = {
         'value': 100,
         'com': 'Duration of simulation',
         'dimension': 'time',
-        'units': 'y',
+        'units': 'yr',
         'type': None,
         'symbol': None,
         'group': 'Numerical',
@@ -483,7 +485,7 @@ _DFIELDS_DEPRECATED = {
         'value': 0.01,
         'com': 'Time step (fixed timestep method)',
         'dimension': 'time',
-        'units': 'y',
+        'units': 'yr',
         'type': None,
         'symbol': None,
         'group': 'Numerical',
@@ -515,7 +517,7 @@ _DFIELDS_DEPRECATED = {
         'func': lambda dt=0: 1.,
         'com': 'Time vector',
         'dimension': 'time',
-        'units': 'y',
+        'units': 'yr',
         'type': 'extensive',
         'symbol': r'$t$',
         'group': 'Time',
@@ -531,7 +533,7 @@ _DFIELDS_DEPRECATED = {
         'value': 0.025,
         'com': 'Rate of population growth',
         'dimension': 'time rate',
-        'units': 'y^{-1}',
+        'units': 'yr^{-1}',
         'type': 'intensive',
         'symbol': r'$beta$',
         'group': 'Population',
@@ -540,7 +542,7 @@ _DFIELDS_DEPRECATED = {
         'value': 0.02,
         'com': 'Rate of productivity increase',
         'dimension': 'time rate',
-        'units': 'y^{-1}',
+        'units': 'yr^{-1}',
         'type': 'intensive',
         'symbol': r'$alpha$',
         'group': 'Population',
@@ -552,7 +554,7 @@ _DFIELDS_DEPRECATED = {
         'value': 0.005,
         'com': 'Rate of capital depletion',
         'dimension': 'time rate',
-        'units': 'y^{-1}',
+        'units': 'yr^{-1}',
         'type': 'intensive',
         'symbol': r'$\delta$',
         'group': 'Capital',
@@ -577,7 +579,7 @@ _DFIELDS_DEPRECATED = {
         'value': .03,
         'com': 'Interest at the bank',
         'dimension': 'time rate',
-        'units': 'y^{-1}',
+        'units': 'yr^{-1}',
         'type': 'intensive',
         'symbol': None,
         'group': 'Prices',
@@ -744,7 +746,7 @@ _DFIELDS_DEPRECATED = {
         'value': None,
         'com': 'Wage inflation rate',
         'dimension': 'time rate',
-        'units': 'y^{-1}',
+        'units': 'yr^{-1}',
         'type': 'intensive',
         'symbol': r'$\phi$',
         'group': 'Economy',
@@ -765,7 +767,7 @@ _DFIELDS_DEPRECATED = {
         'value': None,
         'com': 'Relative growth',
         'dimension': 'time rate',
-        'units': 'y^{-1}',
+        'units': 'yr^{-1}',
         'type': 'intensive',
         'symbol': r'$g$',
         'group': 'Economy',
@@ -779,7 +781,7 @@ _DFIELDS_DEPRECATED = {
         'symbol': r'$GDP$',
         'group': 'Economy',
     },
-    'Y': {
+    'yr': {
         'value': None,
         'com': 'GDP in output quantity',
         'dimension': 'Real Units',
@@ -820,7 +822,7 @@ _DFIELDS_DEPRECATED = {
         'value': None,
         'com': 'Inflation rate',
         'dimension': 'time rate',
-        'units': 'y^{-1}',
+        'units': 'yr^{-1}',
         'type': 'intensive',
         'symbol': r'$i$',
         'group': 'Economy',

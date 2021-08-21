@@ -43,7 +43,7 @@ _LOGICS = {
             'func': lambda I=0, Pi=0: I - Pi,
             'com': 'Debt as Investment-Profit difference',
         },
-        'W': {
+        'w': {
             'func': lambda phillips=0, itself=0: itself * phillips,
             'com': 'salary through negociation',
         },
@@ -66,6 +66,10 @@ _LOGICS = {
         'inflation': {
             'func': lambda p=0: 0. * p,
             'com': 'INFLATION NOT CODED',
+        },
+        'W': {
+            'func': lambda w=0, L=0: w*L,
+            'com': 'Sum of wage on typical wage',
         },
         'L': {
             'func': lambda K=0, a=1, nu=1: K / (a * nu),
