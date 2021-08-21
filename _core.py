@@ -495,12 +495,7 @@ class Hub():
         """
         # ------------
         # check inputs
-        (
-            verb, end, flush, timewait,
-            compute_auxiliary, solver, solver_scipy,
-        ) = _class_checks._run_check(
-            verb=verb, compute_auxiliary=compute_auxiliary, solver=solver,
-        )
+        dverb = _class_checks._run_verb_check(verb=verb)
 
         # ------------
         # reset variables
@@ -519,34 +514,18 @@ class Hub():
         # start time loop
 
         try:
-            if solver == 'eRK4-homemade':
-
-                _solvers._eRK4_homemade(
-                    dparam=self.__dparam,
-                    lode=lode,
-                    linter=lstate,
-                    laux=laux,
-                    dargs=self.__dargs,
-                    nt=nt,
-                    verb=verb,
-                    timewait=timewait,
-                    end=end,
-                    flush=flush,
-                    compute_auxiliary=compute_auxiliary,
-                )
-
-            elif 'scipy' in solver:
-                sol = _solvers._solver_scipy(
-                    dparam=self.__dparam,
-                    lode=lode,
-                    linter=lstate,
-                    dargs=self.__dargs,
-                    verb=verb,
-                    rtol=rtol,
-                    atol=atol,
-                    max_time_step=max_time_step,
-                    solver_scipy=solver_scipy,
-                )
+            solver = _solvers.solve(
+                solver=solver,
+                dparam=self.__dparam,
+                lode=lode,
+                lstate=lstate,
+                dargs=self.__dargs,
+                nt=nt,
+                rtol=rtol,
+                atol=atol,
+                max_time_step=max_time_step,
+                dverb=dverb,
+            )
             self.__dmisc['run'] = True
             self.__dmisc['solver'] = solver
 

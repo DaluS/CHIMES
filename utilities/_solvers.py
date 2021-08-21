@@ -13,12 +13,48 @@ import matplotlib.pyplot as plt     # DB
 
 
 # specific
+from . import _utils
 from . import _class_checks
+
+_SCIPY_URL_BASE = 'https://docs.scipy.org/doc/scipy/reference/generated/'
+_SCIPY_URL = (
+    _SCIPY_URL_BASE
+    + 'scipy.integrate.solve_ivp.html#scipy.integrate.solve_ivp'
+)
 
 
 _DSOLVERS = {
-    ''
+    'eRK4-homemade': {
+        'type': 'explicit',
+        'step': 'fixed',
+        'com': 'Runge_Kutta order 4',
+        'source': __file__,
+    },
+    'eRK2-scipy': {
+        'scipy': 'RK23',
+        'type': 'explicit',
+        'step': 'variable',
+        'com': 'Runge_Kutta order 2',
+        'source': _SCIPY_URL,
+    },
+    'eRK4-scipy': {
+        'scipy': 'RK45',
+        'type': 'explicit',
+        'step': 'variable',
+        'com': 'Runge_Kutta order 4',
+        'source': _SCIPY_URL,
+    },
+    'eRK8-scipy': {
+        'scipy': 'DOP853',
+        'type': 'explicit',
+        'step': 'variable',
+        'com': 'Runge_Kutta order 8',
+        'source': _SCIPY_URL,
+    },
 }
+
+
+_SOLVER = 'eRK4-homemade'
 
 
 # #############################################################################
@@ -27,8 +63,254 @@ _DSOLVERS = {
 # #############################################################################
 
 
-def get_available_solvers():
-    pass
+def get_available_solvers(returnas=None, verb=None):
+
+    # ----------------
+    # check inputs
+
+    if returnas is None:
+        returnas = False
+    lreturnok = [False, list, dict]
+    if returnas not in lreturnok:
+        msg = (
+            f"Arg returnas must be in {lreturnok}\n"
+            f"Provided: {returnas}"
+        )
+
+    if verb is None:
+        verb = returnas is False
+
+    # ----------------
+    # print or return
+
+    if verb is True:
+        def make_source(k0, dsolvers=_DSOLVERS):
+            if 'scipy' in k0:
+                method = dsolvers[k0]['scipy']
+                source = f"scipy.integrate.solve_ivp(method='{method}')"
+            else:
+                source = dsolvers[k0]['source']
+            return source
+
+        col = ['key', 'type', 'step', 'comments', 'source']
+        ar = [
+            [
+                f"'{k0}'",
+                v0['type'],
+                v0['step'],
+                v0['com'],
+                make_source(k0),
+            ]
+            for k0, v0 in _DSOLVERS.items()
+        ]
+        return _utils._get_summary(
+            lar=[ar],
+            lcol=[col],
+            verb=verb,
+            returnas=False,
+        )
+    elif returnas is dict:
+        return {k0: dict(v0) for k0, v0 in _DSOLVERS.items()}
+    else:
+        return list(_DSOLVERS.keys())
+
+
+# #############################################################################
+# #############################################################################
+#                   check
+# #############################################################################
+
+
+def _check_solver(solver):
+
+    if solver is None:
+        solver = _SOLVER
+
+    c0 = (
+        isinstance(solver, str)
+        and solver in _DSOLVERS.keys()
+    )
+    if not c0:
+        msg = (
+            "Arg solver must be among the avaible solver keys:\n"
+            + get_available_solvers(verb=False, returnas=str)
+            + f"\n\nProvided: '{solver}'"
+        )
+        raise Exception(msg)
+
+    return solver
+
+
+# #############################################################################
+# #############################################################################
+#                   Main entry point
+# #############################################################################
+
+
+def solve(
+    solver=None,
+    dparam=None,
+    lode=None,
+    lstate=None,
+    dargs=None,
+    nt=None,
+    rtol=None,
+    atol=None,
+    max_time_step=None,
+    dverb=None,
+):
+
+    # -----------
+    # check input
+
+    solver = _check_solver(solver)
+
+    # -----------
+    # create buffer for temp
+    dargs_temp = {
+        k0: {k1: v1[-1, ...] for k1, v1 in v0.items()}
+        for k0, v0 in dargs.items()
+    }
+
+    # -----------
+    # Define the function that takes/returns all functions
+
+    dydt_func, lode_solve = get_func_dydt(
+        dparam=dparam, dargs_temp=dargs_temp,
+        lode=lode, lstate=lstate,
+        inc_time='homemade' in solver,
+    )
+
+    # -----------
+    # initialize y
+    y0 = np.array([dparam[k0]['value'][0, ...] for k0 in lode_solve])
+
+    # -------------
+    # dispatch to relevant solver to solve ode using dydt_func
+
+    if solver == 'eRK4-homemade':
+        _eRK4_homemade(
+            y0=y0,
+            dydt_func=dydt_func,
+            dparam=dparam,
+            lode=lode_solve,
+            lstate=lstate,
+            nt=nt,
+            dverb=dverb,
+        )
+
+    else:
+        # scipy takes one-dimensional y only
+        y0 = y0[:, 0]
+
+        _solver_scipy(
+            y0=y0,
+            dydt_func=dydt_func,
+            dparam=dparam,
+            lode=lode_solve,
+            lstate=lstate,
+            atol=atol,
+            rtol=rtol,
+            max_time_step=max_time_step,
+            solver=solver,
+            dverb=dverb,
+        )
+
+    # ----------------------
+    # Post-treatment
+
+    # compute statevar functions, in good order
+    for k0 in lstate:
+        dparam[k0]['value'][...] = dparam[k0]['func'](**dargs[k0])
+
+    return solver
+
+
+# #############################################################################
+# #############################################################################
+#               Common utility: define dydt = f(y, t)
+# #############################################################################
+
+
+def get_func_dydt(
+    dparam=None,
+    dargs_temp=None,
+    lode=None,
+    lstate=None,
+    inc_time=None,
+):
+
+    # ---------------
+    # check inputs
+
+    if inc_time is None:
+        inc_time = True
+
+    # ---------------
+    # Get list of ode except time
+
+    if inc_time:
+        lode_solve = lode
+    else:
+        lode_solve = [k0 for k0 in lode if k0 != 'time']
+
+    # ---------------------
+    # prepare array to be used as buffer
+    # (to avoid a new array creation everytime the function is called)
+
+    dydt = np.full((len(lode_solve), dparam['nx']['value']), np.nan)
+
+    # -----------------
+    # get func
+
+    def func(
+        t,
+        y,
+        dydt=dydt,
+        dparam=dparam,
+        dargs_temp=dargs_temp,
+        lode_solve=lode_solve,
+        lstate=lstate,
+    ):
+        """ dydt = f(t, y)
+
+        Where y is a (n,) array
+        y[0] = fisrt ode
+        y[1] = second ode
+        ...
+        y[n] = last ode
+
+        All intermediate values ae stored in dparam[k0]['value'][-1, 0]
+
+        """
+
+        # ------------
+        # update cache => also updates dargs and dargs_temp by reference
+        # used by dargs_temp (by reference)
+        for ii, k0 in enumerate(lode_solve):
+            dparam[k0]['value'][-1, ...] = y[ii, ...]
+
+        # ------------
+        # First update intermediary functions based on provided y
+        # The last time step is used as temporary buffer
+        # used by dargs_temp (by reference)
+        for ii, k0 in enumerate(lstate):
+            dparam[k0]['value'][-1, ...] = dparam[k0]['func'](**dargs_temp[k0])
+
+        # ------------
+        # Then compute derivative dydt (ode)
+
+        for ii, k0 in enumerate(lode_solve):
+            if 'itself' in dparam[k0]['kargs']:
+                dydt[ii, ...] = dparam[k0]['func'](
+                    itself=y[ii, ...], **dargs_temp[k0],
+                )
+            else:
+                dydt[ii, ...] = dparam[k0]['func'](**dargs_temp[k0])
+
+        return dydt
+
+    return func, lode_solve
 
 
 # #############################################################################
@@ -38,94 +320,52 @@ def get_available_solvers():
 
 
 def _eRK4_homemade(
+    y0=None,
+    dydt_func=None,
     dparam=None,
     lode=None,
-    linter=None,
-    laux=None,
-    dargs=None,
+    lstate=None,
     nt=None,
-    verb=None,
-    timewait=None,
-    end=None,
-    flush=None,
-    compute_auxiliary=None,
+    dverb=None,
 ):
     """ Structure of the homemade rk4 solver, with time loop, intermediaries...
     """
+
+    # initialize y
+    y = np.copy(y0)
+
+    # start loop on time
     t0 = time.time()
     for ii in range(1, nt):
 
         # print of wait
-        if verb > 0:
-            t0 = _class_checks._print_or_wait(
-                ii=ii, nt=nt, verb=verb,
-                timewait=timewait, end=end, flush=flush,
-                t0=t0,
-            )
+        if dverb['verb'] > 0:
+            t0 = _class_checks._print_or_wait(ii=ii, nt=nt, t0=t0, **dverb)
+
         # compute ode variables from ii-1, using solver
-        for k0 in lode:
-            kwdargs = {
-                k1: v1[ii - 1, :] for k1, v1 in dargs[k0].items()
-            }
+        y += _rk4(
+            dydt_func=dydt_func,
+            dt=dparam['dt']['value'],
+            y=y,
+            t=np.nan,
+        )
 
-            dparam[k0]['value'][ii, :] = (
-                dparam[k0]['value'][ii - 1, :]
-                + _rk4(
-                    dparam=dparam,
-                    k0=k0,
-                    y=dparam[k0]['value'][ii - 1, :],
-                    kwdargs=kwdargs,
-                )
-            )
-
-        # compute intermediary functions, in good order
-        # Now that inermediary functions are computed at t=0 in reset()
-        # we have to reverse the order of resolution:
-        # first ode then intermediary
-        for k0 in linter:
-            kwdargs = {
-                k1: v1[ii, :]
-                for k1, v1 in dargs[k0].items()
-            }
-            dparam[k0]['value'][ii, :] = (
-                dparam[k0]['func'](
-                    **kwdargs,
-                )
-            )
-
-        # Since the computation is fast we can also compute auxiliary
-        # TBC: there might be a function order here too!
-        if compute_auxiliary:
-            for k0 in laux:
-                kwdargs = {
-                    k1: v1[ii, :]
-                    for k1, v1 in dargs[k0].items()
-                }
-                dparam[k0]['value'][ii, :] = (
-                    dparam[k0]['func'](
-                        **kwdargs
-                    )
-                )
+        # dispatch to store result of ode
+        for jj, k0 in enumerate(lode):
+            dparam[k0]['value'][ii, ...] = y[jj, ...]
 
 
-def _rk4(dparam=None, k0=None, y=None, kwdargs=None):
+def _rk4(dydt_func=None, dt=None, y=None, t=None):
     """
     a traditional RK4 scheme, with:
-        - y = array of all variables
-        - p = parameter dictionnary
-    dt is contained within p
+        - y = array of all variables (all ode)
+        - dt = fixed time step
     """
-    if 'itself' in dparam[k0]['kargs']:
-        dy1 = dparam[k0]['func'](itself=y, **kwdargs)
-        dy2 = dparam[k0]['func'](itself=y+dy1/2., **kwdargs)
-        dy3 = dparam[k0]['func'](itself=y+dy2/2., **kwdargs)
-        dy4 = dparam[k0]['func'](itself=y+dy3, **kwdargs)
-    else:
-        dy1 = dparam[k0]['func'](**kwdargs)
-        dy2 = dparam[k0]['func'](**kwdargs)
-        dy3 = dparam[k0]['func'](**kwdargs)
-        dy4 = dparam[k0]['func'](**kwdargs)
-    return (dy1 + 2*dy2 + 2*dy3 + dy4) * dparam['dt']['value'] / 6.
+    dy1_on_dt = dydt_func(t, y)
+    dy2_on_dt = dydt_func(t + dt/2., y + dy1_on_dt * dt/2.)
+    dy3_on_dt = dydt_func(t + dt/2., y + dy2_on_dt * dt/2.)
+    dy4_on_dt = dydt_func(t + dt, y + dy3_on_dt*dt)
+    return (dy1_on_dt + 2*dy2_on_dt + 2*dy3_on_dt + dy4_on_dt) * dt/6.
 
 
 # #############################################################################
@@ -135,15 +375,16 @@ def _rk4(dparam=None, k0=None, y=None, kwdargs=None):
 
 
 def _solver_scipy(
+    y0=None,
+    dydt_func=None,
     dparam=None,
     lode=None,
-    linter=None,
-    dargs=None,
+    lstate=None,
     atol=None,
     rtol=None,
-    verb=None,
+    dverb=None,
     max_time_step=None,
-    solver_scipy=None,
+    solver=None,
 ):
     """ scipy.RK45 solver, for cross-checking
 
@@ -171,66 +412,8 @@ def _solver_scipy(
         )
         raise Exception(msg)
 
-    lode_notime = [k0 for k0 in lode if k0 != 'time']
-
     # -----------------
-    # define f(t, y) (using pre-allocated array for speed
-
-    dydt = np.full((len(lode_notime,)), np.nan)
-
-    def func(t, y, dydt=dydt, dparam=dparam, lode_notime=lode_notime):
-        """ dydt = f(t, y)
-
-        Where y is a (n,) array
-        y[0] = fisrt ode
-        y[1] = second ode
-        ...
-        y[n] = last ode
-
-        All intermediate values ae stored in dparam[k0]['value'][-1, 0]
-
-        """
-
-        # ------------
-        # update cache
-        for ii, k0 in enumerate(lode_notime):
-            dparam[k0]['value'][-1, :] = y[ii, :]
-
-        # ------------
-        # First update intermediary functions based on provided y
-        for ii, k0 in enumerate(linter):
-            # build kwdargs
-            kwdargs = {
-                k1: v1[-1, :]
-                for k1, v1 in dargs[k0].items()
-            }
-
-            dparam[k0]['value'][-1, :] = dparam[k0]['func'](**kwdargs)
-
-        # ------------
-        # Then compute derivative functions (ode)
-
-        for ii, k0 in enumerate(lode_notime):
-            # build kwdargs
-            kwdargs = {
-                k1: v1[-1, :]
-                for k1, v1 in dargs[k0].items()
-            }
-
-            if 'itself' in dparam[k0]['kargs']:
-                dydt[ii] = dparam[k0]['func'](itself=y[ii], **kwdargs)
-            else:
-                dydt[ii] = dparam[k0]['func'](**kwdargs)
-
-        return dydt
-
-    # -----------------
-    # define y0, t_span, t_eval
-
-    y0 = np.array([
-        dparam[k0]['value'][0, 0]
-        for k0 in lode_notime
-    ])
+    # define t_span, t_eval
 
     t_span = [dparam['time']['initial'], dparam['Tmax']['value']]
     t_eval = np.linspace(t_span[0], t_span[1], dparam['nt']['value'])
@@ -239,10 +422,10 @@ def _solver_scipy(
     # define y0, t_span, t_eval
 
     sol = scpinteg.solve_ivp(
-        func,
+        dydt_func,
         t_span,
         y0,
-        method=solver_scipy,
+        method=_DSOLVERS[solver]['scipy'],
         t_eval=t_eval,
         max_step=max_time_step,
         rtol=rtol,
@@ -255,7 +438,7 @@ def _solver_scipy(
     # verbosity
     if sol.success is True:
         indmax = dparam['nt']['value']
-        if verb > 0:
+        if dverb['verb'] > 0:
             msg = (
                 f"{sol.message}\nSuccess: {sol.success}\n"
                 f"Nb. fev: {sol.nfev} for {sol.t.size} time steps"
@@ -286,9 +469,9 @@ def _solver_scipy(
     # ---------------------
     # dispatch results
 
-    for ii, k0 in enumerate(lode_notime):
-        dparam[k0]['value'][:indmax, 0] = sol.y[ii, :]
-    dparam['time']['value'][:indmax, :] = np.repeat(
+    for ii, k0 in enumerate(lode):
+        dparam[k0]['value'][:indmax, 0] = sol.y[ii, ...]
+    dparam['time']['value'][:indmax, ...] = np.repeat(
         sol.t[:, None],
         dparam['nx']['value'],
         axis=1,

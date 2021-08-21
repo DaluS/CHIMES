@@ -67,7 +67,7 @@ class Test00_Get():
         lreturn = [False, list, dict, str]
 
         for comb in itt.product(ldetails, lverb, lreturn):
-            lmodel = _core._class_checks.models.get_available_models(
+            out = _core._class_checks.models.get_available_models(
                 details=comb[0],
                 verb=comb[1],
                 returnas=lreturn[2],
@@ -77,10 +77,10 @@ class Test00_Get():
         """ Make sure the main function runs from a python console """
 
         lverb = [False, True]
-        lreturn = [False, list, dict, str]
+        lreturn = [False, list, dict]
 
         for comb in itt.product(lverb, lreturn):
-            lmodel = _core._solvers.get_available_solvers(
+            out = _core._solvers.get_available_solvers(
             )
 
     def test03_get_available_output(self):
