@@ -10,13 +10,13 @@ import itertools as itt     # for iterating on parameters combinations
 
 
 _PATH_HERE = os.path.abspath(os.path.dirname(__file__))
-_PATH_PCK = os.path.dirname(_PATH_HERE)
+_PATH_PCK = os.path.dirname(os.path.dirname(_PATH_HERE))
 _PATH_OUTPUT_REF = os.path.join(_PATH_HERE, 'output_ref')
 
 
 # library-specific
 sys.path.insert(0, _PATH_PCK)   # ensure Main comes from .. => add PYTHONPATH
-import _core
+import gemmes as gem
 sys.path.pop(0)                 # clean PYTHONPATH
 
 
@@ -67,7 +67,7 @@ class Test00_Get():
         lreturn = [False, list, dict, str]
 
         for comb in itt.product(ldetails, lverb, lreturn):
-            out = _core._class_checks.models.get_available_models(
+            out = gem.get_available_models(
                 details=comb[0],
                 verb=comb[1],
                 returnas=lreturn[2],
@@ -80,7 +80,7 @@ class Test00_Get():
         lreturn = [False, list, dict]
 
         for comb in itt.product(lverb, lreturn):
-            out = _core._solvers.get_available_solvers(
+            out = gem.get_available_solvers(
             )
 
     def test03_get_available_output(self):
@@ -93,7 +93,7 @@ class Test00_Get():
         lsolver = [None, 'eRK4-homemade']
 
         for comb in itt.product(lverb, lreturn, lmodel, lsolver):
-            out = _core._saveload.get_available_output(
+            out = gem.get_available_output(
                 path=_PATH_OUTPUT_REF,
                 model=comb[2],
                 user=None,

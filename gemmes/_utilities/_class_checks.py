@@ -13,11 +13,11 @@ import numpy as np
 
 
 # library specific
-import models
+from .. import _models
 
 
 _PATH_HERE = os.path.dirname(__file__)
-_PATH_MODELS = os.path.join(os.path.dirname(_PATH_HERE), 'models')
+_PATH_MODELS = os.path.join(os.path.dirname(_PATH_HERE), '_models')
 
 
 _LMODEL_ATTR = ['_LOGICS', 'presets']
@@ -57,10 +57,10 @@ def load_model(model=None, verb=None):
     # -------------
     # check inputs
 
-    if model in models._DMODEL.keys():
+    if model in _models._DMODEL.keys():
         # Get from known models
-        model_file = models._DMODEL[model]['file']
-        dmodel = dict(models._DMODEL[model])
+        model_file = _models._DMODEL[model]['file']
+        dmodel = dict(_models._DMODEL[model])
 
     elif os.path.isfile(model) and model.endswith('.py'):
         # get from arbitrary model file
@@ -224,7 +224,7 @@ def _check_logics(dmodel=None, verb=None):
         - statevar
 
     If necessary, add initial values
-    Checks all keys are known to models._DFIELDS
+    Checks all keys are known to _models._DFIELDS
     """
 
     if verb is None:
@@ -259,9 +259,9 @@ def _check_logics(dmodel=None, verb=None):
     # List all keys in all dict that are not known to _DFIELDS
 
     dkout = {
-        k0: [k1 for k1 in v0.keys() if k1 not in models._DFIELDS]
+        k0: [k1 for k1 in v0.keys() if k1 not in _models._DFIELDS]
         for k0, v0 in dmodel['logics'].items()
-        if any([k1 for k1 in v0.keys() if k1 not in models._DFIELDS])
+        if any([k1 for k1 in v0.keys() if k1 not in _models._DFIELDS])
     }
     if len(dkout) > 0:
 
@@ -274,15 +274,15 @@ def _check_logics(dmodel=None, verb=None):
             )
             print(msg)
 
-        # adding to local models._DFIELDS
+        # adding to local _models._DFIELDS
         for k0, v0 in dkout.items():
             for k1 in v0:
-                models._DFIELDS[k1] = dict(dmodel['logics'][k0][k1])
-                models._DFIELDS[k1]['eqtype'] = k0
+                _models._DFIELDS[k1] = dict(dmodel['logics'][k0][k1])
+                _models._DFIELDS[k1]['eqtype'] = k0
 
         # Make sure all fields are set
-        models._complete_DFIELDS(
-            dfields=models._DFIELDS,
+        _models._complete_DFIELDS(
+            dfields=_models._DFIELDS,
             complete=True,
             check=True,
         )
@@ -299,7 +299,7 @@ def _check_logics(dmodel=None, verb=None):
         for k1, v1 in dmodel['logics']['ode'].items():
             if v1.get('initial') is None:
                 dmodel['logics']['ode'][k1]['initial'] \
-                        = models._DFIELDS[k1]['value']
+                        = _models._DFIELDS[k1]['value']
 
     # -----------------------
     # check pde
@@ -353,7 +353,7 @@ def _check_dparam(dparam=None):
     with only some fields allowed for each key
     with values that can be scalars or functions
 
-    <Missing fields are filled in from defaults values in models._DFIELDS
+    <Missing fields are filled in from defaults values in _models._DFIELDS
 
     """
 
@@ -368,14 +368,14 @@ def _check_dparam(dparam=None):
         raise Exception(msg)
 
     # ---------------
-    # check keys are known to models._DFIELDS
+    # check keys are known to _models._DFIELDS
 
     lk0 = [
-        k0 for k0 in dparam.keys() if k0 not in models._DFIELDS.keys()
+        k0 for k0 in dparam.keys() if k0 not in _models._DFIELDS.keys()
     ]
     if len(lk0) > 0:
         msg = (
-            "dparam must have keys identified in models._DFIELDS!\n"
+            "dparam must have keys identified in _models._DFIELDS!\n"
             f"You provided: {lk0}"
         )
         raise Exception(msg)
@@ -384,18 +384,18 @@ def _check_dparam(dparam=None):
     # add numerical parameters if not included
 
     lknum = [
-        k0 for k0, v0 in models._DFIELDS.items()
+        k0 for k0, v0 in _models._DFIELDS.items()
         if v0['group'] == 'Numerical'
     ]
     for k0 in lknum:
         if k0 not in dparam.keys():
-            dparam[k0] = models._DFIELDS[k0]
+            dparam[k0] = _models._DFIELDS[k0]
 
     # --------------------------
     # Add time vector if missing
 
     if 'time' not in dparam.keys():
-        dparam['time'] = dict(models._DFIELDS['time'])
+        dparam['time'] = dict(_models._DFIELDS['time'])
 
     # ------------
     # check values
@@ -416,15 +416,15 @@ def _check_dparam(dparam=None):
         if isinstance(dparam[k0], dict):
 
             # set missing field to default
-            for ss in models._DFIELDS[k0].keys():
+            for ss in _models._DFIELDS[k0].keys():
                 if dparam[k0].get(ss) is None:
-                    dparam[k0][ss] = models._DFIELDS[k0][ss]
+                    dparam[k0][ss] = _models._DFIELDS[k0][ss]
 
             # identify invalid keys
             lk = [
                 kk for kk in dparam[k0].keys()
                 if kk != 'eqtype'
-                and kk not in _LEXTRAKEYS + list(models._DFIELDS[k0].keys())
+                and kk not in _LEXTRAKEYS + list(_models._DFIELDS[k0].keys())
             ]
             if len(lk) > 0:
                 dfail[k0] = f"Invalid keys: {lk}"
@@ -617,13 +617,13 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None):
         if k0 in dparam.keys():
             kargs = inspect.getfullargspec(dparam[key]['func']).args
         else:
-            kargs = inspect.getfullargspec(models._DFIELDS[key]['func']).args
+            kargs = inspect.getfullargspec(_models._DFIELDS[key]['func']).args
 
         # check if any parameter is unknown
         for kk in kargs:
             key = 'lambda' if kk == 'lamb' else kk
             if key not in lkok:
-                if models._DFIELDS[key].get('func') is None:
+                if _models._DFIELDS[key].get('func') is None:
                     if key not in lpar_add:
                         lpar_add.append(key)
                 elif key not in lfunc_add:
@@ -669,10 +669,10 @@ def _extract_parameters(dparam, verb=None):
         dfail = {}
         for k0 in lpar_new + lfunc_new:
             key = 'lambda' if k0 == 'lamb' else k0
-            if key not in models._DFIELDS.keys():
+            if key not in _models._DFIELDS.keys():
                 dfail[k0] = "Unknown parameter"
                 continue
-            dparam[key] = dict(models._DFIELDS[key])
+            dparam[key] = dict(_models._DFIELDS[key])
 
         # -------------------
         # Raise Exception if any

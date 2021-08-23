@@ -5,11 +5,20 @@ Contains all the possibilities of each _core interaction
 # !pytest tests/test_01_Hub.py -v
 '''
 
-import _core
-import _plots as plots
+
+import os
+
+
+import gemmes as gem
+from gemmes import _plots as plots
+
+
+_PATH_OUTPUT_REF = os.path.join('gemmes', 'tests', 'output_ref')
+_MODEL = 'GK'
+
 
 # %% SHORT RUN ###############################################################
-hub = _core.Hub('GK')
+hub = gem.Hub(_MODEL)
 hub.run(verb=1.1)
 
 
@@ -18,29 +27,29 @@ hub.run(verb=1.1)
 
 # %% Information on available models
 
-_core._class_checks.models.get_available_models()
-_core._class_checks.models.get_available_models(details=False)
-dmodel = _core._class_checks.models.get_available_models(
-    returnas=dict, model='G_Reduced')
-lmodel = _core._class_checks.models.get_available_models(returnas=list)
+dmodels = gem.get_available_models(
+    returnas=dict, details=False, verb=True,
+)
 
-_core._solvers.get_available_solvers()
+# Get available solvers
+dsolvers = gem.get_available_solvers(
+    returnas=dict, verb=True,
+)
 
 # %% Saved run available
-
-_core._saveload.get_available_output(path='tests/output_ref/')
-dout = _core._saveload.get_available_output(
-    path='tests/output_ref/', returnas=dict)
+dout = gem.get_available_output(
+    path=_PATH_OUTPUT_REF, returnas=dict, verb=True,
+)
 
 
 # %% Load a model
 
-hub = _core.Hub('GK')  # , preset='default')
+hub = gem.Hub(_MODEL)  # , preset='default')
 # hub.load_preset('crisis')
 
 
 # %% Load a file
-#sol_load = _core._saveload.load(' ')
+# sol_load = _core._saveload.load(' ')
 
 # %% Runs
 
@@ -49,12 +58,16 @@ hub = _core.Hub('GK')  # , preset='default')
 'eRK2-scipy' (an Runge Kutta solver of order 2)
 'eRK4-scipy' (an Runge Kutta solver of order 4)
 'eRK8-scipy' (an Runge Kutta solver of order 8)
-We can also ask the solver to give more or less information about where it is in the resolution :
+We can also ask the solver to give more or less information about where it is
+    in the resolution :
 
 0 print nothing
 1 print all steps number but on the same line
 2 print all steps each time on the same line
-1.1 (or any float) will print the number of the iteration every time this value of time is spent (1.1 will give a print every 1.1 seconds) When using an IDE, use either 0 or a float (IDE don't work well with 1 and 2)
+1.1 (or any float) will print the number of the iteration every time this value
+    of time is spent (1.1 will give a print every 1.1 seconds)
+    When using an IDE, use either 0 or a float
+    (IDE don't work well with 1 and 2)
 '''
 hub.run(verb=1.1)
 
@@ -91,15 +104,15 @@ hub.FillCyclesForAll(ref='lambda')
 
 # %% PLOTS
 
-#dax = hub.plot(eqtype='ode', label='homemade', color='b')
+# dax = hub.plot(eqtype='ode', label='homemade', color='b')
 
-plots.AllVar(hub)
+hub.plot()
 
 plots.Var(hub, 'K', idx=0, cycles=True, log=True)
 plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)
 
-groupsofvariable = hub.get_groupsofvariable(returnas=dict)
-plots.AllPhaseSpace(hub, groupsofvariable[''], idx=0)
+groupsofvariable = hub.get_dparam_as_reverse_dict(crit='units')
+plots.AllPhaseSpace(hub, groupsofvariable['undefined'], idx=0)
 
 plots.ForEachUnitsGroup(hub)
 
