@@ -116,46 +116,6 @@ def phasespace(sol, x='omega', y='lambda', color='time', idx=0):
     plt.show()
 
 
-def AllPhaseSpace(sol, variablesREF, idx=0):
-    plt.figure('All Phasespace', figsize=(10, 7))
-    fig = plt.gcf()
-    leng = len(variablesREF)
-    NumbOfSubplot = int(leng * (leng - 1) / 2)
-
-    idd = 1
-    for ii, var1 in enumerate(variablesREF):
-        for var2 in variablesREF[ii + 1:]:
-
-            allvars = sol.get_dparam(returnas=dict)
-            xval = allvars[var1]['value'][:, idx]
-            yval = allvars[var2]['value'][:, idx]
-            t = allvars['time']['value'][:, idx]
-
-            points = np.array([xval, yval]).T.reshape(-1, 1, 2)
-            segments = np.concatenate([points[:-1], points[1:]], axis=1)
-
-            norm = plt.Normalize(t.min(), t.max())
-            lc = LineCollection(segments, cmap='viridis', norm=norm)
-            lc.set_array(t)
-            lc.set_linewidth(2)
-
-            plt.subplot(2, NumbOfSubplot, idd)
-            ax = plt.gca()
-            line = ax.add_collection(lc)
-            plt.xlabel(var1)
-            plt.ylabel(var2)
-            plt.xlim([np.amin(xval), np.amax(xval)])
-            plt.ylim([np.amin(yval), np.amax(yval)])
-            plt.axis('scaled')
-            idd += 1
-    fig.colorbar(line, ax=ax, label='time')
-    suptit = (
-        f"All Phasespace for model {sol.dmodel['name']}, system {idx}"
-    )
-    plt.suptitle(suptit)
-    plt.show()
-
-
 # #############################################################################
 # #############################################################################
 #                       DEPRECATED
@@ -285,3 +245,46 @@ def AllVar(
     if show is True:
         plt.show()
     return dax
+
+
+# DEPRECATED ?
+def AllPhaseSpace(sol, variablesREF, idx=0):
+    plt.figure('All Phasespace', figsize=(10, 7))
+    fig = plt.gcf()
+    leng = len(variablesREF)
+    NumbOfSubplot = int(leng * (leng - 1) / 2)
+
+    idd = 1
+    for ii, var1 in enumerate(variablesREF):
+        for var2 in variablesREF[ii + 1:]:
+
+            allvars = sol.get_dparam(returnas=dict)
+            xval = allvars[var1]['value'][:, idx]
+            yval = allvars[var2]['value'][:, idx]
+            t = allvars['time']['value'][:, idx]
+
+            points = np.array([xval, yval]).T.reshape(-1, 1, 2)
+            segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+            norm = plt.Normalize(t.min(), t.max())
+            lc = LineCollection(segments, cmap='viridis', norm=norm)
+            lc.set_array(t)
+            lc.set_linewidth(2)
+
+            plt.subplot(2, NumbOfSubplot, idd)
+            ax = plt.gca()
+            line = ax.add_collection(lc)
+            plt.xlabel(var1)
+            plt.ylabel(var2)
+            plt.xlim([np.amin(xval), np.amax(xval)])
+            plt.ylim([np.amin(yval), np.amax(yval)])
+            plt.axis('scaled')
+            idd += 1
+    fig.colorbar(line, ax=ax, label='time')
+    suptit = (
+        f"All Phasespace for model {sol.dmodel['name']}, system {idx}"
+    )
+    plt.suptitle(suptit)
+    plt.show()
+
+
