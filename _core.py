@@ -26,7 +26,9 @@ class Hub():
         self.__dmodel = dict.fromkeys(
             ['name', 'file', 'description', 'presets', 'preset']
         )
-        self.__dmisc = dict.fromkeys(['dfunc_order', 'run', 'solver'])
+        self.__dmisc = dict.fromkeys(
+            ['dmulti', 'dfunc_order', 'run', 'solver']
+        )
         self.__dargs = {}
         if model is not None:
             self.load_model(model, preset=preset, verb=verb)
@@ -58,6 +60,7 @@ class Hub():
         (
             self.__dmodel,
             self.__dparam,
+            self.__dmisc['dmulti'],
             self.__dmisc['dfunc_order'],
             self.__dargs,
         ) = _class_checks.load_model(model, verb=verb)
@@ -131,6 +134,7 @@ class Hub():
         # Update to check consistency
         (
             self.__dparam,
+            self.__dmisc['dmulti'],
             self.__dmisc['dfunc_order'],
             self.__dargs,
         ) = _class_checks.check_dparam(dparam=dparam, verb=verb)
@@ -269,22 +273,22 @@ class Hub():
 
         # reset ode variables
         for k0 in self.get_dparam(eqtype=['ode', 'statevar'], returnas=list):
-            if self.__dparam[k0]['eqtype'] == 'ode':
-                self.__dparam[k0]['value'][0, :] = self.__dparam[k0]['initial']
-                self.__dparam[k0]['value'][1:, :] = np.nan
-            elif self.__dparam[k0]['eqtype'] == 'statevar':
-                self.__dparam[k0]['value'][:, :] = np.nan
+            self.__dparam[k0]['value'][...] = np.nan
+
+        # Reset initial for ode
+        for k0 in self.get_dparam(eqtype=['ode'], returnas=list):
+            self.__dparam[k0]['value'][0, ...] = self.__dparam[k0]['initial']
 
         # recompute inital value for statevar
         lstate = self.__dmisc['dfunc_order']['statevar']
         for k0 in lstate:
             # prepare dict of args
             kwdargs = {
-                k1: v1[0, :]
+                k1: v1[0, ...]
                 for k1, v1 in self.__dargs[k0].items()
             }
             # run function
-            self.__dparam[k0]['value'][0, :] = (
+            self.__dparam[k0]['value'][0, ...] = (
                 self.__dparam[k0]['func'](**kwdargs)
             )
 
@@ -402,24 +406,77 @@ class Hub():
 
         # ----------
         # parameters
-        col2 = [
-            'Model param.', 'value', 'units', 'group', 'definition', 'comment',
-        ]
-        ar2 = [
-            [
-                k0,
-                _class_utility.paramfunc2str(dparam=self.__dparam, key=k0),
-                str(v0['units']),
-                v0['group'],
-                v0['definition'],
-                v0['com'],
+
+        large = np.any(np.array(self.__dmisc['dmulti']['shape']) > 4)
+        if large:
+            # if many systems => don't show all, just shape, min, max
+
+
+            col2 = [
+                'Model param.', 'value', 'min', 'max',
+                'units', 'group', 'definition', 'comment',
             ]
-            for k0, v0 in self.get_dparam(
-                returnas=dict,
-                eqtype=[None, 'param'],
-                group=('Numerical',),
-            ).items()
-        ]
+
+            ar2 = [
+                [
+                    k0,
+                    _class_utility.paramfunc2str(
+                        dparam=self.__dparam,
+                        key=k0,
+                        large=large,
+                        dmisc=self.__dmisc,
+                    ),
+                    _class_utility.param_minmax2str(
+                        dparam=self.__dparam,
+                        key=k0,
+                        large=large,
+                        dmisc=self.__dmisc,
+                        which='min',
+                    ),
+                    _class_utility.param_minmax2str(
+                        dparam=self.__dparam,
+                        key=k0,
+                        large=large,
+                        dmisc=self.__dmisc,
+                        which='max',
+                    ),
+                    str(v0['units']),
+                    v0['group'],
+                    v0['definition'],
+                    v0['com'],
+                ]
+                for k0, v0 in self.get_dparam(
+                    returnas=dict,
+                    eqtype=[None, 'param'],
+                    group=('Numerical',),
+                ).items()
+            ]
+
+        else:
+            col2 = [
+                'Model param.', 'value', 'units',
+                'group', 'definition', 'comment',
+            ]
+            ar2 = [
+                [
+                    k0,
+                    _class_utility.paramfunc2str(
+                        dparam=self.__dparam,
+                        key=k0,
+                        large=large,
+                        dmisc=self.__dmisc,
+                    ),
+                    str(v0['units']),
+                    v0['group'],
+                    v0['definition'],
+                    v0['com'],
+                ]
+                for k0, v0 in self.get_dparam(
+                    returnas=dict,
+                    eqtype=[None, 'param'],
+                    group=('Numerical',),
+                ).items()
+            ]
 
         # ----------
         # functions
@@ -517,6 +574,7 @@ class Hub():
             solver = _solvers.solve(
                 solver=solver,
                 dparam=self.__dparam,
+                dmulti=self.__dmisc['dmulti'],
                 lode=lode,
                 lstate=lstate,
                 dargs=self.__dargs,
