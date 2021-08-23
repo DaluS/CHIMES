@@ -289,11 +289,19 @@ def _equal(obj1, obj2, verb=None, return_dfail=None):
 # #############################################################################
 
 
-def paramfunc2str(dparam=None, key=None):
+def paramfunc2str(
+    dparam=None,
+    key=None,
+    large=None,
+    dmisc=None,
+):
 
     eqtype = dparam[key].get('eqtype')
     if eqtype is None:
-        msg = str(dparam[key]['value'])
+        if large and key in dmisc['dmulti']['keys']:
+            msg = str((dparam[key]['value'].size))
+        else:
+            msg = str(dparam[key]['value'])
     elif eqtype in ['param', 'ode', 'statevar']:
         if dparam[key].get('source_exp') is None:
             kargs = ', '.join([
@@ -304,4 +312,27 @@ def paramfunc2str(dparam=None, key=None):
         else:
             msg = dparam[key]['source_exp']
 
+    return msg
+
+
+def param_minmax2str(
+    dparam=None,
+    key=None,
+    large=None,
+    dmisc=None,
+    which=None,
+):
+
+    c0 = (
+        large
+        and dparam[key].get('eqtype') is None
+        and key in dmisc['dmulti']['keys']
+    )
+    if c0:
+        if which == 'min':
+            msg = str(np.nanmin(dparam[key]['value']))
+        else:
+            msg = str(np.nanmax(dparam[key]['value']))
+    else:
+        msg = ''
     return msg
