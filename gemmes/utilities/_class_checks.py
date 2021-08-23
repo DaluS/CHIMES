@@ -13,7 +13,7 @@ import numpy as np
 
 
 # library specific
-import models
+from .. import models
 
 
 _PATH_HERE = os.path.dirname(__file__)
