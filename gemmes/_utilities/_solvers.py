@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt     # DB
 from . import _utils
 from . import _class_checks
 
+
 _SCIPY_URL_BASE = 'https://docs.scipy.org/doc/scipy/reference/generated/'
 _SCIPY_URL = (
     _SCIPY_URL_BASE

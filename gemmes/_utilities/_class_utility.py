@@ -246,7 +246,7 @@ def _equal(obj1, obj2, verb=None, return_dfail=None):
     # Basic check
     if type(obj1) != type(obj2):
         if verb is True:
-            msg = "Object have different types ({type(obj1)} vs {type(obj2)})!"
+            msg = f"Object have different types ({type(obj1)} vs {type(obj2)})!"
             print(msg)
         return False
 

@@ -19,15 +19,15 @@ plt.ion()
 
 
 _PATH_HERE = os.path.abspath(os.path.dirname(__file__))
-_PATH_PCK = os.path.dirname(_PATH_HERE)
+_PATH_PCK = os.path.dirname(os.path.dirname(_PATH_HERE))
 _PATH_OUTPUT = os.path.join(_PATH_HERE, 'output_temp')
 _PATH_OUTPUT_REF = os.path.join(_PATH_HERE, 'output_ref')
-_PATH_MODELS = os.path.join(_PATH_PCK, 'models')
+_PATH_MODELS = os.path.join(_PATH_PCK, 'gemmes', '_models')
 
 
 # library-specific
 sys.path.insert(0, _PATH_PCK)   # ensure Main comes from .. => add PYTHONPATH
-import _core
+import gemmes as gem
 sys.path.pop(0)                 # clean PYTHONPATH
 
 
@@ -82,14 +82,14 @@ class Test01_Hub():
 
     def test01_init_from_all_models(self):
         """ Make sure the main function runs from a python console """
-        dmodel = _core._class_checks.models.get_available_models(
+        dmodel = gem.get_available_models(
             returnas=dict,
         )
         for model in dmodel.keys():
             lpresets = [None] + dmodel[model]['presets']
             self.dhub[model] = dict.fromkeys(lpresets)
             for preset in lpresets:
-                self.dhub[model][preset] = _core.Hub(model, preset=preset)
+                self.dhub[model][preset] = gem.Hub(model, preset=preset)
 
     def test02_get_summary_repr(self):
         for model in self.dhub.keys():
@@ -139,7 +139,7 @@ class Test01_Hub():
         for ii, model in enumerate(self.dhub.keys()):
             for jj, preset in enumerate(self.dhub[model].keys()):
                 self.dhub[model][preset] = {
-                    solver: _core.Hub(model, preset=preset)
+                    solver: gem.Hub(model, preset=preset)
                     for solver in self.lsolvers
                 }
                 for kk, solver in enumerate(self.lsolvers):
@@ -184,7 +184,7 @@ class Test01_Hub():
                     )
 
     def test10_load_and_equal(self):
-        df = _core._saveload.get_available_output(
+        df = gem.get_available_output(
             path=_PATH_OUTPUT,
             returnas=dict,
         )
@@ -196,7 +196,7 @@ class Test01_Hub():
                 model_file = os.path.join(_PATH_MODELS, f'_model_{model0}.py')
             else:
                 model_file = None
-            obj = _core._saveload.load(ff, model_file=model_file)[0]
+            obj = gem.load(ff, model_file=model_file)[0]
             model = obj.dmodel['name']
             preset = obj.dmodel['preset']
             solver = obj.dmisc['solver']
@@ -216,11 +216,11 @@ class Test01_Hub():
     def test12_nonregression_output(self):
 
         # load reference files
-        df_ref = _core._saveload.get_available_output(
+        df_ref = gem.get_available_output(
             path=_PATH_OUTPUT_REF,
             returnas=dict,
         )
-        lobj_ref = _core._saveload.load(list(df_ref.keys()))
+        lobj_ref = gem.load(list(df_ref.keys()))
 
         # compare to current output
         dfail = {}
