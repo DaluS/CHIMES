@@ -286,5 +286,3 @@ def AllPhaseSpace(sol, variablesREF, idx=0):
     )
     plt.suptitle(suptit)
     plt.show()
-
-
