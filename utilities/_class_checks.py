@@ -29,6 +29,7 @@ _DMODEL_KEYS = {
     'name': str,
 }
 _LTYPES = [int, float, np.int_, np.float_]
+_LTYPES_ARRAY = [list, tuple, np.ndarray]
 _LEQTYPES = ['ode', 'pde', 'statevar', 'param', 'undeclared']
 
 
@@ -126,9 +127,9 @@ def load_model(model=None, verb=None):
 
     # --------------------
     # re-check dparam + Identify functions order + get dargs
-    dparam, dfunc_order, dargs = check_dparam(dparam=dparam, verb=verb)
+    dparam, dmulti, dfunc_order, dargs = check_dparam(dparam=dparam, verb=verb)
 
-    return dmodel, dparam, dfunc_order, dargs
+    return dmodel, dparam, dmulti, dfunc_order, dargs
 
 
 # #############################################################################
@@ -403,7 +404,7 @@ def _check_dparam(dparam=None):
     for k0, v0 in dparam.items():
 
         # if value directly provided => put into dict
-        if v0 is None or type(v0) in _LTYPES + [list, np.ndarray, str, bool]:
+        if v0 is None or type(v0) in _LTYPES + _LTYPES_ARRAY + [str, bool]:
             dparam[k0] = {'value': v0}
 
         # if function directly provided => put inot dict
@@ -445,8 +446,8 @@ def _check_dparam(dparam=None):
             )
             c1 = (
                 not c0
-                and type(dparam[k0]['value']) in _LTYPES + [
-                    list, np.ndarray, str, bool,
+                and type(dparam[k0]['value']) in _LTYPES + _LTYPES_ARRAY + [
+                    str, bool,
                 ]
             )
 
@@ -487,6 +488,42 @@ def _check_dparam(dparam=None):
     return dparam
 
 
+def _get_multiple_systems(dparam):
+
+    # only fixed-value parameters can
+    lkeys = [
+        k0 for k0, v0 in dparam.items()
+        if v0.get('eqtype') is None
+        and isinstance(v0['value'], tuple(_LTYPES_ARRAY))
+    ]
+
+    if len(lkeys) > 0:
+        # make sure they are all 1d
+        for k0 in lkeys:
+            dparam[k0]['value'] = np.atleast_1d(dparam[k0]['value']).ravel()
+
+        # Get shape
+        shape = tuple([dparam[k0]['value'].size for k0 in lkeys])
+
+        # update shape of values to ensure broadcasting
+        # e.g.: shapek0 = (1, 1, sizek0, 1)
+        for k0 in lkeys:
+            shapek0 = tuple([
+                shape[ii] if k1 == k0 else 1
+                for ii, k1 in enumerate(lkeys)
+            ])
+            dparam[k0]['value'] = dparam[k0]['value'].reshape(shapek0)
+
+        # update nx
+        dparam['nx']['value'] = np.prod(shape)
+
+    else:
+        shape = (1,)
+        dparam['nx']['value'] = 1
+
+    return {'keys': lkeys, 'shape': shape}
+
+
 # #############################################################################
 # #############################################################################
 #                       dparam checks - high-level
@@ -515,9 +552,13 @@ def check_dparam(dparam=None, verb=None):
     _extract_parameters(dparam, verb=verb)
     dparam = _check_dparam(dparam)
 
+    # -------------------
+    # Identify multiple systems
+    dmulti = _get_multiple_systems(dparam)
+
     # ----------------
     # Identify functions
-    dparam, dfunc_order = _check_func(dparam, verb=verb)
+    dparam, dfunc_order = _check_func(dparam, dmulti=dmulti, verb=verb)
 
     # ----------------
     # Make sure to copy to avoid passing by reference
@@ -557,7 +598,7 @@ def check_dparam(dparam=None, verb=None):
         if c0 and 'lambda' in dparam[k0]['kargs']:
             dargs[k0]['lamb'] = dparam['lambda']['value']
 
-    return dparam, dfunc_order, dargs
+    return dparam, dmulti, dfunc_order, dargs
 
 
 # #############################################################################
@@ -771,7 +812,7 @@ def _check_func_get_source(lfunc=None, dparam=None):
             dparam[k0]['source_kargs'] = kargs
 
 
-def _check_func(dparam=None, verb=None):
+def _check_func(dparam=None, dmulti=None, verb=None):
     """ Check basic conformity of functions
 
     They must:
@@ -937,7 +978,7 @@ def _check_func(dparam=None, verb=None):
 
     # -------------------------------------------
     # Create variables for all varying quantities
-    shape = (dparam['nt']['value'], dparam['nx']['value'])
+    shape = tuple(np.r_[dparam['nt']['value'], dmulti['shape']])
     for k0 in lfunc:
         if dparam[k0]['eqtype'] not in ['param']:
             dparam[k0]['value'] = np.full(shape, np.nan)
@@ -1301,7 +1342,7 @@ def update_from_preset(dparam=None, dmodel=None, preset=None):
         k0 for k0, v0 in dmodel['presets'][preset]['fields'].items()
         if not (
             k0 in dparam.keys()
-            and isinstance(v0, tuple(_LTYPES))
+            and isinstance(v0, tuple(_LTYPES + _LTYPES_ARRAY))
         )
     ]
     if len(lkout) > 0:
