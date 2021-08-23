@@ -49,7 +49,7 @@ hub = gem.Hub(_MODEL)  # , preset='default')
 
 
 # %% Load a file
-#sol_load = _core._saveload.load(' ')
+# sol_load = _core._saveload.load(' ')
 
 # %% Runs
 
@@ -58,12 +58,16 @@ hub = gem.Hub(_MODEL)  # , preset='default')
 'eRK2-scipy' (an Runge Kutta solver of order 2)
 'eRK4-scipy' (an Runge Kutta solver of order 4)
 'eRK8-scipy' (an Runge Kutta solver of order 8)
-We can also ask the solver to give more or less information about where it is in the resolution :
+We can also ask the solver to give more or less information about where it is
+    in the resolution :
 
 0 print nothing
 1 print all steps number but on the same line
 2 print all steps each time on the same line
-1.1 (or any float) will print the number of the iteration every time this value of time is spent (1.1 will give a print every 1.1 seconds) When using an IDE, use either 0 or a float (IDE don't work well with 1 and 2)
+1.1 (or any float) will print the number of the iteration every time this value
+    of time is spent (1.1 will give a print every 1.1 seconds)
+    When using an IDE, use either 0 or a float
+    (IDE don't work well with 1 and 2)
 '''
 hub.run(verb=1.1)
 
@@ -100,7 +104,7 @@ hub.FillCyclesForAll(ref='lambda')
 
 # %% PLOTS
 
-#dax = hub.plot(eqtype='ode', label='homemade', color='b')
+# dax = hub.plot(eqtype='ode', label='homemade', color='b')
 
 hub.plot()
 

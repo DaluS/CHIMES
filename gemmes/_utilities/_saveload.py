@@ -232,7 +232,7 @@ def load(pfe, model_file=None):
 
     # --------------
     # load and instanciate
-    from .. import  _core
+    from .. import _core
 
     lobj = [
         _core.Hub._from_dict(

@@ -117,15 +117,14 @@ def phasespace(sol, x='omega', y='lambda', color='time', idx=0):
 
 
 def AllPhaseSpace(sol, variablesREF, idx=0):
-    plt.figure('All Phasespace for system :'+str(idx)+' for model : ' +
-               sol.dmodel['name'], figsize=(10, 7))
+    plt.figure('All Phasespace', figsize=(10, 7))
     fig = plt.gcf()
     leng = len(variablesREF)
-    NumbOfSubplot = int(leng*(leng-1)/2)
+    NumbOfSubplot = int(leng * (leng - 1) / 2)
 
     idd = 1
     for ii, var1 in enumerate(variablesREF):
-        for var2 in variablesREF[ii+1:]:
+        for var2 in variablesREF[ii + 1:]:
 
             allvars = sol.get_dparam(returnas=dict)
             xval = allvars[var1]['value'][:, idx]
@@ -150,8 +149,10 @@ def AllPhaseSpace(sol, variablesREF, idx=0):
             plt.axis('scaled')
             idd += 1
     fig.colorbar(line, ax=ax, label='time')
-    plt.suptitle('All Phasespace for system :'+str(idx)+' for model : ' +
-                 list(sol.model.keys())[0])
+    suptit = (
+        f"All Phasespace for model {sol.dmodel['name']}, system {idx}"
+    )
+    plt.suptitle(suptit)
     plt.show()
 
 
@@ -284,5 +285,3 @@ def AllVar(
     if show is True:
         plt.show()
     return dax
-
-
