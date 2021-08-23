@@ -11,9 +11,9 @@ import numpy as np
 
 
 # Library-specific
-from .utilities import _utils, _class_checks, _class_utility
-from .utilities import _solvers, _saveload
-from .plots import _plot_timetraces
+from ._utilities import _utils, _class_checks, _class_utility
+from ._utilities import _solvers, _saveload
+from ._plots import _plot_timetraces
 
 
 class Hub():

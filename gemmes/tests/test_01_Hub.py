@@ -22,7 +22,7 @@ _PATH_HERE = os.path.abspath(os.path.dirname(__file__))
 _PATH_PCK = os.path.dirname(_PATH_HERE)
 _PATH_OUTPUT = os.path.join(_PATH_HERE, 'output_temp')
 _PATH_OUTPUT_REF = os.path.join(_PATH_HERE, 'output_ref')
-_PATH_MODELS = os.path.join(_PATH_PCK, 'models')
+_PATH_MODELS = os.path.join(_PATH_PCK, '_models')
 
 
 # library-specific

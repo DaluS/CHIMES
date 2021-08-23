@@ -19,7 +19,7 @@ _PATH_HERE = os.path.dirname(__file__)
 _PATH_OUTPUT = os.path.join(os.path.dirname(_PATH_HERE), 'output')
 _PATH_MODELS = os.path.join(
     os.path.dirname(_PATH_HERE),
-    'models',
+    '_models',
 )
 
 
