@@ -150,6 +150,7 @@ def _check_solver(solver):
 def solve(
     solver=None,
     dparam=None,
+    dmulti=None,
     lode=None,
     lstate=None,
     dargs=None,
@@ -166,19 +167,15 @@ def solve(
     solver = _check_solver(solver)
 
     # -----------
-    # create buffer for temp
-    dargs_temp = {
-        k0: {k1: v1[-1, ...] for k1, v1 in v0.items()}
-        for k0, v0 in dargs.items()
-    }
-
-    # -----------
     # Define the function that takes/returns all functions
 
     dydt_func, lode_solve = get_func_dydt(
-        dparam=dparam, dargs_temp=dargs_temp,
-        lode=lode, lstate=lstate,
-        inc_time='homemade' in solver,
+        dparam=dparam,
+        dargs=dargs,
+        lode=lode,
+        lstate=lstate,
+        scipy='scipy' in solver,
+        dmulti=dmulti,
     )
 
     # -----------
@@ -214,6 +211,7 @@ def solve(
             max_time_step=max_time_step,
             solver=solver,
             dverb=dverb,
+            dmulti=dmulti,
         )
 
     # ----------------------
@@ -234,31 +232,41 @@ def solve(
 
 def get_func_dydt(
     dparam=None,
-    dargs_temp=None,
+    dargs=None,
     lode=None,
     lstate=None,
-    inc_time=None,
+    scipy=None,
+    dmulti=None,
 ):
-
-    # ---------------
-    # check inputs
-
-    if inc_time is None:
-        inc_time = True
 
     # ---------------
     # Get list of ode except time
 
-    if inc_time:
-        lode_solve = lode
-    else:
+    if scipy:
         lode_solve = [k0 for k0 in lode if k0 != 'time']
+        shape = (len(lode_solve), dparam['nx']['value'])
+    else:
+        lode_solve = lode
+        shape = tuple(np.r_[len(lode_solve), dmulti['shape']])
 
     # ---------------------
     # prepare array to be used as buffer
     # (to avoid a new array creation everytime the function is called)
 
-    dydt = np.full((len(lode_solve), dparam['nx']['value']), np.nan)
+    # array of dydt
+    dydt = np.full(shape, np.nan)
+
+    # dict of values
+    dbuffer = {
+        k0: np.full(shape[1:], np.nan)
+        for k0 in lode_solve + lstate
+    }
+
+    # dict of args, takes values in dbuffer by reference
+    dargs_temp = {
+        k0: {k1: dbuffer['lambda' if k1 == 'lamb' else k1] for k1 in dargs[k0].keys()}
+        for k0 in dargs.keys()
+    }
 
     # -----------------
     # get func
@@ -271,6 +279,7 @@ def get_func_dydt(
         dargs_temp=dargs_temp,
         lode_solve=lode_solve,
         lstate=lstate,
+        dbuffer=dbuffer,
     ):
         """ dydt = f(t, y)
 
@@ -288,14 +297,16 @@ def get_func_dydt(
         # update cache => also updates dargs and dargs_temp by reference
         # used by dargs_temp (by reference)
         for ii, k0 in enumerate(lode_solve):
-            dparam[k0]['value'][-1, ...] = y[ii, ...]
+            # dparam[k0]['value'][-1, ...] = y[ii, ...]
+            dbuffer[k0][...] = y[ii, ...]
 
         # ------------
         # First update intermediary functions based on provided y
         # The last time step is used as temporary buffer
         # used by dargs_temp (by reference)
         for ii, k0 in enumerate(lstate):
-            dparam[k0]['value'][-1, ...] = dparam[k0]['func'](**dargs_temp[k0])
+            # dparam[k0]['value'][-1, ...] = dparam[k0]['func'](**dargs_temp[k0])
+            dbuffer[k0][...] = dparam[k0]['func'](**dargs_temp[k0])
 
         # ------------
         # Then compute derivative dydt (ode)
@@ -385,6 +396,7 @@ def _solver_scipy(
     dverb=None,
     max_time_step=None,
     solver=None,
+    dmulti=None,
 ):
     """ scipy.RK45 solver, for cross-checking
 
@@ -405,12 +417,6 @@ def _solver_scipy(
         atol = 1.e-6
     if max_time_step is None:
         max_time_step = 10. * dparam['dt']['value']
-
-    if dparam['nx']['value'] > 1:
-        msg = (
-            "scipy solvers only implemented for nx = 1"
-        )
-        raise Exception(msg)
 
     # -----------------
     # define t_span, t_eval
@@ -469,10 +475,21 @@ def _solver_scipy(
     # ---------------------
     # dispatch results
 
-    for ii, k0 in enumerate(lode):
-        dparam[k0]['value'][:indmax, 0] = sol.y[ii, ...]
+    if len(dmulti['shape']) > 1:
+        import pdb; pdb.set_trace()     # DB
+        for ii, k0 in enumerate(lode):
+            dparam[k0]['value'][:indmax, ...] = np.reshape(
+                sol.y[ii, ...],
+                dmulti['shape'],
+            )
+
+    else:
+        for ii, k0 in enumerate(lode):
+            dparam[k0]['value'][:indmax, ...] = sol.y[ii, ...]
+
+    shapet = tuple([indmax.size] + [1 for ii in dmulti['shape']])
     dparam['time']['value'][:indmax, ...] = np.repeat(
-        sol.t[:, None],
+        sol.t.reshape(shapet),
         dparam['nx']['value'],
         axis=1,
     )
