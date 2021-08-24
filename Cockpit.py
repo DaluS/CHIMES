@@ -112,7 +112,7 @@ plots.Var(hub, 'K', idx=0, cycles=True, log=True)
 plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)
 
 groupsofvariable = hub.get_dparam_as_reverse_dict(crit='units')
-plots.AllPhaseSpace(hub, groupsofvariable['undefined'], idx=0)
+# plots.AllPhaseSpace(hub, groupsofvariable['undefined'], idx=0)
 
 plots.ForEachUnitsGroup(hub)
 
@@ -121,5 +121,5 @@ plots.phasespace(hub, x='omega', y='d', idx=0)
 plots.phasespace(hub, x='omega', y='lambda', color='d', idx=0)
 
 
-dimensionlessnumbers = ['omega', 'lambda', 'd']
-plots.AllPhaseSpace(hub, dimensionlessnumbers, idx=0)
+# dimensionlessnumbers = ['omega', 'lambda', 'd']
+# plots.AllPhaseSpace(hub, dimensionlessnumbers, idx=0)
