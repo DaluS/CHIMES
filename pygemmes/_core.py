@@ -374,151 +374,35 @@ class Hub():
         else:
             return col0, ar0
 
-    def get_summary(self, idx=0):
+    def get_summary(self, idx=None):
         """
         Print a str summary of the solver
 
         """
 
         # ----------
-        # starting with headr from __repr__
+        # check inputs
 
+        idx = _class_checks._check_idx(
+            idx=idx,
+            nt=self.__dparam['nt']['value'],
+            dmulti=self.__dmisc['dmulti'],
+        )
+        # ----------
+        # starting with headr from __repr__
         col0, ar0 = self.__repr__(verb=False)
 
         # ----------
         # Numerical parameters
-        col1 = ['Numerical param.', 'value', 'units', 'definition', 'comment']
-        ar1 = [
-            [
-                k0,
-                _class_utility.paramfunc2str(dparam=self.__dparam, key=k0),
-                v0['units'],
-                v0['definition'],
-                v0['com'],
-            ]
-            for k0, v0 in self.get_dparam(
-                returnas=dict,
-                eqtype=[None, 'param'],
-                group='Numerical',
-            ).items()
-        ]
-        ar1.append(['run', str(self.__dmisc['run']), '', '', ''])
+        col1, ar1 = _class_utility._get_summary_numerical(self)
 
         # ----------
         # parameters
-
-        large = np.any(np.array(self.__dmisc['dmulti']['shape']) > 4)
-        if large:
-            # if many systems => don't show all, just shape, min, max
-
-
-            col2 = [
-                'Model param.', 'value', 'min', 'max',
-                'units', 'group', 'definition', 'comment',
-            ]
-
-            ar2 = [
-                [
-                    k0,
-                    _class_utility.paramfunc2str(
-                        dparam=self.__dparam,
-                        key=k0,
-                        large=large,
-                        dmisc=self.__dmisc,
-                    ),
-                    _class_utility.param_minmax2str(
-                        dparam=self.__dparam,
-                        key=k0,
-                        large=large,
-                        dmisc=self.__dmisc,
-                        which='min',
-                    ),
-                    _class_utility.param_minmax2str(
-                        dparam=self.__dparam,
-                        key=k0,
-                        large=large,
-                        dmisc=self.__dmisc,
-                        which='max',
-                    ),
-                    str(v0['units']),
-                    v0['group'],
-                    v0['definition'],
-                    v0['com'],
-                ]
-                for k0, v0 in self.get_dparam(
-                    returnas=dict,
-                    eqtype=[None, 'param'],
-                    group=('Numerical',),
-                ).items()
-            ]
-
-        else:
-            col2 = [
-                'Model param.', 'value', 'units',
-                'group', 'definition', 'comment',
-            ]
-            ar2 = [
-                [
-                    k0,
-                    _class_utility.paramfunc2str(
-                        dparam=self.__dparam,
-                        key=k0,
-                        large=large,
-                        dmisc=self.__dmisc,
-                    ),
-                    str(v0['units']),
-                    v0['group'],
-                    v0['definition'],
-                    v0['com'],
-                ]
-                for k0, v0 in self.get_dparam(
-                    returnas=dict,
-                    eqtype=[None, 'param'],
-                    group=('Numerical',),
-                ).items()
-            ]
+        col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx)
 
         # ----------
         # functions
-        col3 = [
-            'function', 'source', 'initial', 'units', 'eqtype',
-            'definition', 'comment',
-        ]
-        ar3 = [
-            [
-                k0,
-                _class_utility.paramfunc2str(dparam=self.__dparam, key=k0),
-                "{:.2e}".format(v0.get('value')[0, idx]),
-                v0['units'],
-                v0['eqtype'],
-                v0['definition'],
-                v0['com'],
-            ]
-            for k0, v0 in self.get_dparam(
-                returnas=dict,
-                eqtype=['ode', 'statevar'],
-            ).items()
-        ]
-
-        # --------------------------
-        # Add solver and final value if has run
-        if self.__dmisc['run'] is True:
-
-            # add solver
-            ar1.append(['solver', self.__dmisc['solver'], '', '', ''])
-
-            # add column title
-            col3.insert(3, 'final')
-
-            # add final value to each variable
-            ii = 0
-            for k0, v0 in self.__dparam.items():
-                if v0.get('eqtype') in ['ode', 'statevar']:
-                    ar3[ii].insert(
-                        3,
-                        "{:.2e}".format(v0.get('value')[-1, idx]),
-                    )
-                    ii += 1
+        col3, ar3 = _class_utility._get_summary_functions(self, idx=idx)
 
         # ----------
         # format output
@@ -743,6 +627,15 @@ class Hub():
         """
         Launch the basic plot: time traces
         """
+
+        # -------------
+        # check inputs
+
+        idx = _class_checks._check_idx(
+            idx=idx,
+            nt=self.__dparam['nt']['value'],
+            dmulti=self.__dmisc['dmulti'],
+        )
 
         return _plot_timetraces.plot_timetraces(
             self,
