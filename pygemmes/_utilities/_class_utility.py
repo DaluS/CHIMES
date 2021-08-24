@@ -306,7 +306,7 @@ def paramfunc2str(
         if large and key in dmisc['dmulti']['keys']:
             msg = str(dparam[key]['value'].shape)
         else:
-            msg = str(dparam[key]['value'])
+            msg = '{:4.2g}'.format(dparam[key]['value'])
     elif eqtype in ['param', 'ode', 'statevar']:
         if dparam[key].get('source_exp') is None:
             kargs = ', '.join([
@@ -330,14 +330,17 @@ def param_minmax2str(
 
     c0 = (
         large
-        and dparam[key].get('eqtype') is None
-        and key in dmisc['dmulti']['keys']
+        and dparam[key].get('eqtype') in [None, 'param']
+        and (
+            key in dmisc['dmulti']['keys']
+            or hasattr(dparam[key]['value'], '__iter__')
+        )
     )
     if c0:
         if which == 'min':
-            msg = str(np.nanmin(dparam[key]['value']))
+            msg = "{:4.2g}".format(np.nanmin(dparam[key]['value']))
         else:
-            msg = str(np.nanmax(dparam[key]['value']))
+            msg = "{:4.2g}".format(np.nanmax(dparam[key]['value']))
     else:
         msg = ''
     return msg
