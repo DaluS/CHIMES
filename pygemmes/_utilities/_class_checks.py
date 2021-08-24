@@ -1437,3 +1437,48 @@ def _print_or_wait(
             )
             print(msg, end=end, flush=flush)
     return t0
+
+
+# #############################################################################
+# #############################################################################
+#                       check idx
+# #############################################################################
+
+def _check_idx(idx=None, nt=None, dmulti=None):
+    """ Check idx is conform to dmulti['shape']
+
+    Return None or a time slice
+
+    """
+
+    c0 = (
+        idx is None
+        or (
+            len(dmulti['shape']) == 1
+            and isinstance(idx, int)
+        )
+        or (
+            hasattr(idx, '__iter__')
+            and len(idx) == len(dmulti['shape'])
+            and all([
+                isinstance(ii, int)
+                and 0 <= vv < dmulti['shape'][ii]
+                for ii, vv in enumerate(idx)
+            ])
+        )
+    )
+    if not c0:
+        msg = (
+            "Arg idx must be either:\n"
+            "\t- None\n"
+            "\t- iterable of int indices\n"
+            f"Provided: {idx}"
+        )
+        raise Exception(msg)
+
+    if isinstance(idx, int):
+        idx = [idx]
+
+    if idx is not None:
+        idx = tuple([slice(0, nt)] + list(idx))
+    return idx
