@@ -3,6 +3,7 @@
 # %% Importations ###########
 
 # built-in
+import copy
 import time
 
 
@@ -666,10 +667,10 @@ class Hub():
         """ Convert instance to dict """
 
         dout = {
-            'dmodel': dict(self.__dmodel),
+            'dmodel': copy.deepcopy(self.__dmodel),
             'dparam': self.get_dparam(returnas=dict, verb=False),
-            'dmisc': dict(self.__dmisc),
-            'dargs': dict(self.__dargs),
+            'dmisc': copy.deepcopy(self.__dmisc),
+            'dargs': copy.deepcopy(self.__dargs),
         }
         return dout
 

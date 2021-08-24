@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
 
+# Standard
+import copy
+
+
 # Common
 import numpy as np
 
@@ -131,7 +135,7 @@ def _get_dict_subset(
 
     if returnas is dict:
         # return a copy of the dict
-        return {k0: dict(indict[k0]) for k0 in lk}
+        return copy.deepcopy({k0: dict(indict[k0]) for k0 in lk})
     elif returnas is list:
         # return only the keys
         return lk
