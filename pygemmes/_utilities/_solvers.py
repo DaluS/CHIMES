@@ -250,14 +250,15 @@ def get_func_dydt(
     # ---------------
     # Get list of ode except time
 
+    if 'scipy' in solver and vectorized is True:
+        msg = "Vectorized version for implicit solvers not implemented yet"
+        raise NotImplementedError(msg)
+
+
     if 'scipy' in solver:
         lode_solve = [k0 for k0 in lode if k0 != 'time']
-        if vectorized is False:
-            shape = (len(lode_solve), 1)
-            shapebuf = (1,)
-        else:
-            msg = "Vectorized version for implicit solvers not implemented yet"
-            raise NotImplementedError(msg)
+        shapey = (len(lode_solve),)
+        shapebuf = (1,)
     else:
         lode_solve = lode
         shape = tuple(np.r_[len(lode_solve), dmulti['shape']])
@@ -288,56 +289,8 @@ def get_func_dydt(
     # -----------------
     # get func
 
-    if 'scipy' in solver and vectorized is True:
+    if 'scipy' in solver and False:
         pass
-
-    elif 'scipy' in solver and dparam['nx']['value'] > 1:
-        def func(
-            t,
-            y,
-            dargs_temp=dargs_temp,
-            dydt=dydt,
-            dparam=dparam,
-            lode_solve=lode_solve,
-            lstate=lstate,
-            dbuffer=dbuffer,
-        ):
-            """ dydt = f(t, y)
-
-            Where y is a (n,) array
-            y[0] = fisrt ode
-            y[1] = second ode
-            ...
-            y[n] = last ode
-
-            All intermediate values ae stored in dparam[k0]['value'][-1, 0]
-
-            """
-
-            # ------------
-            # update cache => also updates dargs and dargs_temp by reference
-            # used by dargs_temp (by reference)
-            for ii, k0 in enumerate(lode_solve):
-                dbuffer[k0][...] = y[ii, ...]
-
-            # ------------
-            # First update intermediary functions based on provided y
-            # The last time step is used as temporary buffer
-            # used by dargs_temp (by reference)
-            for ii, k0 in enumerate(lstate):
-                dbuffer[k0][...] = dparam[k0]['func'](**dargs_temp[k0])
-
-            # ------------
-            # Then compute derivative dydt (ode)
-
-            for ii, k0 in enumerate(lode_solve):
-                if 'itself' in dparam[k0]['kargs']:
-                    dydt[ii, ...] = dparam[k0]['func'](
-                        itself=y[ii, ...], **dargs_temp[k0],
-                    )
-                else:
-                    dydt[ii, ...] = dparam[k0]['func'](**dargs_temp[k0])
-            return dydt
 
     else:
         def func(
@@ -549,9 +502,8 @@ def _solver_scipy(
 
             # get correct set of indices and slice
             lind = list((ii // rat) % shape)
-            slic = tuple([slice(0, len(lode))] + lind)
 
-            # update dargs_temp with parameters
+            # update dargs_temp with parameters TBF with function parameters !!
             for k0, v0 in dkup.items():
                 for (k1, jj) in v0:
                     indj[jj] = lind[jj]
@@ -559,6 +511,7 @@ def _solver_scipy(
                     indj[jj] = 0
 
             # solve
+            slic = tuple([slice(0, len(lode))] + lind)
             sol = scpinteg.solve_ivp(
                 dydt_func,
                 t_span,
