@@ -314,7 +314,9 @@ def paramfunc2str(
             if not hasattr(dparam[key]['value'], '__iter__'):
                 msg = '{:4.2g}'.format(dparam[key]['value'])
             elif idx is None:
-                msg = '{:4.2g}'.format(dparam[key]['value'])
+                msg = ', '.join([
+                    f'{aa:4.2g}' for aa in dparam[key]['value'].ravel()
+                ])
             else:
                 if dmisc['dmulti']['grid']:
                     ind = list(idx[1:])

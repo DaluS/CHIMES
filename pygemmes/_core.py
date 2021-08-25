@@ -145,6 +145,20 @@ class Hub():
                     + "See get_dparam() method"
                 )
                 raise Exception(msg)
+            c0 = (
+                self.__dmisc['dmulti']['grid'] is False
+                and hasattr(value, '__iter__')
+                and self.__dmisc['dmulti']['shape'] != (1,)
+                and len(value) != self.__dmisc['dmulti']['shape'][0]
+            )
+            if c0:
+                raise _class_checks.ShapeError(
+                    dparam=self.__dparam,
+                    lkeys=set([key] + self.__dmisc['dmulti']['keys']),
+                    key=key,
+                    value=np.array(value).ravel(),
+                )
+
             dparam = dict(self.__dparam)
             dparam[key]['value'] = value
 

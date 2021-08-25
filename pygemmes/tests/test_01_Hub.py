@@ -317,14 +317,9 @@ class Test02_Hub_MultipleSystems():
         for model in self.lmodels:
             for solver in self.lsolvers:
                 for grid in [True, False]:
-                    self.dhub[model][solver][grid] = pgm.Hub(model)
 
-    def test01_set_dparam(self):
-        for model in self.lmodels:
-            for solver in self.lsolvers:
-                for grid in [True, False]:
-
-                    hub = self.dhub[model][solver][grid]
+                    hub = pgm.Hub(model)
+                    self.dhub[model][solver][grid] = hub
 
                     # set k0, v0
                     lpar = hub.get_dparam(
@@ -338,34 +333,57 @@ class Test02_Hub_MultipleSystems():
                     v1_grid = hub.dparam[k1]['value'] * np.r_[1, 2]
                     v1_nogrid = hub.dparam[k1]['value'] * np.r_[0.5, 1, 2]
 
-                    hub.set_dparam(key=k0, value=v0, grid=grid)
+                    self.dhub[model][solver][grid].set_dparam(
+                        key=k0, value=v0, grid=grid,
+                    )
                     if grid:
-                        hub.set_dparam(key=k1, value=v1_nogrid, grid=grid)
+                        self.dhub[model][solver][grid].set_dparam(
+                            key=k1, value=v1_nogrid, grid=grid,
+                        )
                     else:
-                        hub.set_dparam(key=k1, value=v1_nogrid, grid=grid)
                         iserr = False
                         try:
-                            hub.set_dparam(key=k1, value=v1_grid, grid=grid)
+                            self.dhub[model][solver][grid].set_dparam(
+                                key=k1, value=v1_grid, grid=grid,
+                            )
                         except Exception as err:
                             iserr = True
                         assert iserr
+                        self.dhub[model][solver][grid].set_dparam(
+                            key=k1, value=v1_nogrid, grid=grid,
+                        )
 
-    def test02_get_summary(self):
+    def test01_get_summary(self):
         for model in self.lmodels:
             for solver in self.lsolvers:
                 for grid in [True, False]:
-                    self.dhub[model][solver][grid].get_summary()
+                    hub = self.dhub[model][solver][grid]
+                    for idx in [None, True]:
+                        if idx is True:
+                            if grid is False:
+                                idx = 0
+                            else:
+                                idx = tuple([
+                                    0 for ii in hub.dmisc['dmulti']['keys']
+                                ])
+                        hub.get_summary(idx=idx)
 
-    def test03_run(self):
+    def test02_run(self):
         for model in self.lmodels:
             for solver in self.lsolvers:
                 for grid in [True, False]:
                     self.dhub[model][solver][grid].run(solver=solver)
 
-    def test04_plot(self):
+    def test03_plot(self):
         for model in self.lmodels:
             for solver in self.lsolvers:
                 for grid in [True, False]:
-                    idx = 0
-                    dax = self.dhub[model][solver][grid].plot(idx=idx)
+                    hub = self.dhub[model][solver][grid]
+                    if grid is False:
+                        idx = 0
+                    else:
+                        idx = tuple([
+                            0 for ii in hub.dmisc['dmulti']['keys']
+                        ])
+                    dax = hub.plot(idx=idx)
             plt.close('all')

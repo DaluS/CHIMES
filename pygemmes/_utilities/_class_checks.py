@@ -42,6 +42,35 @@ _LEXTRAKEYS = [
 _GRID = False
 
 
+# ##############################
+# ##############################
+#        Exception
+# ##############################
+
+
+class ShapeError(Exception):
+
+    def __init__(self, lkeys=None, dparam=None, value=None, key=None):
+        if key is None:
+            lstr = [
+                f"\t- {k0}: {dparam[k0]['value'].shape}"
+                for k0 in lkeys
+            ]
+        else:
+            lstr = [
+                f"\t- {k0}: {value.shape}"
+                if k0 == key
+                else f"\t- {k0}: {dparam[k0]['value'].shape}"
+                for k0 in lkeys
+            ]
+
+        self.message = (
+            "With grid = False, all parameters shape must be equal:\n"
+            + "\n".join(lstr)
+        )
+        super().__init__(self.message)
+
+
 # #############################################################################
 # #############################################################################
 #                       Load library
@@ -535,15 +564,7 @@ def _get_multiple_systems(dparam, grid=None):
 
             # check all have the same shape
             if any([dparam[k0]['value'].shape != shape for k0 in lkeys]):
-                lstr = [
-                    f"\t- {k0}: {dparam[k0]['value'].shape}"
-                    for k0 in lkeys
-                ]
-                msg = (
-                    "With grid = False, all parameters shape must be equal:\n"
-                    + "\n".join(lstr)
-                )
-                raise Exception(msg)
+                raise ShapeError(lkeys=lkeys, dparam=dparam)
 
         # update nx
         dparam['nx']['value'] = np.prod(shape)
