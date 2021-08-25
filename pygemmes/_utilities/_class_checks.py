@@ -564,43 +564,42 @@ def _get_multiple_systems_functions(dparam=None, dmulti=None):
         and hasattr(dparam[k0]['value'], '__iter__')
     ]
 
-    if len(lpf) > 0:
-        dmulti['dparfunc'] = {k0: [] for k0 in dmulti['keys']}
-        if dmulti['grid']:
-            for k0 in lpf:
-                lpar = [
-                    k1 for ii, k1 in enumerate(dmulti['keys'])
-                    if dparam[k0]['value'].shape[ii] > 1
-                ]
+    dmulti['dparfunc'] = {k0: [] for k0 in dmulti['keys']}
+    if dmulti['grid']:
+        for k0 in lpf:
+            lpar = [
+                k1 for ii, k1 in enumerate(dmulti['keys'])
+                if dparam[k0]['value'].shape[ii] > 1
+            ]
 
-                if len(lpar) > 1:
-                    msg = (
-                        f"Not handled yet for {k0}:"
-                        "Parameters functions depending on several parameters"
-                        " with multiple values\n"
-                        f"\t- lpar: {lpar}"
-                    )
-                    raise Exception(msg)
+            if len(lpar) > 1:
+                msg = (
+                    f"Not handled yet for {k0}:"
+                    "Parameters functions depending on several parameters"
+                    " with multiple values\n"
+                    f"\t- lpar: {lpar}"
+                )
+                raise Exception(msg)
 
-                elif len(lpar) == 0:
-                    msg = f'Inconsistency with npar for {k0}'
-                    raise Exception(msg)
+            elif len(lpar) == 0:
+                msg = f'Inconsistency with npar for {k0}'
+                raise Exception(msg)
 
-                dmulti['dparfunc'][lpar[0]].append(k0)
+            dmulti['dparfunc'][lpar[0]].append(k0)
 
-        else:
-            for k0 in lpf:
-                lpar = [
-                    k1 for k1 in dmulti['keys']
-                    if k1 in dparam[k0]['kargs']
-                ]
+    else:
+        for k0 in lpf:
+            lpar = [
+                k1 for k1 in dmulti['keys']
+                if k1 in dparam[k0]['kargs']
+            ]
 
-                if len(lpar) == 0:
-                    msg = f'Inconsistency with npar for {k0}'
-                    raise Exception(msg)
+            if len(lpar) == 0:
+                msg = f'Inconsistency with npar for {k0}'
+                raise Exception(msg)
 
-                for k1 in lpar:
-                    dmulti['dparfunc'][k1].append(k0)
+            for k1 in lpar:
+                dmulti['dparfunc'][k1].append(k0)
 
 
 # #############################################################################
@@ -1398,7 +1397,13 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None):
 # #############################################################################
 
 
-def update_from_preset(dparam=None, dmodel=None, preset=None, grid=None):
+def update_from_preset(
+    dparam=None,
+    dmodel=None,
+    preset=None,
+    grid=None,
+    verb=None,
+):
     """ Update the dparam dict from values taken from preset """
 
     # ---------------
@@ -1551,7 +1556,10 @@ def _check_idx(idx=None, nt=None, dmulti=None):
     c0 = (
         idx is None
         or (
-            len(dmulti['shape']) == 1
+            (
+                dmulti is None
+                or len(dmulti['shape']) == 1
+            )
             and isinstance(idx, int)
         )
         or (
