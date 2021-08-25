@@ -524,6 +524,39 @@ def _get_multiple_systems(dparam):
     return {'keys': lkeys, 'shape': shape}
 
 
+def _get_multiple_systems_functions(dparam=None, dmulti=None):
+
+    # Get list of function parameters with multiple values
+    lpf = [
+        k0 for k0 in dparam.keys()
+        if dparam[k0].get('eqtype') == 'param'
+        and hasattr(dparam[k0]['value'], '__iter__')
+    ]
+
+    if len(lpf) > 0:
+        dmulti['dparfunc'] = {k0: [] for k0 in dmulti['keys']}
+        for k0 in lpf:
+            lpar = [
+                k1 for ii, k1 in enumerate(dmulti['keys'])
+                if dparam[k0]['value'].shape[ii] > 1
+            ]
+
+            if len(lpar) > 1:
+                msg = (
+                    f"Not handled yet for {k0}:"
+                    "Parameters functions depending on several parameters"
+                    " with multiple values\n"
+                    f"\t- lpar: {lpar}"
+                )
+                raise Exception(msg)
+
+            elif len(lpar) == 0:
+                msg = f'Inconsistency with npar for {k0}'
+                raise Exception(msg)
+
+            dmulti['dparfunc'][lpar[0]].append(k0)
+
+
 # #############################################################################
 # #############################################################################
 #                       dparam checks - high-level
@@ -559,6 +592,10 @@ def check_dparam(dparam=None, verb=None):
     # ----------------
     # Identify functions
     dparam, dfunc_order = _check_func(dparam, dmulti=dmulti, verb=verb)
+
+    # -------------------
+    # Identify params that are not multi but functions of multi
+    _get_multiple_systems_functions(dparam=dparam, dmulti=dmulti)
 
     # ----------------
     # Make sure to copy to avoid passing by reference
