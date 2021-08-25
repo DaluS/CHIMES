@@ -11,6 +11,7 @@ import subprocess           # for handling bash commands
 
 
 # Standard
+import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -240,12 +241,6 @@ class Test01_Hub():
                 if keyok in dfaili.keys():
                     del dfaili[keyok]
 
-                keyok = "dmisc"
-                if keyok in dfaili.keys():
-                    del dfaili[keyok]
-
-                import pdb; pdb.set_trace()     # DB
-
                 if len(dfaili) > 0:
                     msg = (
                         f"Differs from reference for: {list(dfaili.keys())}"
@@ -298,7 +293,13 @@ class Test02_Hub_MultipleSystems():
             'eRK4-scipy',
         ]
         cls.lmodels = pgm.get_available_models(returnas=list)
-        cls.dhub = {k0: dict.fromkeys(cls.lsolvers) for k0 in cls.lmodels}
+        cls.dhub = {
+            k0: {
+                k1: dict.fromkeys([True, False])
+                for k1 in cls.lsolvers
+            }
+            for k0 in cls.lmodels
+        }
 
     @classmethod
     def teardown_class(cls):
@@ -315,26 +316,56 @@ class Test02_Hub_MultipleSystems():
         # list of entry parameters to try
         for model in self.lmodels:
             for solver in self.lsolvers:
-                self.dhub[model][solver] = pgm.load_model(model)
+                for grid in [True, False]:
+                    self.dhub[model][solver][grid] = pgm.Hub(model)
 
     def test01_set_dparam(self):
-
-        grid = [True, False]
-
         for model in self.lmodels:
             for solver in self.lsolvers:
-                pass
-                # self.dhub[model][solver].set_dparam(
-                # )
+                for grid in [True, False]:
+
+                    hub = self.dhub[model][solver][grid]
+
+                    # set k0, v0
+                    lpar = hub.get_dparam(
+                        eqtype=None,
+                        group=('Numerical',),
+                        returnas=list,
+                    )
+                    k0 = lpar[0]
+                    v0 = hub.dparam[k0]['value'] * np.r_[0.5, 1, 2]
+                    k1 = lpar[1]
+                    v1_grid = hub.dparam[k1]['value'] * np.r_[1, 2]
+                    v1_nogrid = hub.dparam[k1]['value'] * np.r_[0.5, 1, 2]
+
+                    hub.set_dparam(key=k0, value=v0, grid=grid)
+                    if grid:
+                        hub.set_dparam(key=k1, value=v1_nogrid, grid=grid)
+                    else:
+                        hub.set_dparam(key=k1, value=v1_nogrid, grid=grid)
+                        iserr = False
+                        try:
+                            hub.set_dparam(key=k1, value=v1_grid, grid=grid)
+                        except Exception as err:
+                            iserr = True
+                        assert iserr
 
     def test02_get_summary(self):
-        pass
+        for model in self.lmodels:
+            for solver in self.lsolvers:
+                for grid in [True, False]:
+                    self.dhub[model][solver][grid].get_summary()
 
     def test03_run(self):
-        pass
+        for model in self.lmodels:
+            for solver in self.lsolvers:
+                for grid in [True, False]:
+                    self.dhub[model][solver][grid].run(solver=solver)
 
     def test04_plot(self):
-        pass
-
-    def test05_save_load_equal(self):
-        pass
+        for model in self.lmodels:
+            for solver in self.lsolvers:
+                for grid in [True, False]:
+                    idx = 0
+                    dax = self.dhub[model][solver][grid].plot(idx=idx)
+            plt.close('all')
