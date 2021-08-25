@@ -170,7 +170,7 @@ def solve(
     # -----------
     # Define the function that takes/returns all functions
 
-    dydt_func, lode_solve, dargs_temp, vectorized = get_func_dydt(
+    y0, dydt_func, lode_solve, dargs_temp, vectorized = get_func_dydt(
         dparam=dparam,
         dargs=dargs,
         lode=lode,
@@ -178,10 +178,6 @@ def solve(
         solver=solver,
         dmulti=dmulti,
     )
-
-    # -----------
-    # initialize y
-    y0 = np.array([dparam[k0]['value'][0, ...] for k0 in lode_solve])
 
     # -------------
     # dispatch to relevant solver to solve ode using dydt_func
@@ -265,6 +261,10 @@ def get_func_dydt(
         shapebuf = tuple(dmulti['shape'])
 
     # ---------------------
+    # initialize y
+    y0 = np.array([dparam[k0]['value'][0, ...] for k0 in lode_solve])
+
+    # ---------------------
     # prepare array to be used as buffer
     # (to avoid a new array creation everytime the function is called)
 
@@ -340,7 +340,7 @@ def get_func_dydt(
                     dydt[ii, ...] = dparam[k0]['func'](**dargs_temp[k0])
             return dydt
 
-    return func, lode_solve, dargs_temp, vectorized
+    return y0, func, lode_solve, dargs_temp, vectorized
 
 
 # #############################################################################
@@ -458,7 +458,7 @@ def _solver_scipy(
         sol = scpinteg.solve_ivp(
             dydt_func,
             t_span,
-            y0,
+            y0.ravel(),
             method=_DSOLVERS[solver]['scipy'],
             t_eval=t_eval,
             max_step=max_time_step,
@@ -471,17 +471,17 @@ def _solver_scipy(
         # ----------------
         # verbosity
         indmax = _scipy_verb(
-            sol, dparam=dparam, lind=lind, t_span=t_span,
-            ii=ii, nx=nx, dverb=dverb,
+            sol, dparam=dparam, lind=(0,), t_span=t_span,
+            ii=0, nx=nx, dverb=dverb,
         )
 
         # ---------------------
         # dispatch results
 
         for ii, k0 in enumerate(lode):
-            dparam[k0]['value'][...] = sol.y[ii, ...]
+            dparam[k0]['value'][..., 0] = sol.y[ii, ...]
 
-        dparam['time']['value'][...] = sol.t
+        dparam['time']['value'][..., 0] = sol.t
 
     else:
 
