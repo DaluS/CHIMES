@@ -38,7 +38,7 @@ class Hub():
     # %% Setting / getting parameters
     # ##############################
 
-    def load_model(self, model=None, preset=None, verb=None):
+    def load_model(self, model=None, preset=None, grid=None, verb=None):
         """ Load a model from a model file """
 
         # ------------
@@ -69,16 +69,22 @@ class Hub():
         # ------------
         # update from preset if relevant
         if preset is not None:
-            self.load_preset(preset)
+            self.load_preset(preset, grid=grid)
         else:
             self.reset()
 
-    def load_preset(self, preset=None):
+    def load_preset(self, preset=None, grid=None):
         """ For the current model, load desired preset """
-        _class_checks.update_from_preset(
+        (
+            self.__dparam,
+            self.__dmisc['dmulti'],
+            self.__dmisc['dfunc_order'],
+            self.__dargs,
+        ) = _class_checks.update_from_preset(
             dparam=self.__dparam,
             dmodel=self.__dmodel,
             preset=preset,
+            grid=grid,
         )
         self.reset()
 
@@ -87,6 +93,7 @@ class Hub():
         dparam=None,
         key=None,
         value=None,
+        grid=None,
         verb=None,
     ):
         """ Set the dict of input parameters (dparam) or a single param
@@ -101,6 +108,12 @@ class Hub():
             - only a key, value pair to change the value of a single parameter
 
         """
+
+        # ----------------
+        # check input
+
+        if grid is None:
+            grid = self.__dmisc['dmulti'].get('grid')
 
         # Check input: dparam xor (key, value)
         lc = [
@@ -121,7 +134,9 @@ class Hub():
             )
             raise Exception(msg)
 
+        # ----------------
         # set dparam or update desired key
+
         if dparam is None:
             if key not in self.__dparam.keys():
                 msg = (
@@ -132,13 +147,15 @@ class Hub():
             dparam = dict(self.__dparam)
             dparam[key]['value'] = value
 
+        # ----------------
         # Update to check consistency
+
         (
             self.__dparam,
             self.__dmisc['dmulti'],
             self.__dmisc['dfunc_order'],
             self.__dargs,
-        ) = _class_checks.check_dparam(dparam=dparam, verb=verb)
+        ) = _class_checks.check_dparam(dparam=dparam, grid=grid, verb=verb)
 
         # reset all variables
         self.reset()
