@@ -3,6 +3,7 @@
 
 # Standard
 import copy
+import inspect
 
 
 # Common
@@ -206,14 +207,18 @@ def _dict_equal(dict1, dict2, dd=None):
         elif isinstance(v0, dict):
             dfail.update(_dict_equal(v0, dict2[k0], dd=f"{dd}['{k0}']"))
         elif k0 == 'func':
+            args = inspect.getfullargspec(v0)
+            dargs = {k0: args.defaults[ii] for ii, k0 in enumerate(args.args)}
+            # dargs = {}
+            v0_val = v0(**dargs)
             c0 = (
                 (
-                    isinstance(v0(), np.ndarray)
-                    and np.allclose(v0(), dict2[k0]())
+                    isinstance(v0_val, np.ndarray)
+                    and np.allclose(v0_val, dict2[k0]())
                 )
                 or (
-                    type(v0()) in _LTYPES
-                    and v0() == dict2[k0]()
+                    type(v0_val) in _LTYPES
+                    and v0_val == dict2[k0](**dargs)
                 )
             )
             if not c0:
