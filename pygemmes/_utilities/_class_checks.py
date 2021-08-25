@@ -1576,7 +1576,7 @@ def _check_idx(idx=None, nt=None, dmulti=None):
         msg = (
             "Arg idx must be either:\n"
             "\t- None\n"
-            "\t- iterable of int indices\n"
+            f"\t- iterable of int indices for shape {dmulti['shape']}\n"
             f"Provided: {idx}"
         )
         raise Exception(msg)
