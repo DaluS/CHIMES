@@ -69,11 +69,11 @@ class Hub():
         # ------------
         # update from preset if relevant
         if preset is not None:
-            self.load_preset(preset, grid=grid)
+            self.load_preset(preset, grid=grid, verb=verb)
         else:
             self.reset()
 
-    def load_preset(self, preset=None, grid=None):
+    def load_preset(self, preset=None, grid=None, verb=None):
         """ For the current model, load desired preset """
         (
             self.__dparam,
@@ -85,6 +85,7 @@ class Hub():
             dmodel=self.__dmodel,
             preset=preset,
             grid=grid,
+            verb=verb,
         )
         self.reset()
 
@@ -652,7 +653,7 @@ class Hub():
         idx = _class_checks._check_idx(
             idx=idx,
             nt=self.__dparam['nt']['value'],
-            dmulti=self.__dmisc['dmulti'],
+            dmulti=self.__dmisc.get('dmulti'),
         )
 
         return _plot_timetraces.plot_timetraces(
