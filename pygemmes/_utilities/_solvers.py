@@ -512,11 +512,16 @@ def _solver_scipy(
             lind = list((ii // rat) % shape)
 
             # update dargs_temp with multiple-values parameters!
-            for k0, v0 in dkup.items():
-                for k1, jj in v0.items():
-                    indj[jj] = lind[jj]
-                    dargs_temp[k0][k1] = dparam[k1]['value'][tuple(indj)]
-                    indj[jj] = 0
+            if dmulti['grid']:
+                for k0, v0 in dkup.items():
+                    for k1, jj in v0.items():
+                        indj[jj] = lind[jj]
+                        dargs_temp[k0][k1] = dparam[k1]['value'][tuple(indj)]
+                        indj[jj] = 0
+            else:
+                for k0, v0 in dkup.items():
+                    for k1, jj in v0.items():
+                        dargs_temp[k0][k1] = dparam[k1]['value'][ii]
 
             # solve
             slic = tuple([slice(0, len(lode))] + lind)
