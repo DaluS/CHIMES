@@ -250,7 +250,6 @@ def get_func_dydt(
         msg = "Vectorized version for implicit solvers not implemented yet"
         raise NotImplementedError(msg)
 
-
     if 'scipy' in solver:
         lode_solve = [k0 for k0 in lode if k0 != 'time']
         shapey = (len(lode_solve),)
@@ -373,7 +372,7 @@ def _eRK4_homemade(
             t0 = _class_checks._print_or_wait(ii=ii, nt=nt, t0=t0, **dverb)
 
         # Estimate dt (for future variable time step versions)
-        # dt = 
+        # dt =
 
         # compute ode variables from ii-1, using solver
         y += _rk4(
