@@ -261,7 +261,7 @@ def get_func_dydt(
         shapebuf = (1,)
     else:
         lode_solve = lode
-        shape = tuple(np.r_[len(lode_solve), dmulti['shape']])
+        shapey = tuple(np.r_[len(lode_solve), dmulti['shape']])
         shapebuf = tuple(dmulti['shape'])
 
     # ---------------------
@@ -269,7 +269,7 @@ def get_func_dydt(
     # (to avoid a new array creation everytime the function is called)
 
     # array of dydt
-    dydt = np.full(shape, np.nan)
+    dydt = np.full(shapey, np.nan)
 
     # dict of values
     dbuffer = {
@@ -485,27 +485,35 @@ def _solver_scipy(
 
     else:
 
-        # dict of func that will need updating
-        dkup = {
-            k0: [
-                (k1, jj) for jj, k1 in enumerate(dmulti['keys'])
-                if k1 in dparam[k0]['kargs']
-            ]
-            for k0 in dargs_temp.keys()
-            if any([k1 in dparam[k0]['kargs'] for k1 in dmulti['keys']])
-        }
+        # dict of param that will need updating
+        dkup = {}
+        for k0 in dargs_temp.keys():
+            for ii, k1 in enumerate(dmulti['keys']):
 
+                lk = [
+                    kk for kk in [k1] + dmulti['dparfunc'][k1]
+                    if kk in dparam[k0]['kargs']
+                ]
+                if len(lk) > 0:
+                    if dkup.get(k0) is None:
+                        dkup[k0] = dict.fromkeys(lk, ii)
+                    else:
+                        dkup[k0].update(dict.fromkeys(lk, ii))
+
+        # prepare tools for indices
         indj = np.zeros((len(dmulti['shape']),), dtype=int)
         shape = np.array(dmulti['shape'])
         rat = np.concatenate(([1], np.cumprod(shape)[:-1]))
+
+        # start loop
         for ii in range(nx):
 
             # get correct set of indices and slice
             lind = list((ii // rat) % shape)
 
-            # update dargs_temp with parameters TBF with function parameters !!
+            # update dargs_temp with multiple-values parameters!
             for k0, v0 in dkup.items():
-                for (k1, jj) in v0:
+                for k1, jj in v0.items():
                     indj[jj] = lind[jj]
                     dargs_temp[k0][k1] = dparam[k1]['value'][tuple(indj)]
                     indj[jj] = 0
