@@ -47,9 +47,9 @@ def teardown_module():
 
 
 #######################################################
-#
-#     Creating Ves objects and testing methods
-#
+#######################################################
+#     Creating Hub and testing methods
+#           single system
 #######################################################
 
 
@@ -63,7 +63,6 @@ class Test01_Hub():
             'eRK2-scipy', 'eRK4-scipy', 'eRK8-scipy',
         ]
 
-    @classmethod
     def setup(self):
         pass
 
@@ -237,9 +236,15 @@ class Test01_Hub():
             )
             if isok is False:
                 # only tolerated error: different absolute path to model file
-                keyok = f"dmodel['file']"
+                keyok = "dmodel['file']"
                 if keyok in dfaili.keys():
                     del dfaili[keyok]
+
+                keyok = "dmisc"
+                if keyok in dfaili.keys():
+                    del dfaili[keyok]
+
+                import pdb; pdb.set_trace()     # DB
 
                 if len(dfaili) > 0:
                     msg = (
@@ -275,3 +280,61 @@ class Test01_Hub():
                         key=key,
                     )
                 plt.close('all')
+
+
+#######################################################
+#######################################################
+#     Creating Hub and testing methods
+#           multiple systems
+#######################################################
+
+
+class Test02_Hub_MultipleSystems():
+
+    @classmethod
+    def setup_class(cls):
+        cls.lsolvers = [
+            'eRK4-homemade',
+            'eRK4-scipy',
+        ]
+        cls.lmodels = pgm.get_available_models(returnas=list)
+        cls.dhub = {k0: dict.fromkeys(cls.lsolvers) for k0 in cls.lmodels}
+
+    @classmethod
+    def teardown_class(cls):
+        """ Clean-up the saved files """
+        lf = [
+            os.path.join(_PATH_OUTPUT, ff) for ff in os.listdir(_PATH_OUTPUT)
+            if ff.endswith('.npz')
+        ]
+        for ff in lf:
+            os.remove(ff)
+
+    def setup(self):
+        """ Load all models / presets / solvers """
+        # list of entry parameters to try
+        for model in self.lmodels:
+            for solver in self.lsolvers:
+                self.dhub[model][solver] = pgm.load_model(model)
+
+    def test01_set_dparam(self):
+
+        grid = [True, False]
+
+        for model in self.lmodels:
+            for solver in self.lsolvers:
+                pass
+                # self.dhub[model][solver].set_dparam(
+                # )
+
+    def test02_get_summary(self):
+        pass
+
+    def test03_run(self):
+        pass
+
+    def test04_plot(self):
+        pass
+
+    def test05_save_load_equal(self):
+        pass
