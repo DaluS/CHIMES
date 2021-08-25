@@ -39,13 +39,16 @@ _LEXTRAKEYS = [
 ]
 
 
+_GRID = False
+
+
 # #############################################################################
 # #############################################################################
 #                       Load library
 # #############################################################################
 
 
-def load_model(model=None, verb=None):
+def load_model(model=None, grid=None, verb=None):
     """ Load a model from a model file
 
     model can be:
@@ -127,7 +130,9 @@ def load_model(model=None, verb=None):
 
     # --------------------
     # re-check dparam + Identify functions order + get dargs
-    dparam, dmulti, dfunc_order, dargs = check_dparam(dparam=dparam, verb=verb)
+    dparam, dmulti, dfunc_order, dargs = check_dparam(
+        dparam=dparam, grid=grid, verb=verb,
+    )
 
     return dmodel, dparam, dmulti, dfunc_order, dargs
 
@@ -488,7 +493,16 @@ def _check_dparam(dparam=None):
     return dparam
 
 
-def _get_multiple_systems(dparam):
+def _get_multiple_systems(dparam, grid=None):
+
+    # -----------
+    # check inputs
+
+    if grid is None:
+        grid = _GRID
+    if not isinstance(grid, bool):
+        msg = f"Arg grid must be a bool!\nProvided: {grid}"
+        raise Exception(msg)
 
     # only fixed-value parameters can
     lkeys = [
@@ -502,17 +516,34 @@ def _get_multiple_systems(dparam):
         for k0 in lkeys:
             dparam[k0]['value'] = np.atleast_1d(dparam[k0]['value']).ravel()
 
-        # Get shape
-        shape = tuple([dparam[k0]['value'].size for k0 in lkeys])
+        if grid is True:
 
-        # update shape of values to ensure broadcasting
-        # e.g.: shapek0 = (1, 1, sizek0, 1)
-        for k0 in lkeys:
-            shapek0 = tuple([
-                shape[ii] if k1 == k0 else 1
-                for ii, k1 in enumerate(lkeys)
-            ])
-            dparam[k0]['value'] = dparam[k0]['value'].reshape(shapek0)
+            # Get shape
+            shape = tuple([dparam[k0]['value'].size for k0 in lkeys])
+
+            # update shape of values to ensure broadcasting
+            # e.g.: shapek0 = (1, 1, sizek0, 1)
+            for k0 in lkeys:
+                shapek0 = tuple([
+                    shape[ii] if k1 == k0 else 1
+                    for ii, k1 in enumerate(lkeys)
+                ])
+                dparam[k0]['value'] = dparam[k0]['value'].reshape(shapek0)
+
+        else:
+            shape = dparam[lkeys[0]]['value'].shape
+
+            # check all have the same shape
+            if any([dparam[k0]['value'].shape != shape for k0 in lkeys]):
+                lstr = [
+                    f"\t- {k0}: {dparam[k0]['value'].shape}"
+                    for k0 in lkeys
+                ]
+                msg = (
+                    "With grid = False, all parameters shape must be equal:\n"
+                    + "\n".join(lstr)
+                )
+                raise Exception(msg)
 
         # update nx
         dparam['nx']['value'] = np.prod(shape)
@@ -521,7 +552,7 @@ def _get_multiple_systems(dparam):
         shape = (1,)
         dparam['nx']['value'] = 1
 
-    return {'keys': lkeys, 'shape': shape}
+    return {'keys': lkeys, 'shape': shape, 'grid': grid}
 
 
 def _get_multiple_systems_functions(dparam=None, dmulti=None):
@@ -535,26 +566,41 @@ def _get_multiple_systems_functions(dparam=None, dmulti=None):
 
     if len(lpf) > 0:
         dmulti['dparfunc'] = {k0: [] for k0 in dmulti['keys']}
-        for k0 in lpf:
-            lpar = [
-                k1 for ii, k1 in enumerate(dmulti['keys'])
-                if dparam[k0]['value'].shape[ii] > 1
-            ]
+        if dmulti['grid']:
+            for k0 in lpf:
+                lpar = [
+                    k1 for ii, k1 in enumerate(dmulti['keys'])
+                    if dparam[k0]['value'].shape[ii] > 1
+                ]
 
-            if len(lpar) > 1:
-                msg = (
-                    f"Not handled yet for {k0}:"
-                    "Parameters functions depending on several parameters"
-                    " with multiple values\n"
-                    f"\t- lpar: {lpar}"
-                )
-                raise Exception(msg)
+                if len(lpar) > 1:
+                    msg = (
+                        f"Not handled yet for {k0}:"
+                        "Parameters functions depending on several parameters"
+                        " with multiple values\n"
+                        f"\t- lpar: {lpar}"
+                    )
+                    raise Exception(msg)
 
-            elif len(lpar) == 0:
-                msg = f'Inconsistency with npar for {k0}'
-                raise Exception(msg)
+                elif len(lpar) == 0:
+                    msg = f'Inconsistency with npar for {k0}'
+                    raise Exception(msg)
 
-            dmulti['dparfunc'][lpar[0]].append(k0)
+                dmulti['dparfunc'][lpar[0]].append(k0)
+
+        else:
+            for k0 in lpf:
+                lpar = [
+                    k1 for k1 in dmulti['keys']
+                    if k1 in dparam[k0]['kargs']
+                ]
+
+                if len(lpar) == 0:
+                    msg = f'Inconsistency with npar for {k0}'
+                    raise Exception(msg)
+
+                for k1 in lpar:
+                    dmulti['dparfunc'][k1].append(k0)
 
 
 # #############################################################################
@@ -563,7 +609,7 @@ def _get_multiple_systems_functions(dparam=None, dmulti=None):
 # #############################################################################
 
 
-def check_dparam(dparam=None, verb=None):
+def check_dparam(dparam=None, grid=None, verb=None):
     """ Check user-provided dparam
 
     dparam can be:
@@ -587,7 +633,7 @@ def check_dparam(dparam=None, verb=None):
 
     # -------------------
     # Identify multiple systems
-    dmulti = _get_multiple_systems(dparam)
+    dmulti = _get_multiple_systems(dparam, grid=grid)
 
     # ----------------
     # Identify functions
@@ -1352,7 +1398,7 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None):
 # #############################################################################
 
 
-def update_from_preset(dparam=None, dmodel=None, preset=None):
+def update_from_preset(dparam=None, dmodel=None, preset=None, grid=None):
     """ Update the dparam dict from values taken from preset """
 
     # ---------------
@@ -1400,10 +1446,24 @@ def update_from_preset(dparam=None, dmodel=None, preset=None):
         else:
             dparam[k0]['initial'] = v0
 
+    # ----------------------
+    # grid if None
+
+    if grid is None:
+        grid = dmodel['presets'][preset].get('grid')
+
+    # ----------------------
+    # re-check dparam
+
+    dparam, dmulti, dfunc_order, dargs = check_dparam(
+        dparam=dparam, grid=grid, verb=verb,
+    )
+
     # ------------
     # update preset
     dmodel['preset'] = preset
 
+    return dparam, dmulti, dfunc_order, dargs
 
 # #############################################################################
 # #############################################################################
