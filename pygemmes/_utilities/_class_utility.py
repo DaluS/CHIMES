@@ -311,7 +311,33 @@ def paramfunc2str(
         if large and key in dmisc['dmulti']['keys']:
             msg = str(dparam[key]['value'].shape)
         else:
-            msg = '{:4.2g}'.format(dparam[key]['value'])
+            if not hasattr(dparam[key]['value'], '__iter__'):
+                msg = '{:4.2g}'.format(dparam[key]['value'])
+            elif idx is None:
+                msg = '{:4.2g}'.format(dparam[key]['value'])
+            else:
+                if dmisc['dmulti']['grid']:
+                    ind = list(idx[1:])
+                    if key in dmisc['dmulti']['keys']:
+                        kref = key
+                    else:
+                        lk = [
+                            kk for kk, vv in dmisc['dmulti']['dparfunc']
+                            if key in vv
+                        ]
+                        if len(lk) != 1:
+                            msg = "Inconsistency in dmisc['dmulti']['dparfunc']"
+                            raise Exception(msg)
+                        kref = lk[0]
+                    indi = dmisc['dmulti']['keys'].index(kref)
+                    ind = tuple([
+                        jj if ii == indi else 0
+                        for ii, jj in enumerate(idx[1:])
+                    ])
+                else:
+                    ind = idx[1]
+                msg = '{:4.2g}'.format(dparam[key]['value'][ind])
+
     elif eqtype in ['param', 'ode', 'statevar']:
         if dparam[key].get('source_exp') is None:
             kargs = ', '.join([
@@ -607,8 +633,8 @@ def _get_summary_functions(hub, idx=None):
                         large=large,
                         dmisc=hub.dmisc,
                     ),
-                    f"{v0.get('value')[tuple(0, idx[1:])]}",
-                    f"{v0.get('value')[tuple(-1, idx[1:])]}",
+                    f"{v0.get('value')[tuple(np.r_[0, idx[1:]])]}",
+                    f"{v0.get('value')[tuple(np.r_[-1, idx[1:]])]}",
                     v0['units'],
                     v0['eqtype'],
                     v0['definition'],
@@ -627,7 +653,7 @@ def _get_summary_functions(hub, idx=None):
                         large=large,
                         dmisc=hub.dmisc,
                     ),
-                    f"{v0.get('value')[tuple(0, idx[1:])]}",
+                    f"{v0.get('value')[tuple(np.r_[0, idx[1:]])]}",
                     v0['units'],
                     v0['eqtype'],
                     v0['definition'],
