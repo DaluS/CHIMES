@@ -151,6 +151,7 @@ def _check_solver(solver):
 def solve(
     solver=None,
     dparam=None,
+    dmulti=None,
     lode=None,
     lstate=None,
     dargs=None,
@@ -167,24 +168,16 @@ def solve(
     solver = _check_solver(solver)
 
     # -----------
-    # create buffer for temp
-    dargs_temp = {
-        k0: {k1: v1[-1, ...] for k1, v1 in v0.items()}
-        for k0, v0 in dargs.items()
-    }
-
-    # -----------
     # Define the function that takes/returns all functions
 
-    dydt_func, lode_solve = get_func_dydt(
-        dparam=dparam, dargs_temp=dargs_temp,
-        lode=lode, lstate=lstate,
-        inc_time='homemade' in solver,
+    y0, dydt_func, lode_solve, dargs_temp, vectorized = get_func_dydt(
+        dparam=dparam,
+        dargs=dargs,
+        lode=lode,
+        lstate=lstate,
+        solver=solver,
+        dmulti=dmulti,
     )
-
-    # -----------
-    # initialize y
-    y0 = np.array([dparam[k0]['value'][0, ...] for k0 in lode_solve])
 
     # -------------
     # dispatch to relevant solver to solve ode using dydt_func
@@ -202,12 +195,12 @@ def solve(
 
     else:
         # scipy takes one-dimensional y only
-        y0 = y0[:, 0]
 
         _solver_scipy(
             y0=y0,
             dydt_func=dydt_func,
             dparam=dparam,
+            dargs_temp=dargs_temp,
             lode=lode_solve,
             lstate=lstate,
             atol=atol,
@@ -215,6 +208,8 @@ def solve(
             max_time_step=max_time_step,
             solver=solver,
             dverb=dverb,
+            dmulti=dmulti,
+            vectorized=vectorized,
         )
 
     # ----------------------
@@ -235,83 +230,116 @@ def solve(
 
 def get_func_dydt(
     dparam=None,
-    dargs_temp=None,
+    dargs=None,
     lode=None,
     lstate=None,
-    inc_time=None,
+    solver=None,
+    dmulti=None,
 ):
 
-    # ---------------
-    # check inputs
-
-    if inc_time is None:
-        inc_time = True
+    # for implicit solver => vectorize
+    vectorized = False
+    if 'scipy' in solver:
+        if not solver.startswith('e'):
+            vectorized = True
 
     # ---------------
     # Get list of ode except time
 
-    if inc_time:
-        lode_solve = lode
-    else:
+    if 'scipy' in solver and vectorized is True:
+        msg = "Vectorized version for implicit solvers not implemented yet"
+        raise NotImplementedError(msg)
+
+    if 'scipy' in solver:
         lode_solve = [k0 for k0 in lode if k0 != 'time']
+        shapey = (len(lode_solve),)
+        shapebuf = (1,)
+    else:
+        lode_solve = lode
+        shapey = tuple(np.r_[len(lode_solve), dmulti['shape']])
+        shapebuf = tuple(dmulti['shape'])
+
+    # ---------------------
+    # initialize y
+    y0 = np.array([dparam[k0]['value'][0, ...] for k0 in lode_solve])
 
     # ---------------------
     # prepare array to be used as buffer
     # (to avoid a new array creation everytime the function is called)
 
-    dydt = np.full((len(lode_solve), dparam['nx']['value']), np.nan)
+    # array of dydt
+    dydt = np.full(shapey, np.nan)
+
+    # dict of values
+    dbuffer = {
+        k0: np.full(shapebuf, np.nan)
+        for k0 in lode_solve + lstate
+    }
+
+    # dict of args, takes values in dbuffer by reference
+    dargs_temp = {
+        k0: {
+            k1: dbuffer['lambda' if k1 == 'lamb' else k1]
+            for k1 in dargs[k0].keys()
+        }
+        for k0 in dargs.keys()
+    }
 
     # -----------------
     # get func
 
-    def func(
-        t,
-        y,
-        dydt=dydt,
-        dparam=dparam,
-        dargs_temp=dargs_temp,
-        lode_solve=lode_solve,
-        lstate=lstate,
-    ):
-        """ dydt = f(t, y)
+    if 'scipy' in solver and False:
+        pass
 
-        Where y is a (n,) array
-        y[0] = fisrt ode
-        y[1] = second ode
-        ...
-        y[n] = last ode
+    else:
+        def func(
+            t,
+            y,
+            dargs_temp=dargs_temp,
+            dydt=dydt,
+            dparam=dparam,
+            lode_solve=lode_solve,
+            lstate=lstate,
+            dbuffer=dbuffer,
+        ):
+            """ dydt = f(t, y)
 
-        All intermediate values ae stored in dparam[k0]['value'][-1, 0]
+            Where y is a (n,) array
+            y[0] = fisrt ode
+            y[1] = second ode
+            ...
+            y[n] = last ode
 
-        """
+            All intermediate values ae stored in dparam[k0]['value'][-1, 0]
 
-        # ------------
-        # update cache => also updates dargs and dargs_temp by reference
-        # used by dargs_temp (by reference)
-        for ii, k0 in enumerate(lode_solve):
-            dparam[k0]['value'][-1, ...] = y[ii, ...]
+            """
 
-        # ------------
-        # First update intermediary functions based on provided y
-        # The last time step is used as temporary buffer
-        # used by dargs_temp (by reference)
-        for ii, k0 in enumerate(lstate):
-            dparam[k0]['value'][-1, ...] = dparam[k0]['func'](**dargs_temp[k0])
+            # ------------
+            # update cache => also updates dargs and dargs_temp by reference
+            # used by dargs_temp (by reference)
+            for ii, k0 in enumerate(lode_solve):
+                dbuffer[k0][...] = y[ii, ...]
 
-        # ------------
-        # Then compute derivative dydt (ode)
+            # ------------
+            # First update intermediary functions based on provided y
+            # The last time step is used as temporary buffer
+            # used by dargs_temp (by reference)
+            for ii, k0 in enumerate(lstate):
+                dbuffer[k0][...] = dparam[k0]['func'](**dargs_temp[k0])
 
-        for ii, k0 in enumerate(lode_solve):
-            if 'itself' in dparam[k0]['kargs']:
-                dydt[ii, ...] = dparam[k0]['func'](
-                    itself=y[ii, ...], **dargs_temp[k0],
-                )
-            else:
-                dydt[ii, ...] = dparam[k0]['func'](**dargs_temp[k0])
+            # ------------
+            # Then compute derivative dydt (ode)
 
-        return dydt
+            for ii, k0 in enumerate(lode_solve):
+                if 'itself' in dparam[k0]['kargs']:
+                    dydt[ii, ...] = dparam[k0]['func'](
+                        itself=y[ii, ...], **dargs_temp[k0],
+                    )
+                else:
+                    dydt[ii, ...] = dparam[k0]['func'](**dargs_temp[k0])
+            return dydt
 
-    return func, lode_solve
+    return y0, func, lode_solve, dargs_temp, vectorized
 
 
 # #############################################################################
@@ -342,6 +370,9 @@ def _eRK4_homemade(
         # print of wait
         if dverb['verb'] > 0:
             t0 = _class_checks._print_or_wait(ii=ii, nt=nt, t0=t0, **dverb)
+
+        # Estimate dt (for future variable time step versions)
+        # dt =
 
         # compute ode variables from ii-1, using solver
         y += _rk4(
@@ -379,6 +410,7 @@ def _solver_scipy(
     y0=None,
     dydt_func=None,
     dparam=None,
+    dargs_temp=None,
     lode=None,
     lstate=None,
     atol=None,
@@ -386,6 +418,8 @@ def _solver_scipy(
     dverb=None,
     max_time_step=None,
     solver=None,
+    dmulti=None,
+    vectorized=None,
 ):
     """ scipy.RK45 solver, for cross-checking
 
@@ -407,12 +441,6 @@ def _solver_scipy(
     if max_time_step is None:
         max_time_step = 10. * dparam['dt']['value']
 
-    if dparam['nx']['value'] > 1:
-        msg = (
-            "scipy solvers only implemented for nx = 1"
-        )
-        raise Exception(msg)
-
     # -----------------
     # define t_span, t_eval
 
@@ -422,27 +450,128 @@ def _solver_scipy(
     # -----------------
     # define y0, t_span, t_eval
 
-    sol = scpinteg.solve_ivp(
-        dydt_func,
-        t_span,
-        y0,
-        method=_DSOLVERS[solver]['scipy'],
-        t_eval=t_eval,
-        max_step=max_time_step,
-        rtol=rtol,
-        atol=atol,
-        vectorized=True,
-        first_step=dparam['dt']['value'],
-    )
+    nx = dparam['nx']['value']
+    if nx == 1:
 
-    # ----------------
-    # verbosity
+        # solve
+        sol = scpinteg.solve_ivp(
+            dydt_func,
+            t_span,
+            y0.ravel(),
+            method=_DSOLVERS[solver]['scipy'],
+            t_eval=t_eval,
+            max_step=max_time_step,
+            rtol=rtol,
+            atol=atol,
+            vectorized=True,
+            first_step=dparam['dt']['value'],
+        )
+
+        # ----------------
+        # verbosity
+        indmax = _scipy_verb(
+            sol, dparam=dparam, lind=(0,), t_span=t_span,
+            ii=0, nx=nx, dverb=dverb,
+        )
+
+        # ---------------------
+        # dispatch results
+
+        for ii, k0 in enumerate(lode):
+            dparam[k0]['value'][..., 0] = sol.y[ii, ...]
+
+        dparam['time']['value'][..., 0] = sol.t
+
+    else:
+
+        # dict of param that will need updating
+        dkup = {}
+        for k0 in dargs_temp.keys():
+            for ii, k1 in enumerate(dmulti['keys']):
+
+                lk = [
+                    kk for kk in [k1] + dmulti['dparfunc'][k1]
+                    if kk in dparam[k0]['kargs']
+                ]
+                if len(lk) > 0:
+                    if dkup.get(k0) is None:
+                        dkup[k0] = dict.fromkeys(lk, ii)
+                    else:
+                        dkup[k0].update(dict.fromkeys(lk, ii))
+
+        # prepare tools for indices
+        indj = np.zeros((len(dmulti['shape']),), dtype=int)
+        shape = np.array(dmulti['shape'])
+        rat = np.concatenate(([1], np.cumprod(shape)[:-1]))
+
+        # start loop
+        for ii in range(nx):
+
+            # get correct set of indices and slice
+            lind = list((ii // rat) % shape)
+
+            # update dargs_temp with multiple-values parameters!
+            if dmulti['grid']:
+                for k0, v0 in dkup.items():
+                    for k1, jj in v0.items():
+                        indj[jj] = lind[jj]
+                        dargs_temp[k0][k1] = dparam[k1]['value'][tuple(indj)]
+                        indj[jj] = 0
+            else:
+                for k0, v0 in dkup.items():
+                    for k1, jj in v0.items():
+                        dargs_temp[k0][k1] = dparam[k1]['value'][ii]
+
+            # solve
+            slic = tuple([slice(0, len(lode))] + lind)
+            sol = scpinteg.solve_ivp(
+                dydt_func,
+                t_span,
+                y0[slic],
+                method=_DSOLVERS[solver]['scipy'],
+                t_eval=t_eval,
+                max_step=max_time_step,
+                rtol=rtol,
+                atol=atol,
+                vectorized=True,
+                first_step=dparam['dt']['value'],
+                args=(dargs_temp,),
+            )
+
+            # ----------------
+            # verbosity
+            indmax = _scipy_verb(
+                sol, dparam=dparam, lind=lind, t_span=t_span,
+                ii=ii, nx=nx, dverb=dverb,
+            )
+
+            # ---------------------
+            # dispatch results
+
+            slic = tuple([slice(0, indmax)] + lind)
+            for ii, k0 in enumerate(lode):
+                dparam[k0]['value'][slic] = sol.y[ii, ...]
+
+            dparam['time']['value'][slic] = sol.t
+
+    return sol
+
+
+def _scipy_verb(
+    sol,
+    dparam=None,
+    lind=None,
+    t_span=None,
+    ii=None,
+    nx=None,
+    dverb=None,
+):
     if sol.success is True:
         indmax = dparam['nt']['value']
         if dverb['verb'] > 0:
             msg = (
-                f"{sol.message}\nSuccess: {sol.success}\n"
-                f"Nb. fev: {sol.nfev} for {sol.t.size} time steps"
+                f"System {ii+1} / {nx} ({lind}) - Success: {sol.success}"
+                f"\tNb. fev: {sol.nfev} for {sol.t.size} time steps"
                 f" ({sol.nfev/sol.t.size} per time step)"
             )
             print(msg)
@@ -457,25 +586,17 @@ def _solver_scipy(
         if c0:
             indmax = sol.t.size
             # keep the first steps until it failed + warn
+            tmax = round(sol.t.max(), ndigits=2)
             msg = (
-                f"Solver stoped at t = {sol.t.max()} "
+                f"System {ii+1} / {nx} ({lind}) - stopped at t = {tmax} "
                 f"({sol.t.size} / {dparam['nt']['value']} time steps) "
                 "=> divergence?"
             )
-            warnings.warn(msg)
+            print(msg)
         else:
-            msg = f"Solver failed with status {sol.status}: {sol.message}"
+            msg = (
+                f"System {ii+1} / {nx} ({lind}) - Success: {sol.success}"
+                f"\tstatus {sol.status}: {sol.message}"
+            )
             raise Exception(msg)
-
-    # ---------------------
-    # dispatch results
-
-    for ii, k0 in enumerate(lode):
-        dparam[k0]['value'][:indmax, 0] = sol.y[ii, ...]
-    dparam['time']['value'][:indmax, ...] = np.repeat(
-        sol.t[:, None],
-        dparam['nx']['value'],
-        axis=1,
-    )
-
-    return sol
+    return indmax

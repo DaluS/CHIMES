@@ -11,6 +11,7 @@ import subprocess           # for handling bash commands
 
 
 # Standard
+import numpy as np
 import matplotlib.pyplot as plt
 
 
@@ -47,9 +48,9 @@ def teardown_module():
 
 
 #######################################################
-#
-#     Creating Ves objects and testing methods
-#
+#######################################################
+#     Creating Hub and testing methods
+#           single system
 #######################################################
 
 
@@ -63,7 +64,6 @@ class Test01_Hub():
             'eRK2-scipy', 'eRK4-scipy', 'eRK8-scipy',
         ]
 
-    @classmethod
     def setup(self):
         pass
 
@@ -237,7 +237,7 @@ class Test01_Hub():
             )
             if isok is False:
                 # only tolerated error: different absolute path to model file
-                keyok = f"dmodel['file']"
+                keyok = "dmodel['file']"
                 if keyok in dfaili.keys():
                     del dfaili[keyok]
 
@@ -275,3 +275,115 @@ class Test01_Hub():
                         key=key,
                     )
                 plt.close('all')
+
+
+#######################################################
+#######################################################
+#     Creating Hub and testing methods
+#           multiple systems
+#######################################################
+
+
+class Test02_Hub_MultipleSystems():
+
+    @classmethod
+    def setup_class(cls):
+        cls.lsolvers = [
+            'eRK4-homemade',
+            'eRK4-scipy',
+        ]
+        cls.lmodels = pgm.get_available_models(returnas=list)
+        cls.dhub = {
+            k0: {
+                k1: dict.fromkeys([True, False])
+                for k1 in cls.lsolvers
+            }
+            for k0 in cls.lmodels
+        }
+
+    @classmethod
+    def teardown_class(cls):
+        """ Clean-up the saved files """
+        lf = [
+            os.path.join(_PATH_OUTPUT, ff) for ff in os.listdir(_PATH_OUTPUT)
+            if ff.endswith('.npz')
+        ]
+        for ff in lf:
+            os.remove(ff)
+
+    def setup(self):
+        """ Load all models / presets / solvers """
+        # list of entry parameters to try
+        for model in self.lmodels:
+            for solver in self.lsolvers:
+                for grid in [True, False]:
+
+                    hub = pgm.Hub(model)
+                    self.dhub[model][solver][grid] = hub
+
+                    # set k0, v0
+                    lpar = hub.get_dparam(
+                        eqtype=None,
+                        group=('Numerical',),
+                        returnas=list,
+                    )
+                    k0 = lpar[0]
+                    v0 = hub.dparam[k0]['value'] * np.r_[0.5, 1, 2]
+                    k1 = lpar[1]
+                    v1_grid = hub.dparam[k1]['value'] * np.r_[1, 2]
+                    v1_nogrid = hub.dparam[k1]['value'] * np.r_[0.5, 1, 2]
+
+                    self.dhub[model][solver][grid].set_dparam(
+                        key=k0, value=v0, grid=grid,
+                    )
+                    if grid:
+                        self.dhub[model][solver][grid].set_dparam(
+                            key=k1, value=v1_nogrid, grid=grid,
+                        )
+                    else:
+                        iserr = False
+                        try:
+                            self.dhub[model][solver][grid].set_dparam(
+                                key=k1, value=v1_grid, grid=grid,
+                            )
+                        except Exception as err:
+                            iserr = True
+                        assert iserr
+                        self.dhub[model][solver][grid].set_dparam(
+                            key=k1, value=v1_nogrid, grid=grid,
+                        )
+
+    def test01_get_summary(self):
+        for model in self.lmodels:
+            for solver in self.lsolvers:
+                for grid in [True, False]:
+                    hub = self.dhub[model][solver][grid]
+                    for idx in [None, True]:
+                        if idx is True:
+                            if grid is False:
+                                idx = 0
+                            else:
+                                idx = tuple([
+                                    0 for ii in hub.dmisc['dmulti']['keys']
+                                ])
+                        hub.get_summary(idx=idx)
+
+    def test02_run(self):
+        for model in self.lmodels:
+            for solver in self.lsolvers:
+                for grid in [True, False]:
+                    self.dhub[model][solver][grid].run(solver=solver)
+
+    def test03_plot(self):
+        for model in self.lmodels:
+            for solver in self.lsolvers:
+                for grid in [True, False]:
+                    hub = self.dhub[model][solver][grid]
+                    if grid is False:
+                        idx = 0
+                    else:
+                        idx = tuple([
+                            0 for ii in hub.dmisc['dmulti']['keys']
+                        ])
+                    dax = hub.plot(idx=idx)
+            plt.close('all')

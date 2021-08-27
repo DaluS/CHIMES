@@ -41,9 +41,6 @@ def _plot_timetraces_check(
     # -----------
     # Prepare figure and axes dict
 
-    if idx is None:
-        idx = 0
-
     if color is not None and not mcolors.is_color_like(color):
         msg = (
             f"Arg color for Hub ({hub_id}) is not a valid matplotlib color!\n"
@@ -69,9 +66,6 @@ def _plot_timetraces_check(
 
     # ---------------
     # for data selection
-
-    if idx is None:
-        idx = 0
 
     if eqtype is None:
         eqtype = ['ode', 'statevar']
@@ -268,7 +262,6 @@ def plot_timetraces(
         return dax
     if 'time' in dpar.keys():
         del dpar['time']
-    t = hub.dparam['time']['value'][:, idx]
 
     # -----------------------------------
     # Prepare dax or check it if provided
@@ -292,12 +285,20 @@ def plot_timetraces(
     for k0, v0 in dpar.items():
         if dax.get(k0) is None:
             continue
-        dax[k0].plot(
-            t,
-            v0['value'][:, idx],
-            color=color,
-            label=label,
-        )
+        if idx is None:
+            dax[k0].plot(
+                hub.dparam['time']['value'],
+                v0['value'],
+                color=color,
+                label=label,
+            )
+        else:
+            dax[k0].plot(
+                hub.dparam['time']['value'][idx],
+                v0['value'][idx],
+                color=color,
+                label=label,
+            )
 
     # -----------
     # show and return axes dict

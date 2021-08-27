@@ -3,6 +3,7 @@
 # %% Importations ###########
 
 # built-in
+import copy
 import time
 
 
@@ -26,7 +27,9 @@ class Hub():
         self.__dmodel = dict.fromkeys(
             ['name', 'file', 'description', 'presets', 'preset']
         )
-        self.__dmisc = dict.fromkeys(['dfunc_order', 'run', 'solver'])
+        self.__dmisc = dict.fromkeys(
+            ['dmulti', 'dfunc_order', 'run', 'solver']
+        )
         self.__dargs = {}
         if model is not None:
             self.load_model(model, preset=preset, verb=verb)
@@ -35,7 +38,7 @@ class Hub():
     # %% Setting / getting parameters
     # ##############################
 
-    def load_model(self, model=None, preset=None, verb=None):
+    def load_model(self, model=None, preset=None, grid=None, verb=None):
         """ Load a model from a model file """
 
         # ------------
@@ -58,6 +61,7 @@ class Hub():
         (
             self.__dmodel,
             self.__dparam,
+            self.__dmisc['dmulti'],
             self.__dmisc['dfunc_order'],
             self.__dargs,
         ) = _class_checks.load_model(model, verb=verb)
@@ -65,16 +69,23 @@ class Hub():
         # ------------
         # update from preset if relevant
         if preset is not None:
-            self.load_preset(preset)
+            self.load_preset(preset, grid=grid, verb=verb)
         else:
             self.reset()
 
-    def load_preset(self, preset=None):
+    def load_preset(self, preset=None, grid=None, verb=None):
         """ For the current model, load desired preset """
-        _class_checks.update_from_preset(
+        (
+            self.__dparam,
+            self.__dmisc['dmulti'],
+            self.__dmisc['dfunc_order'],
+            self.__dargs,
+        ) = _class_checks.update_from_preset(
             dparam=self.__dparam,
             dmodel=self.__dmodel,
             preset=preset,
+            grid=grid,
+            verb=verb,
         )
         self.reset()
 
@@ -83,6 +94,7 @@ class Hub():
         dparam=None,
         key=None,
         value=None,
+        grid=None,
         verb=None,
     ):
         """ Set the dict of input parameters (dparam) or a single param
@@ -97,6 +109,12 @@ class Hub():
             - only a key, value pair to change the value of a single parameter
 
         """
+
+        # ----------------
+        # check input
+
+        if grid is None:
+            grid = self.__dmisc['dmulti'].get('grid')
 
         # Check input: dparam xor (key, value)
         lc = [
@@ -117,7 +135,9 @@ class Hub():
             )
             raise Exception(msg)
 
+        # ----------------
         # set dparam or update desired key
+
         if dparam is None:
             if key not in self.__dparam.keys():
                 msg = (
@@ -125,15 +145,32 @@ class Hub():
                     + "See get_dparam() method"
                 )
                 raise Exception(msg)
+            c0 = (
+                self.__dmisc['dmulti']['grid'] is False
+                and hasattr(value, '__iter__')
+                and self.__dmisc['dmulti']['shape'] != (1,)
+                and len(value) != self.__dmisc['dmulti']['shape'][0]
+            )
+            if c0:
+                raise _class_checks.ShapeError(
+                    dparam=self.__dparam,
+                    lkeys=set([key] + self.__dmisc['dmulti']['keys']),
+                    key=key,
+                    value=np.array(value).ravel(),
+                )
+
             dparam = dict(self.__dparam)
             dparam[key]['value'] = value
 
+        # ----------------
         # Update to check consistency
+
         (
             self.__dparam,
+            self.__dmisc['dmulti'],
             self.__dmisc['dfunc_order'],
             self.__dargs,
-        ) = _class_checks.check_dparam(dparam=dparam, verb=verb)
+        ) = _class_checks.check_dparam(dparam=dparam, grid=grid, verb=verb)
 
         # reset all variables
         self.reset()
@@ -269,22 +306,22 @@ class Hub():
 
         # reset ode variables
         for k0 in self.get_dparam(eqtype=['ode', 'statevar'], returnas=list):
-            if self.__dparam[k0]['eqtype'] == 'ode':
-                self.__dparam[k0]['value'][0, :] = self.__dparam[k0]['initial']
-                self.__dparam[k0]['value'][1:, :] = np.nan
-            elif self.__dparam[k0]['eqtype'] == 'statevar':
-                self.__dparam[k0]['value'][:, :] = np.nan
+            self.__dparam[k0]['value'][...] = np.nan
+
+        # Reset initial for ode
+        for k0 in self.get_dparam(eqtype=['ode'], returnas=list):
+            self.__dparam[k0]['value'][0, ...] = self.__dparam[k0]['initial']
 
         # recompute inital value for statevar
         lstate = self.__dmisc['dfunc_order']['statevar']
         for k0 in lstate:
             # prepare dict of args
             kwdargs = {
-                k1: v1[0, :]
+                k1: v1[0, ...]
                 for k1, v1 in self.__dargs[k0].items()
             }
             # run function
-            self.__dparam[k0]['value'][0, :] = (
+            self.__dparam[k0]['value'][0, ...] = (
                 self.__dparam[k0]['func'](**kwdargs)
             )
 
@@ -370,98 +407,35 @@ class Hub():
         else:
             return col0, ar0
 
-    def get_summary(self, idx=0):
+    def get_summary(self, idx=None):
         """
         Print a str summary of the solver
 
         """
 
         # ----------
-        # starting with headr from __repr__
+        # check inputs
 
+        idx = _class_checks._check_idx(
+            idx=idx,
+            nt=self.__dparam['nt']['value'],
+            dmulti=self.__dmisc['dmulti'],
+        )
+        # ----------
+        # starting with headr from __repr__
         col0, ar0 = self.__repr__(verb=False)
 
         # ----------
         # Numerical parameters
-        col1 = ['Numerical param.', 'value', 'units', 'definition', 'comment']
-        ar1 = [
-            [
-                k0,
-                _class_utility.paramfunc2str(dparam=self.__dparam, key=k0),
-                v0['units'],
-                v0['definition'],
-                v0['com'],
-            ]
-            for k0, v0 in self.get_dparam(
-                returnas=dict,
-                eqtype=[None, 'param'],
-                group='Numerical',
-            ).items()
-        ]
-        ar1.append(['run', str(self.__dmisc['run']), '', '', ''])
+        col1, ar1 = _class_utility._get_summary_numerical(self)
 
         # ----------
         # parameters
-        col2 = [
-            'Model param.', 'value', 'units', 'group', 'definition', 'comment',
-        ]
-        ar2 = [
-            [
-                k0,
-                _class_utility.paramfunc2str(dparam=self.__dparam, key=k0),
-                str(v0['units']),
-                v0['group'],
-                v0['definition'],
-                v0['com'],
-            ]
-            for k0, v0 in self.get_dparam(
-                returnas=dict,
-                eqtype=[None, 'param'],
-                group=('Numerical',),
-            ).items()
-        ]
+        col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx)
 
         # ----------
         # functions
-        col3 = [
-            'function', 'source', 'initial', 'units', 'eqtype',
-            'definition', 'comment',
-        ]
-        ar3 = [
-            [
-                k0,
-                _class_utility.paramfunc2str(dparam=self.__dparam, key=k0),
-                "{:.2e}".format(v0.get('value')[0, idx]),
-                v0['units'],
-                v0['eqtype'],
-                v0['definition'],
-                v0['com'],
-            ]
-            for k0, v0 in self.get_dparam(
-                returnas=dict,
-                eqtype=['ode', 'statevar'],
-            ).items()
-        ]
-
-        # --------------------------
-        # Add solver and final value if has run
-        if self.__dmisc['run'] is True:
-
-            # add solver
-            ar1.append(['solver', self.__dmisc['solver'], '', '', ''])
-
-            # add column title
-            col3.insert(3, 'final')
-
-            # add final value to each variable
-            ii = 0
-            for k0, v0 in self.__dparam.items():
-                if v0.get('eqtype') in ['ode', 'statevar']:
-                    ar3[ii].insert(
-                        3,
-                        "{:.2e}".format(v0.get('value')[-1, idx]),
-                    )
-                    ii += 1
+        col3, ar3 = _class_utility._get_summary_functions(self, idx=idx)
 
         # ----------
         # format output
@@ -517,6 +491,7 @@ class Hub():
             solver = _solvers.solve(
                 solver=solver,
                 dparam=self.__dparam,
+                dmulti=self.__dmisc['dmulti'],
                 lode=lode,
                 lstate=lstate,
                 dargs=self.__dargs,
@@ -686,6 +661,15 @@ class Hub():
         Launch the basic plot: time traces
         """
 
+        # -------------
+        # check inputs
+
+        idx = _class_checks._check_idx(
+            idx=idx,
+            nt=self.__dparam['nt']['value'],
+            dmulti=self.__dmisc.get('dmulti'),
+        )
+
         return _plot_timetraces.plot_timetraces(
             self,
             # for forcing a color / label
@@ -715,10 +699,10 @@ class Hub():
         """ Convert instance to dict """
 
         dout = {
-            'dmodel': dict(self.__dmodel),
+            'dmodel': copy.deepcopy(self.__dmodel),
             'dparam': self.get_dparam(returnas=dict, verb=False),
-            'dmisc': dict(self.__dmisc),
-            'dargs': dict(self.__dargs),
+            'dmisc': copy.deepcopy(self.__dmisc),
+            'dargs': copy.deepcopy(self.__dargs),
         }
         return dout
 

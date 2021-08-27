@@ -29,6 +29,7 @@ _DMODEL_KEYS = {
     'name': str,
 }
 _LTYPES = [int, float, np.int_, np.float_]
+_LTYPES_ARRAY = [list, tuple, np.ndarray]
 _LEQTYPES = ['ode', 'pde', 'statevar', 'param', 'undeclared']
 
 
@@ -38,13 +39,45 @@ _LEXTRAKEYS = [
 ]
 
 
+_GRID = False
+
+
+# ##############################
+# ##############################
+#        Exception
+# ##############################
+
+
+class ShapeError(Exception):
+
+    def __init__(self, lkeys=None, dparam=None, value=None, key=None):
+        if key is None:
+            lstr = [
+                f"\t- {k0}: {dparam[k0]['value'].shape}"
+                for k0 in lkeys
+            ]
+        else:
+            lstr = [
+                f"\t- {k0}: {value.shape}"
+                if k0 == key
+                else f"\t- {k0}: {dparam[k0]['value'].shape}"
+                for k0 in lkeys
+            ]
+
+        self.message = (
+            "With grid = False, all parameters shape must be equal:\n"
+            + "\n".join(lstr)
+        )
+        super().__init__(self.message)
+
+
 # #############################################################################
 # #############################################################################
 #                       Load library
 # #############################################################################
 
 
-def load_model(model=None, verb=None):
+def load_model(model=None, grid=None, verb=None):
     """ Load a model from a model file
 
     model can be:
@@ -126,9 +159,11 @@ def load_model(model=None, verb=None):
 
     # --------------------
     # re-check dparam + Identify functions order + get dargs
-    dparam, dfunc_order, dargs = check_dparam(dparam=dparam, verb=verb)
+    dparam, dmulti, dfunc_order, dargs = check_dparam(
+        dparam=dparam, grid=grid, verb=verb,
+    )
 
-    return dmodel, dparam, dfunc_order, dargs
+    return dmodel, dparam, dmulti, dfunc_order, dargs
 
 
 # #############################################################################
@@ -403,7 +438,7 @@ def _check_dparam(dparam=None):
     for k0, v0 in dparam.items():
 
         # if value directly provided => put into dict
-        if v0 is None or type(v0) in _LTYPES + [list, np.ndarray, str, bool]:
+        if v0 is None or type(v0) in _LTYPES + _LTYPES_ARRAY + [str, bool]:
             dparam[k0] = {'value': v0}
 
         # if function directly provided => put inot dict
@@ -445,8 +480,8 @@ def _check_dparam(dparam=None):
             )
             c1 = (
                 not c0
-                and type(dparam[k0]['value']) in _LTYPES + [
-                    list, np.ndarray, str, bool,
+                and type(dparam[k0]['value']) in _LTYPES + _LTYPES_ARRAY + [
+                    str, bool,
                 ]
             )
 
@@ -487,13 +522,114 @@ def _check_dparam(dparam=None):
     return dparam
 
 
+def _get_multiple_systems(dparam, grid=None):
+
+    # -----------
+    # check inputs
+
+    if grid is None:
+        grid = _GRID
+    if not isinstance(grid, bool):
+        msg = f"Arg grid must be a bool!\nProvided: {grid}"
+        raise Exception(msg)
+
+    # only fixed-value parameters can
+    lkeys = [
+        k0 for k0, v0 in dparam.items()
+        if v0.get('eqtype') is None
+        and isinstance(v0['value'], tuple(_LTYPES_ARRAY))
+    ]
+
+    if len(lkeys) > 0:
+        # make sure they are all 1d
+        for k0 in lkeys:
+            dparam[k0]['value'] = np.atleast_1d(dparam[k0]['value']).ravel()
+
+        if grid is True:
+
+            # Get shape
+            shape = tuple([dparam[k0]['value'].size for k0 in lkeys])
+
+            # update shape of values to ensure broadcasting
+            # e.g.: shapek0 = (1, 1, sizek0, 1)
+            for k0 in lkeys:
+                shapek0 = tuple([
+                    shape[ii] if k1 == k0 else 1
+                    for ii, k1 in enumerate(lkeys)
+                ])
+                dparam[k0]['value'] = dparam[k0]['value'].reshape(shapek0)
+
+        else:
+            shape = dparam[lkeys[0]]['value'].shape
+
+            # check all have the same shape
+            if any([dparam[k0]['value'].shape != shape for k0 in lkeys]):
+                raise ShapeError(lkeys=lkeys, dparam=dparam)
+
+        # update nx
+        dparam['nx']['value'] = np.prod(shape)
+
+    else:
+        shape = (1,)
+        dparam['nx']['value'] = 1
+
+    return {'keys': lkeys, 'shape': shape, 'grid': grid}
+
+
+def _get_multiple_systems_functions(dparam=None, dmulti=None):
+
+    # Get list of function parameters with multiple values
+    lpf = [
+        k0 for k0 in dparam.keys()
+        if dparam[k0].get('eqtype') == 'param'
+        and hasattr(dparam[k0]['value'], '__iter__')
+    ]
+
+    dmulti['dparfunc'] = {k0: [] for k0 in dmulti['keys']}
+    if dmulti['grid']:
+        for k0 in lpf:
+            lpar = [
+                k1 for ii, k1 in enumerate(dmulti['keys'])
+                if dparam[k0]['value'].shape[ii] > 1
+            ]
+
+            if len(lpar) > 1:
+                msg = (
+                    f"Not handled yet for {k0}:"
+                    "Parameters functions depending on several parameters"
+                    " with multiple values\n"
+                    f"\t- lpar: {lpar}"
+                )
+                raise Exception(msg)
+
+            elif len(lpar) == 0:
+                msg = f'Inconsistency with npar for {k0}'
+                raise Exception(msg)
+
+            dmulti['dparfunc'][lpar[0]].append(k0)
+
+    else:
+        for k0 in lpf:
+            lpar = [
+                k1 for k1 in dmulti['keys']
+                if k1 in dparam[k0]['kargs']
+            ]
+
+            if len(lpar) == 0:
+                msg = f'Inconsistency with npar for {k0}'
+                raise Exception(msg)
+
+            for k1 in lpar:
+                dmulti['dparfunc'][k1].append(k0)
+
+
 # #############################################################################
 # #############################################################################
 #                       dparam checks - high-level
 # #############################################################################
 
 
-def check_dparam(dparam=None, verb=None):
+def check_dparam(dparam=None, grid=None, verb=None):
     """ Check user-provided dparam
 
     dparam can be:
@@ -515,9 +651,17 @@ def check_dparam(dparam=None, verb=None):
     _extract_parameters(dparam, verb=verb)
     dparam = _check_dparam(dparam)
 
+    # -------------------
+    # Identify multiple systems
+    dmulti = _get_multiple_systems(dparam, grid=grid)
+
     # ----------------
     # Identify functions
-    dparam, dfunc_order = _check_func(dparam, verb=verb)
+    dparam, dfunc_order = _check_func(dparam, dmulti=dmulti, verb=verb)
+
+    # -------------------
+    # Identify params that are not multi but functions of multi
+    _get_multiple_systems_functions(dparam=dparam, dmulti=dmulti)
 
     # ----------------
     # Make sure to copy to avoid passing by reference
@@ -557,7 +701,7 @@ def check_dparam(dparam=None, verb=None):
         if c0 and 'lambda' in dparam[k0]['kargs']:
             dargs[k0]['lamb'] = dparam['lambda']['value']
 
-    return dparam, dfunc_order, dargs
+    return dparam, dmulti, dfunc_order, dargs
 
 
 # #############################################################################
@@ -771,7 +915,7 @@ def _check_func_get_source(lfunc=None, dparam=None):
             dparam[k0]['source_kargs'] = kargs
 
 
-def _check_func(dparam=None, verb=None):
+def _check_func(dparam=None, dmulti=None, verb=None):
     """ Check basic conformity of functions
 
     They must:
@@ -937,7 +1081,7 @@ def _check_func(dparam=None, verb=None):
 
     # -------------------------------------------
     # Create variables for all varying quantities
-    shape = (dparam['nt']['value'], dparam['nx']['value'])
+    shape = tuple(np.r_[dparam['nt']['value'], dmulti['shape']])
     for k0 in lfunc:
         if dparam[k0]['eqtype'] not in ['param']:
             dparam[k0]['value'] = np.full(shape, np.nan)
@@ -1274,7 +1418,13 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None):
 # #############################################################################
 
 
-def update_from_preset(dparam=None, dmodel=None, preset=None):
+def update_from_preset(
+    dparam=None,
+    dmodel=None,
+    preset=None,
+    grid=None,
+    verb=None,
+):
     """ Update the dparam dict from values taken from preset """
 
     # ---------------
@@ -1301,7 +1451,7 @@ def update_from_preset(dparam=None, dmodel=None, preset=None):
         k0 for k0, v0 in dmodel['presets'][preset]['fields'].items()
         if not (
             k0 in dparam.keys()
-            and isinstance(v0, tuple(_LTYPES))
+            and isinstance(v0, tuple(_LTYPES + _LTYPES_ARRAY))
         )
     ]
     if len(lkout) > 0:
@@ -1322,10 +1472,24 @@ def update_from_preset(dparam=None, dmodel=None, preset=None):
         else:
             dparam[k0]['initial'] = v0
 
+    # ----------------------
+    # grid if None
+
+    if grid is None:
+        grid = dmodel['presets'][preset].get('grid')
+
+    # ----------------------
+    # re-check dparam
+
+    dparam, dmulti, dfunc_order, dargs = check_dparam(
+        dparam=dparam, grid=grid, verb=verb,
+    )
+
     # ------------
     # update preset
     dmodel['preset'] = preset
 
+    return dparam, dmulti, dfunc_order, dargs
 
 # #############################################################################
 # #############################################################################
@@ -1396,3 +1560,51 @@ def _print_or_wait(
             )
             print(msg, end=end, flush=flush)
     return t0
+
+
+# #############################################################################
+# #############################################################################
+#                       check idx
+# #############################################################################
+
+def _check_idx(idx=None, nt=None, dmulti=None):
+    """ Check idx is conform to dmulti['shape']
+
+    Return None or a time slice
+
+    """
+
+    c0 = (
+        idx is None
+        or (
+            (
+                dmulti is None
+                or len(dmulti['shape']) == 1
+            )
+            and isinstance(idx, int)
+        )
+        or (
+            hasattr(idx, '__iter__')
+            and len(idx) == len(dmulti['shape'])
+            and all([
+                isinstance(ii, int)
+                and 0 <= vv < dmulti['shape'][ii]
+                for ii, vv in enumerate(idx)
+            ])
+        )
+    )
+    if not c0:
+        msg = (
+            "Arg idx must be either:\n"
+            "\t- None\n"
+            f"\t- iterable of int indices for shape {dmulti['shape']}\n"
+            f"Provided: {idx}"
+        )
+        raise Exception(msg)
+
+    if isinstance(idx, int):
+        idx = [idx]
+
+    if idx is not None:
+        idx = tuple([slice(0, nt)] + list(idx))
+    return idx

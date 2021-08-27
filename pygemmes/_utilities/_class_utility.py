@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 
 
+# Standard
+import copy
+import inspect
+
+
 # Common
 import numpy as np
 
@@ -131,7 +136,7 @@ def _get_dict_subset(
 
     if returnas is dict:
         # return a copy of the dict
-        return {k0: dict(indict[k0]) for k0 in lk}
+        return copy.deepcopy({k0: dict(indict[k0]) for k0 in lk})
     elif returnas is list:
         # return only the keys
         return lk
@@ -202,14 +207,18 @@ def _dict_equal(dict1, dict2, dd=None):
         elif isinstance(v0, dict):
             dfail.update(_dict_equal(v0, dict2[k0], dd=f"{dd}['{k0}']"))
         elif k0 == 'func':
+            args = inspect.getfullargspec(v0)
+            dargs = {k0: args.defaults[ii] for ii, k0 in enumerate(args.args)}
+            # dargs = {}
+            v0_val = v0(**dargs)
             c0 = (
                 (
-                    isinstance(v0(), np.ndarray)
-                    and np.allclose(v0(), dict2[k0]())
+                    isinstance(v0_val, np.ndarray)
+                    and np.allclose(v0_val, dict2[k0]())
                 )
                 or (
-                    type(v0()) in _LTYPES
-                    and v0() == dict2[k0]()
+                    type(v0_val) in _LTYPES
+                    and v0_val == dict2[k0](**dargs)
                 )
             )
             if not c0:
@@ -289,11 +298,48 @@ def _equal(obj1, obj2, verb=None, return_dfail=None):
 # #############################################################################
 
 
-def paramfunc2str(dparam=None, key=None):
+def paramfunc2str(
+    dparam=None,
+    key=None,
+    large=None,
+    dmisc=None,
+    idx=None,
+):
 
     eqtype = dparam[key].get('eqtype')
     if eqtype is None:
-        msg = str(dparam[key]['value'])
+        if large and key in dmisc['dmulti']['keys']:
+            msg = str(dparam[key]['value'].shape)
+        else:
+            if not hasattr(dparam[key]['value'], '__iter__'):
+                msg = '{:4.2g}'.format(dparam[key]['value'])
+            elif idx is None:
+                msg = ', '.join([
+                    f'{aa:4.2g}' for aa in dparam[key]['value'].ravel()
+                ])
+            else:
+                if dmisc['dmulti']['grid']:
+                    ind = list(idx[1:])
+                    if key in dmisc['dmulti']['keys']:
+                        kref = key
+                    else:
+                        lk = [
+                            kk for kk, vv in dmisc['dmulti']['dparfunc']
+                            if key in vv
+                        ]
+                        if len(lk) != 1:
+                            msg = "Inconsistency in dmisc['dmulti']['dparfunc']"
+                            raise Exception(msg)
+                        kref = lk[0]
+                    indi = dmisc['dmulti']['keys'].index(kref)
+                    ind = tuple([
+                        jj if ii == indi else 0
+                        for ii, jj in enumerate(idx[1:])
+                    ])
+                else:
+                    ind = idx[1]
+                msg = '{:4.2g}'.format(dparam[key]['value'][ind])
+
     elif eqtype in ['param', 'ode', 'statevar']:
         if dparam[key].get('source_exp') is None:
             kargs = ', '.join([
@@ -305,3 +351,317 @@ def paramfunc2str(dparam=None, key=None):
             msg = dparam[key]['source_exp']
 
     return msg
+
+
+def param_minmax2str(
+    dparam=None,
+    key=None,
+    large=None,
+    dmisc=None,
+    which=None,
+):
+
+    c0 = (
+        large
+        and dparam[key].get('eqtype') in [None, 'param']
+        and (
+            key in dmisc['dmulti']['keys']
+            or hasattr(dparam[key]['value'], '__iter__')
+        )
+    )
+    if c0:
+        if which == 'min':
+            msg = "{:4.2g}".format(np.nanmin(dparam[key]['value']))
+        else:
+            msg = "{:4.2g}".format(np.nanmax(dparam[key]['value']))
+    else:
+        msg = ''
+    return msg
+
+
+# #############################################################################
+# #############################################################################
+#           get_summary parts
+# #############################################################################
+
+
+def _get_summary_numerical(hub):
+
+    # ----------------
+    # get sub-dict of interest
+
+    dparam_sub = hub.get_dparam(
+        returnas=dict,
+        eqtype=[None, 'param'],
+        group='Numerical',
+    )
+
+    # ------------------
+    # get column headers
+
+    col1 = ['Numerical param.', 'value', 'units', 'definition', 'comment']
+
+    # ------------------
+    # get values
+
+    ar1 = [
+        [
+            k0,
+            paramfunc2str(dparam=dparam_sub, key=k0),
+            v0['units'],
+            v0['definition'],
+            v0['com'],
+        ]
+        for k0, v0 in dparam_sub.items()
+    ]
+    ar1.append(['run', str(hub.dmisc['run']), '', '', ''])
+
+    # add solver if has run
+    if hub.dmisc['run'] is True:
+        ar1.append(['solver', hub.dmisc['solver'], '', '', ''])
+
+    return col1, ar1
+
+
+def _get_summary_parameters(hub, idx=None):
+
+    # ----------------
+    # preliminary criterion
+
+    large = (
+        idx is None
+        and np.any(np.array(hub.dmisc['dmulti']['shape']) > 3)
+    )
+
+    # ----------------
+    # get sub-dict of interest
+
+    dparam_sub = hub.get_dparam(
+        returnas=dict,
+        eqtype=[None, 'param'],
+        group=('Numerical',),
+    )
+
+    # ------------------
+    # get column headers
+
+    if large:
+        col2 = [
+            'Model param.', 'value', 'min', 'max',
+            'units', 'group', 'definition', 'comment',
+        ]
+    else:
+        col2 = [
+            'Model param.', 'value',
+            'units', 'group', 'definition', 'comment',
+        ]
+
+    # ------------------
+    # get values
+
+    if large:
+        # if many systems => don't show all, just shape, min, max
+
+        ar2 = [
+            [
+                k0,
+                paramfunc2str(
+                    dparam=dparam_sub,
+                    key=k0,
+                    large=large,
+                    dmisc=hub.dmisc,
+                ),
+                param_minmax2str(
+                    dparam=dparam_sub,
+                    key=k0,
+                    large=large,
+                    dmisc=hub.dmisc,
+                    which='min',
+                ),
+                param_minmax2str(
+                    dparam=dparam_sub,
+                    key=k0,
+                    large=large,
+                    dmisc=hub.dmisc,
+                    which='max',
+                ),
+                str(v0['units']),
+                v0['group'],
+                v0['definition'],
+                v0['com'],
+            ]
+            for k0, v0 in dparam_sub.items()
+        ]
+
+    else:
+        ar2 = [
+            [
+                k0,
+                paramfunc2str(
+                    dparam=dparam_sub,
+                    key=k0,
+                    large=large,
+                    dmisc=hub.dmisc,
+                    idx=idx,
+                ),
+                str(v0['units']),
+                v0['group'],
+                v0['definition'],
+                v0['com'],
+            ]
+            for k0, v0 in dparam_sub.items()
+        ]
+
+    return col2, ar2
+
+
+def _get_summary_functions(hub, idx=None):
+
+    # ----------------
+    # preliminary criterion
+
+    shape = hub.dmisc['dmulti']['shape']
+    large = (
+        idx is None
+        and (
+            np.any(np.array(shape) > 3)
+            or len(shape) > 1
+        )
+    )
+
+    # ----------------
+    # get sub-dict of interest
+
+    dparam_sub = hub.get_dparam(
+        returnas=dict,
+        eqtype=['ode', 'statevar'],
+    )
+
+    # ------------------
+    # get column headers
+
+    if large:
+        col3 = [
+            'function', 'source',
+            'shape',
+            'units', 'eqtype',
+            'definition', 'comment',
+        ]
+    else:
+        if hub.dmisc['run']:
+            col3 = [
+                'function', 'source',
+                'initial', 'final',
+                'units', 'eqtype',
+                'definition', 'comment',
+            ]
+        else:
+            col3 = [
+                'function', 'source',
+                'initial',
+                'units', 'eqtype',
+                'definition', 'comment',
+            ]
+
+    # ------------------
+    # get values
+
+    if large:
+        ar3 = [
+            [
+                k0,
+                paramfunc2str(
+                    dparam=dparam_sub,
+                    key=k0,
+                    large=large,
+                    dmisc=hub.dmisc,
+                ),
+                f"{v0.get('value').shape}",
+                v0['units'],
+                v0['eqtype'],
+                v0['definition'],
+                v0['com'],
+            ]
+            for k0, v0 in dparam_sub.items()
+        ]
+
+    elif idx is None:
+        if hub.dmisc['run']:
+            ar3 = [
+                [
+                    k0,
+                    paramfunc2str(
+                        dparam=dparam_sub,
+                        key=k0,
+                        large=large,
+                        dmisc=hub.dmisc,
+                    ),
+                    f"{v0.get('value')[0, ...]}",
+                    f"{v0.get('value')[-1, ...]}",
+                    v0['units'],
+                    v0['eqtype'],
+                    v0['definition'],
+                    v0['com'],
+                ]
+                for k0, v0 in dparam_sub.items()
+            ]
+        else:
+            ar3 = [
+                [
+                    k0,
+                    paramfunc2str(
+                        dparam=dparam_sub,
+                        key=k0,
+                        large=large,
+                        dmisc=hub.dmisc,
+                    ),
+                    f"{v0.get('value')[0, ...]}",
+                    v0['units'],
+                    v0['eqtype'],
+                    v0['definition'],
+                    v0['com'],
+                ]
+                for k0, v0 in dparam_sub.items()
+            ]
+
+    else:
+        if hub.dmisc['run']:
+            ar3 = [
+                [
+                    k0,
+                    paramfunc2str(
+                        dparam=dparam_sub,
+                        key=k0,
+                        large=large,
+                        dmisc=hub.dmisc,
+                    ),
+                    f"{v0.get('value')[tuple(np.r_[0, idx[1:]])]}",
+                    f"{v0.get('value')[tuple(np.r_[-1, idx[1:]])]}",
+                    v0['units'],
+                    v0['eqtype'],
+                    v0['definition'],
+                    v0['com'],
+                ]
+                for k0, v0 in dparam_sub.items()
+            ]
+
+        else:
+            ar3 = [
+                [
+                    k0,
+                    paramfunc2str(
+                        dparam=dparam_sub,
+                        key=k0,
+                        large=large,
+                        dmisc=hub.dmisc,
+                    ),
+                    f"{v0.get('value')[tuple(np.r_[0, idx[1:]])]}",
+                    v0['units'],
+                    v0['eqtype'],
+                    v0['definition'],
+                    v0['com'],
+                ]
+                for k0, v0 in dparam_sub.items()
+            ]
+
+    return col3, ar3
