@@ -159,7 +159,12 @@ def _get_dict_subset(
 # #############################################################################
 
 
-def _dict_equal(dict1, dict2, dd=None):
+def _dict_equal(dict1, dict2, dd=None, atol=None, rtol=None):
+
+    if atol is None:
+        atol = 1.e-08
+    if rtol is None:
+        rtol = 1.e-05
 
     # initialize failures dict
     dfail = {}
@@ -195,8 +200,21 @@ def _dict_equal(dict1, dict2, dd=None):
         elif isinstance(v0, np.ndarray):
             if v0.shape != dict2[k0].shape:
                 msg = f"different shapes ({v0.shape} vs {dict2[k0].shape})"
-            elif not np.allclose(v0, dict2[k0], equal_nan=True):
-                msg = "different values"
+            elif not np.allclose(np.isnan(v0) np.isnan(dict2[k0])):
+                msg = f"non-matching NaNs ()"
+            elif not np.allclose(
+                v0, dict2[k0],
+                atol=atol, rtol=rtol,
+                equal_nan=True,
+            ):
+                ind_ok = ~np.isnan(v0)
+                diff = np.abs(v0 - dict2[k0])[ind_ok]
+                thresh = atol + rtol*np.abs(dict2[k0])
+                ind = diff > thresh
+                msg = (
+                    f"different values ({ind.sum()}/{ind_ok.sum()}): "
+                    f"{np.nanmean(diff[ind])} vs {np.nanmean(thresh[ind])}"
+                )
         elif isinstance(v0, list) or isinstance(v0, tuple):
             if len(v0) != len(dict2[k0]):
                 msg = f"different lengths ({len(v0)} vs {len(dict2[k0])})"
@@ -233,7 +251,7 @@ def _dict_equal(dict1, dict2, dd=None):
     return dfail
 
 
-def _equal(obj1, obj2, verb=None, return_dfail=None):
+def _equal(obj1, obj2, atol=None, rtol=None, verb=None, return_dfail=None):
     """ Assess whether 2 instances are equal (i.e.: have the same attributes)
     """
 
@@ -268,6 +286,8 @@ def _equal(obj1, obj2, verb=None, return_dfail=None):
             dict1=getattr(obj1, dd),
             dict2=getattr(obj2, dd),
             dd=dd,
+            atol=atol,
+            rtol=rtol,
         ))
 
     # ------------

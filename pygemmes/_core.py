@@ -785,10 +785,19 @@ class Hub():
     #       comparison methods
     # ##############################
 
-    def __eq__(self, other, verb=None, return_dfail=None):
+    def __eq__(
+        self,
+        other,
+        atol=None,
+        rtol=None,
+        verb=None,
+        return_dfail=None,
+    ):
         """ Automatically called when testing obj1 == obj2 """
         return _class_utility._equal(
             self, other,
+            atol=atol,
+            rtol=rtol,
             verb=verb,
             return_dfail=return_dfail,
         )
