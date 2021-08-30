@@ -242,8 +242,10 @@ class Test01_Hub():
                     del dfaili[keyok]
 
                 if len(dfaili) > 0:
+                    lstr = [f"\t\t. {k0}: {v0}" for k0, v0 in dfaili.items()]
                     msg = (
-                        f"Differs from reference for: {list(dfaili.keys())}"
+                        "Differs from reference for:\n"
+                        + "\n".join(lstr)
                     )
                     dfail[f'{model}_{preset}_{solver}'] = msg
 
