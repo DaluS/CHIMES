@@ -34,7 +34,7 @@ _LEQTYPES = ['ode', 'pde', 'statevar', 'param', 'undeclared']
 
 
 _LEXTRAKEYS = [
-    'func', 'kargs', 'args', 'initial',
+    'func', 'kargs', 'args', 'initial', 'grid',
     'source_kargs', 'source_exp', 'source_name', 'isneeded',
 ]
 
@@ -77,7 +77,7 @@ class ShapeError(Exception):
 # #############################################################################
 
 
-def load_model(model=None, grid=None, verb=None):
+def load_model(model=None, dmulti=None, verb=None):
     """ Load a model from a model file
 
     model can be:
@@ -160,7 +160,7 @@ def load_model(model=None, grid=None, verb=None):
     # --------------------
     # re-check dparam + Identify functions order + get dargs
     dparam, dmulti, dfunc_order, dargs = check_dparam(
-        dparam=dparam, grid=grid, verb=verb,
+        dparam=dparam, dmulti=dmulti, verb=verb,
     )
 
     return dmodel, dparam, dmulti, dfunc_order, dargs
@@ -502,6 +502,14 @@ def _check_dparam(dparam=None):
                 # fixed valkue
                 dfail[k0] = f"Invalid value type ({type(v0['value'])})"
 
+            elif c1:
+                if isinstance(dparam[k0]['value'], tuple(_LTYPES)):
+                    dparam[k0]['grid'] = None
+                elif isinstance(dparam[k0]['value'], tuple(_LTYPES_ARRAY)):
+                    if not isinstance(dparam[k0]['grid'], bool):
+                        dfail[k0] = "multiple value have a bool attr 'grid'!"
+                        continue
+
     # ----------------
     # Raise Exception if any failure
     if len(dfail) > 0:
@@ -522,58 +530,166 @@ def _check_dparam(dparam=None):
     return dparam
 
 
-def _get_multiple_systems(dparam, grid=None):
+def _set_key_value(dparam=None, key=None, value=None, grid=None):
+    if key not in dparam.keys():
+        msg = (
+            "key {} is not identified!\n".format(key)
+            + "See get_dparam() method"
+        )
+        raise Exception(msg)
+    c0 = (
+        dmulti['grid'] is False
+        and hasattr(value, '__iter__')
+        and dmulti['shape'] != (1,)
+        and len(value) != dmulti['shape'][0]
+    )
+    if c0:
+        raise _class_checks.ShapeError(
+            dparam=dparam,
+            lkeys=set([key] + dmisc['dmulti']['keys']),
+            key=key,
+            value=np.array(value).ravel(),
+        )
+
+    dparam[key]['value'] = value
+    if hasattr(value, '__iter__'):
+        dparam[key]['grid'] = grid
+
+
+def _get_multiple_systems(dparam, dmulti=None):
+    """
+
+    A mix of grid=False and grid=True is possible only if all grid=False are
+    together
+    """
 
     # -----------
-    # check inputs
+    # add possible new values
 
-    if grid is None:
-        grid = _GRID
-    if not isinstance(grid, bool):
-        msg = f"Arg grid must be a bool!\nProvided: {grid}"
-        raise Exception(msg)
-
-    # only fixed-value parameters can
-    lkeys = [
-        k0 for k0, v0 in dparam.items()
+    lk0_param = [
+        k0 for k0, v0 in dparam.keys()
         if v0.get('eqtype') is None
         and isinstance(v0['value'], tuple(_LTYPES_ARRAY))
     ]
+    lk0_ode = [
+        k0 for k0, v0 in dparam.keys()
+        if v0.get('eqtype') == 'ode'
+        and isinstance(v0['initial'], tuple(_LTYPES_ARRAY))
+    ]
+    lk0 = lk0_param + lk0_ode
 
-    if len(lkeys) > 0:
-        # make sure they are all 1d
-        for k0 in lkeys:
-            dparam[k0]['value'] = np.atleast_1d(dparam[k0]['value']).ravel()
-
-        if grid is True:
-
-            # Get shape
-            shape = tuple([dparam[k0]['value'].size for k0 in lkeys])
-
-            # update shape of values to ensure broadcasting
-            # e.g.: shapek0 = (1, 1, sizek0, 1)
-            for k0 in lkeys:
-                shapek0 = tuple([
-                    shape[ii] if k1 == k0 else 1
-                    for ii, k1 in enumerate(lkeys)
-                ])
-                dparam[k0]['value'] = dparam[k0]['value'].reshape(shapek0)
-
-        else:
-            shape = dparam[lkeys[0]]['value'].shape
-
-            # check all have the same shape
-            if any([dparam[k0]['value'].shape != shape for k0 in lkeys]):
-                raise ShapeError(lkeys=lkeys, dparam=dparam)
-
-        # update nx
-        dparam['nx']['value'] = np.prod(shape)
+    if len(lk0) == 0:
+        shape = (1,)
+        shape_keys = []
+        lkeys = []
+        hasFalse = None
 
     else:
-        shape = (1,)
-        dparam['nx']['value'] = 1
+        # -----------
+        # check for pre-existing shape (possibly remove non-relevant keys)
 
-    return {'keys': lkeys, 'shape': shape, 'grid': grid}
+        # rebuild shape and shape_keys only keeping relevant cases
+        shape = []
+        shape_keys = []
+        for ii, ss in enumerate(dmulti['shape']):
+            lk = []
+            for k0 in dmulti['shape_keys'][ii]:
+
+                kval = 'value' if v0.get('eqtype') is None else 'initial'
+
+                if dparam[k0].get('grid') is None:
+                    # grid = None => remove from multi
+                    continue
+
+                lk.append(k0)
+
+            if len(lk) > 0:
+                shape.append(ss)
+                shape_keys.append(lk)
+
+        # concatenation
+        lkeys = itt.chain.from_iterable(shape_keys)
+        hasFalse = any([dparam[k0]['grid'] is False for k0 in lkeys])
+
+        for k0 in lk0:
+
+            # get relevant key for the value, flatten and get size
+            kval = 'value' if v0.get('eqtype') is None else 'initial'
+            dparam[k0][kval] = np.atleast_1d(dparam[k0][kval]).ravel()
+            size = v0[kval].size
+
+            if k0 not in lkeys:
+                if v0['grid'] is True:
+                    shape.append(size)
+                    shape_keys.append([k0])
+                elif v0['grid'] is False:
+                    if hasFalse:
+                        if size != sh[0]:
+                            msg = f"Inconsistent shape for dparam['{k0}']"
+                            raise Exception(msg)
+                        else:
+                            shape_keys[0].append(k0)
+                    else:
+                        shape.prepend(size)
+                        shape_keys.prepend([k0])
+                        hasFalse = True
+                else:
+                    msg = f"Inconsistent shape for dparam['{k0}']"
+                    raise Exception(msg)
+
+        # -----------
+        # double-chekck
+
+        if hasFalse is not any([dparam[k0]['grid'] is False for k0 in lk0]):
+            msg = "Inconsistent hasFalse"
+            raise Exception(msg)
+
+        for k0 in lk0:
+
+            kval = 'value' if v0.get('eqtype') is None else 'initial'
+
+            if dparam[k0]['grid'] is False:
+                indi = 0
+            else:
+                indi = [ii for ii, lk in enumerate(shape_keys) if k0 in lk]
+                if len(indi) != 1:
+                    msg = f"Inconsistent index for dparam['{k0}']"
+                    raise Exception(msg)
+                indi = indi[0]
+
+            # double-check the size vs the common shape
+            if dparam[k0][kval].size != shape[indi]:
+                msg = f"Inconsistent size for dparam['{k0}']"
+                raise Exception(msg)
+            if dparam[k0]['grid'] is True and shape_keys[ii] != [k0]:
+                msg = ""
+                raise Exception(msg)
+            elif dparam[k0]['grid'] is False and k0 not in shape_keys[ii]:
+                msg = ""
+                raise Exception(msg)
+
+            dparam[k0]['multi_ind'] = indi
+
+        # -----------
+        # broadcast
+        # e.g.: shapek0 = (1, 1, sizek0, 1)
+
+        shape0 = [1 for ii in sh]
+        for k0 in lk0:
+            shape0[dparam[k0]['multi_ind']] = dparam[k0][kval].size
+            dparam[k0][kval] = dparam[k0][kval].reshape(shape0)
+            shape0[dparam[k0]['multi_ind']] = 1
+
+    # update nx
+    dparam['nx']['value'] = np.prod(shape)
+
+    return {
+        'multi': shape != (1,),
+        'shape_keys': shape_keys,
+        'shape': shape,
+        'lkeys': lkeys,
+        'hasFalse': hasFalse,
+    }
 
 
 def _get_multiple_systems_functions(dparam=None, dmulti=None):
@@ -629,7 +745,7 @@ def _get_multiple_systems_functions(dparam=None, dmulti=None):
 # #############################################################################
 
 
-def check_dparam(dparam=None, grid=None, verb=None):
+def check_dparam(dparam=None, dmulti=None, verb=None):
     """ Check user-provided dparam
 
     dparam can be:
@@ -653,7 +769,7 @@ def check_dparam(dparam=None, grid=None, verb=None):
 
     # -------------------
     # Identify multiple systems
-    dmulti = _get_multiple_systems(dparam, grid=grid)
+    dmulti = _get_multiple_systems(dparam, dmulti=dmulti)
 
     # ----------------
     # Identify functions
@@ -1421,8 +1537,8 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None):
 def update_from_preset(
     dparam=None,
     dmodel=None,
+    dmulti=None,
     preset=None,
-    grid=None,
     verb=None,
 ):
     """ Update the dparam dict from values taken from preset """
@@ -1473,16 +1589,10 @@ def update_from_preset(
             dparam[k0]['initial'] = v0
 
     # ----------------------
-    # grid if None
-
-    if grid is None:
-        grid = dmodel['presets'][preset].get('grid')
-
-    # ----------------------
     # re-check dparam
 
     dparam, dmulti, dfunc_order, dargs = check_dparam(
-        dparam=dparam, grid=grid, verb=verb,
+        dparam=dparam, dmulti=dmulti, verb=verb,
     )
 
     # ------------
@@ -1490,6 +1600,7 @@ def update_from_preset(
     dmodel['preset'] = preset
 
     return dparam, dmulti, dfunc_order, dargs
+
 
 # #############################################################################
 # #############################################################################

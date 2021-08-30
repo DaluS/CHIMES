@@ -139,28 +139,12 @@ class Hub():
         # set dparam or update desired key
 
         if dparam is None:
-            if key not in self.__dparam.keys():
-                msg = (
-                    "key {} is not identified!\n".format(key)
-                    + "See get_dparam() method"
-                )
-                raise Exception(msg)
-            c0 = (
-                self.__dmisc['dmulti']['grid'] is False
-                and hasattr(value, '__iter__')
-                and self.__dmisc['dmulti']['shape'] != (1,)
-                and len(value) != self.__dmisc['dmulti']['shape'][0]
+            _class_checks._set_key_value(
+                dparam=self.__dparam,
+                key=key,
+                value=value,
+                grid=grid,
             )
-            if c0:
-                raise _class_checks.ShapeError(
-                    dparam=self.__dparam,
-                    lkeys=set([key] + self.__dmisc['dmulti']['keys']),
-                    key=key,
-                    value=np.array(value).ravel(),
-                )
-
-            dparam = dict(self.__dparam)
-            dparam[key]['value'] = value
 
         # ----------------
         # Update to check consistency
@@ -170,7 +154,7 @@ class Hub():
             self.__dmisc['dmulti'],
             self.__dmisc['dfunc_order'],
             self.__dargs,
-        ) = _class_checks.check_dparam(dparam=dparam, grid=grid, verb=verb)
+        ) = _class_checks.check_dparam(dparam=dparam, verb=verb)
 
         # reset all variables
         self.reset()
