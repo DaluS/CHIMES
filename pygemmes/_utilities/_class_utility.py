@@ -200,7 +200,7 @@ def _dict_equal(dict1, dict2, dd=None, atol=None, rtol=None):
         elif isinstance(v0, np.ndarray):
             if v0.shape != dict2[k0].shape:
                 msg = f"different shapes ({v0.shape} vs {dict2[k0].shape})"
-            elif not np.allclose(np.isnan(v0) np.isnan(dict2[k0])):
+            elif not np.allclose(np.isnan(v0), np.isnan(dict2[k0])):
                 msg = f"non-matching NaNs ()"
             elif not np.allclose(
                 v0, dict2[k0],
