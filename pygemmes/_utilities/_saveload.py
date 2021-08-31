@@ -310,9 +310,9 @@ def rebuild_func_from_source(dout=None, model_file=None):
 
             else:
                 # Rebuild from source str
+                kargs = dout['dparam'][k0]['source_kargs']
                 dout['dparam'][k0]['func'] = eval(
-                    f"lambda {dout['dparam'][k0]['source_kargs']}: "
-                    f"{dout['dparam'][k0]['source_exp']}"
+                    f"lambda {kargs}: {dout['dparam'][k0]['source_exp']}"
                 )[0]
 
 
