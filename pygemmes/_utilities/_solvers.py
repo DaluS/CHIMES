@@ -511,16 +511,23 @@ def _solver_scipy(
             lind = list((ii // rat) % shape)
 
             # update dargs_temp with multiple-values parameters!
-            if dmulti['grid']:
+            if len(dmulti['shape']) > 1:
                 for k0, v0 in dkup.items():
                     for k1, jj in v0.items():
+                        if dparam[k1].get('eqtype') == 'ode':
+                            # ode initial values are not parameters
+                            continue
+                        key = 'lamb' if k1 == 'lambda' else k1
                         indj[jj] = lind[jj]
-                        dargs_temp[k0][k1] = dparam[k1]['value'][tuple(indj)]
+                        dargs_temp[k0][key] = dparam[k1]['value'][tuple(indj)]
                         indj[jj] = 0
             else:
                 for k0, v0 in dkup.items():
                     for k1, jj in v0.items():
-                        dargs_temp[k0][k1] = dparam[k1]['value'][ii]
+                        if dparam[k1].get('eqtype') == 'ode':
+                            continue
+                        key = 'lamb' if k1 == 'lambda' else k1
+                        dargs_temp[k0][key] = dparam[k1]['value'][ii]
 
             # solve
             slic = tuple([slice(0, len(lode))] + lind)
