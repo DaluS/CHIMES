@@ -502,13 +502,19 @@ def _check_dparam(dparam=None):
                 # fixed valkue
                 dfail[k0] = f"Invalid value type ({type(v0['value'])})"
 
-            elif c1:
-                if isinstance(dparam[k0]['value'], tuple(_LTYPES)):
-                    dparam[k0]['grid'] = None
-                elif isinstance(dparam[k0]['value'], tuple(_LTYPES_ARRAY)):
-                    if not isinstance(dparam[k0]['grid'], bool):
-                        dfail[k0] = "multiple value have a bool attr 'grid'!"
-                        continue
+            # set grid
+            c0 = (
+                dparam[k0].get('eqtype') is None
+                and isinstance(dparam[k0]['value'], tuple(_LTYPES_ARRAY))
+            )
+            if c0 and dparam[k0].get('grid') is None:
+                dparam[k0]['grid'] = _GRID
+            c0 = (
+                dparam[k0].get('eqtype') == 'ode'
+                and isinstance(dparam[k0]['initial'], tuple(_LTYPES_ARRAY))
+            )
+            if c0 and dparam[k0].get('grid') is None:
+                dparam[k0]['grid'] = _GRID
 
     # ----------------
     # Raise Exception if any failure
@@ -563,6 +569,16 @@ def _get_multiple_systems(dparam, dmulti=None):
     together
     """
 
+    if dmulti is None:
+        dmulti = {
+            'multi': False,
+            'shape_keys': [],
+            'shape': [],
+            'keys': [],
+            'hasFalse': None,
+            'dparfunc': None,
+        }
+
     # -----------
     # add possible new values
 
@@ -582,63 +598,79 @@ def _get_multiple_systems(dparam, dmulti=None):
         shape = (1,)
         shape_keys = []
         lkeys = []
-        hasFalse = None
+        hasFalse = False
 
     else:
         # -----------
         # check for pre-existing shape (possibly remove non-relevant keys)
 
         # rebuild shape and shape_keys only keeping relevant cases
-        shape = []
-        shape_keys = []
-        for ii, ss in enumerate(dmulti['shape']):
-            lk = []
-            for k0 in dmulti['shape_keys'][ii]:
+        if dmulti['shape'] == (1,):
+            shape = []
+            shape_keys = []
+            lkeys = []
+            hasFalse = False
 
-                kval = 'value' if v0.get('eqtype') is None else 'initial'
+        else:
+            shape = []
+            shape_keys = []
+            for ii, ss in enumerate(dmulti['shape']):
+                lk = []
+                for k0 in dmulti['shape_keys'][ii]:
 
-                if dparam[k0].get('grid') is None:
-                    # grid = None => remove from multi
-                    continue
+                    kval = (
+                        'value' if dparam[k0].get('eqtype') is None
+                        else 'initial'
+                    )
 
-                lk.append(k0)
+                    if dparam[k0].get('grid') is None:
+                        # grid = None => remove from multi
+                        continue
 
-            if len(lk) > 0:
-                shape.append(ss)
-                shape_keys.append(lk)
+                    lk.append(k0)
 
-        # concatenation
-        lkeys = itt.chain.from_iterable(shape_keys)
-        hasFalse = any([dparam[k0]['grid'] is False for k0 in lkeys])
+                if len(lk) > 0:
+                    shape.append(ss)
+                    shape_keys.append(lk)
+
+            # concatenation
+            lkeys = itt.chain.from_iterable(shape_keys)
+            hasFalse = any([dparam[k0]['grid'] is False for k0 in lkeys])
+
+        # -----------
+        # add new
 
         for k0 in lk0:
 
             # get relevant key for the value, flatten and get size
-            kval = 'value' if v0.get('eqtype') is None else 'initial'
+            kval = 'value' if dparam[k0].get('eqtype') is None else 'initial'
             dparam[k0][kval] = np.atleast_1d(dparam[k0][kval]).ravel()
-            size = v0[kval].size
+            size = dparam[k0][kval].size
 
             if k0 not in lkeys:
-                if v0['grid'] is True:
+                if dparam[k0]['grid'] is True:
                     shape.append(size)
                     shape_keys.append([k0])
-                elif v0['grid'] is False:
+                    lkeys.append(k0)
+                elif dparam[k0]['grid'] is False:
                     if hasFalse:
-                        if size != sh[0]:
+                        if size != shape[0]:
                             msg = f"Inconsistent shape for dparam['{k0}']"
                             raise Exception(msg)
                         else:
                             shape_keys[0].append(k0)
+                            lkeys.insert(0, k0)
                     else:
-                        shape.prepend(size)
-                        shape_keys.prepend([k0])
+                        shape.insert(0, size)
+                        shape_keys.insert(0, [k0])
+                        lkeys.insert(0, k0)
                         hasFalse = True
                 else:
                     msg = f"Inconsistent shape for dparam['{k0}']"
                     raise Exception(msg)
 
         # -----------
-        # double-chekck
+        # double-check all
 
         if hasFalse is not any([dparam[k0]['grid'] is False for k0 in lk0]):
             msg = "Inconsistent hasFalse"
@@ -646,7 +678,7 @@ def _get_multiple_systems(dparam, dmulti=None):
 
         for k0 in lk0:
 
-            kval = 'value' if v0.get('eqtype') is None else 'initial'
+            kval = 'value' if dparam[k0].get('eqtype') is None else 'initial'
 
             if dparam[k0]['grid'] is False:
                 indi = 0
@@ -661,10 +693,10 @@ def _get_multiple_systems(dparam, dmulti=None):
             if dparam[k0][kval].size != shape[indi]:
                 msg = f"Inconsistent size for dparam['{k0}']"
                 raise Exception(msg)
-            if dparam[k0]['grid'] is True and shape_keys[ii] != [k0]:
+            if dparam[k0]['grid'] is True and shape_keys[indi] != [k0]:
                 msg = ""
                 raise Exception(msg)
-            elif dparam[k0]['grid'] is False and k0 not in shape_keys[ii]:
+            elif dparam[k0]['grid'] is False and k0 not in shape_keys[indi]:
                 msg = ""
                 raise Exception(msg)
 
@@ -674,8 +706,9 @@ def _get_multiple_systems(dparam, dmulti=None):
         # broadcast
         # e.g.: shapek0 = (1, 1, sizek0, 1)
 
-        shape0 = [1 for ii in sh]
+        shape0 = [1 for ii in shape]
         for k0 in lk0:
+            kval = 'value' if dparam[k0].get('eqtype') is None else 'initial'
             shape0[dparam[k0]['multi_ind']] = dparam[k0][kval].size
             dparam[k0][kval] = dparam[k0][kval].reshape(shape0)
             shape0[dparam[k0]['multi_ind']] = 1
@@ -685,8 +718,8 @@ def _get_multiple_systems(dparam, dmulti=None):
 
     return {
         'multi': shape != (1,),
-        'shape_keys': shape_keys,
-        'shape': shape,
+        'shape_keys': tuple(shape_keys),
+        'shape': tuple(shape),
         'keys': lkeys,
         'hasFalse': hasFalse,
     }
@@ -1074,6 +1107,7 @@ def _check_func(dparam=None, dmulti=None, verb=None):
     If not user-provided, an order can be suggested for function execution
 
     """
+    tltypes = tuple(_LTYPES + _LTYPES_ARRAY)
 
     # -------------------------------------
     # extract parameters that are functions
@@ -1103,7 +1137,11 @@ def _check_func(dparam=None, dmulti=None, verb=None):
             continue
 
         # if ode => inital value necessary
-        if v0['eqtype'] == 'ode' and type(v0.get('initial')) not in _LTYPES:
+        c0 = (
+            v0['eqtype'] == 'ode'
+            and not isinstance(v0.get('initial'), tltypes)
+        )
+        if c0:
             dfail[k0] = "ode equation needs a 'initial' value"
             continue
 
@@ -1562,9 +1600,12 @@ def update_from_preset(
     dmodel=None,
     dmulti=None,
     preset=None,
+    dpresets=None,
     verb=None,
 ):
     """ Update the dparam dict from values taken from preset """
+
+    tltypes = tuple(_LTYPES + _LTYPES_ARRAY)
 
     # ---------------
     # check inputs
@@ -1573,9 +1614,12 @@ def update_from_preset(
         dmodel['preset'] = None
         return
 
-    if preset not in dmodel['presets'].keys():
+    if dpresets is None:
+        dpresets = dmodel['presets']
+
+    if preset not in dpresets.keys():
         lstr = [
-            f"\t- {k0}: {v0['com']}" for k0, v0 in dmodel['presets'].items()
+            f"\t- {k0}: {v0['com']}" for k0, v0 in dpresets.items()
         ]
         msg = (
             f"Please choose among the available presets for model"
@@ -1587,10 +1631,10 @@ def update_from_preset(
     # ----------------------
     # check fields in preset
     lkout = [
-        k0 for k0, v0 in dmodel['presets'][preset]['fields'].items()
+        k0 for k0, v0 in dpresets[preset]['fields'].items()
         if not (
             k0 in dparam.keys()
-            and isinstance(v0, tuple(_LTYPES + _LTYPES_ARRAY))
+            and (isinstance(v0, dict) or isinstance(v0, tltypes))
         )
     ]
     if len(lkout) > 0:
@@ -1605,11 +1649,33 @@ def update_from_preset(
 
     # ----------------------
     # update from preset
-    for k0, v0 in dmodel['presets'][preset]['fields'].items():
-        if dparam[k0].get('func') is None:
-            dparam[k0]['value'] = v0
+
+    lkok = ['value', 'initial', 'grid']
+    for k0, v0 in dpresets[preset]['fields'].items():
+        if dparam[k0].get('eqtype') not in [None, 'ode']:
+            msg = f"Non-supported eqtype for {preset}['fields']['{k0}']"
+            raise Exception(msg)
+
+        kval = 'value' if dparam[k0].get('eqtype') is None else 'initial'
+        if isinstance(v0, tltypes):
+            dparam[k0][kval] = v0
+
         else:
-            dparam[k0]['initial'] = v0
+            lkout = [kk for kk in v0.keys() if kk not in lkok]
+            if len(lkout) > 0:
+                lstr = [f'\t- {k0}' for k0 in lkout]
+                msg = (
+                    f"The following keys from {preset} are not supported:\n"
+                    + "\n".join(lstr)
+                )
+                raise Exception(msg)
+
+            if v0.get('value') is not None:
+                dparam[k0][kval] = v0['value']
+            if v0.get('initial') is not None:
+                dparam[k0][kval] = v0['initial']
+            if v0.get('grid') is not None:
+                dparam[k0]['grid'] = v0['grid']
 
     # ----------------------
     # re-check dparam

@@ -64,7 +64,11 @@ class Hub():
             self.__dmisc['dmulti'],
             self.__dmisc['dfunc_order'],
             self.__dargs,
-        ) = _class_checks.load_model(model, verb=verb)
+        ) = _class_checks.load_model(
+            model,
+            dmulti=self.__dmisc['dmulti'],
+            verb=verb,
+        )
 
         # ------------
         # update from preset if relevant
@@ -73,7 +77,7 @@ class Hub():
         else:
             self.reset()
 
-    def load_preset(self, preset=None, grid=None, verb=None):
+    def load_preset(self, preset=None, grid=None, dpresets=None, verb=None):
         """ For the current model, load desired preset """
         (
             self.__dparam,
@@ -83,8 +87,9 @@ class Hub():
         ) = _class_checks.update_from_preset(
             dparam=self.__dparam,
             dmodel=self.__dmodel,
+            dmulti=self.__dmisc['dmulti'],
             preset=preset,
-            grid=grid,
+            dpresets=dpresets,
             verb=verb,
         )
         self.reset()
@@ -154,7 +159,11 @@ class Hub():
             self.__dmisc['dmulti'],
             self.__dmisc['dfunc_order'],
             self.__dargs,
-        ) = _class_checks.check_dparam(dparam=dparam, verb=verb)
+        ) = _class_checks.check_dparam(
+            dparam=dparam,
+            dmulti=self.__dmisc['dmulti'],
+            verb=verb,
+        )
 
         # reset all variables
         self.reset()
