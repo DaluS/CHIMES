@@ -68,8 +68,7 @@ _PRESETS = {
             'omega': .85,
         },
         'com': (
-            'gives simple '
-            'stable sinusoidal oscillations'
+            'simple stable sinusoidal oscillations'
         ),
     },
     'bigcycle': {
@@ -78,8 +77,7 @@ _PRESETS = {
             'omega': .85,
         },
         'com': (
-            'give extremely '
-            'violent stable oscillations'
+            'extremely violent stable oscillations'
         ),
     },
     'badnegociation': {
@@ -89,16 +87,6 @@ _PRESETS = {
         'com': (
             'displace the Solow Point and '
             'allow big cycles with few harmonics'
-        ),
-    },
-    'smallbigcycle': {
-        'fields': {
-            'lambda': [0.97, 0.98, 0.99],
-            'omega': .85,
-        },
-        'com': (
-            'give extremely '
-            'violent stable oscillations'
         ),
     },
 }
