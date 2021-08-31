@@ -91,4 +91,14 @@ _PRESETS = {
             'allow big cycles with few harmonics'
         ),
     },
+    'smallbigcycle': {
+        'fields': {
+            'lambda': [0.97, 0.98, 0.99],
+            'omega': .85,
+        },
+        'com': (
+            'give extremely '
+            'violent stable oscillations'
+        ),
+    },
 }
