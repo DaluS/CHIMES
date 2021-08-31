@@ -22,7 +22,7 @@ class Hub():
     Generic class to stock every data and method for the user to interac with
     """
 
-    def __init__(self, model=None, preset=None, verb=None):
+    def __init__(self, model=None, preset=None, dpresets=None, verb=None):
         self.__dparam = {}
         self.__dmodel = dict.fromkeys(
             ['name', 'file', 'description', 'presets', 'preset']
@@ -32,13 +32,13 @@ class Hub():
         )
         self.__dargs = {}
         if model is not None:
-            self.load_model(model, preset=preset, verb=verb)
+            self.load_model(model, preset=preset, dpresets=dpresets, verb=verb)
 
     # ##############################
     # %% Setting / getting parameters
     # ##############################
 
-    def load_model(self, model=None, preset=None, grid=None, verb=None):
+    def load_model(self, model=None, preset=None, dpresets=None, verb=None):
         """ Load a model from a model file """
 
         # ------------
@@ -73,7 +73,7 @@ class Hub():
         # ------------
         # update from preset if relevant
         if preset is not None:
-            self.load_preset(preset, grid=grid, verb=verb)
+            self.load_preset(preset, dpresets=dpresets, verb=verb)
         else:
             self.reset()
 
@@ -150,6 +150,7 @@ class Hub():
                 value=value,
                 grid=grid,
             )
+            dparam = self.__dparam
 
         # ----------------
         # Update to check consistency
@@ -405,7 +406,6 @@ class Hub():
         Print a str summary of the solver
 
         """
-
         # ----------
         # check inputs
 
@@ -735,6 +735,19 @@ class Hub():
         obj.__dparam = {k0: dict(v0) for k0, v0 in dout['dparam'].items()}
         obj.__dmisc = dict(dout['dmisc'])
         obj.__dargs = dict(dout['dargs'])
+
+        # update default args for functions
+        _class_checks._update_func_default_kwdargs(
+            lfunc=obj.get_dparam(returnas=list, eqtype=(None,)),
+            dparam=obj.__dparam,
+            dmulti=obj.__dmisc['dmulti'],
+        )
+
+        # re-pass dargs by reference
+        obj.__dargs = _class_checks.get_dargs_by_reference(
+            obj.__dparam,
+            dfunc_order=obj.__dmisc['dfunc_order'],
+        )
 
         return obj
 
