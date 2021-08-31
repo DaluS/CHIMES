@@ -201,7 +201,10 @@ def _dict_equal(dict1, dict2, dd=None, atol=None, rtol=None):
             if v0.shape != dict2[k0].shape:
                 msg = f"different shapes ({v0.shape} vs {dict2[k0].shape})"
             elif not np.allclose(np.isnan(v0), np.isnan(dict2[k0])):
-                msg = f"non-matching NaNs ()"
+                msg = (
+                    "non-matching NaNs "
+                    f"({np.isnan(v0).sum()} vs {np.isnan(dict2[k0]).sum()})"
+                )
             elif not np.allclose(
                 v0, dict2[k0],
                 atol=atol, rtol=rtol,
@@ -338,7 +341,7 @@ def paramfunc2str(
                     f'{aa:4.2g}' for aa in dparam[key]['value'].ravel()
                 ])
             else:
-                if dmisc['dmulti']['grid']:
+                if len(dmisc['dmulti']['shape']) > 1:
                     ind = list(idx[1:])
                     if key in dmisc['dmulti']['keys']:
                         kref = key
