@@ -567,12 +567,12 @@ def _get_multiple_systems(dparam, dmulti=None):
     # add possible new values
 
     lk0_param = [
-        k0 for k0, v0 in dparam.keys()
+        k0 for k0, v0 in dparam.items()
         if v0.get('eqtype') is None
         and isinstance(v0['value'], tuple(_LTYPES_ARRAY))
     ]
     lk0_ode = [
-        k0 for k0, v0 in dparam.keys()
+        k0 for k0, v0 in dparam.items()
         if v0.get('eqtype') == 'ode'
         and isinstance(v0['initial'], tuple(_LTYPES_ARRAY))
     ]
@@ -687,7 +687,7 @@ def _get_multiple_systems(dparam, dmulti=None):
         'multi': shape != (1,),
         'shape_keys': shape_keys,
         'shape': shape,
-        'lkeys': lkeys,
+        'keys': lkeys,
         'hasFalse': hasFalse,
     }
 
@@ -702,41 +702,64 @@ def _get_multiple_systems_functions(dparam=None, dmulti=None):
     ]
 
     dmulti['dparfunc'] = {k0: [] for k0 in dmulti['keys']}
-    if dmulti['grid']:
-        for k0 in lpf:
-            lpar = [
-                k1 for ii, k1 in enumerate(dmulti['keys'])
-                if dparam[k0]['value'].shape[ii] > 1
-            ]
+    if dmulti['multi']:
+        if dmulti['hasFalse'] and len(dmulti['shape']) == 1:
+            for k0 in lpf:
+                lpar = [
+                    k1 for k1 in dmulti['keys']
+                    if k1 in dparam[k0]['kargs']
+                ]
 
-            if len(lpar) > 1:
-                msg = (
-                    f"Not handled yet for {k0}:"
-                    "Parameters functions depending on several parameters"
-                    " with multiple values\n"
-                    f"\t- lpar: {lpar}"
-                )
-                raise Exception(msg)
+                if len(lpar) == 0:
+                    msg = f'Inconsistency with npar for {k0}'
+                    raise Exception(msg)
 
-            elif len(lpar) == 0:
-                msg = f'Inconsistency with npar for {k0}'
-                raise Exception(msg)
+                for k1 in lpar:
+                    dmulti['dparfunc'][k1].append(k0)
 
-            dmulti['dparfunc'][lpar[0]].append(k0)
+        elif dmulti['hasFalse'] and len(dmulti['shape']) > 1:
+            for k0 in lpf:
+                lpar = [
+                    k1 for ii, k1 in enumerate(dmulti['keys'])
+                    if dparam[k0]['value'].shape[ii] > 1
+                ]
 
-    else:
-        for k0 in lpf:
-            lpar = [
-                k1 for k1 in dmulti['keys']
-                if k1 in dparam[k0]['kargs']
-            ]
+                if len(lpar) > 1:
+                    msg = (
+                        f"Not handled yet for {k0}:"
+                        "Parameters functions depending on several parameters"
+                        " with multiple values\n"
+                        f"\t- lpar: {lpar}"
+                    )
+                    raise Exception(msg)
 
-            if len(lpar) == 0:
-                msg = f'Inconsistency with npar for {k0}'
-                raise Exception(msg)
+                elif len(lpar) == 0:
+                    msg = f'Inconsistency with npar for {k0}'
+                    raise Exception(msg)
 
-            for k1 in lpar:
-                dmulti['dparfunc'][k1].append(k0)
+                dmulti['dparfunc'][lpar[0]].append(k0)
+
+        elif not dmulti['hasFalse']:
+            for k0 in lpf:
+                lpar = [
+                    k1 for ii, k1 in enumerate(dmulti['keys'])
+                    if dparam[k0]['value'].shape[ii] > 1
+                ]
+
+                if len(lpar) > 1:
+                    msg = (
+                        f"Not handled yet for {k0}:"
+                        "Parameters functions depending on several parameters"
+                        " with multiple values\n"
+                        f"\t- lpar: {lpar}"
+                    )
+                    raise Exception(msg)
+
+                elif len(lpar) == 0:
+                    msg = f'Inconsistency with npar for {k0}'
+                    raise Exception(msg)
+
+                dmulti['dparfunc'][lpar[0]].append(k0)
 
 
 # #############################################################################
