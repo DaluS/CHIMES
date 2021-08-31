@@ -147,6 +147,7 @@ def save(
     name=None,
     fmt=None,
     verb=None,
+    returnas=None,
 ):
 
     # ------------
@@ -208,6 +209,9 @@ def save(
     if verb is True:
         msg = (f"Saved in:\n\t{pfe}")
         print(msg)
+
+    if returnas is str:
+        return pfe
 
 
 # #############################################################################
