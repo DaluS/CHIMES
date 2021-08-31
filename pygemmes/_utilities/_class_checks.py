@@ -3,8 +3,11 @@
 
 # Built-in
 import os
+import types
+import functools
 import inspect
 import itertools as itt
+import copy
 import warnings
 import time
 
@@ -34,7 +37,7 @@ _LEQTYPES = ['ode', 'pde', 'statevar', 'param', 'undeclared']
 
 
 _LEXTRAKEYS = [
-    'func', 'kargs', 'args', 'initial', 'grid',
+    'func', 'kargs', 'args', 'initial', 'grid', 'multi_ind',
     'source_kargs', 'source_exp', 'source_name', 'isneeded',
 ]
 
@@ -69,6 +72,30 @@ class ShapeError(Exception):
             + "\n".join(lstr)
         )
         super().__init__(self.message)
+
+
+# ##############################
+# ##############################
+#        copy func
+# ##############################
+
+
+def copy_func(func):
+    """
+    Based on:
+        http://stackoverflow.com/a/6528148/190597 (Glenn Maynard)
+        https://stackoverflow.com/questions/13503079 (unutbu)
+    """
+    func2 = types.FunctionType(
+        func.__code__,
+        func.__globals__,
+        name=func.__name__,
+        argdefs=func.__defaults__,
+        closure=func.__closure__,
+    )
+    func2 = functools.update_wrapper(func2, func)
+    func2.__kwdefaults__ = func.__kwdefaults__
+    return func2
 
 
 # #############################################################################
@@ -533,7 +560,7 @@ def _check_dparam(dparam=None):
         )
         raise Exception(msg)
 
-    return dparam
+    return copy.deepcopy(dparam)
 
 
 def _set_key_value(dparam=None, key=None, value=None, grid=None):
@@ -543,23 +570,16 @@ def _set_key_value(dparam=None, key=None, value=None, grid=None):
             + "See get_dparam() method"
         )
         raise Exception(msg)
-    c0 = (
-        dmulti['grid'] is False
-        and hasattr(value, '__iter__')
-        and dmulti['shape'] != (1,)
-        and len(value) != dmulti['shape'][0]
-    )
-    if c0:
-        raise _class_checks.ShapeError(
-            dparam=dparam,
-            lkeys=set([key] + dmisc['dmulti']['keys']),
-            key=key,
-            value=np.array(value).ravel(),
-        )
 
-    dparam[key]['value'] = value
     if hasattr(value, '__iter__'):
-        dparam[key]['grid'] = grid
+        dparam[key]['value'] = np.atleast_1d(value).ravel()
+    else:
+        dparam[key]['value'] = float(value)
+
+    if hasattr(value, '__iter__'):
+        if grid is None:
+            grid = _GRID
+        dparam[key]['grid'] = bool(grid)
 
 
 def _get_multiple_systems(dparam, dmulti=None):
@@ -634,7 +654,7 @@ def _get_multiple_systems(dparam, dmulti=None):
                     shape_keys.append(lk)
 
             # concatenation
-            lkeys = itt.chain.from_iterable(shape_keys)
+            lkeys = list(itt.chain.from_iterable(shape_keys))
             hasFalse = any([dparam[k0]['grid'] is False for k0 in lkeys])
 
         # -----------
@@ -735,7 +755,10 @@ def _get_multiple_systems_functions(dparam=None, dmulti=None):
     ]
 
     dmulti['dparfunc'] = {k0: [] for k0 in dmulti['keys']}
+
     if dmulti['multi']:
+
+        # A unique dimension for variation
         if dmulti['hasFalse'] and len(dmulti['shape']) == 1:
             for k0 in lpf:
                 lpar = [
@@ -750,16 +773,18 @@ def _get_multiple_systems_functions(dparam=None, dmulti=None):
                 for k1 in lpar:
                     dmulti['dparfunc'][k1].append(k0)
 
+        # Mix between a non-grid and grids
         elif dmulti['hasFalse'] and len(dmulti['shape']) > 1:
             for k0 in lpf:
                 lpar = [
                     k1 for ii, k1 in enumerate(dmulti['keys'])
-                    if dparam[k0]['value'].shape[ii] > 1
+                    if k1 in dparam[k0]['kargs']
+                    and dparam[k0]['value'].shape[dparam[k1]['multi_ind']] > 1
                 ]
 
                 if len(lpar) > 1:
                     msg = (
-                        f"Not handled yet for {k0}:"
+                        f"Not handled yet for {k0}:\n"
                         "Parameters functions depending on several parameters"
                         " with multiple values\n"
                         f"\t- lpar: {lpar}"
@@ -772,16 +797,18 @@ def _get_multiple_systems_functions(dparam=None, dmulti=None):
 
                 dmulti['dparfunc'][lpar[0]].append(k0)
 
+        # multiple dimensions for variation (grid only)
         elif not dmulti['hasFalse']:
             for k0 in lpf:
                 lpar = [
                     k1 for ii, k1 in enumerate(dmulti['keys'])
-                    if dparam[k0]['value'].shape[ii] > 1
+                    if k1 in dparam[k0]['kargs']
+                    and dparam[k0]['value'].shape[dparam[k1]['multi_ind']] > 1
                 ]
 
                 if len(lpar) > 1:
                     msg = (
-                        f"Not handled yet for {k0}:"
+                        f"Not handled yet for {k0}:\n"
                         "Parameters functions depending on several parameters"
                         " with multiple values\n"
                         f"\t- lpar: {lpar}"
@@ -793,6 +820,40 @@ def _get_multiple_systems_functions(dparam=None, dmulti=None):
                     raise Exception(msg)
 
                 dmulti['dparfunc'][lpar[0]].append(k0)
+
+
+# #############################################################################
+# #############################################################################
+#                       dargs by reference
+# #############################################################################
+
+
+def get_dargs_by_reference(dparam, dfunc_order=None):
+
+    dargs = {
+        k0: {
+            k1: dparam[k1]['value']
+            for k1 in (
+                dparam[k0]['args']['ode']
+                + dparam[k0]['args']['statevar']
+            )
+            if k1 != 'lambda'
+        }
+        for k0 in dfunc_order['statevar'] + dfunc_order['ode']
+    }
+
+    # Handle the lambda exception here to avoid test at every time step
+    # if lambda exists and is a function
+    c0 = (
+        'lambda' in dparam.keys()
+        and dparam['lambda'].get('func') is not None
+    )
+    # then handle the exception
+    for k0, v0 in dargs.items():
+        if c0 and 'lambda' in dparam[k0]['kargs']:
+            dargs[k0]['lamb'] = dparam['lambda']['value']
+
+    return dargs
 
 
 # #############################################################################
@@ -843,35 +904,7 @@ def check_dparam(dparam=None, dmulti=None, verb=None):
 
     # ---------------
     # dargs (to be used in solver, faster to define it here)
-
-    lode = [
-        k0 for k0, v0 in dparam.items()
-        if v0.get('eqtype') == 'ode'
-    ]
-    lstate = dfunc_order
-
-    dargs = {
-        k0: {
-            k1: dparam[k1]['value']
-            for k1 in (
-                dparam[k0]['args']['ode']
-                + dparam[k0]['args']['statevar']
-            )
-            if k1 != 'lambda'
-        }
-        for k0 in dfunc_order['statevar'] + dfunc_order['ode']
-    }
-
-    # Handle the lambda exception here to avoid test at every time step
-    # if lambda exists and is a function
-    c0 = (
-        'lambda' in dparam.keys()
-        and dparam['lambda'].get('func') is not None
-    )
-    # then handle the exception
-    for k0, v0 in dargs.items():
-        if c0 and 'lambda' in dparam[k0]['kargs']:
-            dargs[k0]['lamb'] = dparam['lambda']['value']
+    dargs = get_dargs_by_reference(dparam, dfunc_order=dfunc_order)
 
     return dparam, dmulti, dfunc_order, dargs
 
@@ -1060,7 +1093,7 @@ def _check_func_get_source(lfunc=None, dparam=None):
                 )
                 raise Exception(msg)
 
-            # Extract kargs and exp(for lambda only)
+            # Extract kargs and exp (for lambda only)
             if sour.count('lambda') == 1:
                 # clean-up source
                 sour = sour.strip().replace(',\n', '').replace('\n', '')
@@ -1251,10 +1284,15 @@ def _check_func(dparam=None, dmulti=None, verb=None):
         })
         dparam[k0]['value'] = dparam[k0]['func'](**dargs)
 
+    # ------------------
+    # copy func to avoid passing by reference
+    for k0 in lfunc:
+        dparam[k0]['func'] = copy_func(dparam[k0]['func'])
+
     # --------------------------------
     # set default values of parameters to their real values
     # this way we don't have to feed the parameters value inside the loop
-    _update_func_default_kwdargs(lfunc=lfunc, dparam=dparam)
+    _update_func_default_kwdargs(lfunc=lfunc, dparam=dparam, dmulti=dmulti)
 
     # -------------------------------------------
     # Create variables for all varying quantities
@@ -1551,7 +1589,7 @@ def _suggest_funct_order_DEPRECATED(
 # #############################################################################
 
 
-def _update_func_default_kwdargs(lfunc=None, dparam=None):
+def _update_func_default_kwdargs(lfunc=None, dparam=None, dmulti=None):
     """ Here we update the default valuee of all functions """
 
     for k0 in lfunc:
@@ -1586,7 +1624,7 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None):
 
         # update
         dparam[k0]['func'].__defaults__ = tuple(defaults)
-        dparam[k0]['source_kargs'] = ', '.join(kargs)
+        # dparam[k0]['source_kargs'] = ', '.join(kargs)
 
 
 # #############################################################################
