@@ -734,7 +734,7 @@ def _get_multiple_systems(dparam, dmulti=None):
             shape0[dparam[k0]['multi_ind']] = 1
 
     # update nx
-    dparam['nx']['value'] = np.prod(shape)
+    dparam['nx']['value'] = int(np.prod(shape))
 
     return {
         'multi': shape != (1,),
