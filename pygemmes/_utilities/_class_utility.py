@@ -212,11 +212,12 @@ def _dict_equal(dict1, dict2, dd=None, atol=None, rtol=None):
             ):
                 ind_ok = ~np.isnan(v0)
                 diff = np.abs(v0 - dict2[k0])[ind_ok]
-                thresh = atol + rtol*np.abs(dict2[k0])
+                thresh = atol + rtol*np.abs(dict2[k0][ind_ok])
                 ind = diff > thresh
                 msg = (
-                    f"different values ({ind.sum()}/{ind_ok.sum()}): "
-                    f"{np.nanmean(diff[ind])} vs {np.nanmean(thresh[ind])}"
+                    f"different values ({ind.sum()}/{ind_ok.sum()}):"
+                    f"    mean {np.mean(diff[ind])} vs {np.mean(thresh[ind])}"
+                    f"      max {np.max(diff[ind])} vs {np.max(thresh[ind])}"
                 )
         elif isinstance(v0, list) or isinstance(v0, tuple):
             if len(v0) != len(dict2[k0]):
