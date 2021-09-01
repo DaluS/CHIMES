@@ -755,7 +755,7 @@ class Hub():
     #       saving methods
     # ##############################
 
-    def save(self, path=None, name=None, fmt=None, verb=None):
+    def save(self, path=None, name=None, fmt=None, verb=None, returnas=None):
         """ Save the instance
 
         Saved files are stored in path/fullname.ext
@@ -775,6 +775,7 @@ class Hub():
             name=name,
             fmt=fmt,
             verb=verb,
+            returnas=returnas,
         )
 
     # ##############################

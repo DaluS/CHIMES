@@ -92,6 +92,7 @@ def _save_check_inputs(
     name=None,
     fmt=None,
     verb=None,
+    returnas=None,
 ):
 
     # path
@@ -138,7 +139,17 @@ def _save_check_inputs(
         )
         raise Exception(msg)
 
-    return path, name, fmt, verb
+    # returnas
+    if returnas is None:
+        returnas = False
+    if returnas not in [str, False]:
+        msg = (
+            "Arg returnas must be a in [str, False]!\n"
+            f"\t- provided: {returnas}"
+        )
+        raise Exception(msg)
+
+    return path, name, fmt, verb, returnas
 
 
 def save(
@@ -152,11 +163,12 @@ def save(
 
     # ------------
     # check inputs
-    path, name, fmt, verb = _save_check_inputs(
+    path, name, fmt, verb, returnas = _save_check_inputs(
         path=path,
         name=name,
         fmt=fmt,
         verb=verb,
+        returnas=returnas,
     )
 
     # -------------
