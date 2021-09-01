@@ -217,21 +217,16 @@ class Test01_Hub_MultipleSystems():
         for model in self.lmodels:
             for solver in self.lsolvers:
                 for grid in self.lgrid:
-                    self.dhub[model][solver][grid].save(path=_PATH_OUTPUT)
+                    pfe = self.dhub[model][solver][grid].save(
+                        path=_PATH_OUTPUT,
+                        returnas=str,
+                        verb=False,
+                    )
+                    obj = pgm.load(pfe)[0]
+                    assert obj == self.dhub[model][solver][grid]
+                    obj.run(solver=solver)
+                    assert obj == self.dhub[model][solver][grid]
 
-        # load
-        df = pgm.get_available_output(
-            path=_PATH_OUTPUT,
-            returnas=dict,
-        )
-        for ii, (ff, vv) in enumerate(df.items()):
-            model0 = vv['model'].replace('-', '_')
-            solver0 = vv['solver']
-            model_file = os.path.join(_PATH_MODELS, f'_model_{model0}.py')
-            obj = pgm.load(ff, model_file=model_file)[0]
-            model = obj.dmodel['name']
-            solver = obj.dmisc['solver']
-            assert obj == self.dhub[model][solver][grid]
 
 class Test02_Hub_FromPresets(Test01_Hub_MultipleSystems):
 
