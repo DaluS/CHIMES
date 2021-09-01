@@ -224,8 +224,6 @@ class Test01_Hub_MultipleSystems():
                     )
                     obj = pgm.load(pfe)[0]
                     assert obj == self.dhub[model][solver][grid]
-                    obj.run(solver=solver)
-                    assert obj == self.dhub[model][solver][grid]
 
 
 class Test02_Hub_FromPresets(Test01_Hub_MultipleSystems):
