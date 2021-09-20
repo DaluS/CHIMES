@@ -20,6 +20,8 @@ _MODEL = 'GK'
 # %% SHORT RUN ###############################################################
 hub = pgm.Hub(_MODEL)
 hub.run(verb=1.1)
+hub.FillCyclesForAll(ref='lambda')
+plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)
 
 
 ##############################################################################
@@ -110,7 +112,7 @@ hub.plot()
 plots.Var(hub, 'K', idx=0, cycles=True, log=True)
 plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)
 
-groupsofvariable = hub.get_dparam_as_reverse_dict(crit='units')
+groupsoffields = hub.get_dparam_as_reverse_dict(crit='units')
 # plots.AllPhaseSpace(hub, groupsofvariable['undefined'], idx=0)
 
 plots.ForEachUnitsGroup(hub)
@@ -122,3 +124,10 @@ plots.phasespace(hub, x='omega', y='lambda', color='d', idx=0)
 
 # dimensionlessnumbers = ['omega', 'lambda', 'd']
 # plots.AllPhaseSpace(hub, dimensionlessnumbers, idx=0)
+
+
+hub.get_dparam_as_reverse_dict(crit='eqtype')
+
+
+groupsofvariables = {k: [v for v in vals if v in hub.dargs.keys()]
+                     for k, vals in groupsoffields.items()}

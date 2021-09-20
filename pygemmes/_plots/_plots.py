@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.collections import LineCollection
 import matplotlib.gridspec as gridspec
+from matplotlib.patches import Rectangle
 
 
 def Var(sol, key, idx=0, cycles=False, log=False):
@@ -44,6 +45,13 @@ def Var(sol, key, idx=0, cycles=False, log=False):
         tmcycles = cyclvar['t_mean_cycle']
 
         # Plot of each period by a rectangle
+        miny = np.amin(y)
+        maxy = np.amax(y)
+
+        for car in cyclvar['period_T_intervals'][::2]:
+            print(car)
+            ax.add_patch(
+                Rectangle((car[0], miny), car[1]-car[0], maxy-miny, facecolor='k', alpha=0.1))
 
         # Plot of enveloppe (mean-max)
         vmin = cyclvar['minval']
