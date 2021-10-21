@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-ABSTRACT: This is the simplest economic post-keynesian model
+ABSTRACT: This is the simplest economic post-keynesian model.
 TYPICAL BEHAVIOR : metastable oscillations around a solow point
 LINKTOARTICLE : Goodwin, Richard, 1967. ‘A growth cycle’, in:
     Carl Feinstein, editor, Socialism, capitalism
     and economic growth. Cambridge, UK: Cambridge University Press.
-
 Created on Wed Jul 21 15:11:15 2021
 @author: Paul Valcke
 """
@@ -43,8 +42,8 @@ _LOGICS = {
     },
     'statevar': {
         'phillips': {
-            'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
-            'com': 'diverging Philips',
+            'func': lambda phi0=0, phi1=0, lamb=0: (-phi0 + phi1 / (1 - lamb)**2),
+            'com': 'salary negociation on employement and profit',
         },
         'g': {
             'func': lambda pi=0, nu=1, delta=0: pi / nu - delta,

@@ -13,30 +13,20 @@ import pygemmes as pgm
 from pygemmes import _plots as plots
 ##############################################################################
 _PATH_OUTPUT_REF = os.path.join('pygemmes', 'tests', 'output_ref')
-_MODEL = 'G_Reduced'
+_MODEL = 'G-Reduced'  # 'GK',  #
 
-
-lambdadomain = np.linspace(0.5, .95, 20)
-omegadomain = np.linspace(0.4, .95, 20)
-ddomain = np.linspace(-1, 0, 1)
-_DPRESETS = {'basinOfAttraction':
-             {'fields': {'lambda': lambdadomain,
-                         'omega': {'value': omegadomain,
-                                   'grid': False},
-                         # 'd': {'value': ddomain,
-                         #      'grid': False},
-                         },
-              },
-             'goodtrajectory':
-             {'fields': {'lambda': .96,
-                         'omega': .85,
-                         # 'd': ddomain,
-                         },
+##############################################################################
+_DPRESETS = {'impact-of-zphi':
+             {'fields': {'zphi': np.array([0.01,  # 0.02, 0.05,
+                                           0.1,  # 0.2, 0.5,
+                                           1,  # 2, 5,
+                                           10])},
               },
              }
 
+
 # %% SHORT RUN ###############################################################
-hub = pgm.Hub(_MODEL, preset='basinOfAttraction', dpresets=_DPRESETS)
+hub = pgm.Hub(_MODEL)  # , preset='impact-of-zphi', dpresets=_DPRESETS)
 hub.run(verb=1.1)
 hub.FillCyclesForAll(ref='lambda')
 plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)
@@ -130,12 +120,12 @@ hub.plot()
 plots.Var(hub, 'K', idx=0, cycles=True, log=True)
 plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)
 
-groupsoffields = hub.get_dparam_as_reverse_dict(crit='units')
+
 # plots.AllPhaseSpace(hub, groupsofvariable['undefined'], idx=0)
 
 plots.ForEachUnitsGroup(hub)
 
-plots.phasespace(hub, x='omega', y='lambda', color='time', idx=0)
+plots.phasespace(hub, x='omega', y='lambda', color='time', idx=7)
 plots.phasespace(hub, x='omega', y='d', idx=0)
 plots.phasespace(hub, x='omega', y='lambda', color='d', idx=0)
 
@@ -143,9 +133,7 @@ plots.phasespace(hub, x='omega', y='lambda', color='d', idx=0)
 # dimensionlessnumbers = ['omega', 'lambda', 'd']
 # plots.AllPhaseSpace(hub, dimensionlessnumbers, idx=0)
 
-
+groupsoffields = hub.get_dparam_as_reverse_dict(crit='units')
 hub.get_dparam_as_reverse_dict(crit='eqtype')
-
-
 groupsofvariables = {k: [v for v in vals if v in hub.dargs.keys()]
                      for k, vals in groupsoffields.items()}

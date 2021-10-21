@@ -75,6 +75,7 @@ __DEFAULTFIELDS = {
             '$',      # Money
             'C',      # Concentration
             'Humans',  # Population
+            '',
         ],
     },
     'type': {
@@ -134,7 +135,7 @@ _LIBRARY = {
         },
         'nt': {
             'func': lambda Tmax=0, dt=1: int(Tmax / dt),
-            'units': None,
+            'units': '',
             'definition': 'Number of timestep',
             'com': 'Constant dt',
             'eqtype': 'param',
@@ -196,7 +197,7 @@ _LIBRARY = {
         'nu': {
             'value': 3,
             'definition': 'Kapital to output ratio',
-            'units': None,
+            'units': '',
         },
         'K': {
             'value': 2.7,
@@ -208,7 +209,7 @@ _LIBRARY = {
         'pi': {
             'value': None,
             'definition': 'relative profit',
-            'units': None,
+            'units': '',
             'symbol': r'$\pi$',
         },
         'g': {
@@ -239,12 +240,12 @@ _LIBRARY = {
         'lambda': {
             'value': .97,
             'definition': 'employement rate',
-            'units': None,
+            'units': '',
         },
         'omega': {
             'value': .85,
             'definition': 'wage share',
-            'units': None,
+            'units': '',
         },
     },
 
@@ -258,46 +259,59 @@ _LIBRARY = {
         'phinull': {
             'value': 0.04,
             'definition': 'Unemployment rate with no salary increase',
-            'units': None,
+            'units': '',
         },
         'phi0': {
             'func': lambda phinull=0: phinull / (1 - phinull**2),
             'definition': 'Parameter1 for diverving squared',
             'com': '',
-            'units': None,
+            'units': '',
             'eqtype': 'param',
         },
         'phi1': {
             'func': lambda phinull=0: phinull**3 / (1 - phinull**2),
             'definition': 'Parameter1 for diverving squared',
             'com': '',
-            'units': None,
+            'units': '',
             'eqtype': 'param',
         },
+        'zphi': {
+            'value': 0.1,
+            'definition': 'nonlinearity on profit in negociation',
+            'com': '',
+            'units': ''
+        }
+
     },
 
     'Investment': {
         'kappa': {
             'value': None,
             'definition': 'Part of GDP in investment',
-            'units': None,
+            'units': '',
             'symbol': r'$\kappa$',
         },
         'k0': {
             'value': -0.0065,
             'definition': 'Percent of GDP invested when profit is zero',
-            'units': None,
+            'units': '',
         },
         'k1': {
             'value': np.exp(-5),
             'definition': 'Investment slope',
-            'units': None,
+            'units': '',
         },
         'k2': {
             'value': 20,
             'definition': 'Investment power in kappa',
-            'units': None,
+            'units': '',
         },
+        'zphi': {
+            'value': 0.1,
+            'definition': 'nonlinearity on solvability in investment',
+            'com': '',
+            'units': ''
+        }
     },
 
     'Debt': {
@@ -315,7 +329,7 @@ _LIBRARY = {
             # 'func': lambda GDP=0, D=0: D/GDP,
             'value': 0.1,
             'definition': 'relative debt',
-            'units': None,
+            'units': '',
         },
     },
 
@@ -323,7 +337,7 @@ _LIBRARY = {
         'mu': {
             'value': 2,
             'definition': 'Markup on prices',
-            'units': None,
+            'units': '',
         },
         'eta': {
             'value': 1,
@@ -493,7 +507,7 @@ _DFIELDS_DEPRECATED = {
         'eqtype': 'intermediary',
         'com': 'Number of temporal iteration',
         'dimension': None,
-        'units': None,
+        'units': '',
         'type': None,
         'symbol': None,
         'group': 'Numerical',
@@ -502,7 +516,7 @@ _DFIELDS_DEPRECATED = {
         'value': 1,
         'com': 'Number of similar systems evolving in parrallel',
         'dimension': None,
-        'units': None,
+        'units': '',
         'type': None,
         'symbol': None,
         'group': 'Numerical',
@@ -564,7 +578,7 @@ _DFIELDS_DEPRECATED = {
         'value': 3,
         'com': 'Kapital to output ratio',
         'dimension': None,
-        'units': None,
+        'units': '',
         'type': 'intensive',
         'symbol': r'\nu',
         'group': 'Production',
@@ -590,7 +604,7 @@ _DFIELDS_DEPRECATED = {
         'value': 0.04,
         'com': 'Unemployment rate that stops salary increase (no inflation)',
         'dimension': None,
-        'units': None,
+        'units': '',
         'type': 'intensive',
         'symbol': r'$\phi_0$',
         'group': 'Philips',
@@ -599,7 +613,7 @@ _DFIELDS_DEPRECATED = {
         'value': None,
         'com': '',
         'dimension': None,
-        'units': None,
+        'units': '',
         'type': '',
         'symbol': r'$\phi_0$',
         'group': 'Philips',
@@ -608,7 +622,7 @@ _DFIELDS_DEPRECATED = {
         'value': None,
         'com': '',
         'dimension': None,
-        'units': None,
+        'units': '',
         'type': '',
         'symbol': r'$\phi_1$',
         'group': 'Philips',
@@ -620,7 +634,7 @@ _DFIELDS_DEPRECATED = {
         'value': -0.0065,
         'com': 'Percent of GDP invested when profit is zero',
         'dimension': None,
-        'units': None,
+        'units': '',
         'type': 'intensive',
         'symbol': r'$k_0$',
         'group': 'Keen',
@@ -629,7 +643,7 @@ _DFIELDS_DEPRECATED = {
         'value': np.exp(-5),
         'com': 'Investment slope',
         'dimension': None,
-        'units': None,
+        'units': '',
         'type': 'intensive',
         'symbol': r'$k_1$',
         'group': 'Keen',
@@ -638,7 +652,7 @@ _DFIELDS_DEPRECATED = {
         'value': 20,
         'com': 'Investment power in kappa',
         'dimension': None,
-        'units': None,
+        'units': '',
         'type': 'intensive',
         'symbol': r'$k_2$',
         'group': 'Keen',

@@ -84,15 +84,19 @@ _LOGICS = {
             'com': 'wage share',
         },
         'phillips': {
-            'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
-            'com': 'Wage increase rate through employement',
+            'func': lambda phi0=0, phi1=0, lamb=0, pi=0, zphi=1: (pi ** zphi) * (-phi0 + phi1 / (1 - lamb)**2),
+            'com': 'Wage increase rate through employement and profit',
         },
         'kappa': {
             'func': lambda k0=0, k1=0, k2=0, Pi=0, Y=1: k0 + k1 * np.exp(k2 * Pi / Y),
             'com': 'Relative GDP investment through relative profit',
         },
+        'solvability': {
+            'func': lambda d=0, nu=1: (1 - d/nu),
+            'com': 'ability to reimburse debt'
+        },
         'I': {
-            'func': lambda GDP=0, kappa=0: GDP * kappa,
+            'func': lambda GDP=0, kappa=0, zkappa=1, solvability=0: GDP * kappa * solvability**zkappa,
             'com': 'Investment value',
         },
         'd': {
