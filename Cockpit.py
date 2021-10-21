@@ -1,24 +1,42 @@
-
 # -*- coding: utf-8 -*-
 '''
 Contains all the possibilities of each _core interaction
 # !pytest tests/test_01_Hub.py -v
+
+
 '''
 
-
 import os
-
+import numpy as np
 
 import pygemmes as pgm
 from pygemmes import _plots as plots
-
-
+##############################################################################
 _PATH_OUTPUT_REF = os.path.join('pygemmes', 'tests', 'output_ref')
-_MODEL = 'GK'
+_MODEL = 'G_Reduced'
 
+
+lambdadomain = np.linspace(0.5, .95, 20)
+omegadomain = np.linspace(0.4, .95, 20)
+ddomain = np.linspace(-1, 0, 1)
+_DPRESETS = {'basinOfAttraction':
+             {'fields': {'lambda': lambdadomain,
+                         'omega': {'value': omegadomain,
+                                   'grid': False},
+                         # 'd': {'value': ddomain,
+                         #      'grid': False},
+                         },
+              },
+             'goodtrajectory':
+             {'fields': {'lambda': .96,
+                         'omega': .85,
+                         # 'd': ddomain,
+                         },
+              },
+             }
 
 # %% SHORT RUN ###############################################################
-hub = pgm.Hub(_MODEL)
+hub = pgm.Hub(_MODEL, preset='basinOfAttraction', dpresets=_DPRESETS)
 hub.run(verb=1.1)
 hub.FillCyclesForAll(ref='lambda')
 plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)

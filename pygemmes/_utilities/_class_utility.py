@@ -162,7 +162,7 @@ def _get_dict_subset(
 def _dict_equal(dict1, dict2, dd=None, atol=None, rtol=None):
 
     if atol is None:
-        atol = 1.e-08
+        atol = 1.e-05
     if rtol is None:
         rtol = 1.e-05
 
