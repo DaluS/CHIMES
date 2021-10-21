@@ -44,7 +44,7 @@ _LOGICS = {
             'com': 'Debt as Investment-Profit difference',
         },
         'W': {
-            'func': lambda phillips=0, itself=0: itself * phillips,
+            'func': lambda phillips=0, itself=0, gamma=0, i=0: itself * (phillips + (gamma-1)*i),
             'com': 'salary through negociation',
         },
         'p': {
@@ -64,7 +64,7 @@ _LOGICS = {
             'com': 'Output with selling price ',
         },
         'inflation': {
-            'func': lambda p=0: 0. * p,
+            'func': lambda mu=0, eta=0, omega=0: eta*(mu*omega-1),
             'com': 'INFLATION NOT CODED',
         },
         'L': {
@@ -80,7 +80,7 @@ _LOGICS = {
             'com': 'employement rate',
         },
         'omega': {
-            'func': lambda W=0, L=0, Y=1: W * L / Y,
+            'func': lambda W=0, L=0, Y=1, p=1: W * L / (Y*p),
             'com': 'wage share',
         },
         'phillips': {

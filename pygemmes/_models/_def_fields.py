@@ -354,6 +354,11 @@ _LIBRARY = {
             'definition': 'inflation rate',
             'units': 'y^{-1}',
         },
+        'gamma': {
+            'value': 1,
+            'definition': 'inflation awareness',
+            'units': '',
+        },
     },
 }
 
