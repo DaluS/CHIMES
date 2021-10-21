@@ -22,7 +22,7 @@ class Hub():
     Generic class to stock every data and method for the user to interac with
     """
 
-    def __init__(self, model=None, preset=None, verb=None):
+    def __init__(self, model=None, preset=None, dpresets=None, verb=None):
         self.__dparam = {}
         self.__dmodel = dict.fromkeys(
             ['name', 'file', 'description', 'presets', 'preset']
@@ -32,13 +32,13 @@ class Hub():
         )
         self.__dargs = {}
         if model is not None:
-            self.load_model(model, preset=preset, verb=verb)
+            self.load_model(model, preset=preset, dpresets=dpresets, verb=verb)
 
     # ##############################
     # %% Setting / getting parameters
     # ##############################
 
-    def load_model(self, model=None, preset=None, grid=None, verb=None):
+    def load_model(self, model=None, preset=None, dpresets=None, verb=None):
         """ Load a model from a model file """
 
         # ------------
@@ -64,16 +64,20 @@ class Hub():
             self.__dmisc['dmulti'],
             self.__dmisc['dfunc_order'],
             self.__dargs,
-        ) = _class_checks.load_model(model, verb=verb)
+        ) = _class_checks.load_model(
+            model,
+            dmulti=self.__dmisc['dmulti'],
+            verb=verb,
+        )
 
         # ------------
         # update from preset if relevant
         if preset is not None:
-            self.load_preset(preset, grid=grid, verb=verb)
+            self.load_preset(preset, dpresets=dpresets, verb=verb)
         else:
             self.reset()
 
-    def load_preset(self, preset=None, grid=None, verb=None):
+    def load_preset(self, preset=None, grid=None, dpresets=None, verb=None):
         """ For the current model, load desired preset """
         (
             self.__dparam,
@@ -83,8 +87,9 @@ class Hub():
         ) = _class_checks.update_from_preset(
             dparam=self.__dparam,
             dmodel=self.__dmodel,
+            dmulti=self.__dmisc['dmulti'],
             preset=preset,
-            grid=grid,
+            dpresets=dpresets,
             verb=verb,
         )
         self.reset()
@@ -139,28 +144,13 @@ class Hub():
         # set dparam or update desired key
 
         if dparam is None:
-            if key not in self.__dparam.keys():
-                msg = (
-                    "key {} is not identified!\n".format(key)
-                    + "See get_dparam() method"
-                )
-                raise Exception(msg)
-            c0 = (
-                self.__dmisc['dmulti']['grid'] is False
-                and hasattr(value, '__iter__')
-                and self.__dmisc['dmulti']['shape'] != (1,)
-                and len(value) != self.__dmisc['dmulti']['shape'][0]
+            _class_checks._set_key_value(
+                dparam=self.__dparam,
+                key=key,
+                value=value,
+                grid=grid,
             )
-            if c0:
-                raise _class_checks.ShapeError(
-                    dparam=self.__dparam,
-                    lkeys=set([key] + self.__dmisc['dmulti']['keys']),
-                    key=key,
-                    value=np.array(value).ravel(),
-                )
-
-            dparam = dict(self.__dparam)
-            dparam[key]['value'] = value
+            dparam = self.__dparam
 
         # ----------------
         # Update to check consistency
@@ -170,7 +160,11 @@ class Hub():
             self.__dmisc['dmulti'],
             self.__dmisc['dfunc_order'],
             self.__dargs,
-        ) = _class_checks.check_dparam(dparam=dparam, grid=grid, verb=verb)
+        ) = _class_checks.check_dparam(
+            dparam=dparam,
+            dmulti=self.__dmisc['dmulti'],
+            verb=verb,
+        )
 
         # reset all variables
         self.reset()
@@ -412,7 +406,6 @@ class Hub():
         Print a str summary of the solver
 
         """
-
         # ----------
         # check inputs
 
@@ -743,13 +736,26 @@ class Hub():
         obj.__dmisc = dict(dout['dmisc'])
         obj.__dargs = dict(dout['dargs'])
 
+        # update default args for functions
+        _class_checks._update_func_default_kwdargs(
+            lfunc=obj.get_dparam(returnas=list, eqtype=(None,)),
+            dparam=obj.__dparam,
+            dmulti=obj.__dmisc['dmulti'],
+        )
+
+        # re-pass dargs by reference
+        obj.__dargs = _class_checks.get_dargs_by_reference(
+            obj.__dparam,
+            dfunc_order=obj.__dmisc['dfunc_order'],
+        )
+
         return obj
 
     # ##############################
     #       saving methods
     # ##############################
 
-    def save(self, path=None, name=None, fmt=None, verb=None):
+    def save(self, path=None, name=None, fmt=None, verb=None, returnas=None):
         """ Save the instance
 
         Saved files are stored in path/fullname.ext
@@ -769,6 +775,7 @@ class Hub():
             name=name,
             fmt=fmt,
             verb=verb,
+            returnas=returnas,
         )
 
     # ##############################
@@ -785,10 +792,19 @@ class Hub():
     #       comparison methods
     # ##############################
 
-    def __eq__(self, other, verb=None, return_dfail=None):
+    def __eq__(
+        self,
+        other,
+        atol=None,
+        rtol=None,
+        verb=None,
+        return_dfail=None,
+    ):
         """ Automatically called when testing obj1 == obj2 """
         return _class_utility._equal(
             self, other,
+            atol=atol,
+            rtol=rtol,
             verb=verb,
             return_dfail=return_dfail,
         )

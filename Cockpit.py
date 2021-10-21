@@ -1,55 +1,86 @@
-
 # -*- coding: utf-8 -*-
 '''
 Contains all the possibilities of each _core interaction
 # !pytest tests/test_01_Hub.py -v
+
+
 '''
 
-
 import os
+import numpy as np
+
+import pygemmes as pgm
+from pygemmes import _plots as plots
+##############################################################################
+_PATH_OUTPUT_REF = os.path.join('pygemmes', 'tests', 'output_ref')
+_MODEL = 'G_Reduced'
 
 
-import gemmes as gem
-from gemmes import _plots as plots
-
-
-_PATH_OUTPUT_REF = os.path.join('gemmes', 'tests', 'output_ref')
-_MODEL = 'GK'
-
+lambdadomain = np.linspace(0.5, .95, 20)
+omegadomain = np.linspace(0.4, .95, 20)
+ddomain = np.linspace(-1, 0, 1)
+_DPRESETS = {'basinOfAttraction':
+             {'fields': {'lambda': lambdadomain,
+                         'omega': {'value': omegadomain,
+                                   'grid': False},
+                         # 'd': {'value': ddomain,
+                         #      'grid': False},
+                         },
+              },
+             'goodtrajectory':
+             {'fields': {'lambda': .96,
+                         'omega': .85,
+                         # 'd': ddomain,
+                         },
+              },
+             }
 
 # %% SHORT RUN ###############################################################
-hub = gem.Hub(_MODEL)
+hub = pgm.Hub(_MODEL, preset='basinOfAttraction', dpresets=_DPRESETS)
 hub.run(verb=1.1)
+hub.FillCyclesForAll(ref='lambda')
+plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)
 
 
 ##############################################################################
-
-
 # %% Information on available models
 
-dmodels = gem.get_available_models(
+dmodels = pgm.get_available_models(
     returnas=dict, details=False, verb=True,
 )
 
 # Get available solvers
-dsolvers = gem.get_available_solvers(
+dsolvers = pgm.get_available_solvers(
     returnas=dict, verb=True,
 )
 
 # %% Saved run available
-dout = gem.get_available_output(
+dout = pgm.get_available_output(
     path=_PATH_OUTPUT_REF, returnas=dict, verb=True,
 )
 
 
 # %% Load a model
 
-hub = gem.Hub(_MODEL)  # , preset='default')
+hub = pgm.Hub(_MODEL)  # , preset='default')
 # hub.load_preset('crisis')
 
 
 # %% Load a file
 # sol_load = _core._saveload.load(' ')
+
+
+# %% Change a parameter
+'''
+* To change a parameter :  `hub.set_dparam(key='alpha', value=0.01)`
+
+
+hub.set_dparam({'a' : [1,2,'lin']})
+hub.set_dparam({'a' : [1,2,'log'],
+                'alpha' : 0.03})
+hub.set_dparam({'nx': 100})
+hub.set_dparam({'a': [1,2,3]})
+'''
 
 # %% Runs
 
@@ -82,18 +113,6 @@ allkey, allvars = hub.get_variables_compact(eqtype=None)
 
 Result = hub.get_dparam(returnas=dict)
 
-# %% Change a parameter
-'''
-* To change a parameter :  `hub.set_dparam(key='alpha', value=0.01)`
-
-
-hub.set_dparam({'a' : [1,2,'lin']})
-hub.set_dparam({'a' : [1,2,'log'],
-                'alpha' : 0.03})
-hub.set_dparam({'nx': 100})
-hub.set_dparam({'a': [1,2,3]})
-'''
-
 
 # %% DEEPER ANALYSIS
 hub.FillCyclesForAll(ref='lambda')
@@ -111,7 +130,7 @@ hub.plot()
 plots.Var(hub, 'K', idx=0, cycles=True, log=True)
 plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)
 
-groupsofvariable = hub.get_dparam_as_reverse_dict(crit='units')
+groupsoffields = hub.get_dparam_as_reverse_dict(crit='units')
 # plots.AllPhaseSpace(hub, groupsofvariable['undefined'], idx=0)
 
 plots.ForEachUnitsGroup(hub)
@@ -123,3 +142,10 @@ plots.phasespace(hub, x='omega', y='lambda', color='d', idx=0)
 
 # dimensionlessnumbers = ['omega', 'lambda', 'd']
 # plots.AllPhaseSpace(hub, dimensionlessnumbers, idx=0)
+
+
+hub.get_dparam_as_reverse_dict(crit='eqtype')
+
+
+groupsofvariables = {k: [v for v in vals if v in hub.dargs.keys()]
+                     for k, vals in groupsoffields.items()}

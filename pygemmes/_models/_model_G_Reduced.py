@@ -68,8 +68,7 @@ _PRESETS = {
             'omega': .85,
         },
         'com': (
-            'gives simple '
-            'stable sinusoidal oscillations'
+            'simple stable sinusoidal oscillations'
         ),
     },
     'bigcycle': {
@@ -78,8 +77,7 @@ _PRESETS = {
             'omega': .85,
         },
         'com': (
-            'give extremely '
-            'violent stable oscillations'
+            'extremely violent stable oscillations'
         ),
     },
     'badnegociation': {

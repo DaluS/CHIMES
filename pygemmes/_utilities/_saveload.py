@@ -92,6 +92,7 @@ def _save_check_inputs(
     name=None,
     fmt=None,
     verb=None,
+    returnas=None,
 ):
 
     # path
@@ -138,7 +139,17 @@ def _save_check_inputs(
         )
         raise Exception(msg)
 
-    return path, name, fmt, verb
+    # returnas
+    if returnas is None:
+        returnas = False
+    if returnas not in [str, False]:
+        msg = (
+            "Arg returnas must be a in [str, False]!\n"
+            f"\t- provided: {returnas}"
+        )
+        raise Exception(msg)
+
+    return path, name, fmt, verb, returnas
 
 
 def save(
@@ -147,15 +158,17 @@ def save(
     name=None,
     fmt=None,
     verb=None,
+    returnas=None,
 ):
 
     # ------------
     # check inputs
-    path, name, fmt, verb = _save_check_inputs(
+    path, name, fmt, verb, returnas = _save_check_inputs(
         path=path,
         name=name,
         fmt=fmt,
         verb=verb,
+        returnas=returnas,
     )
 
     # -------------
@@ -208,6 +221,9 @@ def save(
     if verb is True:
         msg = (f"Saved in:\n\t{pfe}")
         print(msg)
+
+    if returnas is str:
+        return pfe
 
 
 # #############################################################################
@@ -310,9 +326,9 @@ def rebuild_func_from_source(dout=None, model_file=None):
 
             else:
                 # Rebuild from source str
+                kargs = dout['dparam'][k0]['source_kargs']
                 dout['dparam'][k0]['func'] = eval(
-                    f"lambda {dout['dparam'][k0]['source_kargs']}: "
-                    f"{dout['dparam'][k0]['source_exp']}"
+                    f"lambda {kargs}: {dout['dparam'][k0]['source_exp']}"
                 )[0]
 
 
