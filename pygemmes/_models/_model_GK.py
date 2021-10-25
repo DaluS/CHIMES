@@ -96,7 +96,7 @@ _LOGICS = {
             'com': 'ability to reimburse debt'
         },
         'I': {
-            'func': lambda GDP=0, kappa=0, zkappa=1, solvability=0: GDP * kappa * solvability**zkappa,
+            'func': lambda GDP=0, kappa=0, zsolv=1, solvability=0: GDP * kappa * solvability**zsolv,
             'com': 'Investment value',
         },
         'd': {

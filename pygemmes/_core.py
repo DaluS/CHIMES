@@ -537,20 +537,6 @@ class Hub():
         dic = self.__dparam[var]
         if 'cycles' not in dic.keys():
             dic['cycles'] = {'reference': ref}
-            '''
-'period_indexes': [],  # [[idx1,idx2],[idx2,idx3],] index of borders
-# for each period
-'period_T_intervals': [],  # [t[idx1,t[idx2]],..] time of borders
-'t_mean_cycle': [],  # [(t[idx1+t[idx2])/2.],..]
-# time of the middle of the cycle
-'period_T': [],  # duration of the cycle
-'meanval': [],  # mean value during the interval
-'stdval': [],   # standard deviation during the interval
-'minval': [],   # minimal value in the interval
-'maxval': [],   # maximal value in the interval
-'reference': ref,  # the variable that has been used to detect cycle
-}
-            '''
 
         # check if reference has already calculated its period
         # the reference has cycle and this cycle has been calculated on itself
@@ -581,6 +567,7 @@ class Hub():
 
         # Fill for each the characteristics
         values = dic['value']
+        print(var)
         dic1['meanval'] = [np.mean(values[idx[0]:idx[1]])
                            for idx in dic1['period_indexes']]
         dic1['medval'] = [np.median(values[idx[0]:idx[1]])

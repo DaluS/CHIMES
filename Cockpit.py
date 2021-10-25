@@ -16,6 +16,7 @@ _PATH_OUTPUT_REF = os.path.join('pygemmes', 'tests', 'output_ref')
 _MODEL = 'GK-Reduced'  # 'GK',  #
 
 ##############################################################################
+'''
 _DPRESETS = {'impact-of-zphi':
              {'fields': {'zphi': np.array([0.01,  # 0.02, 0.05,
                                            0.1,  # 0.2, 0.5,
@@ -23,11 +24,13 @@ _DPRESETS = {'impact-of-zphi':
                                            10])},
               },
              }
-
+'''
 
 # %% SHORT RUN ###############################################################
 hub = pgm.Hub(_MODEL)  # , preset='impact-of-zphi', dpresets=_DPRESETS)
 hub.run(verb=1.1)
+hub.plot()
+
 hub.FillCyclesForAll(ref='lambda')
 plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)
 

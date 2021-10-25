@@ -306,7 +306,7 @@ _LIBRARY = {
             'definition': 'Investment power in kappa',
             'units': '',
         },
-        'zphi': {
+        'zsolv': {
             'value': 0.1,
             'definition': 'nonlinearity on solvability in investment',
             'com': '',
@@ -330,6 +330,10 @@ _LIBRARY = {
             'value': 0.1,
             'definition': 'relative debt',
             'units': '',
+        },
+        'solvability': {
+            'definition': 'capital compared to debt',
+            'units': ''
         },
     },
 
