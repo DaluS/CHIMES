@@ -145,11 +145,6 @@ _LIBRARY = {
             'units': 'y',
             'definition': 'NUMBER OF PARRALLEL SYSTEMS',
         },
-    },
-
-    'CORE': {
-
-        # Time
         'time': {
             'initial': 0.,
             'func': lambda dt=0: 1.,
@@ -158,85 +153,33 @@ _LIBRARY = {
             'units': 'y',
             'eqtype': 'ode',
         },
+    },
 
-        # Population
+
+    'Household': {
+        # VARIABLES
         'N': {
             'value': 1.,
             'definition': 'Population',
             'units': 'Humans',
-        },
-        'beta': {
-            'value': 0.025,
-            'definition': 'Rate of population growth',
-            'units': 'y^{-1}',
-        },
-
-        # Productivity
-        'a': {
-            'value': 1,
-            'units': 'Units.Humans^{-1}.y^{-1}',
-            'definition': 'Productivity',
-        },
-        'alpha': {
-            'value': 0.02,
-            'definition': 'Rate of productivity increase',
-            'units': 'y^{-1}',
-        },
-        'W': {
-            'value': 0.85,
-            'definition': 'Wage value',
-            'units': '$'
-        },
-
-        # Capital
-        'delta': {
-            'value': 0.005,
-            'definition': 'Rate of capital depletion',
-            'units': 'y^{-1}',
-        },
-        'nu': {
-            'value': 3,
-            'definition': 'Kapital to output ratio',
-            'units': '',
-        },
-        'K': {
-            'value': 2.7,
-            'units': 'Units',
-            'definition': 'Capital',
-        },
-
-        # others
-        'pi': {
-            'value': None,
-            'definition': 'relative profit',
-            'units': '',
-            'symbol': r'$\pi$',
-        },
-        'g': {
-            'value': None,
-            'definition': 'Relative growth',
-            'units': 'y^{-1}',
-        },
-        'Y': {
-            'value': None,
-            'definition': 'GDP in output quantity',
-            'units': 'Units.y^{-1}',
         },
         'L': {
             'value': None,
             'definition': 'Workers',
             'units': 'Humans',
         },
-        'I': {
-            'value': None,
-            'definition': 'Investment',
-            'units': '$',
+        'a': {
+            'value': 1,
+            'units': 'Units.Humans^{-1}.y^{-1}',
+            'definition': 'Productivity',
         },
-        'Pi': {
-            'value': None,
-            'definition': 'Absolute profit',
-            'units': '$',
+        'w': {
+            'value': 0.85,
+            'definition': 'Wage value',
+            'units': '$.Humans^{-1}.y^{-1}'
         },
+
+        # INTERMEDIARY TYPICAL VARIABLES
         'lambda': {
             'value': .97,
             'definition': 'employement rate',
@@ -247,7 +190,113 @@ _LIBRARY = {
             'definition': 'wage share',
             'units': '',
         },
+
+        # PARAMETERS
+        'beta': {
+            'value': 0.025,
+            'definition': 'Rate of population growth',
+            'units': 'y^{-1}',
+        },
+        'alpha': {
+            'value': 0.02,
+            'definition': 'Rate of productivity increase',
+            'units': 'y^{-1}',
+        },
     },
+
+    'Recipies': {
+        'gamma': {
+            'value': 0.1,
+            'definition': 'Input-output production recipy',
+            'units': '',
+        },
+        'Xi': {
+            'value': 0.1,
+            'definition': 'Input-output capital recipy',
+            'units': '',
+        },
+        'rho': {
+            'value': 0.1,
+            'definition': 'Capital consumption recipy',
+            'units': 'y^{-1}',
+        },
+    },
+
+    'Production': {
+        # VARIABLES
+        'K': {
+            'value': 2.7,
+            'units': 'Units',
+            'definition': 'Capital',
+        },
+        'Y': {
+            'value': None,
+            'definition': 'GDP in output quantity',
+            'units': 'Units.y^{-1}',
+        },
+        'GDP': {
+            'value': None,
+            'definition': 'GDP in output quantity',
+            'units': '$.y^{-1}',
+        },
+        'V': {
+            'value': 1,
+            'definition': 'Inventory of Goods',
+            'units': 'Units',
+        },
+        'u': {
+            'value': .85,
+            'definition': 'Use intensity of capital',
+            'units': 'Units',
+        },
+
+
+        # INTERMEDIARY VARIABLES
+        'g': {
+            'value': None,
+            'definition': 'Relative growth of GDP',
+            'units': 'y^{-1}',
+        },
+        'pi': {
+            'value': None,
+            'definition': 'relative profit',
+            'units': '',
+            'symbol': r'$\pi$',
+        },
+        'Pi': {
+            'value': None,
+            'definition': 'Absolute profit',
+            'units': '$.y^{-1}',
+        },
+        'c': {
+            'value': None,
+            'definition': 'production price',
+            'units': '$.Units^{-1}'
+        },
+
+        # PARAMETERS
+        'delta': {
+            'value': 0.005,
+            'definition': 'Rate of capital depletion',
+            'units': 'y^{-1}',
+        },
+        'nu': {
+            'value': 3,
+            'definition': 'Kapital to output ratio',
+            'units': '',
+        },
+        'gammai': {
+            'value': 1,
+            'definition': 'inflation awareness',
+            'units': '',
+        },
+        'sigma': {
+            'value': 1,
+            'definition': 'rate of use adjustment',
+            'units': 'y^{-1}'}
+    },
+
+
 
     'Salary Negociation': {
         'phillips': {
@@ -285,6 +334,16 @@ _LIBRARY = {
     },
 
     'Investment': {
+        'I': {
+            'value': None,
+            'definition': 'Investment in money',
+            'units': '$.y^{-1}',
+        },
+        'Ir': {
+            'value': None,
+            'definition': 'Number of real unit from investment',
+            'units': 'Units.y^{-1}',
+        },
         'kappa': {
             'value': None,
             'definition': 'Part of GDP in investment',
@@ -325,6 +384,11 @@ _LIBRARY = {
             'definition': 'Debt of private sector',
             'units': '$',
         },
+        'Dh': {
+            'value': 0.1,
+            'definition': 'Debt of household',
+            'units': '$',
+        },
         'd': {
             # 'func': lambda GDP=0, D=0: D/GDP,
             'value': 0.1,
@@ -338,6 +402,19 @@ _LIBRARY = {
     },
 
     'Prices': {
+        # VARIABLES
+        'i': {
+            'value': None,
+            'definition': 'inflation rate',
+            'units': 'y^{-1}',
+        },
+        'p': {
+            'value': 1,
+            'definition': 'price of goods',
+            'units': '$.Units^{-1}'
+        },
+
+        # PARAMETERS
         'mu': {
             'value': 2,
             'definition': 'Markup on prices',
@@ -348,21 +425,41 @@ _LIBRARY = {
             'definition': 'timerate of price adjustment',
             'units': 'y^{-1}',
         },
-        'GDP': {
-            'value': None,
-            'definition': 'GDP in nominal term',
-            'units': '$',
-        },
-        'i': {
-            'value': None,
-            'definition': 'inflation rate',
-            'units': 'y^{-1}',
-        },
-        'gamma': {
+        'chi': {
             'value': 1,
-            'definition': 'inflation awareness',
-            'units': '',
-        },
+            'definition': 'inflation rate on inventory',
+            'units': 'y^{-1}', }
+
+    },
+
+    'Consumption': {
+        # VARIABLES
+        'C': {'value': None,
+              'definition': 'Purchased good flow',
+              'units': 'Units.y^{-1}', },
+        'H': {'value': 0,
+              'definition': 'Household possessions',
+              'units': 'Units', },
+        'Htheo': {'value': None,
+                  'definition': 'Household optimal possessions',
+                  'units': 'Units', },
+
+        # PARAMETERS
+        'deltah': {'value': 0.1,
+                   'definition': 'possessions deterioration rate',
+                   'units': 'y^{-1}', },
+        'tauC': {'value': 1,
+                 'definition': 'Typical time for consumption optimisation',
+                 'units': 'y', },
+        'Omega': {'value': 1,
+                  'definition': 'Purchasing power of inflexion',
+                  'units': None},
+        'x': {'value': 1,
+              'definition': 'Inflexion effectiveness',
+              'Units': None},
+        'h': {'value': 1,
+              'definition': 'saturated p per person',
+              'units': None},
     },
 }
 

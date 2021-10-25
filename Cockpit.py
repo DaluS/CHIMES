@@ -13,7 +13,7 @@ import pygemmes as pgm
 from pygemmes import _plots as plots
 ##############################################################################
 _PATH_OUTPUT_REF = os.path.join('pygemmes', 'tests', 'output_ref')
-_MODEL = 'GK-Reduced'  # 'GK',  #
+_MODEL = 'MonoGEM'  # 'GK',  #
 
 ##############################################################################
 '''

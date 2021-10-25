@@ -44,7 +44,7 @@ _LOGICS = {
             'com': 'Debt as Investment-Profit difference',
         },
         'W': {
-            'func': lambda phillips=0, itself=0, gamma=0, i=0: itself * (phillips + (gamma-1)*i),
+            'func': lambda phillips=0, itself=0, gamma=0, i=0: itself * (phillips + gamma*i),
             'com': 'salary through negociation',
         },
         'p': {
