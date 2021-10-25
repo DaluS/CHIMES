@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
 Contains all the possibilities of each _core interaction
-# !pytest tests/test_01_Hub.py -v
+# !pytest pygemmes/tests/test_01_Hub.py -v
 
 
 '''
