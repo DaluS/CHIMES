@@ -11,23 +11,36 @@ import numpy as np
 
 import pygemmes as pgm
 from pygemmes import _plots as plots
+
+
+def groupofvariables(hub):
+    ''' Gives from the hub a dictionnary of all the variables that shares the same units'''
+    groupsoffields = hub.get_dparam_as_reverse_dict(crit='units')
+    hub.get_dparam_as_reverse_dict(crit='eqtype')
+    return {k: [v for v in vals if v in hub.dargs.keys()]
+            for k, vals in groupsoffields.items()}
+
+
 ##############################################################################
 _PATH_OUTPUT_REF = os.path.join('pygemmes', 'tests', 'output_ref')
-_MODEL = 'MonoGEM'  # 'GK',  #
+_MODEL = 'GK-Reduced'  # 'GK',  #
 
 ##############################################################################
-'''
-_DPRESETS = {'impact-of-zphi':
-             {'fields': {'zphi': np.array([0.01,  # 0.02, 0.05,
-                                           0.1,  # 0.2, 0.5,
-                                           1,  # 2, 5,
-                                           10])},
+
+_DPRESETS = {'BasinOfAttraction':
+             {'fields': {'Tmax': 20,
+                         'dt': 0.0001,
+                         'd': 5,
+                         'lambda': np.linspace(.5, .99, 15),
+                         # , 'grid': True}},
+                         'omega': {'value': np.linspace(.5, .99, 15)},
+                         },
               },
              }
-'''
+
 
 # %% SHORT RUN ###############################################################
-hub = pgm.Hub(_MODEL)  # , preset='impact-of-zphi', dpresets=_DPRESETS)
+hub = pgm.Hub(_MODEL, preset='BasinOfAttraction', dpresets=_DPRESETS)
 hub.run(verb=1.1)
 hub.plot()
 

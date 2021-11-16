@@ -121,6 +121,18 @@ for k0, v0 in __DEFAULTFIELDS.items():
 
 
 _LIBRARY = {
+    'Temporary': {
+        'Final': {'value': 0,
+                  'definition': 'Final value',
+                  },
+        'Omega': {'value': 1,
+                  'definition': 'Pulsation',
+                  },
+        'gamma': {'value': 1,
+                  'definition': 'Dampening',
+                  },
+    },
+
 
     'Numerical': {
         'Tmax': {
@@ -267,6 +279,7 @@ _LIBRARY = {
             'value': None,
             'definition': 'Absolute profit',
             'units': '$.y^{-1}',
+            'symbol': r'$\Pi$',
         },
         'c': {
             'value': None,
@@ -279,21 +292,26 @@ _LIBRARY = {
             'value': 0.005,
             'definition': 'Rate of capital depletion',
             'units': 'y^{-1}',
+            'symbol': r'$\delta$',
         },
         'nu': {
             'value': 3,
             'definition': 'Kapital to output ratio',
             'units': '',
+            'symbol': r'$\nu$',
         },
         'gammai': {
             'value': 1,
             'definition': 'inflation awareness',
             'units': '',
+            'symbol': r'$\Gamma$',
         },
         'sigma': {
             'value': 1,
             'definition': 'rate of use adjustment',
-            'units': 'y^{-1}'}
+            'units': 'y^{-1}',
+            'symbol': r'$\sigma$',
+        },
     },
 
 
@@ -436,23 +454,30 @@ _LIBRARY = {
         # VARIABLES
         'C': {'value': None,
               'definition': 'Purchased good flow',
-              'units': 'Units.y^{-1}', },
+              'units': 'Units.y^{-1}',
+              'symbol': r'$C$',
+              },
         'H': {'value': 0,
               'definition': 'Household possessions',
-              'units': 'Units', },
-        'Htheo': {'value': None,
-                  'definition': 'Household optimal possessions',
-                  'units': 'Units', },
+              'units': 'Units',
+              'symbol': r'$H$', },
+        'Hid': {'value': None,
+                'definition': 'Household optimal possessions',
+                'units': 'Units',
+                'symbol': r'$H^{id}$', },
 
         # PARAMETERS
         'deltah': {'value': 0.1,
                    'definition': 'possessions deterioration rate',
-                   'units': 'y^{-1}', },
-        'tauC': {'value': 1,
-                 'definition': 'Typical time for consumption optimisation',
-                 'units': 'y', },
+                   'units': 'y^{-1}',
+                   'symbol': r'$\delta^h$', },
+        'f': {'value': 1,
+              'definition': 'Typical rate for consumption optimisation',
+              'units': 'y^{-1}',
+              'symbol': r'$f$', },
         'Omega': {'value': 1,
                   'definition': 'Purchasing power of inflexion',
+                  'units': 'Units.Humans^{-1}.y^{-1}',
                   'units': None},
         'x': {'value': 1,
               'definition': 'Inflexion effectiveness',

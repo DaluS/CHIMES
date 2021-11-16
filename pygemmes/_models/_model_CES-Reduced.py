@@ -5,7 +5,7 @@ ABSTRACT: This is a 3 sector model : bank, household, and production.
 * The model is driven by offer
 * Negociation by philips is impacted by the profit
 * Loans from banks are limited by solvability
-TYPICAL BEHAVIOR : convergent oscillation around a solow point / debt crisis
+TYPICAL BEHAVIOR : convergent oscillation around a solow point / debt crisis, more convergent with more substituability
 LINKTOARTICLE : Goodwin, Richard, 1967. ‘A growth cycle’, in:
     Carl Feinstein, editor, Socialism, capitalism
     and economic growth. Cambridge, UK: Cambridge University Press.
@@ -22,6 +22,10 @@ import numpy as np
 _FUNC_ORDER = None
 
 
+def omegap(eta=0, phillips=0, alpha=0, omega=0):
+    return omega*((eta/(1+eta))*(phillips-alpha)),
+
+
 # ---------------------------
 # user-defined model
 # contains parameters and functions of various types
@@ -30,23 +34,27 @@ _FUNC_ORDER = None
 _LOGICS = {
     'ode': {
         'lambda': {
-            'func': lambda itself=0, g=0, alpha=0, beta=0: itself * (g - alpha - beta),
-            'com': 'reduced 2variables dynamical expression'
+            'func': lambda itself=0, g=0, alpha=0, beta=0, kappa=0, nu=1, omegap=0, omega=0.5, delta=0, eta=1: itself * (kappa/nu - alpha - beta-delta - omegap/omega * (eta*(1-omega))**(-1)),
+            'com': ''
         },
         'omega': {
-            'func': lambda itself=0, phillips=0, i=0, gamma=0: itself * phillips - (0.5)*i,
-            'com': 'reduced 2variables dynamical expression',
+            'func': lambda omegap=0: omegap,
+            'com': 'CES expression of omegap',
             # 'initial': 0.8,
         },
         'd': {
             'func': lambda itself =0, kappa=0, pi=0, g=0, i=0: kappa - pi - itself*(g+i),
-            'com': 'no solvability in loans'
+            'com': ''
         }
     },
     'statevar': {
         'phillips': {
             'func': lambda phi0=0, phi1=0, lamb=0: (-phi0 + phi1 / (1 - lamb)**2),
             'com': 'salary negociation on employement and profit',
+        },
+        'nu': {
+            'func': lambda A=1, omega=0, b=1, eta=1: (1/A)*((1-omega)/b)**(-1/eta),
+            'com': "endogenous return on capital"
         },
         'g': {
             'func': lambda kappa=0, nu=1, delta=0: kappa / nu - delta,
@@ -60,13 +68,9 @@ _LOGICS = {
             'func': lambda k0=0, k1=0, k2=0, pi=0, solvability=0: (k0 + k1 * np.exp(k2 * pi))*solvability,
             'com': 'Relative GDP investment through relative profit',
         },
-        'solvability': {
-            'func': lambda d=0, nu=1, zsolv=0: 1,  # (1-d/nu)**zsolv,
+        'omegap': {
+            'func': lambda eta=0, phillips=0, alpha=0, omega=0: omega*((eta/(1+eta))*(phillips-alpha)),
             'com': 'loan dampening if non solvable',
-        },
-        'i': {
-            'func': lambda mu=0, eta=0, omega=0: eta*(mu*omega-1),
-            'com': 'Markup dynamics',
         },
     },
 }
