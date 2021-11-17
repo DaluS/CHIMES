@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 # !pytest pygemmes/tests/test_01_Hub.py -v
+import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
 import os
 import numpy as np
 
@@ -20,14 +22,14 @@ dmodels = pgm.get_available_models(
     returnas=dict, details=False, verb=True,
 )
 _MODEL = 'DampOscillator'
-#_MODEL = 'LorenzSystem'
+_MODEL = 'LorenzSystem'
 
 # SOLVER ####################################################################
 dsolvers = pgm.get_available_solvers(
     returnas=dict, verb=True,
 )
-# _SOLVER = 'eRK4-homemade'  # (One we created by ourself, that we can tweak)
-_SOLVER = 'eRK2-scipy'  # (an Runge Kutta solver of order 2)
+_SOLVER = 'eRK4-homemade'  # (One we created by ourself, that we can tweak)
+# _SOLVER = 'eRK2-scipy'  # (an Runge Kutta solver of order 2)
 # _SOLVER = 'eRK4-scipy' #(an Runge Kutta solver of order 4)
 # _SOLVER = 'eRK8-scipy' #(an Runge Kutta solver of order 8)
 
@@ -52,11 +54,21 @@ for preset in dmodels[_MODEL]['presets']:
     # hub.load_preset('crisis')
     hub.run(verb=1.1, solver=_SOLVER)
     hub.plot()
-    plots.phasespace(hub, x='theta', y='thetap', color='time', idx=1)
+    #plots.phasespace(hub, x='theta', y='thetap', color='time', idx=1)
 # hub.FillCyclesForAll(ref='lambda')
 # hub.FillCyclesForAll(ref=None)
 
    # plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)
+
+R = hub.get_dparam(returnas=dict)
+
+
+fig = plt.figure('', figsize=(20, 20))
+ax = plt.axes(projection='3d')
+for idx in range(1):
+    ax.plot(R['x']['value'][:, idx], R['y']['value']
+            [:, idx], R['z']['value'][:, idx])
+plt.show()
 
 
 # %% LOAD/ Saved run available ###############################################
