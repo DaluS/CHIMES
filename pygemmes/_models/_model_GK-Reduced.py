@@ -34,9 +34,8 @@ _LOGICS = {
             'com': 'reduced 2variables dynamical expression'
         },
         'omega': {
-            'func': lambda itself=0, phillips=0, i=0, gamma=0: itself * phillips - (0.5)*i,
+            'func': lambda itself=0, phillips=0, i=0, gammai=0, alpha=0: itself * (phillips - (1 - gammai)*i-alpha),
             'com': 'reduced 2variables dynamical expression',
-            # 'initial': 0.8,
         },
         'd': {
             'func': lambda itself =0, kappa=0, pi=0, g=0, i=0: kappa - pi - itself*(g+i),
@@ -57,12 +56,8 @@ _LOGICS = {
             'com': 'Goodwin relative profit',
         },
         'kappa': {
-            'func': lambda k0=0, k1=0, k2=0, pi=0, solvability=0: (k0 + k1 * np.exp(k2 * pi))*solvability,
+            'func': lambda k0=0, k1=0, k2=0, pi=0: k0 + k1 * np.exp(k2 * pi),
             'com': 'Relative GDP investment through relative profit',
-        },
-        'solvability': {
-            'func': lambda d=0, nu=1, zsolv=0: 1,  # (1-d/nu)**zsolv,
-            'com': 'loan dampening if non solvable',
         },
         'i': {
             'func': lambda mu=0, eta=0, omega=0: eta*(mu*omega-1),

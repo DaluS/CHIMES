@@ -6,11 +6,14 @@ Contains all the possibilities of each _core interaction
 
 '''
 
+import imageio
+import cv2
 import os
 import numpy as np
 
 import pygemmes as pgm
 from pygemmes import _plots as plots
+import matplotlib.pyplot as plt
 
 
 def groupofvariables(hub):
@@ -23,43 +26,36 @@ def groupofvariables(hub):
 
 ##############################################################################
 _PATH_OUTPUT_REF = os.path.join('pygemmes', 'tests', 'output_ref')
-_MODEL = 'GK-Reduced'  # 'GK',  #
-
-##############################################################################
-
-_DPRESETS = {'BasinOfAttraction':
-             {'fields': {'Tmax': 20,
-                         'dt': 0.0001,
-                         'd': 5,
-                         'lambda': np.linspace(.5, .99, 15),
-                         # , 'grid': True}},
-                         'omega': {'value': np.linspace(.5, .99, 15)},
-                         },
-              },
-             }
-
-
-# %% SHORT RUN ###############################################################
-hub = pgm.Hub(_MODEL, preset='BasinOfAttraction', dpresets=_DPRESETS)
-hub.run(verb=1.1)
-hub.plot()
-
-hub.FillCyclesForAll(ref='lambda')
-plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)
-
-
-##############################################################################
-# %% Information on available models
-
+### MODELS LIST ##############################################################
 dmodels = pgm.get_available_models(
     returnas=dict, details=False, verb=True,
 )
+_MODEL = 'DampOscillator'
+_MODEL = 'LorenzSystem'
+_MODEL = 'GK-Reduced'
+_MODEL = 'GK'
 
-# Get available solvers
+# SOLVER ####################################################################
 dsolvers = pgm.get_available_solvers(
     returnas=dict, verb=True,
 )
+# _SOLVER = 'eRK4-homemade'  # (One we created by ourself, that we can tweak)
+# _SOLVER = 'eRK2-scipy'  # (an Runge Kutta solver of order 2)
+# _SOLVER = 'eRK4-scipy' #(an Runge Kutta solver of order 4)
+_SOLVER = 'eRK8-scipy'  # (an Runge Kutta solver of order 8)
 
+
+# %% SHORT RUN ###############################################################
+for preset in dmodels[_MODEL]['presets']:
+    hub = pgm.Hub(_MODEL, preset=preset)
+    # hub = pgm.Hub(_MODEL, preset='BasinOfAttraction', dpresets=_DPRESETS)
+    # hub.set_dparam(key='alpha', value=10)
+    # hub.load_preset('crisis')
+    hub.run(verb=1.1, solver=_SOLVER)
+    hub.plot()
+
+
+R = hub.get_dparam(returnas=dict)
 # %% Saved run available
 dout = pgm.get_available_output(
     path=_PATH_OUTPUT_REF, returnas=dict, verb=True,

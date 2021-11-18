@@ -51,9 +51,9 @@ _LOGICS = {
 _PRESETS = {
     'Perfect Oscillations': {
         'fields': {
-            'thetap': [0, 1, 2],
-            'theta': [1, 1, 0],
-            'Final': [1, 0, 1],
+            'thetap': [0, 0, 0],
+            'theta': [1, 2, 0],
+            'Final': [1, 0, 0],
             'Omega': 10,
             'gamma': 0,
         },
@@ -62,9 +62,9 @@ _PRESETS = {
     },
     'FirstOrder': {
         'fields': {
-            'thetap': [0, 1, 2],
-            'theta': [1, 1, 0],
-            'Final': [1, 0, 1],
+            'thetap': [0, 0, 0],
+            'theta': [1, 2, 0],
+            'Final': [1, 0, 0],
             'Omega': 0,
             'gamma': 1,
         },
@@ -73,9 +73,9 @@ _PRESETS = {
     },
     "Overdamp": {
         'fields': {
-            'thetap': [0, 1, 2],
-            'theta': [1, 1, 0],
-            'Final': [1, 0, 1],
+            'thetap': [0, 0, 0],
+            'theta': [1, 2, 0],
+            'Final': [1, 0, 0],
             'Omega': 0.1,
             'gamma': 1,
         },
@@ -85,9 +85,9 @@ _PRESETS = {
 
     'Critical': {
         'fields': {
-            'thetap': [0, 1, 2],
-            'theta': [1, 1, 0],
-            'Final': [1, 0, 1],
+            'thetap': [0, 0, 0],
+            'theta': [1, 2, 0],
+            'Final': [1, 0, 0],
             'Omega': 1,
             'gamma': 1,
         },
@@ -96,9 +96,9 @@ _PRESETS = {
     },
     'Underdamped': {
         'fields': {
-            'thetap': [0, 1, 2],
-            'theta': [1, 1, 0],
-            'Final': [1, 0, 1],
+            'thetap': [0, 0, 0],
+            'theta': [1, 2, 0],
+            'Final': [1, 0, 0],
             'Omega': 1,
             'gamma': 0.1,
         },

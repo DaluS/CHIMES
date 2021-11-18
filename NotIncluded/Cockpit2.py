@@ -26,20 +26,20 @@ _MODEL = 'LorenzSystem'
 
 # SOLVER ####################################################################
 dsolvers = pgm.get_available_solvers(
-    returnas=dict, verb=True,
+    returnas=dict, verb=False,
 )
-_SOLVER = 'eRK4-homemade'  # (One we created by ourself, that we can tweak)
+# _SOLVER = 'eRK4-homemade'  # (One we created by ourself, that we can tweak)
 # _SOLVER = 'eRK2-scipy'  # (an Runge Kutta solver of order 2)
 # _SOLVER = 'eRK4-scipy' #(an Runge Kutta solver of order 4)
-# _SOLVER = 'eRK8-scipy' #(an Runge Kutta solver of order 8)
+_SOLVER = 'eRK8-scipy'  # (an Runge Kutta solver of order 8)
 
 # PRESETS ###################################################################
 _DPRESETS = {'BasinOfAttraction':
              {'fields': {'Tmax': 20,
                          'dt': 0.0001,
                          'd': 5,
-                         'lambda': np.linspace(.5, .99, 15),
-                         'omega': {'value': np.linspace(.5, .99, 15),
+                         'lambda': np.linspace(.5, .99, 10),
+                         'omega': {'value': np.linspace(.5, .99, 10),
                                    'grid': False},
                          },
               },
@@ -59,16 +59,6 @@ for preset in dmodels[_MODEL]['presets']:
 # hub.FillCyclesForAll(ref=None)
 
    # plots.Var(hub, 'lambda', idx=0, cycles=True, log=False)
-
-R = hub.get_dparam(returnas=dict)
-
-
-fig = plt.figure('', figsize=(20, 20))
-ax = plt.axes(projection='3d')
-for idx in range(1):
-    ax.plot(R['x']['value'][:, idx], R['y']['value']
-            [:, idx], R['z']['value'][:, idx])
-plt.show()
 
 
 # %% LOAD/ Saved run available ###############################################

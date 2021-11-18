@@ -43,8 +43,8 @@ _LOGICS = {
             'func': lambda I=0, Pi=0: I - Pi,
             'com': 'Debt as Investment-Profit difference',
         },
-        'W': {
-            'func': lambda phillips=0, itself=0, gamma=0, i=0: itself * (phillips + gamma*i),
+        'w': {
+            'func': lambda phillips=0, itself=0, gammai=0, inflation=0: itself * (phillips + gammai*inflation),
             'com': 'salary through negociation',
         },
         'p': {
@@ -72,7 +72,7 @@ _LOGICS = {
             'com': 'Full instant employement based on capital',
         },
         'Pi': {
-            'func': lambda Y=0, W=0, L=0, r=0, D=0: Y - W * L - r * D,
+            'func': lambda Y=0, w=0, L=0, r=0, D=0: Y - w * L - r * D,
             'com': 'Profit for production-Salary-debt func',
         },
         'lambda': {
@@ -80,23 +80,19 @@ _LOGICS = {
             'com': 'employement rate',
         },
         'omega': {
-            'func': lambda W=0, L=0, Y=1, p=1: W * L / (Y*p),
+            'func': lambda w=0, L=0, Y=1, p=1: w * L / (Y*p),
             'com': 'wage share',
         },
         'phillips': {
-            'func': lambda phi0=0, phi1=0, lamb=0, pi=0, zphi=1: (pi ** zphi) * (-phi0 + phi1 / (1 - lamb)**2),
+            'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
             'com': 'Wage increase rate through employement and profit',
         },
         'kappa': {
-            'func': lambda k0=0, k1=0, k2=0, Pi=0, Y=1: k0 + k1 * np.exp(k2 * Pi / Y),
+            'func': lambda k0=0, k1=0, k2=0, pi=0: k0 + k1 * np.exp(k2 * pi),
             'com': 'Relative GDP investment through relative profit',
         },
-        'solvability': {
-            'func': lambda d=0, nu=1: (1 - d/nu),
-            'com': 'ability to reimburse debt'
-        },
         'I': {
-            'func': lambda GDP=0, kappa=0, zsolv=1, solvability=0: GDP * kappa * solvability**zsolv,
+            'func': lambda GDP=0, kappa=0: GDP * kappa,
             'com': 'Investment value',
         },
         'd': {
@@ -121,7 +117,7 @@ _PRESETS = {
             'N': 1,
             'K': 2.7,
             'D': 0.2,
-            'W': .85,
+            'w': .85,
             'p': 1,
             'alpha': 0.02,
             'beta': 0.025,
@@ -144,7 +140,7 @@ _PRESETS = {
             'N': 1,
             'K': 2.7,
             'D': 10,
-            'W': .85,
+            'w': .85,
             'p': 1,
 
             'r': 0.0
