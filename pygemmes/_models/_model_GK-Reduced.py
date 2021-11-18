@@ -73,7 +73,7 @@ _LOGICS = {
 _PRESETS = {'default': {
     'fields': {
         'lambda': 0.95,
-        'omega': 0.85,
+        'omega': 0.90,
         'd': 2,
         'alpha': 0.02,
         'beta': 0.025,

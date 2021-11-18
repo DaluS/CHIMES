@@ -33,11 +33,11 @@ dmodels = pgm.get_available_models(
 _MODEL = 'DampOscillator'
 _MODEL = 'LorenzSystem'
 _MODEL = 'GK-Reduced'
-_MODEL = 'GK'
+#_MODEL = 'GK'
 
 # SOLVER ####################################################################
 dsolvers = pgm.get_available_solvers(
-    returnas=dict, verb=True,
+    returnas=dict, verb=False,
 )
 # _SOLVER = 'eRK4-homemade'  # (One we created by ourself, that we can tweak)
 # _SOLVER = 'eRK2-scipy'  # (an Runge Kutta solver of order 2)
@@ -46,13 +46,15 @@ _SOLVER = 'eRK8-scipy'  # (an Runge Kutta solver of order 8)
 
 
 # %% SHORT RUN ###############################################################
-for preset in dmodels[_MODEL]['presets']:
-    hub = pgm.Hub(_MODEL, preset=preset)
-    # hub = pgm.Hub(_MODEL, preset='BasinOfAttraction', dpresets=_DPRESETS)
-    # hub.set_dparam(key='alpha', value=10)
-    # hub.load_preset('crisis')
-    hub.run(verb=1.1, solver=_SOLVER)
-    hub.plot()
+for _MODEL in dmodels.keys():
+    for _SOLVER in dsolvers.keys():
+        for preset in dmodels[_MODEL]['presets']:
+            hub = pgm.Hub(_MODEL, preset=preset, verb=False)
+            # hub = pgm.Hub(_MODEL, preset='BasinOfAttraction', dpresets=_DPRESETS)
+            # hub.set_dparam(key='alpha', value=10)
+            # hub.load_preset('crisis')
+            hub.run(verb=0, solver=_SOLVER)
+            # hub.plot()
 
 
 R = hub.get_dparam(returnas=dict)
