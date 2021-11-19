@@ -147,6 +147,11 @@ plots.phasespace(hub, x='omega', y='lambda', color='d', idx=0)
 # dimensionlessnumbers = ['omega', 'lambda', 'd']
 # plots.AllPhaseSpace(hub, dimensionlessnumbers, idx=0)
 
+
+hub.get_dparam_as_reverse_dict(crit='units', eqtype=(None,))
+hub.get_dparam_as_reverse_dict(crit='units', eqtype=None)
+
+
 groupsoffields = hub.get_dparam_as_reverse_dict(crit='units')
 hub.get_dparam_as_reverse_dict(crit='eqtype')
 groupsofvariables = {k: [v for v in vals if v in hub.dargs.keys()]
