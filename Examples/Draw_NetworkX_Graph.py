@@ -7,7 +7,7 @@ import networkx as nx
 import pygemmes as pgm
 import numpy as np
 #hub = pgm.Hub('GK-Reduced')
-hub = pgm.Hub('GK')
+hub = pgm.Hub('MonoGEM')
 R = hub.get_dparam(returnas=dict)
 
 # %% GENERATING THE NETWORK ######
@@ -15,7 +15,7 @@ G = nx.DiGraph()
 
 
 # Nodes from ODE
-ODENodes = hub.dfunc_order['ode'][:-1]
+ODENodes = hub.dfunc_order['ode']
 StatevarNodes = hub.dfunc_order['statevar']
 listedgeODE = []
 for k in ODENodes:

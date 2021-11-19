@@ -48,15 +48,13 @@ _SOLVER = 'eRK4-homemade'  # (One we created by ourself, that we can tweak)
 
 
 # %% SHORT RUN ###############################################################
-for _MODEL in dmodels.keys():
-    for _SOLVER in dsolvers.keys():
-        for preset in dmodels[_MODEL]['presets']:
-            hub = pgm.Hub(_MODEL)  # , preset=preset, verb=False)
-            # hub = pgm.Hub(_MODEL, preset='BasinOfAttraction', dpresets=_DPRESETS)
-            # hub.set_dparam(key='alpha', value=10)
-            # hub.load_preset('crisis')
-            hub.run(verb=0, solver=_SOLVER)
-            # hub.plot()
+hub = pgm.Hub(_MODEL)  # , preset=preset, verb=False)
+hub.run(verb=0, solver=_SOLVER)
+hub.plot()
+
+'''
+hub.run(verb=0, solver=_SOLVER)
+hub.plot()
 
 
 R = hub.get_dparam(returnas=dict)
@@ -77,7 +75,7 @@ hub = pgm.Hub(_MODEL)  # , preset='default')
 
 
 # %% Change a parameter
-'''
+
 * To change a parameter :  `hub.set_dparam(key='alpha', value=0.01)`
 
 
@@ -86,11 +84,11 @@ hub.set_dparam({'a' : [1,2,'log'],
                 'alpha' : 0.03})
 hub.set_dparam({'nx': 100})
 hub.set_dparam({'a': [1,2,3]})
-'''
+
 
 # %% Runs
 
-'''
+
 'eRK4-homemade' (One we created by ourself, that we can tweak)
 'eRK2-scipy' (an Runge Kutta solver of order 2)
 'eRK4-scipy' (an Runge Kutta solver of order 4)
@@ -105,7 +103,7 @@ We can also ask the solver to give more or less information about where it is
     of time is spent (1.1 will give a print every 1.1 seconds)
     When using an IDE, use either 0 or a float
     (IDE don't work well with 1 and 2)
-'''
+
 hub.run(verb=1.1)
 
 # %% Informations
@@ -158,3 +156,4 @@ groupsoffields = hub.get_dparam_as_reverse_dict(crit='units')
 hub.get_dparam_as_reverse_dict(crit='eqtype')
 groupsofvariables = {k: [v for v in vals if v in hub.dargs.keys()]
                      for k, vals in groupsoffields.items()}
+'''
