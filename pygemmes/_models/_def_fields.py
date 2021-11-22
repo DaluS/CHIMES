@@ -423,7 +423,7 @@ _LIBRARY = {
 
     'Prices': {
         # VARIABLES
-        'i': {
+        'inflation': {
             'value': None,
             'definition': 'inflation rate',
             'units': 'y^{-1}',

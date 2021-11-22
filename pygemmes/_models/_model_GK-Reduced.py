@@ -31,11 +31,11 @@ _LOGICS = {
     'ode': {
         'lambda': {
             'func': lambda itself=0, g=0, alpha=0, beta=0: itself * (g - alpha - beta),
-            'com': 'reduced 2variables dynamical expression'
+            'com': 'reduced 3variables dynamical expression'
         },
         'omega': {
             'func': lambda itself=0, phillips=0, inflation=0, gammai=0, alpha=0: itself * (phillips - (1 - gammai)*inflation-alpha),
-            'com': 'reduced 2variables dynamical expression',
+            'com': 'reduced 3variables dynamical expression',
         },
         'd': {
             'func': lambda itself =0, kappa=0, pi=0, g=0, inflation=0: kappa - pi - itself*(g+inflation),

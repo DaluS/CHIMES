@@ -2,11 +2,13 @@
 
 
 # %% EXTRACT MODEL DATA ##########
+import graph_tools as gt
+from graph_tools import Graph
 import matplotlib.pyplot as plt
 import networkx as nx
 import pygemmes as pgm
 import numpy as np
-#hub = pgm.Hub('GK-Reduced')
+# hub = pgm.Hub('GK-Reduced')
 hub = pgm.Hub('MonoGEM')
 R = hub.get_dparam(returnas=dict)
 
@@ -42,7 +44,7 @@ weights = [G[u][v]['weight'] for u, v in edges]
 colorsN = [node[1]['color'] for node in G.nodes(data=True)]
 
 pos = nx.shell_layout(G)
-#pos = nx.spring_layout(G, scale=50)
+# pos = nx.spring_layout(G, scale=50)
 nx.draw(G, pos,
         with_labels=True,
         font_weight='bold',
@@ -52,3 +54,24 @@ nx.draw(G, pos,
         node_color=colorsN,
         font_size=15)
 plt.show()
+
+
+# Plot a graph using Graph-tool
+
+G = Graph()
+ODENodes = hub.dfunc_order['ode']
+StatevarNodes = hub.dfunc_order['statevar']
+for k in ODENodes:
+    v = R[k]
+    G.add_vertex(R[k]['symbol'])
+    for k2 in [k3 for k3 in v['kargs'] if k3 in ODENodes+StatevarNodes]:
+        # listedgeODE.append([k2, k])
+        G.add_edge(R[k2]['symbol'], R[k]['symbol'])
+
+for k in StatevarNodes:
+    v = R[k]
+    G.add_vertex(R[k]['symbol'])
+    for k2 in [k3 for k3 in v['kargs'] if k3 in ODENodes+StatevarNodes]:
+        G.add_edge(R[k2]['symbol'], R[k]['symbol'])
+
+gt.graph_draw(G, vertex_text=g.vertex_index, output="test.pdf")
