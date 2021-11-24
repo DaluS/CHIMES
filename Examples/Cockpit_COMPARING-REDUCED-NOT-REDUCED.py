@@ -225,9 +225,11 @@ for dt in [0.01, 0.001, 0.0001]:
 
     # COMPARING GK WITH ITS OWN REDUCED VARIABLES
     omegap = np.gradient(R['omega']['value'][:, 0], FieldsGKasG['dt'])
+    omegapp = np.gradient(omegap, FieldsGKasG['dt'])
     lambdap = np.gradient(R['lambda']['value'][:, 0], FieldsGKasG['dt'])
+    lambdapp = np.gradient(lambdap, FieldsGKasG['dt'])
     dp = np.gradient(R['d']['value'][:, 0], FieldsGKasG['dt'])
-
+    dpp = np.gradient(dp, FieldsGKasG['dt'])
     omegaptheo = np.array(R['omega']['value']*(R['phillips']['value'] - (
         1 - R['gammai']['value'])*R['inflation']['value']-R['alpha']['value']))[:, 0]
     lambdaptheo = np.array(R['lambda']['value'] * (R['g']
@@ -236,25 +238,37 @@ for dt in [0.01, 0.001, 0.0001]:
                       ['value']*(R['g']['value']+R['inflation']['value']))[:, 0]
     gtheo = np.array(R['kappa']['value'] / R['nu']
                      ['value'] - R['delta']['value'])[:, 0]
+    gp = np.gradient(R['g']['value'][:, 0], FieldsGKasG['dt'])
 
     plt.figure('compare theo')
-    plt.subplot(221)
-    plt.plot(R['time']['value'], (omegap-omegaptheo)/dt)
-    plt.ylabel('omegap effective - theo')
-    plt.xlabel('t')
+    ax1 = plt.subplot(221)
+    ax12 = plt.twinx(ax1)
+    ax1.plot(R['time']['value'], (omegap-omegaptheo)/dt, c='b')
+    ax12.plot(R['time']['value'], omegapp, c='k', ls='--')
+    ax1.set_ylabel('omegap effective - theo')
+    ax12.set_ylabel('omegapp')
+    ax1.set_xlabel('t')
 
-    plt.subplot(222)
-    plt.plot(R['time']['value'], (lambdap-lambdaptheo)/dt)
-    plt.ylabel('lambdap effective - theo')
-    plt.xlabel('t')
+    ax2 = plt.subplot(222)
+    ax22 = plt.twinx(ax2)
+    ax2.plot(R['time']['value'], (lambdap-lambdaptheo)/dt, c='b')
+    ax22.plot(R['time']['value'], lambdapp, c='k', ls='--')
+    ax2.set_ylabel('lambdap effective - theo')
+    ax2.set_ylabel('lambdapp')
+    ax2.set_xlabel('t')
 
-    plt.subplot(223)
-    plt.plot(R['time']['value'], (dp-dptheo)/dt)
-    plt.ylabel('dp effective - theo')
-    plt.xlabel('t')
+    ax3 = plt.subplot(223)
+    ax32 = plt.twinx(ax3)
+    ax2.plot(R['time']['value'], (dp-dptheo)/dt, c='b')
+    ax32.plot(R['time']['value'], dpp, c='k', ls='--')
+    ax3.set_ylabel('dp effective - theo')
+    ax32.set_ylabel('dpp')
+    ax3.set_xlabel('t')
 
-    plt.subplot(224)
-    plt.plot(R['time']['value'], R['g']['value'][:, 0]-gtheo)
+    ax4 = plt.subplot(224)
+    ax42 = plt.twinx(ax4)
+    ax4.plot(R['time']['value'], R['g']['value'][:, 0]-gtheo)
+    ax42.plot(['time']['value'], gp, c='k', ls='--')
     plt.ylabel('dp effective - theo')
     plt.xlabel('t')
     plt.show()
