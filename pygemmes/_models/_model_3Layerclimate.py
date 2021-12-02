@@ -79,7 +79,7 @@ _PRESETS = {'default': {
         'phi23': 0.001,
         'C': 1/0.098,
         'C0': 3.52,
-        'rhoAtmo': 0,
+        'rhoAtmo': 3.681/3.1,
         'gammaAtmo': 0.0176,
     },
     'com': ' Default run'},
