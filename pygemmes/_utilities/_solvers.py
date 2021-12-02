@@ -169,7 +169,6 @@ def solve(
 
     # -----------
     # Define the function that takes/returns all functions
-
     y0, dydt_func, lode_solve, dargs_temp, vectorized = get_func_dydt(
         dparam=dparam,
         dargs=dargs,
@@ -329,7 +328,6 @@ def get_func_dydt(
 
             # ------------
             # Then compute derivative dydt (ode)
-
             for ii, k0 in enumerate(lode_solve):
                 if 'itself' in dparam[k0]['kargs']:
                     dydt[ii, ...] = dparam[k0]['func'](

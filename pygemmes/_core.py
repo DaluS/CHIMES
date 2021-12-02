@@ -23,6 +23,8 @@ class Hub():
     """
 
     def __init__(self, model=None, preset=None, dpresets=None, verb=None):
+
+        # Initialize the models
         self.__dparam = {}
         self.__dmodel = dict.fromkeys(
             ['name', 'file', 'description', 'presets', 'preset']
