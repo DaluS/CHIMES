@@ -73,7 +73,7 @@ __DEFAULTFIELDS = {
             'Units',  #
             'y',      # Time
             '$',      # Money
-            'C',      # Concentration
+            'C',      # Carbon Concentration
             'Humans',  # Population
             '',
         ],
@@ -131,6 +131,15 @@ _LIBRARY = {
         'gamma': {'value': 1,
                   'definition': 'Dampening',
                   },
+        'm': {'value': 1,
+              'definition': 'Mass doublependulum',
+              },
+        'l': {'value': 1,
+              'definition': 'Length doublependulum'
+              },
+        'gravity': {'value': 9.8,
+                    'definition': 'gravity acceleration'
+                    },
     },
 
 
@@ -166,7 +175,6 @@ _LIBRARY = {
             'eqtype': 'ode',
         },
     },
-
 
     'Household': {
         # VARIABLES
@@ -206,7 +214,7 @@ _LIBRARY = {
         },
 
         # PARAMETERS
-        'beta': {
+        'n': {
             'value': 0.025,
             'definition': 'Rate of population growth',
             'units': 'y^{-1}',
@@ -315,8 +323,6 @@ _LIBRARY = {
             'symbol': r'$\sigma$',
         },
     },
-
-
 
     'Salary Negociation': {
         'phillips': {
@@ -454,7 +460,7 @@ _LIBRARY = {
 
     'Consumption': {
         # VARIABLES
-        'C': {'value': None,
+        'G': {'value': None,
               'definition': 'Purchased good flow',
               'units': 'Units.y^{-1}',
               'symbol': r'$C$',
@@ -480,13 +486,111 @@ _LIBRARY = {
         'Omega0': {'value': 1,
                    'definition': 'Purchasing power of inflexion',
                    'units': 'Units.Humans^{-1}.y^{-1}',
-                   'units': None},
+                   },
         'x': {'value': 1,
               'definition': 'Inflexion effectiveness',
               'Units': None},
         'h': {'value': 1,
               'definition': 'saturated p per person',
               'units': None},
+    },
+
+    'Climate': {
+        'Emission0': {
+            'value': 38,
+            'definition': 'CO2 Emission per year (Gt) at t=0',
+            'units': 'C.y^{-1}',
+        },
+        'Emmission': {
+            'value': 38,
+            'definition': 'CO2 Emission per year (Gt)',
+            'units': 'C.y^{-1}',
+        },
+        'deltaEmission': {
+            'value': 0.01,
+            'definition': 'Diminution rate of carbon emission',
+            'units': 'y^{-1}',
+        },
+        'F2CO2': {
+            'value': 3.681,
+            'definition': 'Forcing when doubling CO2',
+            'units': None,
+        },
+        'CO2AT': {
+            'value': 851,
+            'definition': 'CO2 in atmosphere',
+            'units': 'C',
+        },
+        'CO2UP': {
+            'value': 460,
+            'definition': 'CO2 in upper ocean',
+            'units': 'C',
+        },
+        'CO2LO': {
+            'value': 1740,
+            'definition': 'CO2 in lower ocean',
+            'units': 'C',
+        },
+        'CUP': {
+            'value': 460,
+            'definition': 'Historical CO2 in upper ocean',
+            'units': 'C',
+        },
+        'CAT': {
+            'value': 588,
+            'definition': 'Historical CO2 in atmosphere',
+            'units': 'C',
+        },
+        'CLO': {
+            'value': 1720,
+            'definition': 'Historical CO2 in lower ocean',
+            'units': 'C',
+        },
+        'phi12': {
+            'value': 0.024,
+            'definition': 'Transfer rate atmosphere-ocean',
+            'units': 'y^{-1}',
+        },
+        'phi23': {
+            'value': 0.001,
+            'definition': 'Transfer rate upper-lower ocean',
+            'units': 'y^{-1}',
+        },
+        'Capacity': {
+            'value': 1/0.098,
+            'definition': 'Heat capacity atmosphere+upper ocean',
+            'units': None,
+        },
+        'Capacity0': {
+            'value': 3.52,
+            'definition': 'Heat capacity lower ocean',
+            'units': None,
+        },
+        'rhoAtmo': {
+            'value': 3.681/3.1,
+            'definition': 'radiative feedback parameter',
+            'units': None,
+        },
+        'gammaAtmo': {
+            'value': 0.0176,
+            'definition': 'Heat exchange between layers',
+            'units': None,
+        },
+        'T': {
+            'value': 1,
+            'definition': 'temperature anomaly of atmosphere',
+            'units': None,
+        },
+        'T0': {
+            'value': 1,
+            'definition': 'temperature anomaly of ocean',
+            'units': None,
+        },
+        'F': {
+            'value': 3.6,
+            'com': 'Radiative Forcing',
+            'units': None,
+        },
     },
 }
 

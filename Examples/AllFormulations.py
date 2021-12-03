@@ -124,7 +124,9 @@ get_dparam(self,
 '''
 
 R = hub.get_dparam(returnas=dict)
-
+FieldToLoad = hub_reduced.get_dparam(returnas=dict,
+                                     eqtype=[None, 'ode'],
+                                     group=('Numerical',),)
 
 '''
 get_dparam_as_reverse_dict(

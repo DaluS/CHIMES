@@ -13,6 +13,27 @@ from pygemmes import _plots as plots
 import matplotlib.pyplot as plt
 
 
+# plt.style.use('./images/presentation.mplstyle')
+
+SIZETICKS = 20
+SIZEFONT = 25
+LEGENDSIZE = 20
+LEGENDHANDLELENGTH = 2
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif', size=SIZEFONT)
+plt.rc('xtick', labelsize=SIZETICKS)
+plt.rc('ytick', labelsize=SIZETICKS)
+plt.rc('figure', figsize=(10, 10))
+plt.rcParams.update({'figure.autolayout': True})
+plt.rcParams['text.latex.preamble'] = [
+    r"\usepackage{amsmath} \usepackage{libertine}"]
+ticksfontProperties = {'family': 'sans-serif',
+                       'sans-serif': ['Helvetica'],   'weight': 'medium', 'size': SIZETICKS}
+params = {'legend.fontsize': LEGENDSIZE,
+          'legend.handlelength': LEGENDHANDLELENGTH}
+plt.rcParams.update(params)
+
+
 ##############################################################################
 _PATH_OUTPUT_REF = os.path.join('pygemmes', 'tests', 'output_ref')
 
@@ -37,7 +58,7 @@ Basefields = {
     'eta': 0.01,
     'gammai': 0.5,
     'alpha': 0.02,
-    'beta': 0.025,
+    'n': 0.025,
     'nu': 3,
     'delta': .005,
     # 'phinull': .04,
@@ -112,6 +133,7 @@ for i, k in enumerate(Tocompare):
     plt.plot(R['time']['value'], R[k]['value'], label='Full')
     plt.plot(Rr['time']['value'], Rr[k]['value'], ls='--', label='Reduced')
     plt.ylabel(k)
+plt.legend()
 plt.suptitle('Comparison model GK Full and Reduced')
 plt.show()
 
@@ -137,14 +159,14 @@ and r = 0
 for dt in [0.01, 0.001, 0.0001]:
 
     FieldsGKasG = Basefields.copy()
-    FieldsGKasG['dt'] = dt
-    FieldsGKasG['Tmax'] = 15
+    FieldsGKasG['dt'] = 0.01
+    FieldsGKasG['Tmax'] = 100
     FieldsGKasG['eta'] = 0.01
     FieldsGKasG['r'] = 0
     FieldsGKasG['D'] = 0
-    FieldsGKasG['k0'] = -10000
-    FieldsGKasG['k1'] = 10000
-    FieldsGKasG['k2'] = 1/10000
+    FieldsGKasG['k0'] = -100000
+    FieldsGKasG['k1'] = 100000
+    FieldsGKasG['k2'] = 1/100000
     _DPRESET['FieldsGKasG'] = {'fields': FieldsGKasG,
                                'com': '',
                                'plots': [], }
@@ -177,7 +199,7 @@ for dt in [0.01, 0.001, 0.0001]:
 
     # RUNS
     hub_reduced.run(verb=0, solver=_SOLVER)
-    hub.run(verb=0, solver=_SOLVER)
+    hub.run(verb=0, solver=_SOLVER, rtol=10**(-8), atol=10**(-8))
 
     # PLOTS
     R = hub.get_dparam(returnas=dict)
@@ -233,7 +255,7 @@ for dt in [0.01, 0.001, 0.0001]:
     omegaptheo = np.array(R['omega']['value']*(R['phillips']['value'] - (
         1 - R['gammai']['value'])*R['inflation']['value']-R['alpha']['value']))[:, 0]
     lambdaptheo = np.array(R['lambda']['value'] * (R['g']
-                           ['value'] - R['alpha']['value'] - R['beta']['value']))[:, 0]
+                           ['value'] - R['alpha']['value'] - R['n']['value']))[:, 0]
     dptheo = np.array(R['kappa']['value'] - R['pi']['value'] - R['d']
                       ['value']*(R['g']['value']+R['inflation']['value']))[:, 0]
     gtheo = np.array(R['kappa']['value'] / R['nu']

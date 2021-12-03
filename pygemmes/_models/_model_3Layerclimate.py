@@ -40,21 +40,26 @@ _LOGICS = {
             'com': 'CO2 in lower layer of ocean (Gt C)',
         },
         'T': {
-            'func': lambda F=0, rhoAtmo=0, itself=0, gammaAtmo=0, T0=0, C=0: (F - rhoAtmo*itself - gammaAtmo*(itself-T0))/C,
+            'func': lambda F=0, rhoAtmo=0, itself=0, gammaAtmo=0, T0=0, Capacity=1: (F - rhoAtmo*itself - gammaAtmo*(itself-T0))/Capacity,
             'com': 'Temperature anomaly in atmosphere',
         },
         'T0': {
-            'func': lambda gammaAtmo=0, T=0, itself=0, C0=1: (gammaAtmo*(T-itself))/C0,
+            'func': lambda gammaAtmo=0, T=0, itself=0, Capacity0=1: (gammaAtmo*(T-itself))/Capacity0,
             'com': 'Temperature anomaly in ocean',
+        },
+        'pseudot': {
+            'func': lambda T=0: 1,
+            'com': 'false time because practical',
+            'initial': 0,
         },
     },
     'statevar': {
         'F': {
-            'func': lambda F2CO2=0, CO2AT=0, CAT=1: F2CO2 / np.log(2) * np.log(CO2AT/CAT),
+            'func': lambda F2CO2=0, CO2AT=1, CAT=1: F2CO2 / np.log(2) * np.log(CO2AT/CAT),
             'com': 'Temperature forcing from CO2',
         },
         'Emission': {
-            'func': lambda Emission0=0, deltaEmission=0, time=0: Emission0*np.exp(-time*deltaEmission),
+            'func': lambda Emission0=0, deltaEmission=0, pseudot=0: Emission0*np.exp(-pseudot*deltaEmission),
             'com': 'CO2 Emission rate ',
         },
     },
@@ -66,7 +71,7 @@ _LOGICS = {
 
 _PRESETS = {'default': {
     'fields': {
-        'Emmission0': 38,
+        'Emission0': 38,
         'deltaEmission': 0.01,
         'F2CO2': 3.681,
         'CO2AT': 851,
@@ -77,10 +82,12 @@ _PRESETS = {'default': {
         'CLO': 1720,
         'phi12': 0.024,
         'phi23': 0.001,
-        'C': 1/0.098,
-        'C0': 3.52,
+        'Capacity': 1/0.098,
+        'Capacity0': 3.52,
         'rhoAtmo': 3.681/3.1,
         'gammaAtmo': 0.0176,
+        'T': 1,
+        'T0': 0,
     },
     'com': ' Default run'},
 }

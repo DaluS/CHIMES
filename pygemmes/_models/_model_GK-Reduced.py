@@ -30,7 +30,7 @@ _FUNC_ORDER = None
 _LOGICS = {
     'ode': {
         'lambda': {
-            'func': lambda itself=0, g=0, alpha=0, beta=0: itself * (g - alpha - beta),
+            'func': lambda itself=0, g=0, alpha=0, n=0: itself * (g - alpha - n),
             'com': 'reduced 3variables dynamical expression'
         },
         'omega': {
@@ -76,7 +76,7 @@ _PRESETS = {'default': {
         'omega': 0.90,
         'd': 2,
         'alpha': 0.02,
-        'beta': 0.025,
+        'n': 0.025,
         'nu': 3,
         'delta': .005,
         'phinull': .04,
