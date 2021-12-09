@@ -20,8 +20,8 @@ dmodels = pgm.get_available_models(returnas=dict, details=False, verb=True,)
 
 # ECONOMIC MODEL
 #_MODEL = 'GK-Reduced'
-_MODEL = 'GK'
-#_MODEL = 'Goodwin'
+#_MODEL = 'GK'
+_MODEL = 'Goodwin'
 #_MODEL = 'Goodwin-Reduced'
 
 
@@ -35,8 +35,8 @@ _SOLVER = 'eRK4-scipy'  # (an Runge Kutta solver of order 4)
 
 # LOADING MODEL IN HUB #######################################################
 hub = pgm.Hub(_MODEL)
-#hub.set_dparam(key='dt', value=0.001)
-# hub.load_preset('default')
+hub.load_preset('crisis')
+hub.set_dparam(key='D', value=100)
 hub.run(verb=1.1, solver=_SOLVER)
 hub.plot()
 

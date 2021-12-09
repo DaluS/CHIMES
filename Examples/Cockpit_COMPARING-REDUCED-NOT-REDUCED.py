@@ -17,9 +17,9 @@ import matplotlib.pyplot as plt
 dsolvers = pgm.get_available_solvers(
     returnas=dict, verb=False,
 )
-# _SOLVER = 'eRK4-homemade'  # (One we created by ourself, that we can tweak)
+_SOLVER = 'eRK4-homemade'  # (One we created by ourself, that we can tweak)
 # _SOLVER = 'eRK2-scipy'  # (an Runge Kutta solver of order 2)
-_SOLVER = 'eRK4-scipy'  # (an Runge Kutta solver of order 4)
+# _SOLVER = 'eRK4-scipy'  # (an Runge Kutta solver of order 4)
 # _SOLVER = 'eRK8-scipy'  # (an Runge Kutta solver of order 8)
 
 
@@ -33,9 +33,11 @@ _MODEL_REDUCED = _MODEL+"-Reduced"
 
 
 Basefields = {
-    'dt': 0.01,
+    'dt': 0.0001,
+    'Tmax': 20,
     'a': 1,
     'N': 1,
+    'D': 15,
     'K': 2.9,
     'w': .85*1.2,
     'alpha': 0.02,
@@ -88,7 +90,7 @@ hub_reduced = pgm.Hub(_MODEL_REDUCED, preset='Copy'+_MODEL,
 # RUNS
 hub_reduced.run(verb=0, solver=_SOLVER)
 hub.run(verb=0, solver=_SOLVER)
-hub.plot()
+# hub.plot()
 hub.get_summary()
 # PLOTS
 R = hub.get_dparam(returnas=dict)
