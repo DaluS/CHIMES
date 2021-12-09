@@ -31,6 +31,12 @@ _DSOLVERS = {
         'com': 'Runge_Kutta order 4',
         'source': __file__,
     },
+    'eRK1-homemade': {
+        'type': 'explicit',
+        'step': 'fixed',
+        'com': 'Runge_Kutta order 1',
+        'source': __file__,
+    },
     'eRK2-scipy': {
         'scipy': 'RK23',
         'type': 'explicit',
@@ -192,18 +198,7 @@ def solve(
             dverb=dverb,
         )
 
-    if solver == 'eRK1-homemade':
-        _eRK1_homemade(
-            y0=y0,
-            dydt_func=dydt_func,
-            dparam=dparam,
-            lode=lode_solve,
-            lstate=lstate,
-            nt=nt,
-            dverb=dverb,
-        )
-
-    if solver == 'eRK1-homemade':
+    elif solver == 'eRK1-homemade':
         _eRK1_homemade(
             y0=y0,
             dydt_func=dydt_func,

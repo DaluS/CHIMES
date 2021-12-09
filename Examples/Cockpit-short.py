@@ -27,16 +27,17 @@ _MODEL = 'Goodwin'
 
 # SOLVER #####################################################################
 dsolvers = pgm.get_available_solvers(returnas=dict, verb=False,)
-# _SOLVER = 'eRK4-homemade'  # (One we created by ourself, that we can tweak)
+_SOLVER = 'eRK1-homemade'  # (One we created by ourself, that we can tweak)
+_SOLVER = 'eRK4-homemade'  # (One we created by ourself, that we can tweak)
 # _SOLVER = 'eRK2-scipy'  # (an Runge Kutta solver of order 2)
-_SOLVER = 'eRK4-scipy'  # (an Runge Kutta solver of order 4)
+# _SOLVER = 'eRK4-scipy'  # (an Runge Kutta solver of order 4)
 # _SOLVER = 'eRK8-scipy'  # (an Runge Kutta solver of order 8)
 
 
 # LOADING MODEL IN HUB #######################################################
 hub = pgm.Hub(_MODEL)
-hub.load_preset('crisis')
-hub.set_dparam(key='D', value=100)
+# hub.load_preset('crisis')
+hub.set_dparam(key='dt', value=0.001)
 hub.run(verb=1.1, solver=_SOLVER)
 hub.plot()
 

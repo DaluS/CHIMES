@@ -83,6 +83,8 @@ def create_preset_from_model_preset(targetmodel,
 
 def plot_one_run_all_solvers(_MODEL, preset=False, _DPRESET=False):
     '''
+
+
     Will compare up to seven solver that exist in pygemmes, using the model and preset you provide
     * if no preset, nor dictionary of preset the system takes default values
     * if preset and not dictionary preset, preset must be the name of one of the model preset
@@ -125,7 +127,7 @@ def plot_one_run_all_solvers(_MODEL, preset=False, _DPRESET=False):
             dhub[solver] = Hub(_MODEL, verb=False)
 
         # RUN
-        dhub[solver].run(verb=1.1, solver='eRK4-homemade')
+        dhub[solver].run(verb=1.1, solver=solver)
 
         # PRINT
         # If first solver, creation of dax
@@ -136,5 +138,5 @@ def plot_one_run_all_solvers(_MODEL, preset=False, _DPRESET=False):
                 tit='Solver comparison on model'+_MODEL)
         # Else use of dax
         else:
-            dax = dhub[solver].plot(label=solver, ls='--',
+            dax = dhub[solver].plot(label=solver,
                                     color=colors[ii], dax=dax)
