@@ -128,6 +128,8 @@ _LIBRARY = {
         'Omega': {'value': 1,
                   'definition': 'Pulsation',
                   },
+        'beta': {'value': 0.1,
+                 'definition': 'Lorenz related'},
         'gamma': {'value': 1,
                   'definition': 'Dampening',
                   },

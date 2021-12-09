@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pygemmes as pgm
 
+_SOLVER = 'eRK1-homemade'  # (One we created by ourself, that we can tweak)
 _SOLVER = 'eRK4-homemade'  # (One we created by ourself, that we can tweak)
 # _SOLVER = 'eRK2-scipy'  # (an Runge Kutta solver of order 2, with adaptative steps)
 # _SOLVER = 'eRK4-scipy'  # (an Runge Kutta solver of order 4, with adaptative steps)
@@ -14,10 +15,14 @@ _SOLVER = 'eRK4-homemade'  # (One we created by ourself, that we can tweak)
 
 ##############################################################################
 ### CONVERGENCE TEST #########################################################
-printindividualTrajectory = False
+printindividualTrajectory = True
 
 Error = {}
-for dt in [0.1, 0.05, 0.02, 0.01, 0.005, 0.002, 0.001, ]:
+
+dtlogspace = np.logspace(-1, -4, 7)
+
+for dt in dtlogspace:
+    print("dt:", dt)
     _DPRESETS = {'Convergence test':
                  {'fields': {'Tmax': 20,
                              'dt': dt,
@@ -31,8 +36,8 @@ for dt in [0.1, 0.05, 0.02, 0.01, 0.005, 0.002, 0.001, ]:
                  }
     # Load and preset
     hub = pgm.Hub('DampOscillator', preset='Convergence test',
-                  dpresets=_DPRESETS)
-    hub.run(verb=1.1, solver=_SOLVER)
+                  dpresets=_DPRESETS, verb=False)
+    hub.run(verb=0, solver=_SOLVER)
 
     # Get the informations right
     R = hub.get_dparam(returnas=dict)
@@ -51,6 +56,7 @@ for dt in [0.1, 0.05, 0.02, 0.01, 0.005, 0.002, 0.001, ]:
 
     # Plot the trajectory
     if printindividualTrajectory:
+        plt.ylim([-1, 1])
         plt.plot(t, thetaTheo, label='Theoretical')
         plt.plot(t, thetanum, c='r', label='Numerical')
         plt.legend()
@@ -65,11 +71,12 @@ Z = sorted(zip(dtlist, errorlist))
 dtlist = [x for x, y in Z]
 errorlist = [y for x, y in Z]
 
+plt.figure('Convergence')
 plt.loglog(dtlist, errorlist, '-*')
 plt.axis('scaled')
 plt.ylabel('mean error')
 plt.xlabel('dt')
-plt.title('Convergence test for RK4 Homemade')
+plt.title('Convergence test for'+_SOLVER)
 plt.show()
 
 ##############################################################################

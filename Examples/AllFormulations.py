@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 ##############################################################################
 _PATH_OUTPUT_REF = os.path.join('pygemmes', 'tests', 'output_ref')
 
-
+pgm.comparesolver_Lorenz(dt=0.001)
 ### MODELS LIST ##############################################################
 dmodels = pgm.get_available_models(returnas=dict, details=False, verb=True,)
 

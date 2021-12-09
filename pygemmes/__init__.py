@@ -7,6 +7,9 @@ from ._models import get_available_models
 from ._utilities._solvers import get_available_solvers
 from ._utilities._saveload import get_available_output, load
 
+# should be removed once Lorenz plot transfered in plot
+import matplotlib.pyplot as plt
+
 
 def create_preset_from_model_preset(targetmodel,
                                     outputmodel,
@@ -83,8 +86,6 @@ def create_preset_from_model_preset(targetmodel,
 
 def plot_one_run_all_solvers(_MODEL, preset=False, _DPRESET=False):
     '''
-
-
     Will compare up to seven solver that exist in pygemmes, using the model and preset you provide
     * if no preset, nor dictionary of preset the system takes default values
     * if preset and not dictionary preset, preset must be the name of one of the model preset
@@ -140,3 +141,32 @@ def plot_one_run_all_solvers(_MODEL, preset=False, _DPRESET=False):
         else:
             dax = dhub[solver].plot(label=solver,
                                     color=colors[ii], dax=dax)
+
+
+def comparesolver_Lorenz(dt=0.01):
+    Coor = {}
+    _MODEL = 'LorenzSystem'
+    dmodels = get_available_models(returnas=dict, details=False, verb=False,)
+    for solver in get_available_solvers(returnas=dict, verb=False,).keys():
+        for preset in dmodels[_MODEL]['presets']:
+            hub = Hub(_MODEL, preset=preset, verb=False)
+            hub.set_dparam(key='dt', value=dt, verb=False)
+            hub.run(verb=0, solver=solver)
+
+            R = hub.get_dparam(returnas=dict)
+            Coor[solver] = {'x': R['x']['value'],
+                            'y': R['y']['value'],
+                            'z': R['z']['value'], }
+
+    fig = plt.figure('', figsize=(10, 10))
+    ax = plt.axes(projection='3d')
+    for solver in get_available_solvers(returnas=dict, verb=False,).keys():
+        ax.plot(Coor[solver]['x'][:, 0],
+                Coor[solver]['y'][:, 0],
+                Coor[solver]['z'][:, 0], label=solver, lw=0.5)
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    plt.tight_layout()
+    plt.legend()
+    plt.show()
