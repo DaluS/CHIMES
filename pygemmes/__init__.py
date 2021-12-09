@@ -170,3 +170,63 @@ def comparesolver_Lorenz(dt=0.01):
     plt.tight_layout()
     plt.legend()
     plt.show()
+
+
+def testConvergence_DampOsc(vecdt, solver, returnas='plot'):
+    '''
+        '''
+    import numpy as np
+    Error = {}
+
+    for dt in vecdt:
+        print("dt:", dt)
+        _DPRESETS = {'Convergence test':
+                     {'fields': {'Tmax': 20,
+                                 'dt': dt,
+                                 'gamma': 1,
+                                 'Omega': 10,
+                                 'Final': 0,
+                                 'theta': 1,
+                                 'thetap': 0,
+                                 },
+                      },
+                     }
+        # Load and preset
+        hub = Hub('DampOscillator', preset='Convergence test',
+                  dpresets=_DPRESETS, verb=False)
+        hub.run(verb=0, solver=solver)
+
+        # Get the informations right
+        R = hub.get_dparam(returnas=dict)
+        gamma = R['gamma']['value']
+        Omega = R['Omega']['value']
+        Final = R['Final']['value']
+        theta0 = R['theta']['value'][0]
+        thetap0 = R['thetap']['value'][0]
+        t = R['time']['value']
+        thetanum = R['theta']['value']
+
+        # Comparing strategies
+        thetaTheo = np.real(theta0*np.exp(-gamma*t) *
+                            np.cos(np.sqrt(Omega**2-gamma**2)*t))
+        Error[dt] = np.mean(np.sqrt((thetanum-thetaTheo)**2))
+
+    ################################
+    dtlist = Error.keys()
+    errorlist = [Error[k] for k in Error.keys()]
+
+    Z = sorted(zip(dtlist, errorlist))
+
+    dtlist = [x for x, y in Z]
+    errorlist = [y for x, y in Z]
+
+    if returnas == 'plot':
+        plt.figure('Convergence')
+        plt.loglog(dtlist, errorlist, '-*')
+        plt.axis('scaled')
+        plt.ylabel('mean error')
+        plt.xlabel('dt')
+        plt.title('Convergence test for'+solver)
+        plt.show()
+    else:
+        return Error

@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 ##############################################################################
 _PATH_OUTPUT_REF = os.path.join('pygemmes', 'tests', 'output_ref')
 
-pgm.comparesolver_Lorenz(dt=0.001)
+pgm.comparesolver_Lorenz(dt=0.01)
 ### MODELS LIST ##############################################################
 dmodels = pgm.get_available_models(returnas=dict, details=False, verb=True,)
 
@@ -26,6 +26,12 @@ dmodels = pgm.get_available_models(returnas=dict, details=False, verb=True,)
 _MODEL = 'GK-Reduced'
 #_MODEL = 'GK'
 #_MODEL = 'MonoGEM'
+
+
+vecdt = np.logspace(-1, -4, 7)
+
+
+def testConvergence_DampOsc(vecdt, 'eRK4-homemade')
 
 
 #pgm.plot_one_run_all_solvers(_MODEL, preset=False, _DPRESET=False)
