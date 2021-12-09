@@ -6,10 +6,13 @@ ABSTRACT: This is a 3 sector model : bank, household, and production.
 * Negociation by philips is impacted by the profit
 * Loans from banks are limited by solvability
 TYPICAL BEHAVIOR : convergent oscillation around a solow point / debt crisis
+
 LINKTOARTICLE : Goodwin, Richard, 1967. ‘A growth cycle’, in:
     Carl Feinstein, editor, Socialism, capitalism
     and economic growth. Cambridge, UK: Cambridge University Press.
+
 Created on Wed Jul 21 15:11:15 2021
+
 @author: Paul Valcke
 """
 

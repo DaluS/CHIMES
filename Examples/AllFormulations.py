@@ -3,9 +3,6 @@
 Contains all the possibilities of each _core interaction
 # !pytest pygemmes/tests/test_01_Hub.py -v
 '''
-
-import imageio
-import cv2
 import os
 import numpy as np
 
@@ -31,6 +28,14 @@ _MODEL = 'GK-Reduced'
 #_MODEL = 'MonoGEM'
 
 
+#pgm.plot_one_run_all_solvers(_MODEL, preset=False, _DPRESET=False)
+'''
+pgm.create_preset_from_model_preset('GK',
+                                    'GK-Reduced',
+                                    targetpreset=False,
+                                    targetdpreset=False,
+                                    returnas='hub')
+'''
 # SOLVER #####################################################################
 dsolvers = pgm.get_available_solvers(returnas=dict, verb=False,)
 _SOLVER = 'eRK4-homemade'  # (One we created by ourself, that we can tweak)
@@ -235,3 +240,56 @@ dax = hub.plot(eqtype='ode', label='eRK4-homemade')
 dax = hub.plot(eqtype='ode', label='eRK2-scipy', dax=dax)
 dax = hub.plot(eqtype='ode', label='eRK4-scipy', dax=dax)
 dax = hub.plot(eqtype='ode', label='eRK8-scipy', dax=dax)
+
+
+# %% LOADING AND COPYING MODELS #############################################
+Basefields = {
+    'dt': 0.01,
+    'Tmax': 20,
+    'a': 1,
+    'N': 1,
+    'D': 2,
+    'K': 2.9,
+    'w': .85*1.2,
+    'alpha': 0.02,
+    'n': 0.025,
+    'nu': 3,
+    'delta': .005,
+    'k0': -0.0065,
+    'k1': np.exp(-5),
+    'k2': 20,
+    'r': 0.03,
+    'p': 1.3,
+    'eta': 0.1,
+    'gammai': 0.5,
+}
+
+_DPRESET = {'default': {
+    'fields': Basefields,
+    'com': '',
+    'plots': [],
+},
+}
+
+
+preset = 'default'
+targetmodel = 'GK'
+outputmodel = 'GK-Reduced'
+
+Tocompare = ['lambda', 'omega', 'd',
+             'phillips', 'kappa', 'pi', 'g']
+
+hub_reduced = pgm.create_preset_from_model_preset(
+    targetmodel, outputmodel, targetpreset=preset, targetdpreset=_DPRESET, returnas='hub')
+hub = pgm.Hub(targetmodel, preset=preset, dpresets=_DPRESET, verb=False)
+
+# RUNS
+hub_reduced.run(verb=0, solver=_SOLVER)
+hub.run(verb=0, solver=_SOLVER)
+
+# PLOT
+dax = hub.plot(key=Tocompare, label='GK', color='k',
+               wintit='Print of '+targetmodel+' on '+outputmodel,
+               tit='Print of '+targetmodel+' on '+outputmodel)
+dax = hub.plot(key=Tocompare, label='GK-Reduced',
+               color='r', lw=.5, dax=dax)

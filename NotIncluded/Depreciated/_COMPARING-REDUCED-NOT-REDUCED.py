@@ -28,16 +28,13 @@ dmodels = pgm.get_available_models(
     returnas=dict, details=False, verb=False,
 )
 
-_MODEL = 'GK'
-_MODEL_REDUCED = _MODEL+"-Reduced"
-
-
+# %% LOADING AND COPYING MODELS #############################################
 Basefields = {
-    'dt': 0.0001,
+    'dt': 0.01,
     'Tmax': 20,
     'a': 1,
     'N': 1,
-    'D': 15,
+    'D': 2,
     'K': 2.9,
     'w': .85*1.2,
     'alpha': 0.02,
@@ -61,49 +58,32 @@ _DPRESET = {'default': {
 }
 
 
-# %% LOADING AND COPYING MODELS #############################################
-
 preset = 'default'
-
-hub = pgm.Hub(_MODEL, preset='default', dpresets=_DPRESET, verb=False)
-hub_reduced = pgm.Hub(_MODEL_REDUCED, verb=False)
-
-hub.set_dparam(key='p', value=10)
-# COPY OF THE PARAMETERS INTO A NEW DICTIONNARY
-FieldToLoad = hub_reduced.get_dparam(returnas=dict, eqtype=[None, 'ode'],
-                                     group=('Numerical',),)
-R = hub.get_dparam(returnas=dict)
-tdic = {}
-for k, v in FieldToLoad.items():
-    val = R[k]['value']
-    if 'initial' in v.keys():
-        tdic[k] = val[0][0]
-    else:
-        tdic[k] = val
-
-_DPRESETS = {'Copy'+_MODEL: {'fields': tdic, }, }
-
-# LOADING THE MODEL WITH A NEW MODEL
-hub_reduced = pgm.Hub(_MODEL_REDUCED, preset='Copy'+_MODEL,
-                      dpresets=_DPRESETS)
-
-# RUNS
-hub_reduced.run(verb=0, solver=_SOLVER)
-hub.run(verb=0, solver=_SOLVER)
-# hub.plot()
-hub.get_summary()
-# PLOTS
-R = hub.get_dparam(returnas=dict)
-Rr = hub_reduced.get_dparam(returnas=dict)
+targetmodel = 'GK'
+outputmodel = 'GK-Reduced'
 
 Tocompare = ['lambda', 'omega', 'd',
              'phillips', 'kappa', 'pi', 'g']
 
-plt.figure()
+hub_reduced = pgm.create_preset_from_model_preset(
+    targetmodel, outputmodel, targetpreset=preset, targetdpreset=_DPRESET, returnas='hub')
+hub = pgm.Hub(targetmodel, preset=preset, dpresets=_DPRESET, verb=False)
+
+# RUNS
+hub_reduced.run(verb=0, solver=_SOLVER)
+hub.run(verb=0, solver=_SOLVER)
+
+# PLOT
+dax = hub.plot(key=Tocompare, label='GK', color='k',
+               wintit='Print of '+targetmodel+' on '+outputmodel,
+               tit='Print of '+targetmodel+' on '+outputmodel)
+dax = hub.plot(key=Tocompare, label='GK-Reduced',
+               color='r', lw=.5, dax=dax)
+
 for i, k in enumerate(Tocompare):
     plt.subplot(4, 2, i+1)
     plt.plot(R['time']['value'], R[k]['value'], label='Full')
-    plt.plot(Rr['time']['value'], Rr[k]['value'], ls='--', label='Reduced')
+    plt.plot(Rr['time']['value'], Rr[k]['value'], lw=.5, label='Reduced')
     plt.ylabel(k)
 plt.legend()
 plt.suptitle('Comparison model GK Full and Reduced')
@@ -158,9 +138,9 @@ lambdapp = np.gradient(lambdap)
 
 
 omegaptheo = np.array(R['omega']['value']*(R['phillips']
-                      ['value'] - R['alpha']['value']))[:, 0]
+                                           ['value'] - R['alpha']['value']))[:, 0]
 lambdaptheo = np.array(R['lambda']['value'] * (R['g']
-                       ['value'] - R['alpha']['value'] - R['n']['value']))[:, 0]
+                                               ['value'] - R['alpha']['value'] - R['n']['value']))[:, 0]
 gtheo = np.array((1-R['omega']['value']) / R['nu']
                  ['value'] - R['delta']['value'])[:, 0]
 gp = np.gradient(R['g']['value'][:, 0])
