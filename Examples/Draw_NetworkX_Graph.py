@@ -44,17 +44,18 @@ weights = [G[u][v]['weight'] for u, v in edges]
 colorsN = [node[1]['color'] for node in G.nodes(data=True)]
 
 pos = nx.shell_layout(G)
-# pos = nx.spring_layout(G, scale=50)
+pos = nx.spring_layout(G, scale=500)
 nx.draw(G, pos,
         with_labels=True,
         font_weight='bold',
         edge_color=colors,
         width=weights,
-        node_size=500,
+        node_size=1000,
         node_color=colorsN,
         font_size=15)
 plt.show()
 
+gt.draw.planar_layout(G)
 
 # Plot a graph using Graph-tool
 

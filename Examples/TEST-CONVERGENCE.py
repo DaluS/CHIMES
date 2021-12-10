@@ -20,7 +20,11 @@ printindividualTrajectory = True
 
 def testConvergence_DampOsc(vecdt, solver, returnas='plot'):
     '''
-        '''
+    This test compute for multiple timestep the difference between the
+    computed solution and the theoretical one on a damped oscillator.
+    The output is either a plot (mean error in function of timestep) or
+    a dictionnary associating each values
+    '''
 
     Error = {}
 
@@ -48,9 +52,7 @@ def testConvergence_DampOsc(vecdt, solver, returnas='plot'):
         R = hub.get_dparam(returnas=dict)
         gamma = R['gamma']['value']
         Omega = R['Omega']['value']
-        Final = R['Final']['value']
         theta0 = R['theta']['value'][0]
-        thetap0 = R['thetap']['value'][0]
         t = R['time']['value']
         thetanum = R['theta']['value']
 

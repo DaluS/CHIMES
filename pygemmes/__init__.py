@@ -144,6 +144,10 @@ def plot_one_run_all_solvers(_MODEL, preset=False, _DPRESET=False):
 
 
 def comparesolver_Lorenz(dt=0.01):
+    '''
+    for a given timestep (default dt=0.01), compute a Lorenz attractor with
+    each solver to compare them
+    '''
     Coor = {}
     _MODEL = 'LorenzSystem'
     dmodels = get_available_models(returnas=dict, details=False, verb=False,)
@@ -174,7 +178,12 @@ def comparesolver_Lorenz(dt=0.01):
 
 def testConvergence_DampOsc(vecdt, solver, returnas='plot'):
     '''
-        '''
+    This test compute for multiple timestep the difference between the
+    computed solution and the theoretical one on a damped oscillator.
+    The output is either a plot (mean error in function of timestep) or
+    a dictionnary associating each values
+    '''
+
     import numpy as np
     Error = {}
 
