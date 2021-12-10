@@ -31,7 +31,7 @@ _MODEL = 'GK-Reduced'
 vecdt = np.logspace(-1, -4, 7)
 
 
-def testConvergence_DampOsc(vecdt, 'eRK4-homemade')
+pgm.testConvergence_DampOsc(vecdt, 'eRK4-homemade')
 
 
 #pgm.plot_one_run_all_solvers(_MODEL, preset=False, _DPRESET=False)
