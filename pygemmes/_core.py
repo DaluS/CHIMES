@@ -517,7 +517,9 @@ class Hub():
         '''
 
         leq = ['ode', 'statevar']
+        #print(self.get_dparam(returnas=dict, eqtype=leq).items())
         for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
+            print(var, np.shape(dic1['value']))
             if ref is None:
                 self.FillCycles(var, var)
             else:
@@ -569,7 +571,7 @@ class Hub():
 
         # Fill for each the characteristics
         values = dic['value']
-        print(var)
+        #print(var, dic1)
         dic1['meanval'] = [np.mean(values[idx[0]:idx[1]])
                            for idx in dic1['period_indexes']]
         dic1['medval'] = [np.median(values[idx[0]:idx[1]])

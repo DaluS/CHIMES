@@ -1,20 +1,19 @@
 # -*- coding: utf-8 -*
 
-
-# %% EXTRACT MODEL DATA ##########
-import graph_tools as gt
-from graph_tools import Graph
-import matplotlib.pyplot as plt
-import networkx as nx
-import pygemmes as pgm
+import pandas as pd
+import pygraphviz
 import numpy as np
-# hub = pgm.Hub('GK-Reduced')
-hub = pgm.Hub('MonoGEM')
+import pygemmes as pgm
+import networkx as nx
+import matplotlib.pyplot as plt
+from graph_tools import Graph
+import graph_tools as gt
+import pygraphviz as pgv
+A = pgv.AGraph(directed=True,)
+model = 'GK'
+
+hub = pgm.Hub(model, verb=False)
 R = hub.get_dparam(returnas=dict)
-
-# %% GENERATING THE NETWORK ######
-G = nx.DiGraph()
-
 
 # Nodes from ODE
 ODENodes = hub.dfunc_order['ode']
@@ -22,42 +21,46 @@ StatevarNodes = hub.dfunc_order['statevar']
 listedgeODE = []
 for k in ODENodes:
     v = R[k]
-    G.add_node(R[k]['symbol'], color='red')
+    #G.add_node(R[k]['symbol'], color='red')
     for k2 in [k3 for k3 in v['kargs'] if k3 in ODENodes+StatevarNodes]:
         # listedgeODE.append([k2, k])
-        G.add_edge(R[k2]['symbol'], R[k]['symbol'], color='k', weight=1)
-# G.add_edges_from(listedgeODE)
+        # , color='k', weight=1)
+        A.add_edge(R[k2]['symbol'], R[k]['symbol'])
+    # G.add_edges_from(listedgeODE)
 
 listedgeStatevar = []
 for k in StatevarNodes:
     v = R[k]
-    print(k)
-    G.add_node(R[k]['symbol'], color='gray')
+    # print(k)
+    #A.add_node(R[k]['symbol'], color='gray')
     for k2 in [k3 for k3 in v['kargs'] if k3 in ODENodes+StatevarNodes]:
-        G.add_edge(R[k2]['symbol'], R[k]['symbol'],
-                   color='k', weight=1, label='Test')
+        A.add_edge(R[k2]['symbol'], R[k]['symbol'])  # ,
+#                       color='k', weight=1, label='Test')
+
+#    edges = G.edges()
+#    colors = [G[u][v]['color'] for u, v in edges]
+#    weights = [G[u][v]['weight'] for u, v in edges]
+#    colorsN = [node[1]['color'] for node in G.nodes(data=True)]
+A.draw("subgraph.png", prog="neato")
+
+pos = nx.nx_agraph.graphviz_layout(G)
+#pos = nx.shell_layout(G)
+#pos = nx.spring_layout(G, scale=500)
 
 
-edges = G.edges()
-colors = [G[u][v]['color'] for u, v in edges]
-weights = [G[u][v]['weight'] for u, v in edges]
-colorsN = [node[1]['color'] for node in G.nodes(data=True)]
+# %% EXTRACT MODEL DATA ##########
+# hub = pgm.Hub('GK-Reduced')
 
-pos = nx.shell_layout(G)
-pos = nx.spring_layout(G, scale=500)
-nx.draw(G, pos,
-        with_labels=True,
-        font_weight='bold',
-        edge_color=colors,
-        width=weights,
-        node_size=1000,
-        node_color=colorsN,
-        font_size=15)
-plt.show()
+
+showVariableGraph('GK')
+
+model = 'GK'
+
 
 gt.draw.planar_layout(G)
 
 # Plot a graph using Graph-tool
+
 
 G = Graph()
 ODENodes = hub.dfunc_order['ode']
@@ -76,3 +79,16 @@ for k in StatevarNodes:
         G.add_edge(R[k2]['symbol'], R[k]['symbol'])
 
 gt.graph_draw(G, vertex_text=g.vertex_index, output="test.pdf")
+
+# %% ALTERNATIVE VERSIOn
+
+# Build a dataframe with your connections
+df = pd.DataFrame({'from': ['A', 'B', 'C', 'A'], 'to': ['D', 'A', 'E', 'C']})
+
+# Build your graph
+G = nx.from_pandas_edgelist(df, 'from', 'to')
+
+# Graph with Custom nodes:
+nx.draw(G, with_labels=True, node_size=1500, node_color="skyblue",
+        node_shape="s", alpha=0.5, linewidths=40)
+plt.show()
