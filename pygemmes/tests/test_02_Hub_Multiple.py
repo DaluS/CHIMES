@@ -229,7 +229,7 @@ class Test01_Hub_MultipleSystems():
 
 class Test02_Hub_FromPresets(Test01_Hub_MultipleSystems):
 
-    lmodels = ['G-Reduced']
+    lmodels = ['Goodwin-Reduced']
     lgrid = list(_DPRESETS.keys())
 
     def setup(self):
