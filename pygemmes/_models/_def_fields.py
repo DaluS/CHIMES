@@ -601,7 +601,7 @@ _LIBRARY = {
             'com': 'Capital in a buffer before being productive',
             'units': 'Units',
         },
-        'lambdaperciev': {
+        'lambperc': {
             'value': .95,
             'com': 'Percieved employement',
             'units': '',

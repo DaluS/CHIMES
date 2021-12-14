@@ -5,7 +5,7 @@ DESCRIPTION : This is a Goodwin-Keen model based on extensive variables.
 We added the following processes inside :
     * Endogenous productivity growth from growth itself : (beta=0 for classic situation)
     * Buffer on capital accumulation : Investment in capital goes first in Bk then in K, with a rate of change fk
-    * Buffer on wage negociation : Percieved employement is the consequence of a societal buffer, with a rate of change flambda
+    * NOTTAKEN INTO ACCOUNT HERE Buffer on wage negociation : Percieved employement is the consequence of a societal buffer, with a rate of change flambda
     * Profit on wage negociation : Philips curve is dampened by firm's profit, with a convexity coefficient Zpi
     * Solvability in investment : Banks refuse to lend money if firm has a small solvalibity, with a convexity coefficient Zs
 
@@ -56,9 +56,6 @@ _LOGICS = {
         'p': {
             'func': lambda itself=0, inflation=0: itself * inflation,
             'com': 'markup inflation', },
-        'lambdaperciev': {
-            'func': lambda itself=0, lamb=0, flamb=0: (lamb-itself)*flamb,
-            'com': 'percieved inflation'}
     },
     # Intermediary relevant functions
     'statevar': {
@@ -84,8 +81,9 @@ _LOGICS = {
             'func': lambda w=0, L=0, Y=1, p=1: (w * L) / (Y*p),
             'com': 'wage share', },
         'phillips': {
-            'func': lambda phi0=0, phi1=0, lambdaperciev=0: -phi0 + phi1 / (1 - lambdaperciev)**2,
-            'com': 'Wage increase rate through employement and profit', },
+            'func': lambda phi0=0, phi1=0, lamb=0: (-phi0 + phi1 / (1 - lamb)**2),
+            'com': 'salary negociation on employement and profit',
+        },
         'kappa': {
             'func': lambda k0=0, k1=0, k2=0, pi=0: k0 + k1 * np.exp(k2 * pi),
             'com': 'Relative GDP investment through relative profit', },

@@ -14,13 +14,20 @@ Created on Wed Jul 21 15:11:15 2021
 _FUNC_ORDER = None
 
 
+def productivity(itself=0, alpha=0):
+    '''
+    Just an example of alternative to lambda formulation
+    '''
+    return alpha * itself
+
+
 # ---------------------------
 # user-defined model
 # contains parameters and functions of various types
 _LOGICS = {
     'ode': {
         'a': {
-            'func': lambda alpha=0, itself=0: alpha * itself,
+            'func': productivity,
             'com': 'Exogenous technical progress as an exponential', },
         'N': {
             'func': lambda n=0, itself=0: n * itself,
@@ -75,7 +82,7 @@ _PRESETS = {
             'N': 1,
             'K': 2.7,
             'w': .85,
-            'alpha': 0.02,
+            'alpha': 0.04,
             'n': 0.025,
             'nu': 3,
             'delta': .005,
