@@ -594,6 +594,45 @@ _LIBRARY = {
             'units': None,
         },
     },
+
+    'GK-Improvements': {
+        'B': {
+            'value': 0,
+            'com': 'Capital in a buffer before being productive',
+            'units': 'Units',
+        },
+        'lambdaperciev': {
+            'value': .95,
+            'com': 'Percieved employement',
+            'units': '',
+        },
+        'fk': {
+            'value': 0.3,
+            'com': 'Capital rate of integration',
+            'units': 'y^{-1}',
+        },
+        'flamb': {
+            'value': 3.6,
+            'com': 'employement perception rate adjustment',
+            'units': 'y^{-1}',
+        },
+        'beta': {
+            'value': 0.1,
+            'com': 'Endogenous technical progress from growth',
+            'units': '',
+        },
+        'zpi': {
+            'value': 1,
+            'com': 'Influence of profit on salary negociation',
+            'units': '',
+        },
+        'zsolv': {
+            'value': 3.6,
+            'com': 'Influence of solvability on investment',
+            'units': '',
+        },
+    },
+
 }
 
 
