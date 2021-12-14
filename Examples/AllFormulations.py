@@ -26,6 +26,8 @@ dmodels = pgm.get_available_models(returnas=dict, details=False, verb=True,)
 _MODEL = 'GK-Reduced'
 #_MODEL = 'GK'
 #_MODEL = 'MonoGEM'
+_MODEL = 'Goodwin'
+_MODEL = 'MonoGEM'
 
 
 vecdt = np.logspace(-1, -4, 7)

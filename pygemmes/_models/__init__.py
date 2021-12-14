@@ -93,11 +93,11 @@ def get_available_models(
                 + v0['description']
                 + "\n\n"
                 + f"presets:\n"
-                + "\n".join([
-                    f"\t- {k1.ljust(max(*[len(vv) for vv in v0['presets']]))}:"
-                    f" {v1['com']}"
-                    for k1, v1 in _DMODEL[k0]['presets'].items()
-                ])
+                # + "\n".join([
+                #    f"\t- {k1.ljust(max(*[len(vv) for vv in v0['presets']]))}:"
+                #    f" {v1['com']}"
+                #    for k1, v1 in _DMODEL[k0]['presets'].items()
+                # ])
                 + f"\nnb. of functions:\n"
                 + "\n".join([
                     f"\t- {k1}: {len(v1)}"
