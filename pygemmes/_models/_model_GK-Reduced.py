@@ -22,7 +22,7 @@ import numpy as np
 # user-defined function order (optional)
 
 
-_FUNC_ORDER = None
+#_FUNC_ORDER = None
 
 
 # ---------------------------
@@ -66,6 +66,8 @@ _LOGICS = {
             'func': lambda mu=0, eta=0, omega=0: eta*(mu*omega-1),
             'com': 'Markup dynamics',
         },
+    },
+    'param': {
     },
 }
 
