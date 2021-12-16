@@ -10,6 +10,14 @@ import pygemmes as pgm
 from pygemmes import _plots as plots
 import matplotlib.pyplot as plt
 
+
+import pygemmes as pgm
+_MODEL = 'GK-Reduced'
+hub = pgm.Hub(_MODEL)
+hub.run(verb=1.1, solver='eRK4-homemade')
+hub.FillCyclesForAll(ref='lambda')
+# hub.plot()
+
 ##############################################################################
 _PATH_OUTPUT_REF = os.path.join('pygemmes', 'tests', 'output_ref')
 
