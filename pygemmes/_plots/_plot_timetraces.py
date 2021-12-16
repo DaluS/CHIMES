@@ -152,7 +152,7 @@ def _plot_timetraces_check_dax(
             # set ylabels
             ylab = v0['symbol']
             if v0['units'] not in [None, '']:
-                ylab += f" ({v0['units']})"
+                ylab += f" (${v0['units']}$)"
             dax[k0].set_ylabel(ylab)
 
             # set xlabel if at bottom
