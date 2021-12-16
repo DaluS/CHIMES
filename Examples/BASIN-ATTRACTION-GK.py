@@ -1,69 +1,65 @@
 # -*- coding: utf-8 -*-
 '''
-Contains all the possibilities of each _core interaction
-# !pytest pygemmes/tests/test_01_Hub.py -v
-
+This Example shows how to compute a Basin of Attraction for a Goodwin-Keen system
 '''
 
-import imageio
-import cv2
-import os
+import imageio  # Library to record gif of construction
+import cv2  # To detect basin limit
 import numpy as np
 
 import pygemmes as pgm
-from pygemmes import _plots as plots
 import matplotlib.pyplot as plt
 
-
-def groupofvariables(hub):
-    ''' Gives from the hub a dictionnary of all the variables that shares the same units'''
-    groupsoffields = hub.get_dparam_as_reverse_dict(crit='units')
-    hub.get_dparam_as_reverse_dict(crit='eqtype')
-    return {k: [v for v in vals if v in hub.dargs.keys()]
-            for k, vals in groupsoffields.items()}
-
-
 ##############################################################################
-_PATH_OUTPUT_REF = os.path.join('pygemmes', 'tests', 'output_ref')
+
+# Model and solver
 _MODEL = 'GK-Reduced'  # 'GK',  #
-# _SOLVER = 'eRK8-scipy'  # (an Runge Kutta solver of order 8)
 _SOLVER = 'eRK4-homemade'  # (One we created by ourself, that we can tweak)
-##############################################################################
 
+# Coordinates we explore
 lambdavec = np.linspace(.5, .99, 20)
 omegavec = np.linspace(.5, .99, 20)
-dvec = np.linspace(10, 20, 11)
+dvec = np.linspace(10, 40, 30)
+dt = 0.005
+Tmax = 20
 
+##############################################################################
+
+
+# Creation of a dpreset containing the basin of attraction we study
 _DPRESETS = {'BasinOfAttraction':
-             {'fields': {'Tmax': 20,
-                         'dt': 0.005,
+             {'fields': {'Tmax': Tmax,
+                         'dt': dt,
                          'lambda': lambdavec,
-                         'omega': {'value': omegavec,
-                                   'grid': True},
-                         'd': {'value': dvec,
-                               'grid': True},
-                         },
-              },
-             }
+                         'omega': {'value': omegavec, 'grid': True},
+                         'd': {'value': dvec, 'grid': True},
+                         }, }, }
 
-
-# %% SHORT RUN ###############################################################
+# Loading and running the model
 hub = pgm.Hub(_MODEL, preset='BasinOfAttraction', dpresets=_DPRESETS)
 hub.run(verb=1.1, solver=_SOLVER)
-# hub.plot(idx=[0, 0,0])
 
-R = hub.get_dparam(returnas=dict)
+# Glimpse at one trajectory
+hub.plot(idx=[0, 0, 0])
+
+# Extracting the infos we are looking for fron dparam
+R = hub.get_dparam(key=['lambda', 'omega', 'd'], returnas=dict)
 lambdaXYZ = R['lambda']['value']
 omegaXYZ = R['omega']['value']
 dXYZ = R['d']['value']
 
 
 # FINDING THE LINES IN THE VALLEY OF STABILITY
-FrontierD = {}
+
+FrontierD = {}  # Dictionnary containing all the positions of the line
 for i in range(0, len(dvec)):
+
+    # Loading the initial situation on d
     deq = dXYZ[0, 0, 0, i]
-    Omesh, Lmesh = np.meshgrid(omegavec, lambdavec)
+    # finding where the debt ratio is bigger at the end
     img = (dXYZ[-1, :, :, i] > deq).astype(np.uint8)
+
+    # Extracting coordinates from the limit
     contours, _ = cv2.findContours(
         img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     if contours:
@@ -78,7 +74,8 @@ plt.axis('scaled')
 plt.legend()
 plt.show()
 
-# PLOTTING THE EVOLUTION
+
+# PLOTTING THE TEMPORARY EVOLUTION
 Step = 1
 Pause = 0.05
 plt.figure('', figsize=(10, 10))
@@ -99,8 +96,10 @@ for j in range(0, len(dvec)):
     plt.show()
 
 # Transform into a GIF
-filenames = os.listdir('plot')
+#filenames = os.listdir('plot')
+'''
 with imageio.get_writer('mygif.gif', mode='I') as writer:
     for filename in filenames:
         image = imageio.imread('plot//'+filename)
         writer.append_data(image)
+'''
