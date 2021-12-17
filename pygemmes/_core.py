@@ -806,3 +806,38 @@ class Hub():
             verb=verb,
             return_dfail=return_dfail,
         )
+
+    def full_description(self):
+        '''
+        Gives a full description of the model and its equations
+        '''
+
+        print('############# DIFFERENTIAL EQUATIONS ###########')
+        for key in self.__dmisc['dfunc_order']['ode']:
+            v = self.dparam[key]
+            print('### ', key, ' ###########')
+            print('Equation     :', f'd{key}/dt=', v['source_exp'].replace(
+                'itself', key).replace('lamb', 'lambda'))
+            print('definition   :', v['definition'])
+            print('units        :', v['units'])
+            print('Comment      :', v['com'])
+            print('Dependencies :')
+            for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
+                v1 = self.dparam[key2]
+                print('    ', key2, (8-len(key2))*' ',
+                      v1['units'], v1['definition'])
+            print(' ')
+        print('############# DIFFERENTIAL EQUATIONS ###########')
+        for key in self.__dmisc['dfunc_order']['statevar']:
+            v = self.dparam[key]
+            print('### ', key, ' ###########')
+            print('Equation     :', f'{key}=', v['source_exp'].replace(
+                'itself', key).replace('lamb', 'lambda'))
+            print('definition   :', v['definition'])
+            print('Comment      :', v['com'])
+            print('Dependencies :')
+            for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
+                v1 = self.dparam[key2]
+                print('    ', key2, (8-len(key2))*' ',
+                      v1['units'], v1['definition'])
+            print(' ')
