@@ -807,7 +807,7 @@ class Hub():
             return_dfail=return_dfail,
         )
 
-    def full_description(self):
+    def equations_description(self):
         '''
         Gives a full description of the model and its equations
         '''
@@ -827,7 +827,7 @@ class Hub():
                 print('    ', key2, (8-len(key2))*' ',
                       v1['units'], v1['definition'])
             print(' ')
-        print('############# DIFFERENTIAL EQUATIONS ###########')
+        print('######### STATE VARIABLES EQUATIONS ###########')
         for key in self.__dmisc['dfunc_order']['statevar']:
             v = self.dparam[key]
             print('### ', key, ' ###########')

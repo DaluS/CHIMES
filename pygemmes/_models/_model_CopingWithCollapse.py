@@ -31,135 +31,188 @@ _LOGICS = {
         # ATMOSPHERE ODE
         'CO2AT': {
             'func': lambda Emission=0, phi12=0, CO2UP=0, CUP=1, CAT=1, itself = 0: Emission - phi12*itself + phi12*CAT/CUP*CO2UP,
-            'com': 'CO2 in atmosphere (Gt C)',
+            'com': '3Layer Matrix coupling + Emission',
         },
         'CO2UP': {
             'func': lambda phi12=0, phi23=0, CAT=1, CUP=1, CLO=1, CO2AT=0, itself=0, CO2LO=0: phi12*CO2AT - itself*(phi12*CAT/CUP-phi23) + phi23*CUP/CLO*CO2LO,
-            'com': 'CO2 in upper layer of ocean (Gt C)',
+            'com': '3Layer Matrix coupling',
         },
         'CO2LO': {
             'func': lambda phi23=0, CO2UP=0, CUP=1, CLO=1, itself = 0: phi23*CO2UP - phi23*CUP/CLO*itself,
-            'com': 'CO2 in lower layer of ocean (Gt C)',
+            'com': '3Layer Matrix coupling',
         },
         'T': {
             'func': lambda F=0, rhoAtmo=0, itself=0, gammaAtmo=0, T0=0, Capacity=1: (F - rhoAtmo*itself - gammaAtmo*(itself-T0))/Capacity,
-            'com': 'Temperature anomaly in atmosphere',
+            'com': 'Forcing + dissipation + transfert to lower',
         },
         'T0': {
             'func': lambda gammaAtmo=0, T=0, itself=0, Capacity0=1: (gammaAtmo*(T-itself))/Capacity0,
-            'com': 'Temperature anomaly in ocean',
-        },
-        'Eland': {
-            'func': lambda itself=0, deltaEland=0: itself*deltaEland,
-            'com': 'Emission of the natural sphere'
+            'com': 'Transfer from atmosphere',
         },
         'pseudot': {
             'func': lambda T=0: 1,
             'com': 'false time because practical',
             'initial': 0,
+            'units': 'y'
         },
 
         # COUPLING ODE
-        'sigmaEm': {
-            'func': lambda itself=0, gsigmaEm=0: itself*gsigmaEm,
-            'com': 'Emission intensity dynamics'
-        },
         'gsigmaEm': {
             'func': lambda itself=0, deltagsigmaEm=0: itself*deltagsigmaEm,
-            'com': 'Evolution of emission rate'
+            'com': 'Evolution of emission rate growth rate',
         },
-
+        'sigmaEm': {
+            'func': lambda itself=0, gsigmaEm=0: itself*gsigmaEm,
+            'com': 'Emission intensity dynamics',
+        },
+        'Eland': {
+            'func': lambda itself=0, deltaEland=0: itself*deltaEland,
+            'com': 'Exogenous land emission'
+        },
 
         # ECONOMIC ODE
         'a': {
             'func': lambda alpha=0, itself=0: alpha * itself,
-            'com': 'Exogenous technical progress as an exponential', },
+            'com': 'Exogenous technical progress as an exponential',
+        },
         'N': {
             'func': lambda n=0, itself=0, Nmax=1: n * itself * (1-itself/Nmax),
-            'com': 'Exogenous population as an exponential', },
+            'com': 'Logistic population curve',
+        },
         'K': {
             'func': lambda I=0, itself=0, delta=0, p=1: I/p - itself * delta,
-            'com': 'Capital evolution from investment and depreciation', },
+            'com': 'Capital evolution from investment and depreciation',
+        },
         'D': {
             'func': lambda I=0, Pi=0, Sh=0: I - Pi + Sh,
-            'com': 'Debt as Investment-Profit difference and shareholding', },
+            'com': 'Debt as Investment-Profit difference and shareholding',
+        },
         'w': {
             'func': lambda phillips=0, itself=0, gammai=0, inflation=0: itself * (phillips + gammai*inflation),
-            'com': 'salary through negociation', },
+            'com': 'salary evolution through negociation + inflation',
+        },
+
+        # Prices
+        'pbackstop': {
+            'func': lambda itself=0, deltapbackstop=0: itself*deltapbackstop,
+            'com': 'exogenous backstop price on exponential'
+        },
+        'pcarbon': {
+            'func': lambda itself=0, deltapcarbon=0: itself*deltapcarbon,
+            'com': 'Exogenous carbon price on exponential'
+        },
         'p': {
             'func': lambda itself=0, inflation=0: itself * inflation,
-            'com': 'markup inflation', },
-
-
-
+            'com': 'price defined by inflation',
+        },
     },
+
+
+
+
+
     'statevar': {
         # ATMOSPHERE STATE VARIABLES
         'F': {
             'func': lambda F2CO2=0, CO2AT=1, CAT=1: F2CO2 / np.log(2) * np.log(CO2AT/CAT),
-            'com': 'Temperature forcing from CO2',
+            'com': 'Temperature forcing from CO2 + sensitivity',
         },
 
         # ECONOMIC STATE VARIABLES
         'Y0': {
             'func': lambda K=0, nu=1: K / nu,
-            'com': 'Leontiev optimized production function ', },
+            'com': 'Leontiev optimized production function ',
+        },
         'Y': {
             'func': lambda Y0=0, Dy=0, Abattement=0: Y0*(1-Dy)*(1-Abattement),
-            'com': 'Useful production after damage and abattement', },
+            'com': 'Useful production after damage and abattement',
+        },
+        'L': {
+            'func': lambda Y0=0, a=1: Y0 / a,
+            'com': 'Full instant employement defined around productivity',
+        },
+        'Pi': {
+            'func': lambda GDP=0, w=0, L=0, r=0, D=0, p=0, K=0, deltaD=0: GDP - w * L - r * D - p*(K*deltaD),
+            'com': 'Profit for production-Salary-debt func',
+        },
         'GDP': {
             'func': lambda Y=0, p=0: Y * p,
-            'com': 'Output with selling price ', },
+            'com': 'Output with selling price ',
+        },
         'inflation': {
             'func': lambda mu=0, eta=0, c=0: eta*(mu*c-1),
-            'com': 'markup dynamics', },
+            'com': 'markup dynamics',
+        },
         'c': {
             'func': lambda Abattement=0, Dy=0, omega=0: omega/((1-Abattement)*(1-Dy)),
-            'com': 'Unitary cost taking loss of production'},
-        'L': {
-            'func': lambda K=0, a=1, nu=1: K / (a * nu),
-            'com': 'Full instant employement based on capital', },
-        'Pi': {
-            'func': lambda GDP=0, w=0, L=0, r=0, D=0, p=0, Tf=0, K=0, deltaD=0: GDP - w * L - r * D - p*(Tf+K*deltaD),
-            'com': 'Profit for production-Salary-debt func', },
+            'com': 'Unitary cost taking loss of production'
+        },
         'lambda': {
             'func': lambda L=0, N=1: L / N,
-            'com': 'employement rate', },
+            'com': 'employement rate as statevar by ratio',
+        },
         'omega': {
             'func': lambda w=0, L=0, Y=1, p=1: (w * L) / (Y*p),
-            'com': 'wage share', },
-        'phillips': {
-            'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
-            'com': 'Wage increase rate through employement and profit', },
-        'kappa': {
-            'func': lambda k0=0, k1=0, k2=0, pi=0: k0 + k1 * np.exp(k2 * pi),
-            'com': 'Relative GDP investment through relative profit', },
+            'com': 'wage share by ratio as statevar',
+        },
         'I': {
             'func': lambda GDP=0, kappa=0: GDP * kappa,
-            'com': 'Investment value', },
+            'com': 'Investment value from kappa function',
+        },
         'd': {
             'func': lambda D=0, GDP=1: D / GDP,
-            'com': 'private debt ratio', },
+            'com': 'private debt ratio as statevar',
+        },
         'pi': {
             'func': lambda Pi=0, GDP=1: Pi/GDP,
-            'com': 'relative profit', },
-        'g': {
-            'func': lambda I=0, K=1, delta=0, p=1: (I/p - K * delta)/K,
-            'com': 'relative growth rate'},
-        'Sh': {
-            'func': lambda Delta=0, pi=0, GDP=0: GDP*(0.473*pi+0.138),
-            'com': 'Affine shareholding return dependency'},
+            'com': 'relative profit by ratio as statevar',
+        },
 
-        # COUPLING STATE VARIABLES
+
+        # BEHAVIORAL PARAMETRIC FUNCTIONS
+        'phillips': {
+            'func': lambda philinConst=0, philinSlope=0, lamb=0: philinConst + philinSlope * lamb,
+            'com': 'Linear Philips curve',
+        },
+        'kappa': {
+            'func': lambda kappalinConst=0, kappalinSlope=0, pi=0: kappalinConst + kappalinConst * pi,
+            'com': 'Relative GDP investment through relative profit',
+        },
+        'Sh': {
+            'func': lambda divlinSlope=0, divlinconst=0, pi=0, GDP=0: GDP*(divlinSlope*pi+divlinconst),
+            'com': 'Affine shareholding dividends dependency'
+        },
         'Emission': {
             'func': lambda Eind=0, Eland=0: Eind+Eland,
-            'com': 'Total CO2 emission'},
+            'com': 'Total CO2 emission',
+        },
         'Eind': {
             'func': lambda Y0=0, sigmaEm=0, n=0: Y0*sigmaEm*(1-n),
-            'com': 'Emission of the industry'},
+            'com': 'Emission of the industry',
+        },
+
+        # COUPLING STATE VARIABLES
         'Damage': {
-            'function': lambda pi1=0, pi2=0, pi3=0, zeta3=1, T=0: 1 - 1/(1+pi1*T+pi2*T**2+pi3*T**zeta3),
-            'com': 'Damage function'}
+            'func': lambda T=0, pi1=0, pi2=0, pi3=0, zeta3=1: 1 - 1/(1+pi1*T+pi2*T**2+pi3*T**zeta3),
+            'com': 'Agregated damage function',
+        },
+        'DK': {
+            'func': lambda Damage=0, fk=0: fk*Damage,
+            'com': "intermediary damage calculation capital",
+        },
+        'Dy': {
+            'func': lambda Damage=0, DK=0: 1 - (1-Damage)/(1-DK),
+            'com': 'damage on production',
+        },
+        'Abattement': {
+            'func': lambda sigmaEm=0, pbackstop=0, emissionreductionrate=0, convexitycost=1: sigmaEm*pbackstop*(emissionreductionrate**convexitycost)/convexitycost,
+            'com': 'emission reduction rate Abattement'
+        },
+        'emissionreductionrate': {
+            'func': lambda pcarbon=0, pbackstop=1, convexitycost=1: np.minimum((pcarbon/pbackstop)**(1/(convexitycost)), 1),
+            'com': 'choice of emission reduction rate weird',
+        },
+
     },
 }
 
@@ -186,6 +239,22 @@ _PRESETS = {'default': {
         'gammaAtmo': 0.0176,
         'T': 1,
         'T0': 0,
+        'gsigmaEm': -0.0152,
+        'pbackstop': 547,
+        'p': 1,
+        'lambda': .675,
+        'd': 1.53,
+        'philinConst': -0.292,
+        'philinSlope': 0.469,
+        'kappalinSlope': 0.0318,
+        'kappalinConst': 0.575,
+        'divlinSlope': 0.473,
+        'divlinconst': 0.138,
+        'pi1': 0,
+        'pi2':  0.00236,
+        'pi3':  0.00000507,
+        'zeta3':  6.754,
+        'fk': 1/3
     },
     'com': ' Default run'},
 }

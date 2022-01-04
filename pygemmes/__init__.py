@@ -176,7 +176,7 @@ def comparesolver_Lorenz(dt=0.01):
     plt.show()
 
 
-def testConvergence_DampOsc(vecdt, solver, returnas='plot'):
+def testConvergence_DampOsc(vecdt, solver, returnas='plot', getsummary=True):
     '''
     This test compute for multiple timestep the difference between the
     computed solution and the theoretical one on a damped oscillator.
@@ -221,6 +221,9 @@ def testConvergence_DampOsc(vecdt, solver, returnas='plot'):
         Error[dt] = np.mean(np.sqrt((thetanum-thetaTheo)**2))
 
     ################################
+    if getsummary:
+        hub.get_summary()
+
     dtlist = Error.keys()
     errorlist = [Error[k] for k in Error.keys()]
 
