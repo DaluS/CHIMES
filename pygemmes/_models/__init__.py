@@ -31,13 +31,12 @@ for k0, v0 in _df.items():
     spec.loader.exec_module(foo)
     _DMODEL[v0] = {
         'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
-        'func_order': foo._FUNC_ORDER,
+        # 'func_order': foo._FUNC_ORDER,
         'file': foo.__file__,
         'description': foo.__doc__,
         'presets': {k0: dict(v0) for k0, v0 in foo._PRESETS.items()},
         'name': v0,
     }
-
 
 # ####################################################
 # ####################################################
@@ -88,22 +87,33 @@ def get_available_models(
         if details is True:
             # detailed message
             msg = "\n".join([
-                "\n#################################################\n"
-                f"################### DESCRIPTION OF {v0['name']}\n"
+                "\n\n"
+                f"{11*'#'}{'#'*len(v0['name'])}{11*'#'}\n"
+                f"{10*'#'} {v0['name']} {10*'#'}\n"
                 + v0['description']
                 + "\n\n"
-                + f"presets:\n"
-                # + "\n".join([
-                #    f"\t- {k1.ljust(max(*[len(vv) for vv in v0['presets']]))}:"
-                #    f" {v1['com']}"
-                #    for k1, v1 in _DMODEL[k0]['presets'].items()
-                # ])
-                + f"\nnb. of functions:\n"
+                + f"####Variables ####:\n"
+                + f"# Ordinary differential equations ({len(_DMODEL[k0]['logics']['ode'])}):\n"
                 + "\n".join([
-                    f"\t- {k1}: {len(v1)}"
-                    for k1, v1 in _DMODEL[k0]['logics'].items()
+                    f"\t-  {k1} :{(10-len(k1))*' '}{_DFIELDS.get(k1,{}).get('definition','')}"
+                    for k1 in _DMODEL[k0]['logics']['ode']])
+                + '\n'
+
+                + f"# State Variables ({len(_DMODEL[k0]['logics']['statevar'])}):\n"
+                + "\n".join([
+                    f"\t-  {k1} :{(10-len(k1))*' '}{_DFIELDS.get(k1,{}).get('definition','')}"
+                    for k1 in _DMODEL[k0]['logics']['statevar']])
+                + '\n\n'
+                + "\n####"
+                + f"presets:\n"
+                + "\n".join([
+                    f" '{k1}' :"
+                    f" {v1['com']}"
+                    for k1, v1 in _DMODEL[k0]['presets'].items()
                 ])
-                + f"\nfile: {v0['file']}\n"
+
+
+                + f"\n\nfile: {v0['file']}\n"
                 for k0, v0 in dmod.items()
             ])
 

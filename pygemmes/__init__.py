@@ -216,8 +216,8 @@ def testConvergence_DampOsc(vecdt, solver, returnas='plot'):
         thetanum = R['theta']['value']
 
         # Comparing strategies
-        thetaTheo = np.real(theta0*np.exp(-gamma*t) *
-                            np.cos(np.sqrt(Omega**2-gamma**2)*t))
+        thetaTheo = np.real(theta0*np.exp(-gamma*(t)) *
+                            np.cos(np.sqrt(Omega**2-gamma**2)*(t)))
         Error[dt] = np.mean(np.sqrt((thetanum-thetaTheo)**2))
 
     ################################
@@ -231,11 +231,19 @@ def testConvergence_DampOsc(vecdt, solver, returnas='plot'):
 
     if returnas == 'plot':
         plt.figure('Convergence')
+        plt.subplot(211)
         plt.loglog(dtlist, errorlist, '-*')
         plt.axis('scaled')
         plt.ylabel('mean error')
         plt.xlabel('dt')
-        plt.title('Convergence test for'+solver)
+        plt.suptitle('Convergence test for'+solver)
+        plt.subplot(212)
+        ax2 = plt.gca()
+        ax22 = plt.twinx(ax2)
+        plt.plot(t, thetaTheo, label='Theory')
+        plt.plot(t, thetanum, label='Numerical')
+        ax22.plot(t, (thetanum-thetaTheo), ls='--', c='r')
+        plt.legend()
         plt.show()
     else:
         return Error
