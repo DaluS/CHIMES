@@ -36,6 +36,11 @@ class Hub():
         if model is not None:
             self.load_model(model, preset=preset, dpresets=dpresets, verb=verb)
 
+        self.__dmisc['parameters'] = self.get_dparam(
+            returnas=list,
+            eqtype=[None],
+            group=('Numerical',),
+        )
     # ##############################
     # %% Setting / getting parameters
     # ##############################
