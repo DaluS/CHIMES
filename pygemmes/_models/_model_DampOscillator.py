@@ -49,7 +49,7 @@ _LOGICS = {
 # List of presets for specific interesting simulations
 
 _PRESETS = {
-    'Perfect Oscillations': {
+    'Perfect': {
         'fields': {
             'thetap': 0,
             'theta': 1,
