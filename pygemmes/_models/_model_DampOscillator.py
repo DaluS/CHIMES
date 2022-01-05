@@ -38,7 +38,7 @@ _LOGICS = {
     },
     'statevar': {
         'Energy': {
-            'func': lambda theta=0, thetap=0, Omega=0, Final=0: Omega*(theta-Final)**2+thetap**2,
+            'func': lambda theta=0, thetap=0, Omega=0, Final=0: Omega**2*(theta-Final)**2 + thetap**2,
             'com': 'Energy',
         },
     },
