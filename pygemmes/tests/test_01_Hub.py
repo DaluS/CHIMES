@@ -8,6 +8,7 @@ import os
 import sys
 import itertools as itt     # for iterating on parameters combinations
 import subprocess           # for handling bash commands
+import warnings
 
 
 # Standard
@@ -221,6 +222,11 @@ class Test01_Hub():
             returnas=dict,
         )
         lobj_ref = pgm.load(list(df_ref.keys()))
+
+        # if no non-regression tests => warning
+        if len(df_ref) == 0:
+            msg = "No non-regression reference output found!"
+            warnings.warn(msg)
 
         # compare to current output
         dfail = {}
