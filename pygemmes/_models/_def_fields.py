@@ -73,8 +73,9 @@ __DEFAULTFIELDS = {
             'Units',  #
             'y',      # Time
             '$',      # Money
-            'C',      # Concentration
+            'C',      # Carbon Concentration
             'Humans',  # Population
+            '',
         ],
     },
     'type': {
@@ -120,6 +121,29 @@ for k0, v0 in __DEFAULTFIELDS.items():
 
 
 _LIBRARY = {
+    'Temporary': {
+        'Final': {'value': 0,
+                  'definition': 'Final value',
+                  },
+        'Omega': {'value': 1,
+                  'definition': 'Pulsation',
+                  },
+        'beta': {'value': 0.1,
+                 'definition': 'Lorenz related'},
+        'gamma': {'value': 1,
+                  'definition': 'Dampening',
+                  },
+        'm': {'value': 1,
+              'definition': 'Mass doublependulum',
+              },
+        'l': {'value': 1,
+              'definition': 'Length doublependulum'
+              },
+        'gravity': {'value': 9.8,
+                    'definition': 'gravity acceleration'
+                    },
+    },
+
 
     'Numerical': {
         'Tmax': {
@@ -134,7 +158,7 @@ _LIBRARY = {
         },
         'nt': {
             'func': lambda Tmax=0, dt=1: int(Tmax / dt),
-            'units': None,
+            'units': '',
             'definition': 'Number of timestep',
             'com': 'Constant dt',
             'eqtype': 'param',
@@ -144,11 +168,6 @@ _LIBRARY = {
             'units': 'y',
             'definition': 'NUMBER OF PARRALLEL SYSTEMS',
         },
-    },
-
-    'CORE': {
-
-        # Time
         'time': {
             'initial': 0.,
             'func': lambda dt=0: 1.,
@@ -157,94 +176,153 @@ _LIBRARY = {
             'units': 'y',
             'eqtype': 'ode',
         },
+    },
 
-        # Population
+    'Household': {
+        # VARIABLES
         'N': {
             'value': 1.,
             'definition': 'Population',
             'units': 'Humans',
-        },
-        'beta': {
-            'value': 0.025,
-            'definition': 'Rate of population growth',
-            'units': 'y^{-1}',
-        },
-
-        # Productivity
-        'a': {
-            'value': 1,
-            'units': 'Units.Humans^{-1}.y^{-1}',
-            'definition': 'Productivity',
-        },
-        'alpha': {
-            'value': 0.02,
-            'definition': 'Rate of productivity increase',
-            'units': 'y^{-1}',
-        },
-        'W': {
-            'value': 0.85,
-            'definition': 'Wage value',
-            'units': '$'
-        },
-
-        # Capital
-        'delta': {
-            'value': 0.005,
-            'definition': 'Rate of capital depletion',
-            'units': 'y^{-1}',
-        },
-        'nu': {
-            'value': 3,
-            'definition': 'Kapital to output ratio',
-            'units': None,
-        },
-        'K': {
-            'value': 2.7,
-            'units': 'Units',
-            'definition': 'Capital',
-        },
-
-        # others
-        'pi': {
-            'value': None,
-            'definition': 'relative profit',
-            'units': None,
-            'symbol': r'$\pi$',
-        },
-        'g': {
-            'value': None,
-            'definition': 'Relative growth',
-            'units': 'y^{-1}',
-        },
-        'Y': {
-            'value': None,
-            'definition': 'GDP in output quantity',
-            'units': 'Units.y^{-1}',
         },
         'L': {
             'value': None,
             'definition': 'Workers',
             'units': 'Humans',
         },
-        'I': {
-            'value': None,
-            'definition': 'Investment',
-            'units': '$',
+        'a': {
+            'value': 1,
+            'units': 'Units.Humans^{-1}.y^{-1}',
+            'definition': 'Productivity',
         },
-        'Pi': {
-            'value': None,
-            'definition': 'Absolute profit',
-            'units': '$',
+        'w': {
+            'value': 0.85,
+            'definition': 'Wage value',
+            'units': '$.Humans^{-1}.y^{-1}'
         },
+
+        # INTERMEDIARY TYPICAL VARIABLES
         'lambda': {
             'value': .97,
             'definition': 'employement rate',
-            'units': None,
+            'units': '',
+            'symbol': r'$\lambda$',
         },
         'omega': {
             'value': .85,
             'definition': 'wage share',
-            'units': None,
+            'units': '',
+            'symbol': r'$\omega$',
+        },
+
+        # PARAMETERS
+        'n': {
+            'value': 0.025,
+            'definition': 'Rate of population growth',
+            'units': 'y^{-1}',
+        },
+        'alpha': {
+            'value': 0.02,
+            'definition': 'Rate of productivity increase',
+            'units': 'y^{-1}',
+        },
+    },
+
+    'Recipies': {
+        'gamma': {
+            'value': 0.1,
+            'definition': 'Input-output production recipy',
+            'units': '',
+        },
+        'Xi': {
+            'value': 0.1,
+            'definition': 'Input-output capital recipy',
+            'units': '',
+        },
+        'rho': {
+            'value': 0.1,
+            'definition': 'Capital consumption recipy',
+            'units': 'y^{-1}',
+        },
+    },
+
+    'Production': {
+        # VARIABLES
+        'K': {
+            'value': 2.7,
+            'units': 'Units',
+            'definition': 'Capital',
+        },
+        'Y': {
+            'value': None,
+            'definition': 'GDP in output quantity',
+            'units': 'Units.y^{-1}',
+        },
+        'GDP': {
+            'value': None,
+            'definition': 'GDP in output quantity',
+            'units': '$.y^{-1}',
+        },
+        'V': {
+            'value': 1,
+            'definition': 'Inventory of Goods',
+            'units': 'Units',
+        },
+        'u': {
+            'value': .85,
+            'definition': 'Use intensity of capital',
+            'units': 'Units',
+        },
+
+
+        # INTERMEDIARY VARIABLES
+        'g': {
+            'value': None,
+            'definition': 'Relative growth of GDP',
+            'units': 'y^{-1}',
+        },
+        'pi': {
+            'value': None,
+            'definition': 'relative profit',
+            'units': '',
+            'symbol': r'$\pi$',
+        },
+        'Pi': {
+            'value': None,
+            'definition': 'Absolute profit',
+            'units': '$.y^{-1}',
+            'symbol': r'$\Pi$',
+        },
+        'c': {
+            'value': None,
+            'definition': 'production price',
+            'units': '$.Units^{-1}'
+        },
+
+        # PARAMETERS
+        'delta': {
+            'value': 0.005,
+            'definition': 'Rate of capital depletion',
+            'units': 'y^{-1}',
+            'symbol': r'$\delta$',
+        },
+        'nu': {
+            'value': 3,
+            'definition': 'Kapital to output ratio',
+            'units': '',
+            'symbol': r'$\nu$',
+        },
+        'gammai': {
+            'value': 1,
+            'definition': 'inflation awareness',
+            'units': '',
+            'symbol': r'$\Gamma$',
+        },
+        'sigma': {
+            'value': 1,
+            'definition': 'rate of use adjustment',
+            'units': 'y^{-1}',
+            'symbol': r'$\sigma$',
         },
     },
 
@@ -258,46 +336,69 @@ _LIBRARY = {
         'phinull': {
             'value': 0.04,
             'definition': 'Unemployment rate with no salary increase',
-            'units': None,
+            'units': '',
         },
         'phi0': {
             'func': lambda phinull=0: phinull / (1 - phinull**2),
             'definition': 'Parameter1 for diverving squared',
             'com': '',
-            'units': None,
+            'units': '',
             'eqtype': 'param',
         },
         'phi1': {
             'func': lambda phinull=0: phinull**3 / (1 - phinull**2),
             'definition': 'Parameter1 for diverving squared',
             'com': '',
-            'units': None,
+            'units': '',
             'eqtype': 'param',
         },
+        'zphi': {
+            'value': 0.1,
+            'definition': 'nonlinearity on profit in negociation',
+            'com': '',
+            'units': ''
+        }
+
     },
 
     'Investment': {
+        'I': {
+            'value': None,
+            'definition': 'Investment in money',
+            'units': '$.y^{-1}',
+        },
+        'Ir': {
+            'value': None,
+            'definition': 'Number of real unit from investment',
+            'units': 'Units.y^{-1}',
+        },
         'kappa': {
             'value': None,
             'definition': 'Part of GDP in investment',
-            'units': None,
+            'units': '',
             'symbol': r'$\kappa$',
         },
         'k0': {
             'value': -0.0065,
             'definition': 'Percent of GDP invested when profit is zero',
-            'units': None,
+            'units': '',
         },
         'k1': {
             'value': np.exp(-5),
             'definition': 'Investment slope',
-            'units': None,
+            'units': '',
         },
         'k2': {
             'value': 20,
             'definition': 'Investment power in kappa',
-            'units': None,
+            'units': '',
         },
+        'zsolv': {
+            'value': 0.1,
+            'definition': 'nonlinearity on solvability in investment',
+            'com': '',
+            'units': ''
+        }
     },
 
     'Debt': {
@@ -311,36 +412,227 @@ _LIBRARY = {
             'definition': 'Debt of private sector',
             'units': '$',
         },
+        'Dh': {
+            'value': 0.1,
+            'definition': 'Debt of household',
+            'units': '$',
+        },
         'd': {
             # 'func': lambda GDP=0, D=0: D/GDP,
             'value': 0.1,
             'definition': 'relative debt',
-            'units': None,
+            'units': '',
+        },
+        'solvability': {
+            'definition': 'capital compared to debt',
+            'units': ''
         },
     },
 
     'Prices': {
+        # VARIABLES
+        'inflation': {
+            'value': None,
+            'definition': 'inflation rate',
+            'units': 'y^{-1}',
+        },
+        'p': {
+            'value': 1,
+            'definition': 'price of goods',
+            'units': '$.Units^{-1}'
+        },
+
+        # PARAMETERS
         'mu': {
             'value': 2,
             'definition': 'Markup on prices',
-            'units': None,
+            'units': '',
         },
         'eta': {
             'value': 1,
             'definition': 'timerate of price adjustment',
             'units': 'y^{-1}',
         },
-        'GDP': {
-            'value': None,
-            'definition': 'GDP in nominal term',
-            'units': '$',
+        'chi': {
+            'value': 1,
+            'definition': 'inflation rate on inventory',
+            'units': 'y^{-1}', }
+
+    },
+
+    'Consumption': {
+        # VARIABLES
+        'G': {'value': None,
+              'definition': 'Purchased good flow',
+              'units': 'Units.y^{-1}',
+              'symbol': r'$C$',
+              },
+        'H': {'value': 0,
+              'definition': 'Household possessions',
+              'units': 'Units',
+              'symbol': r'$H$', },
+        'Hid': {'value': None,
+                'definition': 'Household optimal possessions',
+                'units': 'Units',
+                'symbol': r'$H^{id}$', },
+
+        # PARAMETERS
+        'deltah': {'value': 0.1,
+                   'definition': 'possessions deterioration rate',
+                   'units': 'y^{-1}',
+                   'symbol': r'$\delta^h$', },
+        'fC': {'value': 1,
+               'definition': 'Typical rate for consumption optimisation',
+               'units': 'y^{-1}',
+               'symbol': r'$f$', },
+        'Omega0': {'value': 1,
+                   'definition': 'Purchasing power of inflexion',
+                   'units': 'Units.Humans^{-1}.y^{-1}',
+                   },
+        'x': {'value': 1,
+              'definition': 'Inflexion effectiveness',
+              'Units': None},
+        'h': {'value': 1,
+              'definition': 'saturated p per person',
+              'units': None},
+    },
+
+    'Climate': {
+        'Emission0': {
+            'value': 38,
+            'definition': 'CO2 Emission per year (Gt) at t=0',
+            'units': 'C.y^{-1}',
         },
-        'i': {
-            'value': None,
-            'definition': 'inflation rate',
+        'Emmission': {
+            'value': 38,
+            'definition': 'CO2 Emission per year (Gt)',
+            'units': 'C.y^{-1}',
+        },
+        'deltaEmission': {
+            'value': 0.01,
+            'definition': 'Diminution rate of carbon emission',
             'units': 'y^{-1}',
         },
+        'F2CO2': {
+            'value': 3.681,
+            'definition': 'Forcing when doubling CO2',
+            'units': None,
+        },
+        'CO2AT': {
+            'value': 851,
+            'definition': 'CO2 in atmosphere',
+            'units': 'C',
+        },
+        'CO2UP': {
+            'value': 460,
+            'definition': 'CO2 in upper ocean',
+            'units': 'C',
+        },
+        'CO2LO': {
+            'value': 1740,
+            'definition': 'CO2 in lower ocean',
+            'units': 'C',
+        },
+        'CUP': {
+            'value': 460,
+            'definition': 'Historical CO2 in upper ocean',
+            'units': 'C',
+        },
+        'CAT': {
+            'value': 588,
+            'definition': 'Historical CO2 in atmosphere',
+            'units': 'C',
+        },
+        'CLO': {
+            'value': 1720,
+            'definition': 'Historical CO2 in lower ocean',
+            'units': 'C',
+        },
+        'phi12': {
+            'value': 0.024,
+            'definition': 'Transfer rate atmosphere-ocean',
+            'units': 'y^{-1}',
+        },
+        'phi23': {
+            'value': 0.001,
+            'definition': 'Transfer rate upper-lower ocean',
+            'units': 'y^{-1}',
+        },
+        'Capacity': {
+            'value': 1/0.098,
+            'definition': 'Heat capacity atmosphere+upper ocean',
+            'units': None,
+        },
+        'Capacity0': {
+            'value': 3.52,
+            'definition': 'Heat capacity lower ocean',
+            'units': None,
+        },
+        'rhoAtmo': {
+            'value': 3.681/3.1,
+            'definition': 'radiative feedback parameter',
+            'units': None,
+        },
+        'gammaAtmo': {
+            'value': 0.0176,
+            'definition': 'Heat exchange between layers',
+            'units': None,
+        },
+        'T': {
+            'value': 1,
+            'definition': 'temperature anomaly of atmosphere',
+            'units': None,
+        },
+        'T0': {
+            'value': 1,
+            'definition': 'temperature anomaly of ocean',
+            'units': None,
+        },
+        'F': {
+            'value': 3.6,
+            'com': 'Radiative Forcing',
+            'units': None,
+        },
     },
+
+    'GK-Improvements': {
+        'B': {
+            'value': 0,
+            'com': 'Capital in a buffer before being productive',
+            'units': 'Units',
+        },
+        'lambperc': {
+            'value': .95,
+            'com': 'Percieved employement',
+            'units': '',
+        },
+        'fk': {
+            'value': 0.3,
+            'com': 'Capital rate of integration',
+            'units': 'y^{-1}',
+        },
+        'flamb': {
+            'value': 3.6,
+            'com': 'employement perception rate adjustment',
+            'units': 'y^{-1}',
+        },
+        'beta': {
+            'value': 0.1,
+            'com': 'Endogenous technical progress from growth',
+            'units': '',
+        },
+        'zpi': {
+            'value': 1,
+            'com': 'Influence of profit on salary negociation',
+            'units': '',
+        },
+        'zsolv': {
+            'value': 3.6,
+            'com': 'Influence of solvability on investment',
+            'units': '',
+        },
+    },
+
 }
 
 
@@ -457,372 +749,3 @@ def _complete_DFIELDS(
 
 
 _complete_DFIELDS()
-
-
-# #############################################################################
-# #############################################################################
-#                  DEPRECATED (Back-up)
-# #############################################################################
-
-
-# DEPRECATED
-_DFIELDS_DEPRECATED = {
-
-    # --------------
-    # Numerical
-    'Tmax': {
-        'value': 100,
-        'com': 'Duration of simulation',
-        'dimension': 'time',
-        'units': 'y',
-        'type': None,
-        'symbol': None,
-        'group': 'Numerical',
-    },
-    'dt': {
-        'value': 0.01,
-        'com': 'Time step (fixed timestep method)',
-        'dimension': 'time',
-        'units': 'y',
-        'type': None,
-        'symbol': None,
-        'group': 'Numerical',
-    },
-    'nt': {
-        'func': lambda Tmax=0, dt=1: int(Tmax / dt),  # Dynamically allocated
-        'eqtype': 'intermediary',
-        'com': 'Number of temporal iteration',
-        'dimension': None,
-        'units': None,
-        'type': None,
-        'symbol': None,
-        'group': 'Numerical',
-    },
-    'nx': {
-        'value': 1,
-        'com': 'Number of similar systems evolving in parrallel',
-        'dimension': None,
-        'units': None,
-        'type': None,
-        'symbol': None,
-        'group': 'Numerical',
-    },
-
-
-    # --------------
-    # Time vector
-    'time': {
-        'func': lambda dt=0: 1.,
-        'com': 'Time vector',
-        'dimension': 'time',
-        'units': 'y',
-        'type': 'extensive',
-        'symbol': r'$t$',
-        'group': 'Time',
-        'eqtype': 'ode',
-        'initial': 0,
-    },
-
-    # PARAMETERS #############################################################
-    # ------------------------------------------------------------------------
-    # ------------------------------------------------------------------------
-    # Population evolution
-    'beta': {
-        'value': 0.025,
-        'com': 'Rate of population growth',
-        'dimension': 'time rate',
-        'units': 'y^{-1}',
-        'type': 'intensive',
-        'symbol': r'$beta$',
-        'group': 'Population',
-    },
-    'alpha': {
-        'value': 0.02,
-        'com': 'Rate of productivity increase',
-        'dimension': 'time rate',
-        'units': 'y^{-1}',
-        'type': 'intensive',
-        'symbol': r'$alpha$',
-        'group': 'Population',
-    },
-
-    # --------------
-    # Capital properties
-    'delta': {
-        'value': 0.005,
-        'com': 'Rate of capital depletion',
-        'dimension': 'time rate',
-        'units': 'y^{-1}',
-        'type': 'intensive',
-        'symbol': r'$\delta$',
-        'group': 'Capital',
-    },
-
-    # --------------
-    # Production
-    'nu': {
-        'value': 3,
-        'com': 'Kapital to output ratio',
-        'dimension': None,
-        'units': None,
-        'type': 'intensive',
-        'symbol': r'\nu',
-        'group': 'Production',
-    },
-
-
-    # --------------
-    # INTEREST / Price
-    'r': {
-        'value': .03,
-        'com': 'Interest at the bank',
-        'dimension': 'time rate',
-        'units': 'y^{-1}',
-        'type': 'intensive',
-        'symbol': None,
-        'group': 'Prices',
-    },
-
-
-    # --------------
-    # PHILIPS CURVE (employement-salary increase)
-    'phinull': {
-        'value': 0.04,
-        'com': 'Unemployment rate that stops salary increase (no inflation)',
-        'dimension': None,
-        'units': None,
-        'type': 'intensive',
-        'symbol': r'$\phi_0$',
-        'group': 'Philips',
-    },
-    'phi0': {
-        'value': None,
-        'com': '',
-        'dimension': None,
-        'units': None,
-        'type': '',
-        'symbol': r'$\phi_0$',
-        'group': 'Philips',
-    },
-    'phi1': {
-        'value': None,
-        'com': '',
-        'dimension': None,
-        'units': None,
-        'type': '',
-        'symbol': r'$\phi_1$',
-        'group': 'Philips',
-    },
-
-    # --------------
-    # KEEN INVESTMENT FUNCTION (profit-investment function)
-    'k0': {
-        'value': -0.0065,
-        'com': 'Percent of GDP invested when profit is zero',
-        'dimension': None,
-        'units': None,
-        'type': 'intensive',
-        'symbol': r'$k_0$',
-        'group': 'Keen',
-    },
-    'k1': {
-        'value': np.exp(-5),
-        'com': 'Investment slope',
-        'dimension': None,
-        'units': None,
-        'type': 'intensive',
-        'symbol': r'$k_1$',
-        'group': 'Keen',
-    },
-    'k2': {
-        'value': 20,
-        'com': 'Investment power in kappa',
-        'dimension': None,
-        'units': None,
-        'type': 'intensive',
-        'symbol': r'$k_2$',
-        'group': 'Keen',
-    },
-
-    # DYNAMICAL VARIABLES ####################################################
-    # ------------------------------------------------------------------------
-    # ------------------------------------------------------------------------
-    # Classic dimensionless for phase-space
-    'omega': {
-        'value': .578,
-        'com': 'Wage share of the economy',
-        'dimension': '',
-        'units': '',
-        'type': 'dimensionless',
-        'symbol': r'$\omega$',
-        'group': 'Economy',
-    },
-    'lambda': {
-        'value': .675,
-        'com': 'employment rate',
-        'dimension': '',
-        'units': '',
-        'type': 'dimensionless',
-        'symbol': r'$\lambda$',
-        'group': 'Economy',
-    },
-
-    'd': {
-        'value': 1.53,
-        'com': 'relative private debt',
-        'dimension': '',
-        'units': '',
-        'type': 'dimensionless',
-        'symbol': r'$d$',
-        'group': 'Economy',
-    },
-
-    # Intensive dynamic variable
-    'a': {
-        'value': None,
-        'com': 'productivity per worker',
-        'dimension': 'Productivity',
-        'units': 'Output Humans^{-1}',
-        'type': 'intensive',
-        'symbol': r'$a$',
-        'group': 'Economy',
-    },
-    'N': {
-        'value': 4.83,
-        'com': 'Population',
-        'dimension': 'Humans',
-        'units': 'Humans',
-        'type': 'extensive',
-        'symbol': r'$N$',
-        'group': 'Population',
-    },
-
-
-    'K': {
-        'value': None,
-        'com': 'Capital',
-        'dimension': 'Real Units',
-        'units': 'Real Units',
-        'type': 'extensive',
-        'symbol': r'$K$',
-        'group': 'Economy',
-    },
-    'W': {
-        'value': None,
-        'com': 'Salary',
-        'dimension': 'Money',
-        'units': 'Dollars',
-        'type': 'extensive',
-        'symbol': r'$W$',
-        'group': 'Economy',
-    },
-    'D': {
-        'value': None,
-        'com': 'Absolute private debt',
-        'dimension': 'Money',
-        'units': 'Dollars',
-        'type': 'extensive',
-        'symbol': r'$D$',
-        'group': 'Economy',
-    },
-
-    # INTERMEDIARY VARIABLES #################################################
-    # ------------------------------------------------------------------------
-    # ------------------------------------------------------------------------
-
-    # From functions
-    'kappa': {
-        'value': None,
-        'com': 'Part of GDP in investment',
-        'dimension': '',
-        'units': '',
-        'type': 'dimensionless',
-        'symbol': r'$\kappa$',
-        'group': 'Economy',
-    },
-    'phillips': {
-        'value': None,
-        'com': 'Wage inflation rate',
-        'dimension': 'time rate',
-        'units': 'y^{-1}',
-        'type': 'intensive',
-        'symbol': r'$\phi$',
-        'group': 'Economy',
-    },
-
-
-
-    'pi': {
-        'value': None,
-        'com': 'relative profit',
-        'dimension': '',
-        'units': '',
-        'type': 'dimensionless',
-        'symbol': r'$\pi$',
-        'group': 'Economy',
-    },
-    'g': {
-        'value': None,
-        'com': 'Relative growth',
-        'dimension': 'time rate',
-        'units': 'y^{-1}',
-        'type': 'intensive',
-        'symbol': r'$g$',
-        'group': 'Economy',
-    },
-    'GDP': {
-        'value': None,
-        'com': 'GDP in nominal term',
-        'dimension': 'Money',
-        'units': 'Dollars',
-        'type': 'extensive',
-        'symbol': r'$GDP$',
-        'group': 'Economy',
-    },
-    'Y': {
-        'value': None,
-        'com': 'GDP in output quantity',
-        'dimension': 'Real Units',
-        'units': 'Real units',
-        'type': 'extensive',
-        'symbol': r'$Y$',
-        'group': 'Missing',
-    },
-    'L': {
-        'value': None,
-        'com': 'Workers',
-        'dimension': 'Humans',
-        'units': 'Humans',
-        'type': 'extensive',
-        'symbol': r'$L$',
-        'group': 'Missing',
-    },
-    'I': {
-        'value': None,
-        'com': 'Investment',
-        'dimension': 'Money',
-        'units': 'Dollars',
-        'type': 'extensive',
-        'symbol': r'$I$',
-        'group': 'Economy',
-    },
-    'Pi': {
-        'value': None,
-        'com': 'Absolute profit',
-        'dimension': 'Money',
-        'units': 'Dollars',
-        'type': 'extensive',
-        'symbol': r'$\Pi$',
-        'group': 'Economy',
-    },
-
-    'i': {
-        'value': None,
-        'com': 'Inflation rate',
-        'dimension': 'time rate',
-        'units': 'y^{-1}',
-        'type': 'intensive',
-        'symbol': r'$i$',
-        'group': 'Economy',
-    },
-}

@@ -29,80 +29,64 @@ _LOGICS = {
     'ode': {
         'a': {
             'func': lambda alpha=0, itself=0: alpha * itself,
-            'com': 'Exogenous technical progress as an exponential',
-        },
+            'com': 'Exogenous technical progress as an exponential', },
         'N': {
-            'func': lambda beta=0, itself=0: beta * itself,
-            'com': 'Exogenous population as an exponential',
-        },
+            'func': lambda n=0, itself=0: n * itself,
+            'com': 'Exogenous population as an exponential', },
         'K': {
-            'func': lambda I=0, itself=0, delta=0: I - itself * delta,
-            'com': 'Capital evolution from investment and depreciation',
-        },
+            'func': lambda I=0, itself=0, delta=0, p=1: I/p - itself * delta,
+            'com': 'Capital evolution from investment and depreciation', },
         'D': {
             'func': lambda I=0, Pi=0: I - Pi,
-            'com': 'Debt as Investment-Profit difference',
-        },
-        'W': {
-            'func': lambda phillips=0, itself=0: itself * phillips,
-            'com': 'salary through negociation',
-        },
+            'com': 'Debt as Investment-Profit difference', },
+        'w': {
+            'func': lambda phillips=0, itself=0, gammai=0, inflation=0: itself * (phillips + gammai*inflation),
+            'com': 'salary through negociation', },
         'p': {
             'func': lambda itself=0, inflation=0: itself * inflation,
-            'com': 'NO INFLATION FOR THE MOMENT',
-            'initial': 1,
-        },
+            'com': 'markup inflation', },
     },
     # Intermediary relevant functions
     'statevar': {
         'Y': {
             'func': lambda K=0, nu=1: K / nu,
-            'com': 'Leontiev optimized production function ',
-        },
+            'com': 'Leontiev optimized production function ', },
         'GDP': {
             'func': lambda Y=0, p=0: Y * p,
-            'com': 'Output with selling price ',
-        },
+            'com': 'Output with selling price ', },
         'inflation': {
-            'func': lambda p=0: 0. * p,
-            'com': 'INFLATION NOT CODED',
-        },
+            'func': lambda mu=0, eta=0, omega=0: eta*(mu*omega-1),
+            'com': 'markup dynamics', },
         'L': {
             'func': lambda K=0, a=1, nu=1: K / (a * nu),
-            'com': 'Full instant employement based on capital',
-        },
+            'com': 'Full instant employement based on capital', },
         'Pi': {
-            'func': lambda Y=0, W=0, L=0, r=0, D=0: Y - W * L - r * D,
-            'com': 'Profit for production-Salary-debt func',
-        },
+            'func': lambda GDP=0, w=0, L=0, r=0, D=0: GDP - w * L - r * D,
+            'com': 'Profit for production-Salary-debt func', },
         'lambda': {
             'func': lambda L=0, N=1: L / N,
-            'com': 'employement rate',
-        },
+            'com': 'employement rate', },
         'omega': {
-            'func': lambda W=0, L=0, Y=1: W * L / Y,
-            'com': 'wage share',
-        },
+            'func': lambda w=0, L=0, Y=1, p=1: (w * L) / (Y*p),
+            'com': 'wage share', },
         'phillips': {
             'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
-            'com': 'Wage increase rate through employement',
-        },
+            'com': 'Wage increase rate through employement and profit', },
         'kappa': {
-            'func': lambda k0=0, k1=0, k2=0, Pi=0, Y=1: k0 + k1 * np.exp(k2 * Pi / Y),
-            'com': 'Relative GDP investment through relative profit',
-        },
+            'func': lambda k0=0, k1=0, k2=0, pi=0: k0 + k1 * np.exp(k2 * pi),
+            'com': 'Relative GDP investment through relative profit', },
         'I': {
             'func': lambda GDP=0, kappa=0: GDP * kappa,
-            'com': 'Investment value',
-        },
+            'com': 'Investment value', },
         'd': {
             'func': lambda D=0, GDP=1: D / GDP,
-            'com': 'private debt ratio',
-        },
+            'com': 'private debt ratio', },
         'pi': {
-            'func': lambda omega=0, r=0, d=0: 1 - omega - r * d,
-            'com': 'relative profit',
-        },
+            'func': lambda Pi=0, GDP=1: Pi/GDP,
+            'com': 'relative profit', },
+        'g': {
+            'func': lambda I=0, K=1, delta=0, p=1: (I/p - K * delta)/K,
+            'com': 'relative growth rate'},
     },
 }
 
@@ -113,21 +97,23 @@ _LOGICS = {
 _PRESETS = {
     'default': {
         'fields': {
+            'dt': 0.01,
             'a': 1,
             'N': 1,
-            'K': 2.7,
-            'D': 0.2,
-            'W': .85,
-            'p': 1,
+            'K': 2.9,
+            'D': 0,
+            'w': .85*1.2,
             'alpha': 0.02,
-            'beta': 0.025,
+            'n': 0.025,
             'nu': 3,
             'delta': .005,
-            # 'phinull': .04,
             'k0': -0.0065,
             'k1': np.exp(-5),
             'k2': 20,
             'r': 0.03,
+            'p': 1.3,
+            'eta': 0.1,
+            'gammai': 0.5,
         },
         'com': (
             'This is a run that should give simple '
@@ -136,18 +122,27 @@ _PRESETS = {
     },
     'crisis': {
         'fields': {
+            'dt': 0.01,
             'a': 1,
             'N': 1,
-            'K': 2.7,
-            'D': 10,
-            'W': .85,
-            'p': 1,
-
-            'r': 0.0
+            'D': 5,
+            'K': 2.9,
+            'w': .85*1.2,
+            'alpha': 0.02,
+            'n': 0.025,
+            'nu': 3,
+            'delta': .005,
+            'k0': -0.0065,
+            'k1': np.exp(-5),
+            'k2': 20,
+            'r': 0.03,
+            'p': 1.3,
+            'eta': 0.1,
+            'gammai': 0.5,
         },
         'com': (
-            'This is a run that should create a debt crisis'
-        ),
+            'This is a run that should give simple '
+            'convergent oscillations'),
         'plots': [],
     },
 }

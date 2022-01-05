@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-This module contains tests for tofu.geom in its structured version
+This module is an adaptation of tests for tofu.geom in its structured version,
+for pygemmes
 """
 
 # Built-in
@@ -228,7 +229,7 @@ class Test01_Hub_MultipleSystems():
 
 class Test02_Hub_FromPresets(Test01_Hub_MultipleSystems):
 
-    lmodels = ['G_Reduced']
+    lmodels = ['Goodwin-Reduced']
     lgrid = list(_DPRESETS.keys())
 
     def setup(self):

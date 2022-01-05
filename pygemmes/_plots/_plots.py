@@ -35,8 +35,10 @@ def Var(sol, key, idx=0, cycles=False, log=False):
 
     # PLOT OF THE BASE
     allvars = sol.get_dparam(returnas=dict)
-    y = allvars[key]['value']
-    t = allvars['time']['value']
+    y = allvars[key]['value'][:, idx]
+    t = allvars['time']['value'][idx]
+    print('y', np.shape(y))
+    print('t', np.shape(t))
     plt.plot(t, y, lw=2, ls='-', c='k')
 
     # PLOT OF THE CYCLES

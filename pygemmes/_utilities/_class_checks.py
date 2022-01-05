@@ -360,7 +360,7 @@ def _check_logics(dmodel=None, verb=None):
         for k1, v1 in dmodel['logics']['ode'].items():
             if v1.get('initial') is None:
                 dmodel['logics']['ode'][k1]['initial'] \
-                        = _models._DFIELDS[k1]['value']
+                    = _models._DFIELDS[k1]['value']
 
     # -----------------------
     # check pde

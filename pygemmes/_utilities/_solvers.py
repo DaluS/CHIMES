@@ -31,6 +31,12 @@ _DSOLVERS = {
         'com': 'Runge_Kutta order 4',
         'source': __file__,
     },
+    'eRK1-homemade': {
+        'type': 'explicit',
+        'step': 'fixed',
+        'com': 'Runge_Kutta order 1',
+        'source': __file__,
+    },
     'eRK2-scipy': {
         'scipy': 'RK23',
         'type': 'explicit',
@@ -169,7 +175,6 @@ def solve(
 
     # -----------
     # Define the function that takes/returns all functions
-
     y0, dydt_func, lode_solve, dargs_temp, vectorized = get_func_dydt(
         dparam=dparam,
         dargs=dargs,
@@ -184,6 +189,17 @@ def solve(
 
     if solver == 'eRK4-homemade':
         _eRK4_homemade(
+            y0=y0,
+            dydt_func=dydt_func,
+            dparam=dparam,
+            lode=lode_solve,
+            lstate=lstate,
+            nt=nt,
+            dverb=dverb,
+        )
+
+    elif solver == 'eRK1-homemade':
+        _eRK1_homemade(
             y0=y0,
             dydt_func=dydt_func,
             dparam=dparam,
@@ -329,7 +345,6 @@ def get_func_dydt(
 
             # ------------
             # Then compute derivative dydt (ode)
-
             for ii, k0 in enumerate(lode_solve):
                 if 'itself' in dparam[k0]['kargs']:
                     dydt[ii, ...] = dparam[k0]['func'](
@@ -399,6 +414,58 @@ def _rk4(dydt_func=None, dt=None, y=None, t=None):
     dy4_on_dt = dydt_func(t + dt, y + dy3_on_dt*dt)
     return (dy1_on_dt + 2*dy2_on_dt + 2*dy3_on_dt + dy4_on_dt) * dt/6.
 
+# ###########################################
+
+
+def _eRK1_homemade(
+    y0=None,
+    dydt_func=None,
+    dparam=None,
+    lode=None,
+    lstate=None,
+    nt=None,
+    dverb=None,
+):
+    """ Structure of the homemade rk1 solver, with time loop, intermediaries...
+    Coded as debugging for the rk1
+    """
+
+    # initialize y
+    y = np.copy(y0)
+
+    # start loop on time
+    t0 = time.time()
+    for ii in range(1, nt):
+
+        # print of wait
+        if dverb['verb'] > 0:
+            t0 = _class_checks._print_or_wait(ii=ii, nt=nt, t0=t0, **dverb)
+
+        # Estimate dt (for future variable time step versions)
+        # dt =
+
+        # compute ode variables from ii-1, using solver
+        y += _rk1(
+            dydt_func=dydt_func,
+            dt=dparam['dt']['value'],
+            y=y,
+            t=np.nan,
+        )
+
+        # dispatch to store result of ode
+        for jj, k0 in enumerate(lode):
+            dparam[k0]['value'][ii, ...] = y[jj, ...]
+
+
+def _rk1(dydt_func=None, dt=None, y=None, t=None):
+    """
+    a traditional euler scheme, with:
+        - y = array of all variables (all ode)
+        - dt = fixed time step
+    """
+    dy1_on_dt = dydt_func(t, y)
+
+    return (dy1_on_dt) * dt
 
 # #############################################################################
 # #############################################################################
