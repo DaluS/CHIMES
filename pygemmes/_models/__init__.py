@@ -6,7 +6,7 @@ import importlib
 
 
 from ._def_fields import _DFIELDS, _LIBRARY, _complete_DFIELDS
-
+from pygemmes._utilities import _utils
 
 _PATH_HERE = os.path.dirname(__file__)
 
@@ -49,6 +49,7 @@ def get_available_models(
     details=None,
     returnas=None,
     verb=None,
+    showdiagram=False
 ):
 
     # -----------------
@@ -140,3 +141,40 @@ def get_available_models(
         return dmod
     elif returnas is str:
         return msg
+
+
+def get_dfields_overview():
+
+    # ----------------
+    # get sub-dict of interest
+    dparam_sub = _DFIELDS
+
+    # ------------------
+    # get column headers
+    col2 = [
+        'Field', 'definition', 'group', 'value', 'units',
+
+    ]
+
+    # ------------------
+    # get values
+
+    ar2 = [
+        [k0,
+         v0['definition'],
+         v0['group'],
+         v0['value'],
+         v0['units'],
+
+         ]
+        for k0, v0 in dparam_sub.items()
+    ]
+
+    print(f'{len(dparam_sub)} fields in the library \n')
+
+    return _utils._get_summary(
+        lar=[ar2],
+        lcol=[col2],
+        verb=True,
+        returnas=False,
+    )

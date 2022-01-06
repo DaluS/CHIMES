@@ -783,13 +783,6 @@ _LIBRARY = {
             'com': 'Percieved employement',
             'units': '',
         },
-        '''
-        'fk': {
-            'value': 0.3,
-            'definition': 'Capital rate of integration',
-            'units': 'y^{-1}',
-        },
-        '''
         'flamb': {
             'value': 3.6,
             'com': 'employement perception rate adjustment',

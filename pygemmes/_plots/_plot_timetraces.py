@@ -210,6 +210,7 @@ def plot_timetraces(
     # for selection of data
     idx=None,
     eqtype=None,
+    SENSITIVITY=False,
     **kwdargs,
 ):
     '''
@@ -287,7 +288,35 @@ def plot_timetraces(
     for k0, v0 in dpar.items():
         if dax.get(k0) is None:
             continue
-        if idx is None:
+        # Add by Paul : Statistical indicators on multiple runs
+        if SENSITIVITY:
+            time = hub.dparam['time']['value'][:, 0]
+            V = hub.dparam[k0]['sensitivity']
+            # Plot all trajectory
+            for i in range(len(hub.dparam['time']['value'][0, :])):
+                dax[k0].plot(time, hub.dparam[k0]['value']
+                             [:, i], c='k', ls='--', lw=0.5)
+
+            # Plot mean an median
+            dax[k0].plot(time, V['mean'], c='orange', label='mean')
+            dax[k0].plot(time, V['median'], c='orange', ls='--', label='median')
+            dax[k0].plot(time, V['max'], c='r', lw=0.4, label='maxmin')
+            dax[k0].plot(time, V['min'], c='r', lw=0.4)
+
+            for j in np.arange(0.5, 5, 0.2):
+
+                dax[k0].fill_between(time, V['mean'] - j * V['stdv'],
+                                     V['mean'] + j * V['stdv'], alpha=0.02, color='blue')
+            dax[k0].fill_between(time, V['mean'],
+                                 V['mean'], alpha=0.5, color='blue', label='$\mu \pm 5 \sigma$')
+
+            dax[k0].set_xlim([time[0], time[-1]])
+            dax[k0].set_ylim([np.amin(V['min']), np.amax(V['max'])])
+
+            dax[k0].fill_between(time, V['mean'] - V['stdv'],
+                                 V['mean'] + V['stdv'], alpha=0.4, color='r', label='$\mu \pm \sigma$')
+
+        elif idx is None:
             dax[k0].plot(
                 hub.dparam['time']['value'],
                 v0['value'],
@@ -301,6 +330,9 @@ def plot_timetraces(
                 color=color,
                 label=label,
             )
+
+    if SENSITIVITY:
+        dax[k0].legend()
 
     # -----------
     # show and return axes dict

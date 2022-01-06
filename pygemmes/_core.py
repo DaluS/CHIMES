@@ -630,6 +630,33 @@ class Hub():
         dic1['reference'] = refval
 
     # ##############################
+    #       Multiple run stats
+    # ##############################
+
+    def CalculateStatSensitivity(self):
+        '''
+        When there are multiple run in parrallel, will associate to each variable
+        a dict 'sensibility' in dparam, with statistical measures
+
+        Do not use with grid=True
+        '''
+        R = self.__dparam
+        keys = [k for k in R.keys() if R[k].get('eqtype', 'param') != 'param']
+
+        for ke in keys:
+            R[ke]['sensitivity'] = {}
+
+            val = R[ke]['value']
+
+            V = R[ke]['sensitivity']
+            V['mean'] = np.mean(val, axis=1)
+            V['stdv'] = np.std(val, axis=1)
+            V['min'] = np.amin(val, axis=1)
+            V['max'] = np.amax(val, axis=1)
+            V['median'] = np.median(val, axis=1)
+        self.__dmisc['sensitivity'] = True
+
+    # ##############################
     #       plotting methods
     # ##############################
 
@@ -685,6 +712,7 @@ class Hub():
             idx=idx,
             eqtype=eqtype,
             **kwdargs,
+            SENSITIVITY=False
         )
 
     # ##############################
