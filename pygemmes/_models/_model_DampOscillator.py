@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-DESCRIPTION : Just the description of a second order ODE y''+2*gamma*y + Omega^2 y = 1
+DESCRIPTION : A second order ODE y''+2*gamma*y + Omega^2 y = 1
 The criteria for the qualitative behavior Delta = gamma-Omega2
     * Delta = 0 Critcal
     * Delta > 0 Overdamped
