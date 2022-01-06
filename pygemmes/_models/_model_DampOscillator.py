@@ -27,12 +27,12 @@ _LOGICS = {
     'ode': {
         'thetap': {
             'func': lambda Final=1, itself=0, Omega=0, gamma=0, theta=0: -Omega**2*(theta-Final) - 2*gamma*itself,
-            'com': 'Exogenous technical progress as an exponential',
+            'com': 'angular speed',
             'initial': 0,
         },
         'theta': {
             'func': lambda thetap=0: thetap,
-            'com': 'Exogenous population as an exponential',
+            'com': 'angular position',
             'initial': 1,
         },
     },
