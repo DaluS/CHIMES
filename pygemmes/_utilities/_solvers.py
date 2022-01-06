@@ -352,7 +352,7 @@ def get_func_dydt(
                     )
                 else:
                     dydt[ii, ...] = dparam[k0]['func'](**dargs_temp[k0])
-            return dydt
+            return np.copy(dydt)
 
     return y0, func, lode_solve, dargs_temp, vectorized
 
@@ -394,7 +394,7 @@ def _eRK4_homemade(
             dydt_func=dydt_func,
             dt=dparam['dt']['value'],
             y=y,
-            t=np.nan,
+            t=np.nan,       # no model with explicit time dependence (for now)
         )
 
         # dispatch to store result of ode
@@ -411,9 +411,12 @@ def _rk4(dydt_func=None, dt=None, y=None, t=None):
     dy1_on_dt = dydt_func(t, y)
     dy2_on_dt = dydt_func(t + dt/2., y + dy1_on_dt * dt/2.)
     dy3_on_dt = dydt_func(t + dt/2., y + dy2_on_dt * dt/2.)
-    dy4_on_dt = dydt_func(t + dt, y + dy3_on_dt*dt)
+    dy4_on_dt = dydt_func(t + dt, y + dy3_on_dt * dt)
     return (dy1_on_dt + 2*dy2_on_dt + 2*dy3_on_dt + dy4_on_dt) * dt/6.
 
+
+# ###########################################
+#       eRK1
 # ###########################################
 
 

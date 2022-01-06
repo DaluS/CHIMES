@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-DESCRIPTION : Just the description of a second order ODE y''+2*gamma*y + Omega^2 y = 1
+DESCRIPTION : A second order ODE y''+2*gamma*y + Omega^2 y = 1
 The criteria for the qualitative behavior Delta = gamma-Omega2
     * Delta = 0 Critcal
     * Delta > 0 Overdamped
@@ -27,18 +27,18 @@ _LOGICS = {
     'ode': {
         'thetap': {
             'func': lambda Final=1, itself=0, Omega=0, gamma=0, theta=0: -Omega**2*(theta-Final) - 2*gamma*itself,
-            'com': 'Exogenous technical progress as an exponential',
+            'com': 'angular speed',
             'initial': 0,
         },
         'theta': {
             'func': lambda thetap=0: thetap,
-            'com': 'Exogenous population as an exponential',
+            'com': 'angular position',
             'initial': 1,
         },
     },
     'statevar': {
         'Energy': {
-            'func': lambda theta=0, thetap=0, Omega=0, Final=0: Omega*(theta-Final)**2+thetap**2,
+            'func': lambda theta=0, thetap=0, Omega=0, Final=0: Omega**2*(theta-Final)**2 + thetap**2,
             'com': 'Energy',
         },
     },

@@ -230,9 +230,9 @@ class Test01_Hub():
 
         # tolerated errors
         lexcept = [
-            'DampOscillator_Perfect_eRK2-scipy',
             'LorenzSystem_Canonical_eRK8-scipy',
             'LorenzSystem_Canonical_eRK4-scipy',
+            'LorenzSystem_Canonical_eRK2-scipy',
         ]
 
         # compare to current output
