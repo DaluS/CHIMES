@@ -14,7 +14,6 @@ This jupyter notebook provide :
 '''
 
 # Short Overview of Pygemmes
-
 '''
 Pygemmes is an ensemble of tools put together in a user/modeler friendly way,
 to study dynamical systems in general.
@@ -29,10 +28,18 @@ The user will typically pilot Pygemmes with a cockpit that contains typical inst
 
 
 # Exploring the solvers coded
+
 import pygemmes as pgm
 pgm.get_available_solvers()
-print(150*'#')
+'''
+Each solver will have a different behavior. Here is an example of all solvers on the same system, same parameters
+'''
 
+print(150*'#')
+pgm.comparesolver_Lorenz(dt=0.01, Npoints=1000)
+pgm.plot_one_run_all_solvers('LorenzSystem', preset='Canonical example')
+pgm.plot_one_run_all_solvers('GK')
+#pgm.testConvergence_DampOsc([1, 0.1, 0.01, 0.001], solver='eRK4-homemade')
 
 # Exploring the library
 pgm.get_dfields_overview()
@@ -43,20 +50,27 @@ print(150*'#')
 pgm.get_available_models(details=True, verb=True)
 print(150*'#')
 
-
-# Having the graphs for each moddel
+# Showing the graph of interaction for each models
+'''
 for model in pgm.get_available_models(details=False, verb=False, returnas=list):
     print(model)
     pgm.showVariableGraph(model)
     print(50*'#')
-
-# Showing the graph of interaction for each models
-
-# Canonical examples with simple toolbox
-
-# A chaotic system : Lorenz Attractor
+'''
 
 # Multiple type of trajectories : Dampened oscillator
+lpreset = ['Perfect Oscillations',
+           'FirstOrder',
+           'Overdamp',
+           'Critical',
+           'Underdamped']
+hub = pgm.Hub('DampOscillator')
+hub.run()
+dax = hub.plot()
+for preset in lpreset:
+    hub = pgm.Hub('DampOscillator', preset=preset)
+    hub.run()
+    dax = hub.plot(dax=dax, label=preset)
 
 # A simple economy : A Goodwin-Keen system
 
@@ -64,7 +78,10 @@ for model in pgm.get_available_models(details=False, verb=False, returnas=list):
 
 # Logics
 
-# Scheme of interaction
+
+pgm.GenerateIndividualSensitivity()
+pgm.GenerateCoupledSensitivity()
+
 
 # Run straight from the library
 
@@ -81,7 +98,11 @@ for model in pgm.get_available_models(details=False, verb=False, returnas=list):
 # Reduced Goodwin-Keen system
 
 # Bridging both
+pgm.create_preset_from_model_preset(targetmodel, outputmodel)
 
 # Frequency analysis of trajectories
 
 ###
+
+# Loading-saving
+pgm.get_available_output()

@@ -352,7 +352,7 @@ def get_func_dydt(
                     )
                 else:
                     dydt[ii, ...] = dparam[k0]['func'](**dargs_temp[k0])
-            return dydt
+            return np.copy(dydt)
 
     return y0, func, lode_solve, dargs_temp, vectorized
 

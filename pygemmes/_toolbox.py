@@ -143,7 +143,7 @@ def plot_one_run_all_solvers(_MODEL, preset=False, _DPRESET=False):
                                     color=colors[ii], dax=dax)
 
 
-def comparesolver_Lorenz(dt=0.01):
+def comparesolver_Lorenz(dt=0.01, Npoints=False):
     '''
     for a given timestep (default dt=0.01), compute a Lorenz attractor with
     each solver to compare them
@@ -156,7 +156,8 @@ def comparesolver_Lorenz(dt=0.01):
             hub = Hub(_MODEL, preset=preset, verb=False)
             hub.set_dparam(key='dt', value=dt, verb=False)
             hub.run(verb=0, solver=solver)
-
+            if Npoints:
+                hub.reinterpolate_dparam(Npoints)
             R = hub.get_dparam(returnas=dict)
             Coor[solver] = {'x': R['x']['value'],
                             'y': R['y']['value'],
@@ -195,8 +196,8 @@ def testConvergence_DampOsc(vecdt, solver, returnas='plot', getsummary=True):
                                  'gamma': 1,
                                  'Omega': 10,
                                  'Final': 0,
-                                 'theta': 1,
-                                 'thetap': 0,
+                                 'theta': 00,
+                                 'thetap': 1,
                                  },
                       },
                      }
@@ -216,8 +217,8 @@ def testConvergence_DampOsc(vecdt, solver, returnas='plot', getsummary=True):
         thetanum = R['theta']['value']
 
         # Comparing strategies
-        thetaTheo = np.real(theta0*np.exp(-gamma*(t)) *
-                            np.cos(np.sqrt(Omega**2-gamma**2)*(t)))
+        thetaTheo = (1/Omega)*np.real(thetap0*np.exp(-gamma*(t)) *
+                                      np.sin(np.sqrt(Omega**2-gamma**2)*(t)))
         Error[dt] = np.mean(np.sqrt((thetanum-thetaTheo)**2))
 
     ################################
