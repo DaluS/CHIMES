@@ -36,11 +36,6 @@ class Hub():
         if model is not None:
             self.load_model(model, preset=preset, dpresets=dpresets, verb=verb)
 
-        self.__dmisc['parameters'] = self.get_dparam(
-            returnas=list,
-            eqtype=[None],
-            group=('Numerical',),
-        )
     # ##############################
     # %% Setting / getting parameters
     # ##############################
@@ -80,34 +75,20 @@ class Hub():
         # ------------
         # update from preset if relevant
         if preset is not None:
-            self.load_preset(preset, dpresets=dpresets, verb=verb)
+            self.set_dparam(preset=preset, dpresets=dpresets, verb=verb)
         else:
             self.reset()
-
-    def load_preset(self, preset=None, grid=None, dpresets=None, verb=None):
-        """ For the current model, load desired preset """
-        (
-            self.__dparam,
-            self.__dmisc['dmulti'],
-            self.__dmisc['dfunc_order'],
-            self.__dargs,
-        ) = _class_checks.update_from_preset(
-            dparam=self.__dparam,
-            dmodel=self.__dmodel,
-            dmulti=self.__dmisc['dmulti'],
-            preset=preset,
-            dpresets=dpresets,
-            verb=verb,
-        )
-        self.reset()
 
     def set_dparam(
         self,
         dparam=None,
+        preset=None,
+        dpresets=None,
         key=None,
         value=None,
         grid=None,
         verb=None,
+        **kwdargs,
     ):
         """ Set the dict of input parameters (dparam) or a single param
 
@@ -117,8 +98,39 @@ class Hub():
 
         You can provide:
             - dparam as a dict
-            - dparam as a str refering to an existing pre-defined model
-            - only a key, value pair to change the value of a single parameter
+                => will re-initialize the parameters
+            - preset as a str refering to an existing preset
+                => will re-initialize the parameters
+            - only a (key, value) pair to change an single existing parameter
+                => will change a single existing parameter value
+            - a dict of existing parameters, provided with the **kwdargs syntax
+                => will change all desired existing parameter values
+
+        Typical usage
+        -------------
+
+            >>> import pygemmes as pgm
+
+            # Set the dict of param from scratch (no model set)
+            >>> hub = pgm.Hub()
+            >>> dparam = {'alpha': 0, 'beta': 1}
+            >>> hub.set_dparam(dparam=dparam)
+
+            # The following are 2 equivalent ways of loading a model + preset
+            >>> hub = pgm.Hub('GK-Reduced', preset='default')
+
+            >>> hub = pgm.Hub('GK-Reduced')
+            >>> hub.set_dparam(preset='default')
+
+            # The following 2 syntaxes are equivalent to set a single parameter
+            >>> hub = pgm.Hub('GK-Reduced')
+            >>> hub.set_dparam(key='alpha', value=0)    # syntax 1
+            >>> hub.set_dparam(alpha=0.1)                 # syntax 2
+
+            # The following syntax allows to change several existing parameters
+            >>> hub = pgm.Hub('GK-Reduced')
+            >>> dparam_changes = {'alpha': 0., 'delta': 0.}
+            >>> hub.set_dparam(**dparam_changes)
 
         """
 
@@ -126,22 +138,30 @@ class Hub():
         # check input
 
         if grid is None:
-            grid = self.__dmisc['dmulti'].get('grid')
+            if self.__dmisc.get('dmulti') is None:
+                grid = False
+            else:
+                grid = self.__dmisc['dmulti'].get('grid')
 
         # Check input: dparam xor (key, value)
         lc = [
             dparam is not None,
+            preset is not None,
             key is not None and value is not None,
+            len(kwdargs) > 0,
         ]
         if np.sum(lc) != 1:
             lstr = [
                 '\t- {}: {}'.format(kk, vv)
                 for kk, vv in [
-                    ('dparam', dparam), ('key', key), ('value', value)
+                    ('dparam', dparam),
+                    ('preset', preset),
+                    ('key', key), ('value', value),
+                    ('kwdargs', kwdargs),
                 ]
             ]
             msg = (
-                "Please provide dparam xor (key, value)!\n"
+                "Provide dparam xor preset xor (key, value) xor kwdargs!\n"
                 "You provided:\n"
                 + "\n".join(lstr)
             )
@@ -150,30 +170,58 @@ class Hub():
         # ----------------
         # set dparam or update desired key
 
-        if dparam is None:
-            _class_checks._set_key_value(
+        if preset is not None:
+            (
+                self.__dparam,
+                self.__dmisc['dmulti'],
+                self.__dmisc['dfunc_order'],
+                self.__dargs,
+            ) = _class_checks.update_from_preset(
                 dparam=self.__dparam,
-                key=key,
-                value=value,
-                grid=grid,
+                dmodel=self.__dmodel,
+                dmulti=self.__dmisc['dmulti'],
+                preset=preset,
+                dpresets=dpresets,
+                verb=verb,
             )
-            dparam = self.__dparam
+        else:
 
-        # ----------------
-        # Update to check consistency
+            if key is not None:
+                _class_checks._set_key_value(
+                    dparam=self.__dparam,
+                    key=key,
+                    value=value,
+                    grid=grid,
+                )
+                dparam = self.__dparam
 
-        (
-            self.__dparam,
-            self.__dmisc['dmulti'],
-            self.__dmisc['dfunc_order'],
-            self.__dargs,
-        ) = _class_checks.check_dparam(
-            dparam=dparam,
-            dmulti=self.__dmisc['dmulti'],
-            verb=verb,
-        )
+            elif len(kwdargs) > 0:
+                for kk, vv in kwdargs.items():
+                    if not isinstance(vv, dict):
+                        vv = {'value': vv, 'grid': False}
+                    _class_checks._set_key_value(
+                        dparam=self.__dparam,
+                        key=kk,
+                        value=vv['value'],
+                        grid=vv.get('grid'),
+                    )
+                dparam = self.__dparam
 
-        # reset all variables
+            # ----------------
+            # Update to check consistency
+
+            (
+                self.__dparam,
+                self.__dmisc['dmulti'],
+                self.__dmisc['dfunc_order'],
+                self.__dargs,
+            ) = _class_checks.check_dparam(
+                dparam=dparam,
+                dmulti=self.__dmisc['dmulti'],
+                verb=verb,
+            )
+
+        # reset all variables (keep only the first time step)
         self.reset()
 
     def get_dparam(self, condition=None, verb=None, returnas=None, **kwdargs):
@@ -367,32 +415,6 @@ class Hub():
 
         return keys, variables
 
-    def reinterpolate_dparam(self, Npoints=100):
-        """
-        If the system has run, takes dparam and reinterpolate all values.
-        Typical use is to have lighter plots
-
-        DO NOT WORK WELL WITH GRID
-        NEED A RESET BEFORE A RUN TO REALLOCATE SPACE
-
-        Parameters
-        ----------
-        Npoints : TYPE, optional
-            DESCRIPTION. The default is 100.
-        """
-
-        P = self.__dparam
-        t = P['time']['value']
-        for k in self.__dmisc['dfunc_order']['statevar']+self.__dmisc['dfunc_order']['ode']:
-            v = P[k]['value']
-
-            newval = np.zeros([Npoints]+list(self.__dmisc['dmulti']['shape']))
-            newt = np.linspace(t[0], t[-1], Npoints)
-
-            for i in range(np.shape(newval)[1]):
-                newval[:, i] = np.interp(newt[:, i], t[:, i], v[:, i])
-            self.__dparam[k]['value'] = newval
-
     # ##############################
     #  Introspection
     # ##############################
@@ -444,7 +466,7 @@ class Hub():
 
         idx = _class_checks._check_idx(
             idx=idx,
-            nt=self.__dparam['nt']['value'],
+            nt=self.__dparam.get('nt', {'value': np.nan})['value'],
             dmulti=self.__dmisc['dmulti'],
         )
         # ----------
@@ -493,7 +515,6 @@ class Hub():
             - intermediary functions in specified func_order
 
         """
-
         # ------------
         # check inputs
         dverb = _class_checks._run_verb_check(verb=verb)
@@ -548,10 +569,6 @@ class Hub():
         by default the variable detect cycles in itself
         '''
 
-        # Check if the run did occur
-        if not self.__dmisc['run']:
-            raise "Trying to calculate cycles without run"
-
         leq = ['ode', 'statevar']
 
         # Workaround with the grid : reshape the n-dimensional array into
@@ -560,6 +577,7 @@ class Hub():
         # print(self.get_dparam(returnas=dict, eqtype=leq).items())
         for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
             print(var, np.shape(dic1['value']))
+
             if ref is None:
                 self.FillCycles(var, var)
             else:
@@ -574,6 +592,8 @@ class Hub():
         var : name of the variable we are working on
         ref : reference for the oscillations detections
         '''
+
+        # Check if the run did occur
 
         # Get the new dictionnary to edit
         dic = self.__dparam[var]
@@ -600,26 +620,26 @@ class Hub():
             dic1[key] = dic2[key]
 
         tim = self.__dparam['time']['value']
-        dic1['period_T_intervals'] = np.array([[tim[idx[0], 0], tim[idx[1], 0]]
-                                               for idx in dic1['period_indexes']])
-        dic1['t_mean_cycle'] = np.array([
-            (t[0] + t[1]) / 2 for t in dic1['period_T_intervals']])
-        dic1['period_T'] = np.array([
-            (t[1] - t[0]) for t in dic1['period_T_intervals']])
+        dic1['period_T_intervals'] = [[tim[idx[0], 0], tim[idx[1], 0]]
+                                      for idx in dic1['period_indexes']]
+        dic1['t_mean_cycle'] = [
+            (t[0] + t[1]) / 2 for t in dic1['period_T_intervals']]
+        dic1['period_T'] = [
+            (t[1] - t[0]) for t in dic1['period_T_intervals']]
 
         # Fill for each the characteristics
         values = dic['value']
         # print(var, dic1)
-        dic1['meanval'] = np.array([np.mean(values[idx[0]:idx[1]])
-                                    for idx in dic1['period_indexes']])
-        dic1['medval'] = np.array([np.median(values[idx[0]:idx[1]])
-                                   for idx in dic1['period_indexes']])
-        dic1['stdval'] = np.array([np.std(values[idx[0]:idx[1]])
-                                   for idx in dic1['period_indexes']])
-        dic1['minval'] = np.array([np.amin(values[idx[0]:idx[1]])
-                                   for idx in dic1['period_indexes']])
-        dic1['maxval'] = np.array([np.amax(values[idx[0]:idx[1]])
-                                   for idx in dic1['period_indexes']])
+        dic1['meanval'] = [np.mean(values[idx[0]:idx[1]])
+                           for idx in dic1['period_indexes']]
+        dic1['medval'] = [np.median(values[idx[0]:idx[1]])
+                          for idx in dic1['period_indexes']]
+        dic1['stdval'] = [np.std(values[idx[0]:idx[1]])
+                          for idx in dic1['period_indexes']]
+        dic1['minval'] = [np.amin(values[idx[0]:idx[1]])
+                          for idx in dic1['period_indexes']]
+        dic1['maxval'] = [np.amax(values[idx[0]:idx[1]])
+                          for idx in dic1['period_indexes']]
 
     def findCycles(self, refval):
         '''
@@ -642,45 +662,18 @@ class Hub():
             id1 += 1
 
         # Fill the formalism
-        self.__dparam[refval]['cycles']['period_indexes'] = np.array([
+        self.__dparam[refval]['cycles']['period_indexes'] = [
             [periods[i], periods[i + 1]] for i in range(len(periods) - 1)
-        ])
+        ]
         tim = self.__dparam['time']['value']
         dic1 = self.__dparam[refval]['cycles']
-        dic1['period_T_intervals'] = np.array([[tim[idx[0]], tim[idx[1]]]
-                                               for idx in dic1['period_indexes']])
-        dic1['t_mean_cycle'] = np.array([
-            (t[0] + t[1]) / 2 for t in dic1['period_T_intervals']])
-        dic1['period_T'] = np.array([
-            (t[1] - t[0]) for t in dic1['period_T_intervals']])
+        dic1['period_T_intervals'] = [[tim[idx[0]], tim[idx[1]]]
+                                      for idx in dic1['period_indexes']]
+        dic1['t_mean_cycle'] = [
+            (t[0] + t[1]) / 2 for t in dic1['period_T_intervals']]
+        dic1['period_T'] = [
+            (t[1] - t[0]) for t in dic1['period_T_intervals']]
         dic1['reference'] = refval
-
-    # ##############################
-    #       Multiple run stats
-    # ##############################
-
-    def CalculateStatSensitivity(self):
-        '''
-        When there are multiple run in parrallel, will associate to each variable
-        a dict 'sensibility' in dparam, with statistical measures
-
-        Do not use with grid=True
-        '''
-        R = self.__dparam
-        keys = [k for k in R.keys() if R[k].get('eqtype', 'param') != 'param']
-
-        for ke in keys:
-            R[ke]['sensitivity'] = {}
-
-            val = R[ke]['value']
-
-            V = R[ke]['sensitivity']
-            V['mean'] = np.mean(val, axis=1)
-            V['stdv'] = np.std(val, axis=1)
-            V['min'] = np.amin(val, axis=1)
-            V['max'] = np.amax(val, axis=1)
-            V['median'] = np.median(val, axis=1)
-        self.__dmisc['sensitivity'] = True
 
     # ##############################
     #       plotting methods
@@ -738,7 +731,6 @@ class Hub():
             idx=idx,
             eqtype=eqtype,
             **kwdargs,
-            SENSITIVITY=False
         )
 
     # ##############################
@@ -756,7 +748,7 @@ class Hub():
         }
         return dout
 
-    @ classmethod
+    @classmethod
     def _from_dict(cls, dout=None, model_file=None):
         """ Create an instance from a dict """
 
@@ -865,41 +857,3 @@ class Hub():
             verb=verb,
             return_dfail=return_dfail,
         )
-
-    def equations_description(self):
-        '''
-        Gives a full description of the model and its equations
-        '''
-
-        print('############# DIFFERENTIAL EQUATIONS ###########')
-        for key in self.__dmisc['dfunc_order']['ode']:
-            v = self.dparam[key]
-            print('### ', key, ' ###########')
-            print('Units        :', v['units'])
-            print('Equation     :', f'd{key}/dt=', v['source_exp'].replace(
-                'itself', key).replace('lamb', 'lambda'))
-            print('definition   :', v['definition'])
-            print('units        :', v['units'])
-            print('Comment      :', v['com'])
-            print('Dependencies :')
-            for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
-                v1 = self.dparam[key2]
-                print('    ', key2, (8-len(key2))*' ',
-                      v1['units'], (8-len(v1['units']))*' ', v1['definition'])
-            print(' ')
-        print('######### STATE VARIABLES EQUATIONS ###########')
-        for key in self.__dmisc['dfunc_order']['statevar']:
-            v = self.dparam[key]
-            print('### ', key, ' ###########')
-            print('Units        :', v['units'])
-            print('Equation     :', f'{key}=', v['source_exp'].replace(
-                'itself', key).replace('lamb', 'lambda'))
-            print('definition   :', v['definition'])
-            print('Comment      :', v['com'])
-            print('Dependencies :')
-            for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
-                v1 = self.dparam[key2]
-                print('    ', key2, (8-len(key2))*' ',
-                      v1['units'], (8-len(v1['units']))*' ', v1['definition'])
-            print(' ')
-            print(' ')

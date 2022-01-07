@@ -16,11 +16,19 @@ import numpy as np
 
 
 _PATH_HERE = os.path.dirname(__file__)
-_PATH_OUTPUT = os.path.join(os.path.dirname(_PATH_HERE), 'output')
-_PATH_MODELS = os.path.join(
-    os.path.dirname(_PATH_HERE),
-    '_models',
-)
+_PATH_USER_HOME = os.path.expanduser('~')
+_PATH_PRIVATE_OUTPUT = os.path.join(_PATH_USER_HOME, '.pygemmes', 'output')
+if os.path.isdir(_PATH_PRIVATE_OUTPUT):
+    _PATH_OUTPUT = _PATH_PRIVATE_OUTPUT
+else:
+    _PATH_OUTPUT = os.path.join(os.path.dirname(_PATH_HERE), 'output')
+
+
+_PATH_PRIVATE_MODELS = os.path.join(_PATH_USER_HOME, '.pygemmes', '_models')
+if os.path.isdir(_PATH_PRIVATE_MODELS):
+    _PATH_MODELS = _PATH_PRIVATE_MODELS
+else:
+    _PATH_MODELS = os.path.join(os.path.dirname(_PATH_HERE), '_models')
 
 
 _INCLUDE_NAME = ['model', 'preset', 'solver', 'name', 'user', 'date']

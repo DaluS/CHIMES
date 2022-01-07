@@ -36,7 +36,7 @@ def Var(sol, key, idx=0, cycles=False, log=False):
     # PLOT OF THE BASE
     allvars = sol.get_dparam(returnas=dict)
     y = allvars[key]['value'][:, idx]
-    t = allvars['time']['value']
+    t = allvars['time']['value'][idx]
     print('y', np.shape(y))
     print('t', np.shape(t))
     plt.plot(t, y, lw=2, ls='-', c='k')
@@ -51,7 +51,7 @@ def Var(sol, key, idx=0, cycles=False, log=False):
         maxy = np.amax(y)
 
         for car in cyclvar['period_T_intervals'][::2]:
-            # print(car)
+            print(car)
             ax.add_patch(
                 Rectangle((car[0], miny), car[1]-car[0], maxy-miny, facecolor='k', alpha=0.1))
 

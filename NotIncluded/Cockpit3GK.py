@@ -45,7 +45,7 @@ _DPRESETS = {'BasinOfAttraction':
 # hub = pgm.Hub(_MODEL)#, preset=preset)
 hub = pgm.Hub(_MODEL, preset='BasinOfAttraction', dpresets=_DPRESETS)
 # hub.set_dparam(key='alpha', value=10)
-# hub.load_preset('crisis')
+# hub.set_dparam('crisis')
 hub.run(verb=1.1, solver=_SOLVER)
 hub.plot()
 R = hub.get_dparam(returnas=dict)
