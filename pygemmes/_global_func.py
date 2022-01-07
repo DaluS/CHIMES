@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 
 
+# should be removed once Lorenz plot transfered in plot
+import matplotlib.pyplot as plt
+
+
+# library-specific
 from ._core import Hub
 from ._models import get_available_models
 from ._utilities._solvers import get_available_solvers
