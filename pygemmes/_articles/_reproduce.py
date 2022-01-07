@@ -173,10 +173,10 @@ def reproduce_article(
     fig=None,
     # parameters
     darticles=_DARTICLES,
-    solver=None,
     verb=None,
     # save output to... (False to not save)
     save_path=None,
+    fmt=None,
 ):
 
     # ------------
@@ -190,19 +190,14 @@ def reproduce_article(
         get_available_articles(verb=True, returnas=False)
         raise Exception(msg)
 
-    # ------------
-    # check inputs
-
-    if fig in None:
-        fig = darticle['fig']
+    dfig = darticles[article]['dfigures']
+    if fig is None:
+        fig = sorted(dfig.keys())
     fig_out = [ff for ff in fig if ff not in dfig.keys()]
     if len(fig_out) > 0:
         msg = f"The follonwing figure keys are not reckognized: {fig_out}"
         warnings.warn(msg)
         fig = [ff for ff in fig if ff not in fig_out]
-
-    if solver is None:
-        solver = 'eRK4-scipy'
 
     if save_path is None:
         save_path = os.path.abspath('./')
@@ -210,5 +205,46 @@ def reproduce_article(
         msg = (
             "Arg save_path must be either:\n"
             "\t- False: no saving\n"
+            "\t- str: valid path for saving\n"
+            f"Provided: {save_path}"
+        )
+        raise Exception(msg)
+
+    if fmt is None:
+        fmt = 'png'
+
+    # ---------
+    # Reproduce
+
+    for k0, v0 in darticles[article]['dmodel_preset'].items():
+
+        # if no relevant figure => skip
+        if not any([ff in v0['fig'] for ff in fig]):
+            continue
+
+        # load and run
+        hub = _core.Hub(model=v0['model'], preset=v0['preset'], verb=verb)
+        hub.run(
+            solver=v0.get('solver', 'eRK4-scipy'),
+            verb=verb,
         )
 
+        for ff in v0['fig']:
+
+            # if not relevant => skip
+            if ff not in fig:
+                continue
+
+
+            dax = darticles[article]['dfigures'][ff]['func'](hub)
+
+            # optinal saving
+            if save_path is not False:
+                name = f'Article_{article}_fig{ff}_reproduced'
+                pfe = os.path.join(save_path, name + f'.{fmt}')
+                figure = list(dax.values())[0].figure
+                figure.savefig(pfe, format=fmt)
+                msg = f"Saved in:\n\t{pfe}"
+                print(msg)
+
+    return
