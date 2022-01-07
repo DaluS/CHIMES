@@ -143,6 +143,9 @@ _LIBRARY = {
         'gravity': {'value': 9.8,
                     'definition': 'gravity acceleration'
                     },
+        'sigmanoise': {'value': 0.1,
+                       'definition': 'noise amplitude'
+                       },
     },
 
 

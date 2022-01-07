@@ -12,6 +12,7 @@ import os
 import numpy as np
 import pygemmes as pgm
 
+
 import matplotlib.pyplot as plt
 from pygemmes._plots import _plot_timetraces
 
@@ -57,3 +58,10 @@ hub.CalculateStatSensitivity()
 #dax = hub.plot(color='k', lw=0.1)
 
 dax = _plot_timetraces.plot_timetraces(hub, SENSITIVITY=True)
+
+
+hub = pgm.Hub('Noise')
+hub.set_dparam(key='sigmanoise', value=np.linspace(.1, .1, 50))
+hub.run()
+hub.CalculateStatSensitivity()
+hub.plot(SENSITIVITY=True)

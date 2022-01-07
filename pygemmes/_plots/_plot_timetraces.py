@@ -303,10 +303,9 @@ def plot_timetraces(
             dax[k0].plot(time, V['max'], c='r', lw=0.4, label='maxmin')
             dax[k0].plot(time, V['min'], c='r', lw=0.4)
 
-            for j in np.arange(0.5, 5, 0.2):
-
+            for j in np.arange(0, 6, 1):
                 dax[k0].fill_between(time, V['mean'] - j * V['stdv'],
-                                     V['mean'] + j * V['stdv'], alpha=0.02, color='blue')
+                                     V['mean'] + j * V['stdv'], alpha=0.1, color='blue')
             dax[k0].fill_between(time, V['mean'],
                                  V['mean'], alpha=0.5, color='blue', label='$\mu \pm 5 \sigma$')
 

@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-ABSTRACT: This is a 3 sector model : bank, household, and production.
-* Everything is stock-flow consistent, but capital is not created by real products
-* The model is driven by offer
-* Negociation by philips is impacted by the profit
-* Loans from banks are limited by solvability
-TYPICAL BEHAVIOR : convergent oscillation around a solow point / debt crisis
+ABSTRACT :
+    It is just as extremely simple model with stochastic noise to show that we can do that as all
+    posh people do. The equation solved here is y'=y*noise, with noise being a gaussian noise.
 
-LINKTOARTICLE : Goodwin, Richard, 1967. ‘A growth cycle’, in:
-    Carl Feinstein, editor, Socialism, capitalism
-    and economic growth. Cambridge, UK: Cambridge University Press.
+    YES YOU ARE DOING FANCY FINANCE, NOW ASK FOR A LOT OF MONEY FOR SENSELESS SIMULATIOOOOOONS
 
-Created on Wed Jul 21 15:11:15 2021
+
+Created on Sun 32/12 23:59:59 2021
 
 @author: Paul Valcke
 """
@@ -32,9 +28,9 @@ import numpy as np
 
 _LOGICS = {
     'ode': {
-        'lambda': {
+        'y': {
             'func': lambda itself=0: itself * np.random.normal(0, scale=0.1),
-            'com': 'reduced 3variables dynamical expression'
+            'com': 'exponential noise !'
         },
     },
     'statevar': {
