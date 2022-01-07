@@ -31,7 +31,6 @@ else:
     _PATH_MODELS = os.path.join(os.path.dirname(_PATH_HERE), '_models')
 
 
-
 _INCLUDE_NAME = ['model', 'preset', 'solver', 'name', 'user', 'date']
 
 
