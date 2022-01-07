@@ -559,7 +559,7 @@ class Hub():
 
         # print(self.get_dparam(returnas=dict, eqtype=leq).items())
         for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
-            # print(var, np.shape(dic1['value']))
+            print(var, np.shape(dic1['value']))
             if ref is None:
                 self.FillCycles(var, var)
             else:
