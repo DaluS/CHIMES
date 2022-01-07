@@ -111,9 +111,9 @@ class Hub():
 
             >>> import pygemmes as pgm
 
-            # Set the dict of param from scratch
+            # Set the dict of param from scratch (no model set)
             >>> hub = pgm.Hub()
-            >>> dparam = {'a': 0, 'b': 1}
+            >>> dparam = {'alpha': 0, 'beta': 1}
             >>> hub.set_dparam(dparam=dparam)
 
             # The following are 2 equivalent ways of loading a model + preset
@@ -125,7 +125,7 @@ class Hub():
             # The following 2 syntaxes are equivalent to set a single parameter
             >>> hub = pgm.Hub('GK-Reduced')
             >>> hub.set_dparam(key='alpha', value=0)    # syntax 1
-            >>> hub.set_dparam(alpha=0)                 # syntax 2
+            >>> hub.set_dparam(alpha=0.1)                 # syntax 2
 
             # The following syntax allows to change several existing parameters
             >>> hub = pgm.Hub('GK-Reduced')
