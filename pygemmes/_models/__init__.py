@@ -11,8 +11,13 @@ from ._def_fields import _DFIELDS, _LIBRARY, _complete_DFIELDS
 _PATH_HERE = os.path.dirname(__file__)
 _PATH_USER_HOME = os.path.expanduser('~')
 _PATH_PRIVATE_MODELS = os.path.join(_PATH_USER_HOME, '.pygemmes', '_models')
-if not os.path.isdir(_PATH_PRIVATE_MODELS):
-    _PATH_PRIVATE_MODELS = None
+
+
+# if private pygemmes exists => load models from there
+if os.path.isdir(_PATH_PRIVATE_MODELS):
+    _PATH_MODELS = _PATH_PRIVATE_MODELS
+else:
+    _PATH_MODELS = _PATH_HERE
 
 
 # ####################################################
@@ -21,23 +26,16 @@ if not os.path.isdir(_PATH_PRIVATE_MODELS):
 # ####################################################
 
 
-# if private pygemmes exists => load models from there
-if _PATH_PRIVATE_MODELS is None:
-    _path_models = _PATH_HERE
-else:
-    _path_models = _PATH_PRIVATE_MODELS
-
-
 _df = {
     ff[:-3]: ff[len('_model_'):ff.index('.py')]
-    for ff in os.listdir(_path_models)
+    for ff in os.listdir(_PATH_MODELS)
     if ff.startswith('_model_') and ff.endswith('.py')
 }
 
 
 _DMODEL = {}
 for k0, v0 in _df.items():
-    pfe = os.path.join(_path_models, k0 + '.py')
+    pfe = os.path.join(_PATH_MODELS, k0 + '.py')
     spec = importlib.util.spec_from_file_location(k0, pfe)
     foo = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(foo)
@@ -138,7 +136,7 @@ def get_available_models(
                 for k0, v0 in dmod.items()
             ]
             msg = (
-                f"The following models are available from '{_path_models}'\n"
+                f"The following models are available from '{_PATH_MODELS}'\n"
                 + "\n".join(lstr)
             )
 
