@@ -314,77 +314,98 @@ def GenerateCoupledSensitivity(InputDic, dictpreset={}, N=10, grid=False):
     return dictpreset
 
 
-def showVariableGraph(model, prog='neato'):
+def generate_html_network_logics(_MODEL, screensize=1080, custom=False, smoothtype='dynamic'):
     '''
-    Plot a graph of all variable dependencies
 
-    neato
-    dot
-    twopi
-    circo
-    fdp
-    nop
 
     Parameters
     ----------
-    model : TYPE
+    _MODEL : TYPE
         DESCRIPTION.
+    screensize : TYPE, optional
+        DESCRIPTION. The default is 1080.
+    custom : TYPE, optional
+        DESCRIPTION. The default is False.
+    smoothtype :    Possible options: 'dynamic', 'continuous',
+                    'discrete', 'diagonalCross', 'straightCross',
+                    'horizontal', 'vertical', 'curvedCW',
+                    'curvedCCW', 'cubicBezier'.
+                    When using dynamic, the edges will have an
+                    invisible support node guiding the shape.
+                    This node is part of the physics simulation.
+                    Default is set to continous.
 
     Returns
     -------
     None.
 
     '''
-    import networkx as nx
-    import pygraphviz
-
-    hub = Hub(model, verb=False)
+    from pyvis.network import Network
+    hub = Hub(_MODEL, verb=False)
     R = hub.get_dparam(returnas=dict)
-    # %% GENERATING THE NETWORK ######
-    G = nx.DiGraph()
 
-    # Nodes from ODE
     ODENodes = hub.dfunc_order['ode']
+    ODENodes.remove('time')
     StatevarNodes = hub.dfunc_order['statevar']
-    listedgeODE = []
-    for k in ODENodes:
+
+    net = Network(directed=True, height=screensize, width=screensize,
+                  heading=_MODEL+' Logical network')
+
+    for key in ODENodes:
+        v = R[key]
+        Title = ''
+        Title += 'Units        :' + v['units'].replace('', 'Dimensionless')+'<br>'
+        Title += 'Equation     :'+f'd{key}/dt=' + v['source_exp'].replace(
+            'itself', key).replace('lamb', 'lambda')+'<br>'
+        Title += 'definition   :' + v['definition']+'<br>'
+        Title += 'Comment      :' + v['com']+'<br>'
+        Title += 'Dependencies :'+'<br>'
+        for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
+            v1 = hub.dparam[key2]
+            Title += '    '+key2 + (8-len(key2))*' ' + \
+                v1['units']+(8-len(v1['units']))*' '+v1['definition']+'<br>'
+
+        net.add_node(key,
+                     label=key,  # R[key]['symbol'],
+                     color=['#3da831'],
+                     title=Title.replace(' ', '&nbsp;'),
+                     group='ODE',
+                     level=1,
+                     shape='ellipse')
+
+    for key in StatevarNodes:
+
+        v = R[key]
+        Title = ''
+        Title += 'Units        :' + v['units']+'<br>'
+        Title += 'Equation     :'+f'{key}=' + v['source_exp'].replace(
+            'itself', key).replace('lamb', 'lambda')+'<br>'
+        Title += 'definition   :' + v['definition']+'<br>'
+        Title += 'Comment      :' + v['com']+'<br>'
+        Title += 'Dependencies :'+'<br>'
+        for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
+            v1 = hub.dparam[key2]
+            Title += '    '+key2 + (8-len(key2))*' ' + \
+                v1['units']+(8-len(v1['units']))*' '+v1['definition']+'<br>'
+
+        net.add_node(key,
+                     label=key,  # R[key]['symbol'],
+                     color=['#3da831'],
+                     title=Title.replace(' ', '&nbsp;'),
+                     group='STATEVAR',
+                     level=2,
+                     shape='ellipse')
+
+    for k in ODENodes+StatevarNodes:
         v = R[k]
-        G.add_node(R[k]['symbol'], color='red')
         for k2 in [k3 for k3 in v['kargs'] if k3 in ODENodes+StatevarNodes]:
-            # listedgeODE.append([k2, k])
-            G.add_edge(R[k2]['symbol'], R[k]['symbol'], color='k', weight=1)
-    # G.add_edges_from(listedgeODE)
+            net.add_edge(k2, k)
 
-    listedgeStatevar = []
-    for k in StatevarNodes:
-        v = R[k]
-        # print(k)
-        G.add_node(R[k]['symbol'], color='gray')
-        for k2 in [k3 for k3 in v['kargs'] if k3 in ODENodes+StatevarNodes]:
-            G.add_edge(R[k2]['symbol'], R[k]['symbol'],
-                       color='k', weight=1, label='Test')
+    net.set_edge_smooth('dynamic')
 
-    edges = G.edges()
-    colors = [G[u][v]['color'] for u, v in edges]
-    weights = [G[u][v]['weight'] for u, v in edges]
-    colorsN = [node[1]['color'] for node in G.nodes(data=True)]
+    net.repulsion(node_distance=100, spring_length=200)
+    if custom:
+        net.show_buttons(filter_=False)
 
-    #pos = nx.nx_agraph.graphviz_layout(G)
-    #pos = nx.shell_layout(G)
-    #pos = nx.spring_layout(G, scale=500)
-
-    from networkx.drawing.nx_pydot import graphviz_layout
-
-    pos = graphviz_layout(G, prog=prog)
-
-    plt.figure(model)
-    nx.draw(G, pos,
-            with_labels=True,
-            font_weight='bold',
-            edge_color=colors,
-            width=weights,
-            node_size=1000,
-            node_color=colorsN,
-            font_size=15,
-            arrowstyle='Fancy',)
-    plt.show()
+    # net.prep_notebook()
+    net.show('doc\\network\\'+_MODEL+'edges.html')
