@@ -75,34 +75,20 @@ class Hub():
         # ------------
         # update from preset if relevant
         if preset is not None:
-            self.load_preset(preset, dpresets=dpresets, verb=verb)
+            self.set_dparam(preset=preset, dpresets=dpresets, verb=verb)
         else:
             self.reset()
-
-    def load_preset(self, preset=None, grid=None, dpresets=None, verb=None):
-        """ For the current model, load desired preset """
-        (
-            self.__dparam,
-            self.__dmisc['dmulti'],
-            self.__dmisc['dfunc_order'],
-            self.__dargs,
-        ) = _class_checks.update_from_preset(
-            dparam=self.__dparam,
-            dmodel=self.__dmodel,
-            dmulti=self.__dmisc['dmulti'],
-            preset=preset,
-            dpresets=dpresets,
-            verb=verb,
-        )
-        self.reset()
 
     def set_dparam(
         self,
         dparam=None,
+        preset=None,
+        dpresets=None,
         key=None,
         value=None,
         grid=None,
         verb=None,
+        **kwdargs,
     ):
         """ Set the dict of input parameters (dparam) or a single param
 
@@ -112,8 +98,39 @@ class Hub():
 
         You can provide:
             - dparam as a dict
-            - dparam as a str refering to an existing pre-defined model
-            - only a key, value pair to change the value of a single parameter
+                => will re-initialize the parameters
+            - preset as a str refering to an existing preset
+                => will re-initialize the parameters
+            - only a (key, value) pair to change an single existing parameter
+                => will change a single existing parameter value
+            - a dict of existing parameters, provided with the **kwdargs syntax
+                => will change all desired existing parameter values
+
+        Typical usage
+        -------------
+
+            >>> import pygemmes as pgm
+
+            # Set the dict of param from scratch (no model set)
+            >>> hub = pgm.Hub()
+            >>> dparam = {'alpha': 0, 'beta': 1}
+            >>> hub.set_dparam(dparam=dparam)
+
+            # The following are 2 equivalent ways of loading a model + preset
+            >>> hub = pgm.Hub('GK-Reduced', preset='default')
+
+            >>> hub = pgm.Hub('GK-Reduced')
+            >>> hub.set_dparam(preset='default')
+
+            # The following 2 syntaxes are equivalent to set a single parameter
+            >>> hub = pgm.Hub('GK-Reduced')
+            >>> hub.set_dparam(key='alpha', value=0)    # syntax 1
+            >>> hub.set_dparam(alpha=0.1)                 # syntax 2
+
+            # The following syntax allows to change several existing parameters
+            >>> hub = pgm.Hub('GK-Reduced')
+            >>> dparam_changes = {'alpha': 0., 'delta': 0.}
+            >>> hub.set_dparam(**dparam_changes)
 
         """
 
@@ -121,22 +138,30 @@ class Hub():
         # check input
 
         if grid is None:
-            grid = self.__dmisc['dmulti'].get('grid')
+            if self.__dmisc.get('dmulti') is None:
+                grid = False
+            else:
+                grid = self.__dmisc['dmulti'].get('grid')
 
         # Check input: dparam xor (key, value)
         lc = [
             dparam is not None,
+            preset is not None,
             key is not None and value is not None,
+            len(kwdargs) > 0,
         ]
         if np.sum(lc) != 1:
             lstr = [
                 '\t- {}: {}'.format(kk, vv)
                 for kk, vv in [
-                    ('dparam', dparam), ('key', key), ('value', value)
+                    ('dparam', dparam),
+                    ('preset', preset),
+                    ('key', key), ('value', value),
+                    ('kwdargs', kwdargs),
                 ]
             ]
             msg = (
-                "Please provide dparam xor (key, value)!\n"
+                "Provide dparam xor preset xor (key, value) xor kwdargs!\n"
                 "You provided:\n"
                 + "\n".join(lstr)
             )
@@ -145,30 +170,58 @@ class Hub():
         # ----------------
         # set dparam or update desired key
 
-        if dparam is None:
-            _class_checks._set_key_value(
+        if preset is not None:
+            (
+                self.__dparam,
+                self.__dmisc['dmulti'],
+                self.__dmisc['dfunc_order'],
+                self.__dargs,
+            ) = _class_checks.update_from_preset(
                 dparam=self.__dparam,
-                key=key,
-                value=value,
-                grid=grid,
+                dmodel=self.__dmodel,
+                dmulti=self.__dmisc['dmulti'],
+                preset=preset,
+                dpresets=dpresets,
+                verb=verb,
             )
-            dparam = self.__dparam
+        else:
 
-        # ----------------
-        # Update to check consistency
+            if key is not None:
+                _class_checks._set_key_value(
+                    dparam=self.__dparam,
+                    key=key,
+                    value=value,
+                    grid=grid,
+                )
+                dparam = self.__dparam
 
-        (
-            self.__dparam,
-            self.__dmisc['dmulti'],
-            self.__dmisc['dfunc_order'],
-            self.__dargs,
-        ) = _class_checks.check_dparam(
-            dparam=dparam,
-            dmulti=self.__dmisc['dmulti'],
-            verb=verb,
-        )
+            elif len(kwdargs) > 0:
+                for kk, vv in kwdargs.items():
+                    if not isinstance(vv, dict):
+                        vv = {'value': vv, 'grid': False}
+                    _class_checks._set_key_value(
+                        dparam=self.__dparam,
+                        key=kk,
+                        value=vv['value'],
+                        grid=vv.get('grid'),
+                    )
+                dparam = self.__dparam
 
-        # reset all variables
+            # ----------------
+            # Update to check consistency
+
+            (
+                self.__dparam,
+                self.__dmisc['dmulti'],
+                self.__dmisc['dfunc_order'],
+                self.__dargs,
+            ) = _class_checks.check_dparam(
+                dparam=dparam,
+                dmulti=self.__dmisc['dmulti'],
+                verb=verb,
+            )
+
+        # reset all variables (keep only the first time step)
         self.reset()
 
     def get_dparam(self, condition=None, verb=None, returnas=None, **kwdargs):
@@ -413,7 +466,7 @@ class Hub():
 
         idx = _class_checks._check_idx(
             idx=idx,
-            nt=self.__dparam['nt']['value'],
+            nt=self.__dparam.get('nt', {'value': np.nan})['value'],
             dmulti=self.__dmisc['dmulti'],
         )
         # ----------

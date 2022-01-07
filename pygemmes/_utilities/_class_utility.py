@@ -454,6 +454,7 @@ def _get_summary_parameters(hub, idx=None):
 
     large = (
         idx is None
+        and hub.dmisc['dmulti'] is not None
         and np.any(np.array(hub.dmisc['dmulti']['shape']) > 3)
     )
 
@@ -544,7 +545,10 @@ def _get_summary_functions(hub, idx=None):
     # ----------------
     # preliminary criterion
 
-    shape = hub.dmisc['dmulti']['shape']
+    if hub.dmisc['dmulti'] is None:
+        shape = (1,)
+    else:
+        shape = hub.dmisc['dmulti']['shape']
     large = (
         idx is None
         and (
