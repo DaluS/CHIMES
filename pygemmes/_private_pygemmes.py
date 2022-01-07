@@ -99,4 +99,12 @@ def create_private_pygemmes(
             os.path.join(path_source, ff),
             os.path.join(path_target, ff),
         )
+
+    # ------------------------------------------
+    # Populate private folder with output folder
+
+    path_target = os.path.join(path_private_pgm, 'output')
+    if not os.path.isdir(path_target):
+        os.mkdir(path_target)
+
     return
