@@ -160,3 +160,55 @@ def get_available_articles(
         return msg
 
 
+# #############################################################################
+# #############################################################################
+#                   Core reproducing routine
+# #############################################################################
+
+
+def reproduce_article(
+    # key of the article to reproduce
+    article=None,
+    # list of figures to reproduce
+    fig=None,
+    # parameters
+    darticles=_DARTICLES,
+    solver=None,
+    verb=None,
+    # save output to... (False to not save)
+    save_path=None,
+):
+
+    # ------------
+    # check inputs
+
+    if article not in darticles.keys():
+        msg = (
+            "Arg article must be an available article for reproduction!\n"
+            f"Provided: {article}"
+        )
+        get_available_articles(verb=True, returnas=False)
+        raise Exception(msg)
+
+    # ------------
+    # check inputs
+
+    if fig in None:
+        fig = darticle['fig']
+    fig_out = [ff for ff in fig if ff not in dfig.keys()]
+    if len(fig_out) > 0:
+        msg = f"The follonwing figure keys are not reckognized: {fig_out}"
+        warnings.warn(msg)
+        fig = [ff for ff in fig if ff not in fig_out]
+
+    if solver is None:
+        solver = 'eRK4-scipy'
+
+    if save_path is None:
+        save_path = os.path.abspath('./')
+    if not (save_path is False or os.path.isdir(save_path)):
+        msg = (
+            "Arg save_path must be either:\n"
+            "\t- False: no saving\n"
+        )
+
