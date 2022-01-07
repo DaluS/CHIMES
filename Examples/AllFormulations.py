@@ -75,14 +75,14 @@ set_dparam(
 '''
 
 
-hub.set_dparam({'Tmax': 20,
+hub.set_dparam(**{'Tmax': 20,
                 'dt': 0.005,
                 'lambda': np.linspace(.5, .99, 20),
                 'omega': {'value': np.linspace(.5, .99, 20), 'grid': True},
                 'd': {'value': np.linspace(10, 20, 11), 'grid': True},
                 },)
 
-# hub.load_preset('crisis')
+# hub.set_dparam(preset='crisis')
 
 
 # %% SOLVER ##################################################################
@@ -198,7 +198,7 @@ for _MODEL in dmodels.keys():
             hub = pgm.Hub(_MODEL)  # , preset=preset, verb=False)
             # hub = pgm.Hub(_MODEL, preset='BasinOfAttraction', dpresets=_DPRESETS)
             # hub.set_dparam(key='alpha', value=10)
-            # hub.load_preset('crisis')
+            # hub.set_dparam(preset='crisis')
             hub.run(verb=0, solver=_SOLVER)
             # hub.plot()
 

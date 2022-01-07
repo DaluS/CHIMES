@@ -51,7 +51,7 @@ for preset in dmodels[_MODEL]['presets']:
     hub = pgm.Hub(_MODEL, preset=preset)
     # hub = pgm.Hub(_MODEL, preset='BasinOfAttraction', dpresets=_DPRESETS)
     # hub.set_dparam(key='alpha', value=10)
-    # hub.load_preset('crisis')
+    # hub.set_dparam('crisis')
     hub.run(verb=1.1, solver=_SOLVER)
     hub.plot()
     #plots.phasespace(hub, x='theta', y='thetap', color='time', idx=1)
