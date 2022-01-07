@@ -50,6 +50,8 @@ hub = pgm.Hub(_MODEL, preset='SensitivityCoupled', dpresets=_DPRESETS)
 hub.run(verb=1.1)
 
 
+hub.reinterpolate_dparam(1000)
+
 hub.CalculateStatSensitivity()
 
 #dax = hub.plot(color='k', lw=0.1)

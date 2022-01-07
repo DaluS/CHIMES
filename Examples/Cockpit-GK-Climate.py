@@ -36,8 +36,8 @@ Each solver will have a different behavior. Here is an example of all solvers on
 '''
 
 print(150*'#')
-pgm.comparesolver_Lorenz(dt=0.01, Npoints=1000)
-pgm.plot_one_run_all_solvers('LorenzSystem', preset='Canonical example')
+pgm.comparesolver_Lorenz(dt=0.01)
+pgm.plot_one_run_all_solvers('LorenzSystem', preset='Canonical')
 pgm.plot_one_run_all_solvers('GK')
 #pgm.testConvergence_DampOsc([1, 0.1, 0.01, 0.001], solver='eRK4-homemade')
 
@@ -79,7 +79,7 @@ hub = pgm.Hub('GK')
 
 # Logics and model description
 hub.dmodel
-hub.equations_description()
+hub.get_equations_description()
 pgm.showVariableGraph('GK')
 hub.dmisc
 hub.get_summary()
