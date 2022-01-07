@@ -875,6 +875,7 @@ class Hub():
         for key in self.__dmisc['dfunc_order']['ode']:
             v = self.dparam[key]
             print('### ', key, ' ###########')
+            print('Units        :', v['units'])
             print('Equation     :', f'd{key}/dt=', v['source_exp'].replace(
                 'itself', key).replace('lamb', 'lambda'))
             print('definition   :', v['definition'])
@@ -884,12 +885,13 @@ class Hub():
             for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
                 v1 = self.dparam[key2]
                 print('    ', key2, (8-len(key2))*' ',
-                      v1['units'], v1['definition'])
+                      v1['units'], (8-len(v1['units']))*' ', v1['definition'])
             print(' ')
         print('######### STATE VARIABLES EQUATIONS ###########')
         for key in self.__dmisc['dfunc_order']['statevar']:
             v = self.dparam[key]
             print('### ', key, ' ###########')
+            print('Units        :', v['units'])
             print('Equation     :', f'{key}=', v['source_exp'].replace(
                 'itself', key).replace('lamb', 'lambda'))
             print('definition   :', v['definition'])
@@ -898,6 +900,6 @@ class Hub():
             for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
                 v1 = self.dparam[key2]
                 print('    ', key2, (8-len(key2))*' ',
-                      v1['units'], v1['definition'])
+                      v1['units'], (8-len(v1['units']))*' ', v1['definition'])
             print(' ')
             print(' ')

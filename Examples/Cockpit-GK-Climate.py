@@ -72,24 +72,43 @@ for preset in lpreset:
     hub.run()
     dax = hub.plot(dax=dax, label=preset)
 
-# A simple economy : A Goodwin-Keen system
+# An in-depth example : A Goodwin-Keen system
+hub = pgm.Hub('GK')
 
 # Extensive Goodwin-keen system
 
-# Logics
+# Logics and model description
+hub.dmodel
+hub.equations_description()
+pgm.showVariableGraph('GK')
+hub.dmisc
+hub.get_summary()
 
 
-pgm.GenerateIndividualSensitivity()
-pgm.GenerateCoupledSensitivity()
+# Often less useful
+hub.dparam
+hub.dargs
+hub.dfunc_order
 
 
 # Run straight from the library
 
 # Run a preset
+hub.dmodel['preset']
 
 # Writing your own preset
+hub.set_dparam
+
 
 # Looking at sensitivity in parameters or initial conditions
+pgm.GenerateIndividualSensitivity()
+pgm.GenerateCoupledSensitivity()
+
+# Accessing data
+hub.get_variables_compact
+hub.run()
+hub.reinterpolate_dparam()
+hub.plot()
 
 # One-field sensitivity
 
@@ -101,7 +120,7 @@ pgm.GenerateCoupledSensitivity()
 pgm.create_preset_from_model_preset(targetmodel, outputmodel)
 
 # Frequency analysis of trajectories
-
+hub.findCycles
 ###
 
 # Loading-saving
