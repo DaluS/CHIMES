@@ -10,5 +10,5 @@ from ._global_func import *
 from ._private_pygemmes import create_private_pygemmes
 
 
-# run private pygemmes creation
-create_private_pygemmes()
+# run private pygemmes creation, be conservative
+create_private_pygemmes(reset=False, reset_hard=False)
