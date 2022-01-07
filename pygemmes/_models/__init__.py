@@ -15,7 +15,6 @@ if not os.path.isdir(_PATH_PRIVATE_MODELS):
     _PATH_PRIVATE_MODELS = None
 
 
-
 # ####################################################
 # ####################################################
 #       Automatically load all available models
