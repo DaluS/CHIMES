@@ -9,6 +9,15 @@ from ._def_fields import _DFIELDS, _LIBRARY, _complete_DFIELDS
 
 
 _PATH_HERE = os.path.dirname(__file__)
+_PATH_USER_HOME = os.path.expanduser('~')
+_PATH_PRIVATE_MODELS = os.path.join(_PATH_USER_HOME, '.pygemmes', '_models')
+
+
+# if private pygemmes exists => load models from there
+if os.path.isdir(_PATH_PRIVATE_MODELS):
+    _PATH_MODELS = _PATH_PRIVATE_MODELS
+else:
+    _PATH_MODELS = _PATH_HERE
 
 
 # ####################################################
@@ -16,16 +25,17 @@ _PATH_HERE = os.path.dirname(__file__)
 #       Automatically load all available models
 # ####################################################
 
+
 _df = {
     ff[:-3]: ff[len('_model_'):ff.index('.py')]
-    for ff in os.listdir(_PATH_HERE)
+    for ff in os.listdir(_PATH_MODELS)
     if ff.startswith('_model_') and ff.endswith('.py')
 }
 
 
 _DMODEL = {}
 for k0, v0 in _df.items():
-    pfe = os.path.join(_PATH_HERE, k0 + '.py')
+    pfe = os.path.join(_PATH_MODELS, k0 + '.py')
     spec = importlib.util.spec_from_file_location(k0, pfe)
     foo = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(foo)
@@ -37,6 +47,7 @@ for k0, v0 in _df.items():
         'presets': {k0: dict(v0) for k0, v0 in foo._PRESETS.items()},
         'name': v0,
     }
+
 
 # ####################################################
 # ####################################################
@@ -63,7 +74,7 @@ def get_available_models(
     if verb is None:
         verb = returnas is False
     if details is None:
-        details = returnas is False
+        details = False
 
     # -----------------
     # get available models
@@ -119,12 +130,13 @@ def get_available_models(
 
         else:
             # compact message
+            nmax = max(*[len(v0['name']) for v0 in dmod.values()])
             lstr = [
-                f"\t- {v0['name']}: {v0['presets']}"
+                f"\t- {v0['name'].ljust(nmax)}: {v0['presets']}"
                 for k0, v0 in dmod.items()
             ]
             msg = (
-                "The following predefined models are currently available:\n"
+                f"The following models are available from '{_PATH_MODELS}'\n"
                 + "\n".join(lstr)
             )
 

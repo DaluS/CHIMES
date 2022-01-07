@@ -84,13 +84,13 @@ for _MODEL in dmodels.keys():
 
 
 # CHANGING VALUES AND PRESETS ################################################
-hub.set_dparam({'Tmax': 20,
+hub.set_dparam(**{'Tmax': 20,
                 'dt': 0.005,
                 'lambda': np.linspace(.5, .99, 20),
                 'omega': {'value': np.linspace(.5, .99, 20), 'grid': True},
                 'd': {'value': np.linspace(10, 20, 11), 'grid': True},
                 },)
-# hub.load_preset('crisis')
+# hub.set_dparam(preset='crisis')
 
 hub.get_summary(idx=None)
 R = hub.get_dparam(returnas=dict)

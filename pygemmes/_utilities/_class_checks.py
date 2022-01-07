@@ -20,7 +20,15 @@ from .. import _models
 
 
 _PATH_HERE = os.path.dirname(__file__)
-_PATH_MODELS = os.path.join(os.path.dirname(_PATH_HERE), '_models')
+_PATH_USER_HOME = os.path.expanduser('~')
+_PATH_PRIVATE_MODELS = os.path.join(_PATH_USER_HOME, '.pygemmes', '_models')
+
+
+# if private pygemmes exists => load models from there
+if os.path.isdir(_PATH_PRIVATE_MODELS):
+    _PATH_MODELS = _PATH_PRIVATE_MODELS
+else:
+    _PATH_MODELS = os.path.join(os.path.dirname(_PATH_HERE), '_models')
 
 
 _LMODEL_ATTR = ['_LOGICS', 'presets']
