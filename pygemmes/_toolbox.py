@@ -354,7 +354,7 @@ def generate_html_network_logics(_MODEL, screensize=1080, custom=False, smoothty
     for key in ODENodes:
         v = R[key]
         Title = ''
-        Title += 'Units        :' + v['units'].replace('', 'Dimensionless')+'<br>'
+        Title += 'Units        :' + v['units']+'<br>'
         Title += 'Equation     :'+f'd{key}/dt=' + v['source_exp'].replace(
             'itself', key).replace('lamb', 'lambda')+'<br>'
         Title += 'definition   :' + v['definition']+'<br>'
