@@ -400,6 +400,8 @@ def generate_html_network_logics(_MODEL, screensize=1080, custom=False, smoothty
         v = R[k]
         for k2 in [k3 for k3 in v['kargs'] if k3 in ODENodes+StatevarNodes]:
             net.add_edge(k2, k)
+        if 'itself' in v['kargs']:
+            net.add_edge(k, k)
 
     net.set_edge_smooth('dynamic')
 
