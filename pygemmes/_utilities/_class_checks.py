@@ -119,7 +119,7 @@ def load_model(model=None, dmulti=None, verb=None, from_user=None):
     # -------------
     # check inputs
 
-    dmodels = _models._get_DMODEL(from_user=from_user)
+    dmodels = _models._get_DMODEL(from_user=from_user)[1]
 
     if model in dmodels.keys():
         # Get from known models

@@ -40,8 +40,30 @@ class Hub():
     # %% Setting / getting parameters
     # ##############################
 
-    def load_model(self, model=None, preset=None, dpresets=None, verb=None):
-        """ Load a model from a model file """
+    def load_model(
+        self,
+        model=None,
+        preset=None,
+        dpresets=None,
+        from_user=None,
+        verb=None,
+    ):
+        """ Load a model from a model file
+
+        model files are named _model_<model-name>.py
+
+        A number of pre-defined models are available from the library,
+            see pgm.get_available_models() to get a list
+
+        All pre-defined model files are copied into your $HOME/.pygemmes/
+            folder so you can:
+                - edit them to change some parameters
+                - create new model files that will be accessible to pygemmes
+
+        If you want to make sure you're using the default library's models and
+            not your (maybe edited) model files, just use 'from_user=False'
+
+        """
 
         # ------------
         # check model
@@ -69,6 +91,7 @@ class Hub():
         ) = _class_checks.load_model(
             model,
             dmulti=self.__dmisc['dmulti'],
+            from_user=from_user,
             verb=verb,
         )
 
