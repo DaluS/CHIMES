@@ -24,13 +24,6 @@ _PATH_USER_HOME = os.path.expanduser('~')
 _PATH_PRIVATE_MODELS = os.path.join(_PATH_USER_HOME, '.pygemmes', '_models')
 
 
-# if private pygemmes exists => load models from there
-if os.path.isdir(_PATH_PRIVATE_MODELS):
-    _PATH_MODELS = _PATH_PRIVATE_MODELS
-else:
-    _PATH_MODELS = os.path.join(os.path.dirname(_PATH_HERE), '_models')
-
-
 _LMODEL_ATTR = ['_LOGICS', 'presets']
 _DMODEL_KEYS = {
     'logics': dict,
@@ -112,22 +105,26 @@ def copy_func(func):
 # #############################################################################
 
 
-def load_model(model=None, dmulti=None, verb=None):
+def load_model(model=None, dmulti=None, verb=None, from_user=None):
     """ Load a model from a model file
 
     model can be:
-        - a model name, taken from directory {}
+        - a model name:
+            - from_user = False => loaded from the library
+            - from_user = True => loaded the user's personal .pygemmes folder
         - the absolute path to an abitrary model file
 
-    """.format(_PATH_MODELS)
+    """
 
     # -------------
     # check inputs
 
-    if model in _models._DMODEL.keys():
+    dmodels = _models._get_DMODEL(from_user=from_user)[1]
+
+    if model in dmodels.keys():
         # Get from known models
-        model_file = _models._DMODEL[model]['file']
-        dmodel = dict(_models._DMODEL[model])
+        model_file = dmodels[model]['file']
+        dmodel = dict(dmodels[model])
 
     elif os.path.isfile(model) and model.endswith('.py'):
         # get from arbitrary model file
@@ -174,7 +171,7 @@ def load_model(model=None, dmulti=None, verb=None):
         msg = (
             "Arg model must be either:\n"
             "\t- the absolute path to valid .py file\n"
-            f"\t- the valid name of an existing model in {_PATH_MODELS}\n"
+            f"\t- the name of an existing model (see get_available_models())\n"
             f"You provided:\n{model}"
         )
         raise Exception(msg)

@@ -22,7 +22,14 @@ class Hub():
     Generic class to stock every data and method for the user to interac with
     """
 
-    def __init__(self, model=None, preset=None, dpresets=None, verb=None):
+    def __init__(
+        self,
+        model=None,
+        from_user=None,
+        preset=None,
+        dpresets=None,
+        verb=None,
+    ):
 
         # Initialize the models
         self.__dparam = {}
@@ -34,19 +41,42 @@ class Hub():
         )
         self.__dargs = {}
         if model is not None:
-            self.load_model(model, preset=preset, dpresets=dpresets, verb=verb)
-        self.__dmisc['parameters'] = self.get_dparam(
-            returnas=list,
-            eqtype=[None],
-            group=('Numerical',),
-        )
+            self.load_model(
+                model,
+                from_user=from_user,
+                preset=preset,
+                dpresets=dpresets,
+                verb=verb,
+            )
 
     # ##############################
     # %% Setting / getting parameters
     # ##############################
 
-    def load_model(self, model=None, preset=None, dpresets=None, verb=None):
-        """ Load a model from a model file """
+    def load_model(
+        self,
+        model=None,
+        preset=None,
+        dpresets=None,
+        from_user=None,
+        verb=None,
+    ):
+        """ Load a model from a model file
+
+        model files are named _model_<model-name>.py
+
+        A number of pre-defined models are available from the library,
+            see pgm.get_available_models() to get a list
+
+        All pre-defined model files are copied into your $HOME/.pygemmes/
+            folder so you can:
+                - edit them to change some parameters
+                - create new model files that will be accessible to pygemmes
+
+        If you want to make sure you're using the default library's models and
+            not your (maybe edited) model files, just use 'from_user=False'
+
+        """
 
         # ------------
         # check model
@@ -74,6 +104,7 @@ class Hub():
         ) = _class_checks.load_model(
             model,
             dmulti=self.__dmisc['dmulti'],
+            from_user=from_user,
             verb=verb,
         )
 
@@ -321,44 +352,6 @@ class Hub():
         if returnas is dict:
             return dout
 
-    def get_equations_description(self):
-        '''
-        Gives a full description of the model and its equations
-        '''
-
-        print('############# DIFFERENTIAL EQUATIONS ###########')
-        for key in self.__dmisc['dfunc_order']['ode']:
-            v = self.dparam[key]
-            print('### ', key, ' ###########')
-            print('Units        :', v['units'])
-            print('Equation     :', f'd{key}/dt=', v['source_exp'].replace(
-                'itself', key).replace('lamb', 'lambda'))
-            print('definition   :', v['definition'])
-            print('units        :', v['units'])
-            print('Comment      :', v['com'])
-            print('Dependencies :')
-            for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
-                v1 = self.dparam[key2]
-                print('    ', key2, (8-len(key2))*' ',
-                      v1['units'], (8-len(v1['units']))*' ', v1['definition'])
-            print(' ')
-        print('######### STATE VARIABLES EQUATIONS ###########')
-        for key in self.__dmisc['dfunc_order']['statevar']:
-            v = self.dparam[key]
-            print('### ', key, ' ###########')
-            print('Units        :', v['units'])
-            print('Equation     :', f'{key}=', v['source_exp'].replace(
-                'itself', key).replace('lamb', 'lambda'))
-            print('definition   :', v['definition'])
-            print('Comment      :', v['com'])
-            print('Dependencies :')
-            for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
-                v1 = self.dparam[key2]
-                print('    ', key2, (8-len(key2))*' ',
-                      v1['units'], (8-len(v1['units']))*' ', v1['definition'])
-            print(' ')
-            print(' ')
-
     # ##############################
     # %% Read-only properties
     # ##############################
@@ -598,56 +591,6 @@ class Hub():
         except Exception as err:
             self.__dmisc['run'] = False
             raise err
-
-    def reinterpolate_dparam(self, Npoints=100):
-        """
-        If the system has run, takes dparam and reinterpolate all values.
-        Typical use is to have lighter plots
-        DO NOT WORK WELL WITH GRID
-        NEED A RESET BEFORE A RUN TO REALLOCATE SPACE
-        Parameters
-        ----------
-        Npoints : TYPE, optional
-            DESCRIPTION. The default is 100.
-        """
-
-        P = self.__dparam
-        t = P['time']['value']
-        for k in self.__dmisc['dfunc_order']['statevar']+self.__dmisc['dfunc_order']['ode']:
-            v = P[k]['value']
-
-            newval = np.zeros([Npoints]+list(self.__dmisc['dmulti']['shape']))
-            newt = np.linspace(t[0], t[-1], Npoints)
-
-            for i in range(np.shape(newval)[1]):
-                newval[:, i] = np.interp(newt[:, i], t[:, i], v[:, i])
-            self.__dparam[k]['value'] = newval
-
-    # ##############################
-    #       Multiple run stats
-    # ##############################
-
-    def CalculateStatSensitivity(self):
-        '''
-        When there are multiple run in parrallel, will associate to each variable
-        a dict 'sensibility' in dparam, with statistical measures
-        Do not use with grid=True
-        '''
-        R = self.__dparam
-        keys = [k for k in R.keys() if R[k].get('eqtype', 'param') != 'param']
-
-        for ke in keys:
-            R[ke]['sensitivity'] = {}
-
-            val = R[ke]['value']
-
-            V = R[ke]['sensitivity']
-            V['mean'] = np.mean(val, axis=1)
-            V['stdv'] = np.std(val, axis=1)
-            V['min'] = np.amin(val, axis=1)
-            V['max'] = np.amax(val, axis=1)
-            V['median'] = np.median(val, axis=1)
-        self.__dmisc['sensitivity'] = True
 
     # ##############################
     #       Deep analysis methods

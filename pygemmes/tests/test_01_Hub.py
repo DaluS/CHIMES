@@ -192,7 +192,7 @@ class Test01_Hub():
             returnas=dict,
         )
         for ii, (ff, vv) in enumerate(df.items()):
-            model0 = vv['model']  # .replace('-', '_')
+            model0 = vv['model']
             preset0 = vv['preset']
             solver0 = vv['solver']
             if ii % 2 == 0:
