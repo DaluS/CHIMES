@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 plt.ion()
 
 
+_PATH_HERE = os.path.dirname(__file__)
 _PATH_PCK = os.path.dirname(os.path.dirname(_PATH_HERE))
 
 
