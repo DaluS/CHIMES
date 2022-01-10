@@ -61,6 +61,7 @@ def _get_DMODEL(from_user=None):
         }
     return path_models, _DMODEL
 
+
 # ####################################################
 # ####################################################
 # Generic function to get the list of available models
