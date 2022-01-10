@@ -242,7 +242,6 @@ def reproduce_article(
             if ff not in fig:
                 continue
 
-
             dax = darticles[article]['dfigures'][ff]['func'](hub)
 
             # optinal saving
