@@ -22,7 +22,14 @@ class Hub():
     Generic class to stock every data and method for the user to interac with
     """
 
-    def __init__(self, model=None, preset=None, dpresets=None, verb=None):
+    def __init__(
+        self,
+        model=None,
+        from_user=None,
+        preset=None,
+        dpresets=None,
+        verb=None,
+    ):
 
         # Initialize the models
         self.__dparam = {}
@@ -34,7 +41,13 @@ class Hub():
         )
         self.__dargs = {}
         if model is not None:
-            self.load_model(model, preset=preset, dpresets=dpresets, verb=verb)
+            self.load_model(
+                model,
+                from_user=from_user,
+                preset=preset,
+                dpresets=dpresets,
+                verb=verb,
+            )
 
     # ##############################
     # %% Setting / getting parameters
