@@ -89,9 +89,6 @@ def get_available_models(
         returnas = False
     if verb is None:
         verb = returnas is False
-    if details is None:
-        details = False
-
     # -----------------
     # get available models
 
@@ -105,6 +102,9 @@ def get_available_models(
         for k0, v0 in _DMODEL.items()
         if k0 in model
     }
+
+    if details is None:
+        details = len(dmod) == 1
 
     # -----------------
     # print
@@ -146,7 +146,7 @@ def get_available_models(
 
         else:
             # compact message
-            nmax = max(*[len(v0['name']) for v0 in dmod.values()])
+            nmax = max([len(v0['name']) for v0 in dmod.values()])
             lstr = [
                 f"\t- {v0['name'].ljust(nmax)}: {v0['presets']}"
                 for k0, v0 in dmod.items()
