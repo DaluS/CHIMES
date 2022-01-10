@@ -22,7 +22,14 @@ class Hub():
     Generic class to stock every data and method for the user to interac with
     """
 
-    def __init__(self, model=None, preset=None, dpresets=None, verb=None):
+    def __init__(
+        self,
+        model=None,
+        from_user=None,
+        preset=None,
+        dpresets=None,
+        verb=None,
+    ):
 
         # Initialize the models
         self.__dparam = {}
@@ -34,14 +41,42 @@ class Hub():
         )
         self.__dargs = {}
         if model is not None:
-            self.load_model(model, preset=preset, dpresets=dpresets, verb=verb)
+            self.load_model(
+                model,
+                from_user=from_user,
+                preset=preset,
+                dpresets=dpresets,
+                verb=verb,
+            )
 
     # ##############################
     # %% Setting / getting parameters
     # ##############################
 
-    def load_model(self, model=None, preset=None, dpresets=None, verb=None):
-        """ Load a model from a model file """
+    def load_model(
+        self,
+        model=None,
+        preset=None,
+        dpresets=None,
+        from_user=None,
+        verb=None,
+    ):
+        """ Load a model from a model file
+
+        model files are named _model_<model-name>.py
+
+        A number of pre-defined models are available from the library,
+            see pgm.get_available_models() to get a list
+
+        All pre-defined model files are copied into your $HOME/.pygemmes/
+            folder so you can:
+                - edit them to change some parameters
+                - create new model files that will be accessible to pygemmes
+
+        If you want to make sure you're using the default library's models and
+            not your (maybe edited) model files, just use 'from_user=False'
+
+        """
 
         # ------------
         # check model
@@ -69,6 +104,7 @@ class Hub():
         ) = _class_checks.load_model(
             model,
             dmulti=self.__dmisc['dmulti'],
+            from_user=from_user,
             verb=verb,
         )
 

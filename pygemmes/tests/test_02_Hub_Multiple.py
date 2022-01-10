@@ -26,10 +26,6 @@ _PATH_OUTPUT = os.path.join(_PATH_HERE, 'output_temp')
 _PATH_OUTPUT_REF = os.path.join(_PATH_HERE, 'output_ref')
 
 
-# unit tests => only official models, not private
-_PATH_MODELS = os.path.join(_PATH_PCK, 'pygemmes', '_models')
-
-
 # library-specific
 sys.path.insert(0, _PATH_PCK)   # ensure Main comes from .. => add PYTHONPATH
 import pygemmes as pgm

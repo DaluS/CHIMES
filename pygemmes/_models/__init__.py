@@ -11,13 +11,12 @@ from ._def_fields import _DFIELDS, _LIBRARY, _complete_DFIELDS
 _PATH_HERE = os.path.dirname(__file__)
 _PATH_USER_HOME = os.path.expanduser('~')
 _PATH_PRIVATE_MODELS = os.path.join(_PATH_USER_HOME, '.pygemmes', '_models')
+_PATH_MODELS = _PATH_HERE
 
 
 # if private pygemmes exists => load models from there
-if os.path.isdir(_PATH_PRIVATE_MODELS):
-    _PATH_MODELS = _PATH_PRIVATE_MODELS
-else:
-    _PATH_MODELS = _PATH_HERE
+if not os.path.isdir(_PATH_PRIVATE_MODELS):
+    _PATH_PRIVATE_MODELS = None
 
 
 # ####################################################
@@ -26,27 +25,40 @@ else:
 # ####################################################
 
 
-_df = {
-    ff[:-3]: ff[len('_model_'):ff.index('.py')]
-    for ff in os.listdir(_PATH_MODELS)
-    if ff.startswith('_model_') and ff.endswith('.py')
-}
+def _get_DMODEL(from_user=None):
 
+    if from_user is None:
+        from_user = True
 
-_DMODEL = {}
-for k0, v0 in _df.items():
-    pfe = os.path.join(_PATH_MODELS, k0 + '.py')
-    spec = importlib.util.spec_from_file_location(k0, pfe)
-    foo = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(foo)
-    _DMODEL[v0] = {
-        'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
-        # 'func_order': foo._FUNC_ORDER,
-        'file': foo.__file__,
-        'description': foo.__doc__,
-        'presets': {k0: dict(v0) for k0, v0 in foo._PRESETS.items()},
-        'name': v0,
+    # ------------
+    # path_model
+
+    if from_user is True and _PATH_PRIVATE_MODELS is not None:
+        path_models = _PATH_PRIVATE_MODELS
+    else:
+        path_models = _PATH_MODELS
+
+    _df = {
+        ff[:-3]: ff[len('_model_'):ff.index('.py')]
+        for ff in os.listdir(path_models)
+        if ff.startswith('_model_') and ff.endswith('.py')
     }
+
+    _DMODEL = {}
+    for k0, v0 in _df.items():
+        pfe = os.path.join(path_models, k0 + '.py')
+        spec = importlib.util.spec_from_file_location(k0, pfe)
+        foo = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(foo)
+        _DMODEL[v0] = {
+            'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
+            # 'func_order': foo._FUNC_ORDER,
+            'file': foo.__file__,
+            'description': foo.__doc__,
+            'presets': {k0: dict(v0) for k0, v0 in foo._PRESETS.items()},
+            'name': v0,
+        }
+    return path_models, _DMODEL
 
 
 # ####################################################
@@ -60,10 +72,13 @@ def get_available_models(
     details=None,
     returnas=None,
     verb=None,
+    from_user=None,
 ):
 
     # -----------------
     # check inputs
+
+    path_models, _DMODEL = _get_DMODEL(from_user=from_user)
 
     if model is None:
         model = sorted(_DMODEL.keys())
@@ -73,9 +88,6 @@ def get_available_models(
         returnas = False
     if verb is None:
         verb = returnas is False
-    if details is None:
-        details = False
-
     # -----------------
     # get available models
 
@@ -89,6 +101,9 @@ def get_available_models(
         for k0, v0 in _DMODEL.items()
         if k0 in model
     }
+
+    if details is None:
+        details = len(dmod) == 1
 
     # -----------------
     # print
@@ -130,13 +145,13 @@ def get_available_models(
 
         else:
             # compact message
-            nmax = max(*[len(v0['name']) for v0 in dmod.values()])
+            nmax = max([len(v0['name']) for v0 in dmod.values()])
             lstr = [
                 f"\t- {v0['name'].ljust(nmax)}: {v0['presets']}"
                 for k0, v0 in dmod.items()
             ]
             msg = (
-                f"The following models are available from '{_PATH_MODELS}'\n"
+                f"The following models are available from '{path_models}'\n"
                 + "\n".join(lstr)
             )
 
