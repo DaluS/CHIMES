@@ -175,6 +175,7 @@ def reproduce_article(
     darticles=_DARTICLES,
     verb=None,
     # save output to... (False to not save)
+    save=None,
     save_path=None,
     fmt=None,
 ):
@@ -201,13 +202,17 @@ def reproduce_article(
         warnings.warn(msg)
         fig = [ff for ff in fig if ff not in fig_out]
 
+    if save is None:
+        save = False
+    if not isinstance(save, bool):
+        msg = "Arg save must be a bool!"
+        raise Exception(msg)
+
     if save_path is None:
         save_path = os.path.abspath('./')
-    if not (save_path is False or os.path.isdir(save_path)):
+    if save is True and not os.path.isdir(save_path):
         msg = (
-            "Arg save_path must be either:\n"
-            "\t- False: no saving\n"
-            "\t- str: valid path for saving\n"
+            "Arg save_path must be a valid path for saving!\n"
             f"Provided: {save_path}"
         )
         raise Exception(msg)
@@ -241,7 +246,7 @@ def reproduce_article(
             dax = darticles[article]['dfigures'][ff]['func'](hub)
 
             # optinal saving
-            if save_path is not False:
+            if save is True:
                 name = f'Article_{article}_fig{ff}_reproduced'
                 pfe = os.path.join(save_path, name + f'.{fmt}')
                 figure = list(dax.values())[0].figure
