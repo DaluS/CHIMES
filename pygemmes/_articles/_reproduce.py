@@ -193,6 +193,8 @@ def reproduce_article(
     dfig = darticles[article]['dfigures']
     if fig is None:
         fig = sorted(dfig.keys())
+    if np.isscalar(fig):
+        fig = [int(fig)]
     fig_out = [ff for ff in fig if ff not in dfig.keys()]
     if len(fig_out) > 0:
         msg = f"The follonwing figure keys are not reckognized: {fig_out}"
