@@ -26,11 +26,6 @@ This file contains :
     __DOTHECHECK Flag to check or not the dictionnary
     __FILLDEFAULTVALUES Flag to fill the defaultfields
 """
-
-
-import warnings
-
-
 import numpy as np
 
 
@@ -70,13 +65,13 @@ __DEFAULTFIELDS = {
         'default': 'undefined',
         'type': str,
         'allowed': [
-            'Units',  #
+            'Units',  # Any physical quantity of something (capital, ressources...)
             'y',      # Time
             '$',      # Money
             'C',      # Carbon Concentration
             'Tc',     # Temperature (Celsius)
             'Humans',  # Population
-            '',
+            '',       # Dimensionless
         ],
     },
     'type': {
@@ -97,13 +92,6 @@ __DEFAULTFIELDS = {
         'default': '',
         'type': str,
         'allowed': None,
-        # 'Numerical',
-        # 'Population',
-        # 'Prices', 'Capital', 'Philips', 'Gemmes',
-        # 'Keen', 'Dividends', 'Economy', 'Production',
-        # 'Coupling',
-        # 'RelaxBuffer',
-        # 'Climate', 'Damage',
     },
 }
 
@@ -425,7 +413,7 @@ _LIBRARY = {
         },
         'k0': {
             'value': -0.0065,
-            'definition': 'share of GDP invested when profit is zero (expo)',
+            'definition': 'GDP share investedat zeroprofit (expo)',
             'units': '',
         },
         'k1': {
@@ -440,17 +428,17 @@ _LIBRARY = {
         },
         'kappalinSlope': {
             'value': 0.0318,
-            'definition': 'Investment slope in kappa (affine)',
+            'definition': 'Investment slope kappa (affine)',
             'units': '',
         },
         'kappalinConst': {
             'value': 0.575,
-            'definition': 'Investment without profit (affine)',
+            'definition': 'Investment no profit (affine)',
             'units': '',
         },
         'zsolv': {
             'value': 0.1,
-            'definition': 'nonlinearity on solvability in investment',
+            'definition': 'nonlinearity solvability investment',
             'com': '',
             'units': ''
         }
@@ -540,7 +528,7 @@ _LIBRARY = {
                    'units': 'y^{-1}',
                    'symbol': r'$\delta^h$', },
         'fC': {'value': 1,
-               'definition': 'Typical rate for consumption optimisation',
+               'definition': 'rate for consumption optimisation',
                'units': 'y^{-1}',
                'symbol': r'$f$', },
         'Omega0': {'value': 1,
@@ -564,7 +552,7 @@ _LIBRARY = {
         },
         'DK': {
             'value': 0,
-            'definition': "intermediary damage calculation capital",
+            'definition': "intermediary damage on capital",
             'units': '',
         },
         'Damage': {

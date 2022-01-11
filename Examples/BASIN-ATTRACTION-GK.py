@@ -50,7 +50,6 @@ dXYZ = R['d']['value']
 
 
 # FINDING THE LINES IN THE VALLEY OF STABILITY
-
 FrontierD = {}  # Dictionnary containing all the positions of the line
 for i in range(0, len(dvec)):
 

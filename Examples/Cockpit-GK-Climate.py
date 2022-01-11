@@ -36,10 +36,10 @@ Each solver will have a different behavior. Here is an example of all solvers on
 '''
 
 print(150*'#')
-pgm.comparesolver_Lorenz(dt=0.01, Npoints=1000)
+pgm.comparesolver_Lorenz(dt=0.01)
 pgm.plot_one_run_all_solvers('LorenzSystem', preset='Canonical example')
 pgm.plot_one_run_all_solvers('GK')
-#pgm.testConvergence_DampOsc([1, 0.1, 0.01, 0.001], solver='eRK4-homemade')
+pgm.testConvergence_DampOsc([1, 0.1, 0.01, 0.001], solver='eRK4-homemade')
 
 # Exploring the library
 pgm.get_dfields_overview()

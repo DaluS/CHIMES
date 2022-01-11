@@ -688,6 +688,7 @@ class Hub():
 
     def plot(
         self,
+        mode=False,
         # for forcing a color / label
         color=None,
         label=None,
@@ -721,6 +722,7 @@ class Hub():
 
         return _plot_timetraces.plot_timetraces(
             self,
+            mode=mode,
             # for forcing a color / label
             color=color,
             label=label,
@@ -738,7 +740,7 @@ class Hub():
             idx=idx,
             eqtype=eqtype,
             **kwdargs,
-            SENSITIVITY=False
+
         )
 
     # ##############################

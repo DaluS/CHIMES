@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.gridspec as gridspec
+from matplotlib.patches import Rectangle
 
 
 # default legend
@@ -194,6 +195,7 @@ def _plot_timetraces_check_dax(
 
 def plot_timetraces(
     hub,
+    mode=False,
     # for forcing a color / label
     color=None,
     label=None,
@@ -210,11 +212,12 @@ def plot_timetraces(
     # for selection of data
     idx=None,
     eqtype=None,
-    SENSITIVITY=False,
     **kwdargs,
 ):
     '''
     Plot all the variables in the system on a same figure
+
+    modes can be 'cycle','sensitivity'
 
     Parameters
     ----------
@@ -289,7 +292,7 @@ def plot_timetraces(
         if dax.get(k0) is None:
             continue
         # Add by Paul : Statistical indicators on multiple runs
-        if SENSITIVITY:
+        if mode == 'sensitivity':
             time = hub.dparam['time']['value'][:, 0]
             V = hub.dparam[k0]['sensitivity']
             # Plot all trajectory
@@ -316,6 +319,40 @@ def plot_timetraces(
             dax[k0].fill_between(time, V['mean'] - V['stdv'],
                                  V['mean'] + V['stdv'], alpha=0.4, color='r', label='$\mu \pm \sigma$')
 
+        if mode == 'cycles':
+            allvars = hub.get_dparam(returnas=dict)
+            y = allvars[k0]['value'][:, 0]
+            t = allvars['time']['value']
+
+            dax[k0].plot(t, y, c='k')
+            cyclvar = allvars[k0]['cycles']
+            tmcycles = cyclvar['t_mean_cycle']
+
+            # Plot of each period by a rectangle
+            miny = np.amin(y)
+            maxy = np.amax(y)
+            vmin = cyclvar['minval']
+            vmax = cyclvar['maxval']
+            for car in cyclvar['period_T_intervals'][::2]:
+                # print(car)
+                dax[k0].add_patch(
+                    Rectangle((car[0], miny), car[1]-car[0], maxy-miny, facecolor='k', alpha=0.1))
+            # Plot of enveloppe (mean-max)
+            vmin = cyclvar['minval']
+            vmax = cyclvar['maxval']
+            dax[k0].plot(tmcycles, vmin, '--', label='min value')
+            dax[k0].plot(tmcycles, vmax, '--', label='max value')
+
+            # Plot of the mean value evolution
+            meanv = np.array(cyclvar['meanval'])
+            dax[k0].plot(tmcycles, cyclvar['meanval'], ls='dotted', label='mean value')
+            dax[k0].plot(tmcycles, cyclvar['medval'],
+                         ls='dashdot', label='median value')
+
+            # Plot of the standard deviation around the mean value
+            stdv = np.array(cyclvar['stdval'])
+            dax[k0].fill_between(tmcycles, meanv - stdv, meanv + stdv, alpha=0.2)
+
         elif idx is None:
             dax[k0].plot(
                 hub.dparam['time']['value'],
@@ -331,7 +368,7 @@ def plot_timetraces(
                 label=label,
             )
 
-    if SENSITIVITY:
+    if mode:
         dax[k0].legend()
 
     # -----------
