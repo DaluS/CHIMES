@@ -6,7 +6,7 @@ import importlib
 
 
 from ._def_fields import _DFIELDS, _LIBRARY, _complete_DFIELDS
-from pygemmes._utilities import _utils
+
 
 _PATH_HERE = os.path.dirname(__file__)
 _PATH_USER_HOME = os.path.expanduser('~')

@@ -3,12 +3,70 @@
 
 # Here we decide what the user will see
 from ._core import Hub
-from ._models import get_available_models
+from ._models import get_available_models, get_dfields_overview
 from ._utilities._solvers import get_available_solvers
 from ._utilities._saveload import get_available_output, load
+from ._models import get_available_models, _DFIELDS
+from pygemmes._utilities import _utils
 
 import matplotlib.pyplot as plt
 import numpy as np
+from collections import defaultdict
+
+
+def get_dfields_overview():
+
+    dparam_sub = _DFIELDS
+    for key, val in dparam_sub.items():
+        dparam_sub[key]['inmodel'] = []
+    models = get_available_models(returnas=list)
+
+    fieldsnotinDfields = []
+    for model in models:
+        # print(model)
+        hub = Hub(model, verb=False)
+        params = hub.get_dparam(returnas=dict)
+        for key in params.keys():
+            if key in dparam_sub:
+                if 'inmodel' not in dparam_sub[key].keys():
+                    dparam_sub[key]['inmodel'] = []
+                dparam_sub[key]['inmodel'].append(model)
+            else:
+                fieldsnotinDfields.append([key+(20-len(key)*' '), model])
+
+    print(f'{len(dparam_sub)} fields in the library \n')
+
+    #print(f'{len(fieldsnotinDfields)} Fields defined in models but not in dfields')
+    # for l in fieldsnotinDfields:
+    #    print(l)
+    # print('')
+
+    # ------------------
+    # get column headers
+    col2 = [
+        'Field', 'definition', 'group', 'value', 'units', 'In model'
+
+    ]
+
+    # ------------------
+    # get values
+    ar2 = [
+        [k0,
+         v0['definition'],
+         v0['group'],
+         v0['value'],
+         v0['units'],
+         str(v0['inmodel'])
+         ]
+        for k0, v0 in dparam_sub.items() if v0['group'] != 'Numerical'
+    ]
+
+    return _utils._get_summary(
+        lar=[ar2],
+        lcol=[col2],
+        verb=True,
+        returnas=False,
+    )
 
 
 def create_preset_from_model_preset(targetmodel,

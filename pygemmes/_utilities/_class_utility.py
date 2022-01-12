@@ -531,7 +531,6 @@ def _get_summary_parameters(hub, idx=None):
                 str(v0['units']),
                 v0['group'],
                 v0['definition'],
-                v0['com'],
             ]
             for k0, v0 in dparam_sub.items()
         ]
