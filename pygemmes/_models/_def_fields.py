@@ -391,6 +391,16 @@ _LIBRARY = {
             'definition': 'Shareholding dividends when no profits (affine)',
             'units': '$.y^{-1}',
         },
+        'divlinMin': {
+            'value': 0,
+            'definition': 'Shareholding minimum part',
+            'units': '$.y^{-1}',
+        },
+        'divlinMax': {
+            'value': 3,
+            'definition': 'Shareholding maximum part',
+            'units': '$.y^{-1}',
+        },
     },
 
 
@@ -427,13 +437,23 @@ _LIBRARY = {
             'units': '',
         },
         'kappalinSlope': {
-            'value': 0.0318,
+            'value': 0.575,
             'definition': 'Investment slope kappa (affine)',
             'units': '',
         },
         'kappalinConst': {
-            'value': 0.575,
+            'value': 0.0318,
             'definition': 'Investment no profit (affine)',
+            'units': '',
+        },
+        'kappalinMin': {
+            'value': 0,
+            'definition': 'Minimum value of kappa (affine)',
+            'units': '',
+        },
+        'kappalinMax': {
+            'value': 3,
+            'definition': 'Maximum value of kappa (affine)',
             'units': '',
         },
         'zsolv': {

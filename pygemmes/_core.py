@@ -845,7 +845,7 @@ class Hub():
         }
         return dout
 
-    @ classmethod
+    @classmethod
     def _from_dict(cls, dout=None, model_file=None):
         """ Create an instance from a dict """
 
