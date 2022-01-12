@@ -49,12 +49,12 @@ _LOGICS = {
             'func': lambda gammaAtmo=0, T=0, itself=0, Capacity0=1: (gammaAtmo*(T-itself))/Capacity0,
             'com': 'Transfer from atmosphere',
         },
-        'pseudot': {
-            'func': lambda T=0: 1,
-            'com': 'false time because practical',
-            'initial': 0,
-            'units': 'y'
-        },
+        # 'pseudot': {
+        #    'func': lambda: 1,
+        #    'com': 'false time because practical',
+        #    'initial': 0,
+        #    'units': 'y'
+        # },
 
         # COUPLING ODE
         'gsigmaEm': {

@@ -1,0 +1,116 @@
+<html>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.css" type="text/css" />
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis-network.min.js"> </script>
+<center>
+<h1>GK-Reduced Logical network</h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+
+<style type="text/css">
+
+        #mynetwork {
+            width: 1080;
+            height: 1080;
+            background-color: #ffffff;
+            border: 1px solid lightgray;
+            position: relative;
+            float: left;
+        }
+
+        
+
+        
+
+        
+</style>
+
+</head>
+
+<body>
+<div id = "mynetwork"></div>
+
+
+<script type="text/javascript">
+
+    // initialize global variables.
+    var edges;
+    var nodes;
+    var network; 
+    var container;
+    var options, data;
+
+    
+    // This method is responsible for drawing the graph, returns the drawn network
+    function drawGraph() {
+        var container = document.getElementById('mynetwork');
+        
+        
+
+        // parsing and collecting nodes and edges from the python
+        nodes = new vis.DataSet([{"color": ["#3da831"], "group": "ODE", "id": "lambda", "label": "lambda", "level": 1, "shape": "ellipse", "title": "Units\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:\u003cbr\u003eEquation\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:dlambda/dt=lambdada\u0026nbsp;*\u0026nbsp;(g\u0026nbsp;-\u0026nbsp;alpha\u0026nbsp;-\u0026nbsp;n),\u003cbr\u003edefinition\u0026nbsp;\u0026nbsp;\u0026nbsp;:employement\u0026nbsp;rate\u003cbr\u003eComment\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:reduced\u0026nbsp;3variables\u0026nbsp;dynamical\u0026nbsp;expression\u003cbr\u003eDependencies\u0026nbsp;:\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;g\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;y^{-1}\u0026nbsp;\u0026nbsp;Relative\u0026nbsp;growth\u0026nbsp;of\u0026nbsp;GDP\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;alpha\u0026nbsp;\u0026nbsp;\u0026nbsp;y^{-1}\u0026nbsp;\u0026nbsp;Rate\u0026nbsp;of\u0026nbsp;productivity\u0026nbsp;increase\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;n\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;y^{-1}\u0026nbsp;\u0026nbsp;Rate\u0026nbsp;of\u0026nbsp;population\u0026nbsp;growth\u003cbr\u003e"}, {"color": ["#3da831"], "group": "ODE", "id": "omega", "label": "omega", "level": 1, "shape": "ellipse", "title": "Units\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:\u003cbr\u003eEquation\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:domega/dt=omega\u0026nbsp;*\u0026nbsp;(phillips\u0026nbsp;-\u0026nbsp;(1\u0026nbsp;-\u0026nbsp;gammai)*inflation-alpha),\u003cbr\u003edefinition\u0026nbsp;\u0026nbsp;\u0026nbsp;:wage\u0026nbsp;share\u003cbr\u003eComment\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:reduced\u0026nbsp;3variables\u0026nbsp;dynamical\u0026nbsp;expression\u003cbr\u003eDependencies\u0026nbsp;:\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;phillipsy^{-1}\u0026nbsp;\u0026nbsp;Wage\u0026nbsp;inflation\u0026nbsp;rate\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;inflationy^{-1}\u0026nbsp;\u0026nbsp;inflation\u0026nbsp;rate\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;gammai\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;inflation\u0026nbsp;awareness\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;alpha\u0026nbsp;\u0026nbsp;\u0026nbsp;y^{-1}\u0026nbsp;\u0026nbsp;Rate\u0026nbsp;of\u0026nbsp;productivity\u0026nbsp;increase\u003cbr\u003e"}, {"color": ["#3da831"], "group": "ODE", "id": "d", "label": "d", "level": 1, "shape": "ellipse", "title": "Units\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:\u003cbr\u003eEquation\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:dd/dt=kappa\u0026nbsp;-\u0026nbsp;pi\u0026nbsp;-\u0026nbsp;d*(g+inflation),\u003cbr\u003edefinition\u0026nbsp;\u0026nbsp;\u0026nbsp;:relative\u0026nbsp;debt\u003cbr\u003eComment\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:no\u0026nbsp;solvability\u0026nbsp;in\u0026nbsp;loans\u003cbr\u003eDependencies\u0026nbsp;:\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;kappa\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Part\u0026nbsp;of\u0026nbsp;GDP\u0026nbsp;in\u0026nbsp;investment\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;pi\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;relative\u0026nbsp;profit\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;g\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;y^{-1}\u0026nbsp;\u0026nbsp;Relative\u0026nbsp;growth\u0026nbsp;of\u0026nbsp;GDP\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;inflationy^{-1}\u0026nbsp;\u0026nbsp;inflation\u0026nbsp;rate\u003cbr\u003e"}, {"color": ["#3da831"], "group": "STATEVAR", "id": "phillips", "label": "phillips", "level": 2, "shape": "ellipse", "title": "Units\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:y^{-1}\u003cbr\u003eEquation\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:phillips=(-phi0\u0026nbsp;+\u0026nbsp;phi1\u0026nbsp;/\u0026nbsp;(1\u0026nbsp;-\u0026nbsp;lambda)**2),\u003cbr\u003edefinition\u0026nbsp;\u0026nbsp;\u0026nbsp;:Wage\u0026nbsp;inflation\u0026nbsp;rate\u003cbr\u003eComment\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:salary\u0026nbsp;negociation\u0026nbsp;on\u0026nbsp;employement\u0026nbsp;and\u0026nbsp;profit\u003cbr\u003eDependencies\u0026nbsp;:\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;phi0\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Parameter1\u0026nbsp;for\u0026nbsp;diverving\u0026nbsp;squared\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;phi1\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Parameter1\u0026nbsp;for\u0026nbsp;diverving\u0026nbsp;squared\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;lambda\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;employement\u0026nbsp;rate\u003cbr\u003e"}, {"color": ["#3da831"], "group": "STATEVAR", "id": "pi", "label": "pi", "level": 2, "shape": "ellipse", "title": "Units\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:\u003cbr\u003eEquation\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:pi=1.\u0026nbsp;-\u0026nbsp;omega\u0026nbsp;-\u0026nbsp;r\u0026nbsp;*\u0026nbsp;d,\u003cbr\u003edefinition\u0026nbsp;\u0026nbsp;\u0026nbsp;:relative\u0026nbsp;profit\u003cbr\u003eComment\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:Goodwin\u0026nbsp;relative\u0026nbsp;profit\u003cbr\u003eDependencies\u0026nbsp;:\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;omega\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;wage\u0026nbsp;share\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;r\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;y^{-1}\u0026nbsp;\u0026nbsp;Interest\u0026nbsp;on\u0026nbsp;debt\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;d\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;relative\u0026nbsp;debt\u003cbr\u003e"}, {"color": ["#3da831"], "group": "STATEVAR", "id": "kappa", "label": "kappa", "level": 2, "shape": "ellipse", "title": "Units\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:\u003cbr\u003eEquation\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:kappa=k0\u0026nbsp;+\u0026nbsp;k1\u0026nbsp;*\u0026nbsp;np.exp(k2\u0026nbsp;*\u0026nbsp;pi),\u003cbr\u003edefinition\u0026nbsp;\u0026nbsp;\u0026nbsp;:Part\u0026nbsp;of\u0026nbsp;GDP\u0026nbsp;in\u0026nbsp;investment\u003cbr\u003eComment\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:Relative\u0026nbsp;GDP\u0026nbsp;investment\u0026nbsp;through\u0026nbsp;relative\u0026nbsp;profit\u003cbr\u003eDependencies\u0026nbsp;:\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;k0\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;GDP\u0026nbsp;share\u0026nbsp;investedat\u0026nbsp;zeroprofit\u0026nbsp;(expo)\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;k1\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Investment\u0026nbsp;slope\u0026nbsp;(expo)\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;k2\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Investment\u0026nbsp;power\u0026nbsp;in\u0026nbsp;kappa\u0026nbsp;(expo)\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;pi\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;relative\u0026nbsp;profit\u003cbr\u003e"}, {"color": ["#3da831"], "group": "STATEVAR", "id": "inflation", "label": "inflation", "level": 2, "shape": "ellipse", "title": "Units\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:y^{-1}\u003cbr\u003eEquation\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:inflation=eta*(mu*omega-1),\u003cbr\u003edefinition\u0026nbsp;\u0026nbsp;\u0026nbsp;:inflation\u0026nbsp;rate\u003cbr\u003eComment\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:Markup\u0026nbsp;dynamics\u003cbr\u003eDependencies\u0026nbsp;:\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;mu\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Markup\u0026nbsp;on\u0026nbsp;prices\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;eta\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;y^{-1}\u0026nbsp;\u0026nbsp;timerate\u0026nbsp;of\u0026nbsp;price\u0026nbsp;adjustment\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;omega\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;wage\u0026nbsp;share\u003cbr\u003e"}, {"color": ["#3da831"], "group": "STATEVAR", "id": "g", "label": "g", "level": 2, "shape": "ellipse", "title": "Units\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:y^{-1}\u003cbr\u003eEquation\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:g=kappa\u0026nbsp;/\u0026nbsp;nu\u0026nbsp;-\u0026nbsp;delta,\u003cbr\u003edefinition\u0026nbsp;\u0026nbsp;\u0026nbsp;:Relative\u0026nbsp;growth\u0026nbsp;of\u0026nbsp;GDP\u003cbr\u003eComment\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:Goodwin\u0026nbsp;explicit\u0026nbsp;Growth\u003cbr\u003eDependencies\u0026nbsp;:\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;kappa\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Part\u0026nbsp;of\u0026nbsp;GDP\u0026nbsp;in\u0026nbsp;investment\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;nu\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Kapital\u0026nbsp;to\u0026nbsp;output\u0026nbsp;ratio\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;delta\u0026nbsp;\u0026nbsp;\u0026nbsp;y^{-1}\u0026nbsp;\u0026nbsp;Rate\u0026nbsp;of\u0026nbsp;capital\u0026nbsp;depletion\u003cbr\u003e"}]);
+        edges = new vis.DataSet([{"arrows": "to", "from": "g", "to": "lambda"}, {"arrows": "to", "from": "lambda", "to": "lambda"}, {"arrows": "to", "from": "phillips", "to": "omega"}, {"arrows": "to", "from": "inflation", "to": "omega"}, {"arrows": "to", "from": "omega", "to": "omega"}, {"arrows": "to", "from": "kappa", "to": "d"}, {"arrows": "to", "from": "pi", "to": "d"}, {"arrows": "to", "from": "g", "to": "d"}, {"arrows": "to", "from": "inflation", "to": "d"}, {"arrows": "to", "from": "d", "to": "d"}, {"arrows": "to", "from": "lambda", "to": "phillips"}, {"arrows": "to", "from": "omega", "to": "pi"}, {"arrows": "to", "from": "d", "to": "pi"}, {"arrows": "to", "from": "pi", "to": "kappa"}, {"arrows": "to", "from": "omega", "to": "inflation"}, {"arrows": "to", "from": "kappa", "to": "g"}]);
+
+        // adding nodes and edges to the graph
+        data = {nodes: nodes, edges: edges};
+
+        var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "repulsion": {
+            "centralGravity": 0.2,
+            "damping": 0.09,
+            "nodeDistance": 100,
+            "springConstant": 0.05,
+            "springLength": 200
+        },
+        "solver": "repulsion",
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+        
+        
+
+        
+
+        network = new vis.Network(container, data, options);
+	 
+        
+
+
+        
+
+        return network;
+
+    }
+
+    drawGraph();
+
+</script>
+</body>
+</html>

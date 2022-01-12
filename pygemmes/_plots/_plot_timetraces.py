@@ -319,7 +319,7 @@ def plot_timetraces(
             dax[k0].fill_between(time, V['mean'] - V['stdv'],
                                  V['mean'] + V['stdv'], alpha=0.4, color='r', label='$\mu \pm \sigma$')
 
-        if mode == 'cycles':
+        elif mode == 'cycles':
             allvars = hub.get_dparam(returnas=dict)
             y = allvars[k0]['value'][:, 0]
             t = allvars['time']['value']
