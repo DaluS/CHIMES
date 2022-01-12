@@ -1,3 +1,17 @@
+# README HAS TO BE WRITTEN, THIS IS AN OLD VERSION. Look At The Ipython Notebook in doc/Tutorial.ipynb
+
+
+
+
+
+
+
+
+
+
+
+
+
 # GEMMES NUMERICAL MODELS FOR MACROECONOMIC AND ECOLOGIC STUDIES 
 
 ## WHAT, AND WHY THESE MODELS ? 
