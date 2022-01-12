@@ -49,7 +49,7 @@ def get_available_models(
     details=None,
     returnas=None,
     verb=None,
-    showdiagram=False
+    from_user=None,
 ):
 
     # -----------------
