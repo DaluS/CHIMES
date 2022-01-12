@@ -16,11 +16,16 @@ import numpy as np
 
 
 _PATH_HERE = os.path.dirname(__file__)
-_PATH_OUTPUT = os.path.join(os.path.dirname(_PATH_HERE), 'output')
-_PATH_MODELS = os.path.join(
-    os.path.dirname(_PATH_HERE),
-    '_models',
-)
+_PATH_USER_HOME = os.path.expanduser('~')
+_PATH_PRIVATE_OUTPUT = os.path.join(_PATH_USER_HOME, '.pygemmes', 'output')
+if os.path.isdir(_PATH_PRIVATE_OUTPUT):
+    _PATH_OUTPUT = _PATH_PRIVATE_OUTPUT
+else:
+    _PATH_OUTPUT = os.path.join(os.path.dirname(_PATH_HERE), 'output')
+
+
+_PATH_MODELS = os.path.join(os.path.dirname(_PATH_HERE), '_models')
+_PATH_PRIVATE_MODELS = os.path.join(_PATH_USER_HOME, '.pygemmes', '_models')
 
 
 _INCLUDE_NAME = ['model', 'preset', 'solver', 'name', 'user', 'date']
@@ -297,7 +302,10 @@ def rebuild_func_from_source(dout=None, model_file=None):
                     if not os.path.isfile(pfe):
                         # try loading from local output ref (for unit tests)
                         path, tail = os.path.split(pfe)
-                        pfe1 = os.path.join(_PATH_MODELS, tail)
+                        if '.pygemmes' in path:
+                            pfe1 = os.path.join(_PATH_PRIVATE_MODELS, tail)
+                        else:
+                            pfe1 = os.path.join(_PATH_MODELS, tail)
                         if not os.path.isfile(pfe1):
                             lstr = [f'\t- {pp}' for pp in [pfe, pfe1]]
                             msg = (

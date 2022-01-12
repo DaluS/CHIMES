@@ -67,7 +67,7 @@ dout = pgm.get_available_output(
 # %% Load a model
 
 hub = pgm.Hub(_MODEL)  # , preset='default')
-# hub.load_preset('crisis')
+# hub.set_dparam(preset='crisis')
 
 
 # %% Load a file
@@ -79,11 +79,11 @@ hub = pgm.Hub(_MODEL)  # , preset='default')
 * To change a parameter :  `hub.set_dparam(key='alpha', value=0.01)`
 
 
-hub.set_dparam({'a' : [1,2,'lin']})
-hub.set_dparam({'a' : [1,2,'log'],
-                'alpha' : 0.03})
-hub.set_dparam({'nx': 100})
-hub.set_dparam({'a': [1,2,3]})
+hub.set_dparam(**{'a' : [1,2,'lin']})
+hub.set_dparam(**{'a' : [1,2,'log'],
+                  'alpha' : 0.03})
+hub.set_dparam(**{'nx': 100})
+hub.set_dparam(**{'a': [1,2,3]})
 
 
 # %% Runs

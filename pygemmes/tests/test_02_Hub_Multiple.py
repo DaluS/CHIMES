@@ -24,7 +24,6 @@ _PATH_HERE = os.path.abspath(os.path.dirname(__file__))
 _PATH_PCK = os.path.dirname(os.path.dirname(_PATH_HERE))
 _PATH_OUTPUT = os.path.join(_PATH_HERE, 'output_temp')
 _PATH_OUTPUT_REF = os.path.join(_PATH_HERE, 'output_ref')
-_PATH_MODELS = os.path.join(_PATH_PCK, 'pygemmes', '_models')
 
 
 # library-specific

@@ -42,7 +42,7 @@ _LOGICS = {
 # ---------------------------
 # List of presets for specific interesting simulations
 _PRESETS = {
-    'Canonical example': {
+    'Canonical': {
         'fields': {
             'x': np.linspace(1, 1.1, 1),
             'y': 1,

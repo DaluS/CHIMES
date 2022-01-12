@@ -36,7 +36,7 @@ _SOLVER = 'eRK4-homemade'  # (One we created by ourself, that we can tweak)
 
 # LOADING MODEL IN HUB #######################################################
 hub = pgm.Hub(_MODEL)
-# hub.load_preset('crisis')
+# hub.set_dparam(preset='crisis')
 hub.set_dparam(key='dt', value=0.001)
 hub.run(verb=1.1, solver=_SOLVER)
 hub.plot()
