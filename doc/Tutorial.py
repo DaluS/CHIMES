@@ -226,3 +226,35 @@ for _MODEL in dmodels.keys():
             hub = pgm.Hub(_MODEL)  # , preset=preset, verb=False)
             hub.run(verb=0, solver=_SOLVER)
             hub.plot()
+
+########## EXERCICES 
+
+'''Exercise 1 : execute by yourself
+
+    Loading library "From scratch", load pygemmes
+    Access lists get the list of models, the list of solvers
+    Load a model Load the model 'Goodwin', then with a preset directly loaded
+    change value Run it with different timestep
+    change solver Run it with different solvers
+    Plots Plot only lambda, then everything but lambda, then with cycles analysis activated
+    Exploring dparam structure print all the keys of one field in dparam, then all their values
+    Getting dparam values Get the values of omega over time as an array, plot it manually
+    Creating multiple process Create a preset with 5 values of the rate of productivity progress
+
+Exercise 2 : editing
+
+    Accessing your personal folder find your personal folder where all models are
+    Copy-paste a file Copy the file model GK-Reduced, name it GK-CES-Reduced then reload pygemmes to see if you can load id
+    Modify the equations Use the equations for "lambda, omega, d" you find in McIsaac et al, Minskyan classical growth cycles, Mathematics and Financial Economics with the introduction of new parameters in _def_fields
+    See the impact of a parameter (1) Do an ensemble of run with different elasticity values
+    See the impact on cycles Show the impact of the elasticity value on the cycles
+    See the impact on stability Do a stability analysis with different values
+
+Exercise 3 : add on github
+
+    Create an issue on the github page
+    Once your model is ready, put it in pygemmes/_models
+    Create a branch with your modifications and push it
+    Create a Pull Request with it
+
+'''
