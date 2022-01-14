@@ -153,7 +153,7 @@ def _plot_timetraces_check_dax(
             # set ylabels
             ylab = v0['symbol']
             if v0['units'] not in [None, '']:
-                unitemp = v0['units'].replace('$', '\$')
+                unitemp = v0['units'].replace('$', r'\$')
                 # print(unitemp)
                 ylab += f" ($ {unitemp} $)"
             dax[k0].set_ylabel(ylab)
@@ -311,13 +311,13 @@ def plot_timetraces(
                 dax[k0].fill_between(time, V['mean'] - j * V['stdv'],
                                      V['mean'] + j * V['stdv'], alpha=0.02, color='blue')
             dax[k0].fill_between(time, V['mean'],
-                                 V['mean'], alpha=0.5, color='blue', label='$\mu \pm 5 \sigma$')
+                                 V['mean'], alpha=0.5, color='blue', label=r'$\mu \pm 5 \sigma$')
 
             dax[k0].set_xlim([time[0], time[-1]])
             dax[k0].set_ylim([np.amin(V['min']), np.amax(V['max'])])
 
             dax[k0].fill_between(time, V['mean'] - V['stdv'],
-                                 V['mean'] + V['stdv'], alpha=0.4, color='r', label='$\mu \pm \sigma$')
+                                 V['mean'] + V['stdv'], alpha=0.4, color='r', label=r'$\mu \pm \sigma$')
 
         elif mode == 'cycles':
             allvars = hub.get_dparam(returnas=dict)
