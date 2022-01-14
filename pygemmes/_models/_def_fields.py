@@ -491,7 +491,7 @@ _LIBRARY = {
             # 'func': lambda GDP=0, D=0: D/GDP,
             'value': 0.1,
             'definition': 'relative debt',
-            'units': '',
+            'units': 'y',
         },
         'solvability': {
             'definition': 'capital compared to debt',
