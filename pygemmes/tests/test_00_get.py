@@ -71,6 +71,7 @@ class Test00_Get():
                 details=comb[0],
                 verb=comb[1],
                 returnas=lreturn[2],
+                from_user=False,
             )
 
     def test02_get_available_solvers(self):

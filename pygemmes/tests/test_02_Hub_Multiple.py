@@ -111,7 +111,7 @@ def teardown_module():
 class Test01_Hub_MultipleSystems():
 
     lsolvers = ['eRK4-homemade', 'eRK4-scipy']
-    lmodels = pgm.get_available_models(returnas=list)
+    lmodels = pgm.get_available_models(returnas=list, from_user=False)
     lgrid = [True, False]
 
     @classmethod
@@ -141,7 +141,7 @@ class Test01_Hub_MultipleSystems():
             for solver in self.lsolvers:
                 for grid in self.lgrid:
 
-                    hub = pgm.Hub(model)
+                    hub = pgm.Hub(model, from_user=False)
                     self.dhub[model][solver][grid] = hub
 
                     # set k0, v0
@@ -241,5 +241,6 @@ class Test02_Hub_FromPresets(Test01_Hub_MultipleSystems):
                         model,
                         preset=preset,
                         dpresets=_DPRESETS,
+                        from_user=False,
                         verb=False,
                     )
