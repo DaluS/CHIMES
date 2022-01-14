@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.gridspec as gridspec
+from matplotlib.patches import Rectangle
 
 
 # default legend
@@ -152,7 +153,7 @@ def _plot_timetraces_check_dax(
             # set ylabels
             ylab = v0['symbol']
             if v0['units'] not in [None, '']:
-                unitemp = v0['units'].replace('$', '\$')
+                unitemp = v0['units'].replace('$', r'\$')
                 # print(unitemp)
                 ylab += f" ($ {unitemp} $)"
             dax[k0].set_ylabel(ylab)
@@ -194,6 +195,7 @@ def _plot_timetraces_check_dax(
 
 def plot_timetraces(
     hub,
+    mode=False,
     # for forcing a color / label
     color=None,
     label=None,
@@ -214,6 +216,8 @@ def plot_timetraces(
 ):
     '''
     Plot all the variables in the system on a same figure
+
+    modes can be 'cycle','sensitivity'
 
     Parameters
     ----------
@@ -287,7 +291,69 @@ def plot_timetraces(
     for k0, v0 in dpar.items():
         if dax.get(k0) is None:
             continue
-        if idx is None:
+        # Add by Paul : Statistical indicators on multiple runs
+        if mode == 'sensitivity':
+            time = hub.dparam['time']['value'][:, 0]
+            V = hub.dparam[k0]['sensitivity']
+            # Plot all trajectory
+            for i in range(len(hub.dparam['time']['value'][0, :])):
+                dax[k0].plot(time, hub.dparam[k0]['value']
+                             [:, i], c='k', ls='--', lw=0.5)
+
+            # Plot mean an median
+            dax[k0].plot(time, V['mean'], c='orange', label='mean')
+            dax[k0].plot(time, V['median'], c='orange', ls='--', label='median')
+            dax[k0].plot(time, V['max'], c='r', lw=0.4, label='maxmin')
+            dax[k0].plot(time, V['min'], c='r', lw=0.4)
+
+            for j in np.arange(0.5, 5, 0.2):
+
+                dax[k0].fill_between(time, V['mean'] - j * V['stdv'],
+                                     V['mean'] + j * V['stdv'], alpha=0.02, color='blue')
+            dax[k0].fill_between(time, V['mean'],
+                                 V['mean'], alpha=0.5, color='blue', label=r'$\mu \pm 5 \sigma$')
+
+            dax[k0].set_xlim([time[0], time[-1]])
+            dax[k0].set_ylim([np.amin(V['min']), np.amax(V['max'])])
+
+            dax[k0].fill_between(time, V['mean'] - V['stdv'],
+                                 V['mean'] + V['stdv'], alpha=0.4, color='r', label=r'$\mu \pm \sigma$')
+
+        elif mode == 'cycles':
+            allvars = hub.get_dparam(returnas=dict)
+            y = allvars[k0]['value'][:, 0]
+            t = allvars['time']['value']
+
+            dax[k0].plot(t, y, c='k')
+            cyclvar = allvars[k0]['cycles']
+            tmcycles = cyclvar['t_mean_cycle']
+
+            # Plot of each period by a rectangle
+            miny = np.amin(y)
+            maxy = np.amax(y)
+            vmin = cyclvar['minval']
+            vmax = cyclvar['maxval']
+            for car in cyclvar['period_T_intervals'][::2]:
+                # print(car)
+                dax[k0].add_patch(
+                    Rectangle((car[0], miny), car[1]-car[0], maxy-miny, facecolor='k', alpha=0.1))
+            # Plot of enveloppe (mean-max)
+            vmin = cyclvar['minval']
+            vmax = cyclvar['maxval']
+            dax[k0].plot(tmcycles, vmin, '--', label='min value')
+            dax[k0].plot(tmcycles, vmax, '--', label='max value')
+
+            # Plot of the mean value evolution
+            meanv = np.array(cyclvar['meanval'])
+            dax[k0].plot(tmcycles, cyclvar['meanval'], ls='dotted', label='mean value')
+            dax[k0].plot(tmcycles, cyclvar['medval'],
+                         ls='dashdot', label='median value')
+
+            # Plot of the standard deviation around the mean value
+            stdv = np.array(cyclvar['stdval'])
+            dax[k0].fill_between(tmcycles, meanv - stdv, meanv + stdv, alpha=0.2)
+
+        elif idx is None:
             dax[k0].plot(
                 hub.dparam['time']['value'],
                 v0['value'],
@@ -301,6 +367,9 @@ def plot_timetraces(
                 color=color,
                 label=label,
             )
+
+    if mode:
+        dax[k0].legend()
 
     # -----------
     # show and return axes dict

@@ -26,11 +26,6 @@ This file contains :
     __DOTHECHECK Flag to check or not the dictionnary
     __FILLDEFAULTVALUES Flag to fill the defaultfields
 """
-
-
-import warnings
-
-
 import numpy as np
 
 
@@ -70,12 +65,13 @@ __DEFAULTFIELDS = {
         'default': 'undefined',
         'type': str,
         'allowed': [
-            'Units',  #
+            'Units',  # Any physical quantity of something (capital, ressources...)
             'y',      # Time
             '$',      # Money
             'C',      # Carbon Concentration
+            'Tc',     # Temperature (Celsius)
             'Humans',  # Population
-            '',
+            '',       # Dimensionless
         ],
     },
     'type': {
@@ -96,13 +92,6 @@ __DEFAULTFIELDS = {
         'default': '',
         'type': str,
         'allowed': None,
-        # 'Numerical',
-        # 'Population',
-        # 'Prices', 'Capital', 'Philips', 'Gemmes',
-        # 'Keen', 'Dividends', 'Economy', 'Production',
-        # 'Coupling',
-        # 'RelaxBuffer',
-        # 'Climate', 'Damage',
     },
 }
 
@@ -142,6 +131,12 @@ _LIBRARY = {
         'gravity': {'value': 9.8,
                     'definition': 'gravity acceleration'
                     },
+        'sigmanoise': {'value': 0.1,
+                       'definition': '',
+                       },
+        'seed': {'value': 0.1,
+                 'definition': '',
+                 },
     },
 
 
@@ -178,11 +173,17 @@ _LIBRARY = {
         },
     },
 
+
     'Household': {
         # VARIABLES
         'N': {
             'value': 1.,
             'definition': 'Population',
+            'units': 'Humans',
+        },
+        'Nmax': {
+            'value': 12,
+            'definition': 'Saturating population',
             'units': 'Humans',
         },
         'L': {
@@ -200,6 +201,11 @@ _LIBRARY = {
             'definition': 'Wage value',
             'units': '$.Humans^{-1}.y^{-1}'
         },
+        'Omega': {
+            'value': 1,
+            'definition': 'Individual purchasing power',
+            'units': 'Units.y^{-1}.Humans^{-1}',
+            'symbol': r'$\Omega$', },
 
         # INTERMEDIARY TYPICAL VARIABLES
         'lambda': {
@@ -215,6 +221,7 @@ _LIBRARY = {
             'symbol': r'$\omega$',
         },
 
+
         # PARAMETERS
         'n': {
             'value': 0.025,
@@ -227,6 +234,7 @@ _LIBRARY = {
             'units': 'y^{-1}',
         },
     },
+
 
     'Recipies': {
         'gamma': {
@@ -245,6 +253,7 @@ _LIBRARY = {
             'units': 'y^{-1}',
         },
     },
+
 
     'Production': {
         # VARIABLES
@@ -326,6 +335,7 @@ _LIBRARY = {
         },
     },
 
+
     'Salary Negociation': {
         'phillips': {
             'value': None,
@@ -352,14 +362,53 @@ _LIBRARY = {
             'units': '',
             'eqtype': 'param',
         },
+        'philinConst': {
+            'value': -0.292,
+            'definition': 'wage rate when full unemployement',
+            'units': 'y^{-1}',
+        },
+        'philinSlope': {
+            'value': 0.469,
+            'definition': 'wage rate dependance to unemployement',
+            'units': 'y^{-1}',
+        },
         'zphi': {
             'value': 0.1,
             'definition': 'nonlinearity on profit in negociation',
             'com': '',
             'units': ''
         }
-
     },
+
+
+    'Shareholding': {
+        'Sh': {
+            'value': 0,
+            'definition': 'Shareholding dividends',
+            'units': '$.y^{-1}',
+        },
+        'divlinSlope': {
+            'value': 0.473,
+            'definition': 'Shareholding dependency to profits (affine)',
+            'units': '$.y^{-1}',
+        },
+        'divlinconst': {
+            'value': 0.138,
+            'definition': 'Shareholding dividends when no profits (affine)',
+            'units': '$.y^{-1}',
+        },
+        'divlinMin': {
+            'value': 0,
+            'definition': 'Shareholding minimum part',
+            'units': '$.y^{-1}',
+        },
+        'divlinMax': {
+            'value': 3,
+            'definition': 'Shareholding maximum part',
+            'units': '$.y^{-1}',
+        },
+    },
+
 
     'Investment': {
         'I': {
@@ -380,26 +429,47 @@ _LIBRARY = {
         },
         'k0': {
             'value': -0.0065,
-            'definition': 'Percent of GDP invested when profit is zero',
+            'definition': 'GDP share investedat zeroprofit (expo)',
             'units': '',
         },
         'k1': {
             'value': np.exp(-5),
-            'definition': 'Investment slope',
+            'definition': 'Investment slope (expo)',
             'units': '',
         },
         'k2': {
             'value': 20,
-            'definition': 'Investment power in kappa',
+            'definition': 'Investment power in kappa (expo)',
+            'units': '',
+        },
+        'kappalinSlope': {
+            'value': 0.575,
+            'definition': 'Investment slope kappa (affine)',
+            'units': '',
+        },
+        'kappalinConst': {
+            'value': 0.0318,
+            'definition': 'Investment no profit (affine)',
+            'units': '',
+        },
+        'kappalinMin': {
+            'value': 0,
+            'definition': 'Minimum value of kappa (affine)',
+            'units': '',
+        },
+        'kappalinMax': {
+            'value': 3,
+            'definition': 'Maximum value of kappa (affine)',
             'units': '',
         },
         'zsolv': {
             'value': 0.1,
-            'definition': 'nonlinearity on solvability in investment',
+            'definition': 'nonlinearity solvability investment',
             'com': '',
             'units': ''
         }
     },
+
 
     'Debt': {
         'r': {
@@ -429,6 +499,7 @@ _LIBRARY = {
         },
     },
 
+
     'Prices': {
         # VARIABLES
         'inflation': {
@@ -444,12 +515,12 @@ _LIBRARY = {
 
         # PARAMETERS
         'mu': {
-            'value': 2,
+            'value': 1.3,
             'definition': 'Markup on prices',
             'units': '',
         },
         'eta': {
-            'value': 1,
+            'value': .5,
             'definition': 'timerate of price adjustment',
             'units': 'y^{-1}',
         },
@@ -459,6 +530,7 @@ _LIBRARY = {
             'units': 'y^{-1}', }
 
     },
+
 
     'Consumption': {
         # VARIABLES
@@ -482,7 +554,7 @@ _LIBRARY = {
                    'units': 'y^{-1}',
                    'symbol': r'$\delta^h$', },
         'fC': {'value': 1,
-               'definition': 'Typical rate for consumption optimisation',
+               'definition': 'rate for consumption optimisation',
                'units': 'y^{-1}',
                'symbol': r'$f$', },
         'Omega0': {'value': 1,
@@ -497,13 +569,136 @@ _LIBRARY = {
               'units': None},
     },
 
-    'Climate': {
+
+    'Coping-Damages': {
+        'Dy': {
+            'value': 0,
+            'definition': 'Damage on production',
+            'units': '',
+        },
+        'DK': {
+            'value': 0,
+            'definition': "intermediary damage on capital",
+            'units': '',
+        },
+        'Damage': {
+            'value':  0,
+            'definition': 'Damage function',
+            'units': '',
+        },
+        'deltaD': {
+            'value':  0,
+            'definition': 'Climate induced destruction rate',
+            'units': 'Units.y^{-1}',
+        },
+        'pi1': {
+            'value': 0,
+            'definition': 'Linear damage parameter',
+            'units': 'Tc^{-1}',
+        },
+        'pi2': {
+            'value': 0.00236,
+            'definition': 'quadratic damage parameter',
+            'units': 'Tc^{-2}',
+        },
+        'pi3': {
+            'value': 0.00000507,
+            'definition': 'Weitzman damage parameter',
+            'units': None,
+        },
+        'zeta3': {
+            'value': 6.754,
+            'definition': 'Weitzmann dmg temp exponent',
+            'units': '',
+        },
+        'fk': {
+            'value': 1/3,
+            'definition': 'Fraction of damage allocated to capital',
+            'units': '',
+        },
+    },
+
+
+    'Emissions': {
+        'Eind': {
+            'value': 38.85,
+            'definition': 'Emission from the society',
+            'units': 'C.y^{-1}',
+        },
+        'Eland': {
+            'value': 2.6,
+            'definition': 'Natural Emission',
+            'units': 'C.y^{-1}',
+        },
+        'deltaEland': {
+            'value': 0,
+            'definition': 'timerate of natural emission reduction',
+            'units': 'y^{-1}',
+        },
+        'sigmaEm': {
+            'value': 0,
+            'definition': 'current emission intensity of the economy',
+            'units': 'C.Units^{-1}.y^{-1}',
+        },
+        'gsigmaEm': {
+            'value': -0.0152,
+            'definition': 'Growth rate economic emission intensity',
+            'units': 'y^{-1}',
+        },
+        'deltagsigmaEm': {
+            'value': -0.001,
+            'definition': 'growth rate of the emission growth rate',
+            'units': 'y^{-1}',
+        }
+    },
+
+
+    'Coping-Technologies': {
+        'pbackstop': {
+            'value': 547,
+            'definition': 'Magic backstop technology price',
+            'units': '',
+        },
+        'pcarbon': {
+            'value': 100,
+            'definition': 'aggregated price of carbon',
+            'units': '',
+        },
+        'deltapbackstop': {
+            'value': -0.005,
+            'definition': 'growth rate of backstop price',
+            'units': '',
+        },
+        'deltapcarbon': {
+            'value': 0,
+            'definition': 'Growth rate of carbon price',
+            'units': '',
+        },
+        'emissionreductionrate': {
+            'value': 0.03,
+            'definition': 'Emission reduction rate',
+            'units': 'y^{-1}',
+        },
+        'Abattement': {
+            'value': 0,
+            'definition': 'Redirection of production',
+            'units': '',
+        },
+        'convexitycost': {
+            'value': 1,
+            'definition': 'Convexity of cost function for reduction',
+            'units': '',
+        },
+    },
+
+
+    '3Layer-Climate': {
         'Emission0': {
-            'value': 38,
+            'value': 38.85,
             'definition': 'CO2 Emission per year (Gt) at t=0',
             'units': 'C.y^{-1}',
         },
-        'Emmission': {
+        'Emission': {
             'value': 38,
             'definition': 'CO2 Emission per year (Gt)',
             'units': 'C.y^{-1}',
@@ -581,12 +776,12 @@ _LIBRARY = {
         'T': {
             'value': 1,
             'definition': 'temperature anomaly of atmosphere',
-            'units': None,
+            'units': 'Tc',
         },
         'T0': {
             'value': 1,
             'definition': 'temperature anomaly of ocean',
-            'units': None,
+            'units': 'Tc',
         },
         'F': {
             'value': 3.6,
@@ -594,6 +789,7 @@ _LIBRARY = {
             'units': None,
         },
     },
+
 
     'GK-Improvements': {
         'B': {
@@ -605,11 +801,6 @@ _LIBRARY = {
             'value': .95,
             'com': 'Percieved employement',
             'units': '',
-        },
-        'fk': {
-            'value': 0.3,
-            'com': 'Capital rate of integration',
-            'units': 'y^{-1}',
         },
         'flamb': {
             'value': 3.6,

@@ -64,7 +64,7 @@ class Test01_Hub():
         cls.dhub = {}
         cls.lsolvers = [
             'eRK4-homemade',
-            'eRK2-scipy', 'eRK4-scipy', 'eRK8-scipy',
+            'eRK4-scipy',# 'eRK8-scipy', 'eRK2-scipy',
         ]
 
     def setup(self):

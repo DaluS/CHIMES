@@ -19,7 +19,21 @@ from ._plots import _plot_timetraces
 
 class Hub():
     """
-    Generic class to stock every data and method for the user to interac with
+    MOST IMPORTANT OBJECT FOR THE USER.
+
+    given a model name, it will load it and get its logics, presets and associated values. It will :
+        * identify what are the parameters, the state variables, the differential variables
+        * find their associated properties (definition, units, values)
+        * find an order of calculation
+
+    You then access to fields value modification, the structure and properties in the model,
+    simulation, plots, deeper analysis...
+
+    * model : string containing the model name
+    * from_user : if you want to use your file or the one provided in pygemmes
+    * preset : name of the preset in the actual dictionnary of preset
+    * dpreset : a dictionnary of preset one can use
+    * verb : print during the load of the model
     """
 
     def __init__(
@@ -49,6 +63,11 @@ class Hub():
                 verb=verb,
             )
 
+        self.__dmisc['parameters'] = self.get_dparam(
+            returnas=list,
+            eqtype=[None],
+            group=('Numerical',),
+        )
     # ##############################
     # %% Setting / getting parameters
     # ##############################
@@ -261,7 +280,7 @@ class Hub():
         self.reset()
 
     def get_dparam(self, condition=None, verb=None, returnas=None, **kwdargs):
-        """ Return a copy of the input parameters dict
+        """ Return a copy of the input parameters dict that you can filter
 
         Return as:
             - dict: dict
@@ -272,6 +291,9 @@ class Hub():
         verb:
             - True: pretty-print the chosen parameters
             - False: print nothing
+
+        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype']
+
         """
         lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype']
         lprint = [
@@ -301,6 +323,8 @@ class Hub():
         if crit = 'units', return a dict with:
             - keys: the unique possible values of field 'units'
             - values: for each unique unit, the corresponding list of keys
+
+        lcrit = ['dimension', 'units', 'type', 'group', 'eqtype']
 
         Restrictions on the selection can be imposed by **kwdargs
         The selection is done using self.get_dparam() (single-sourced)
@@ -451,6 +475,32 @@ class Hub():
 
         return keys, variables
 
+    def reinterpolate_dparam(self, Npoints=100):
+        """
+        If the system has run, takes dparam and reinterpolate all values.
+        Typical use is to have lighter plots
+
+        DO NOT WORK WELL WITH GRID
+        NEED A RESET BEFORE A RUN TO REALLOCATE SPACE
+
+        Parameters
+        ----------
+        Npoints : TYPE, optional
+            DESCRIPTION. The default is 100.
+        """
+
+        P = self.__dparam
+        t = P['time']['value']
+        for k in self.__dmisc['dfunc_order']['statevar']+self.__dmisc['dfunc_order']['ode']:
+            v = P[k]['value']
+
+            newval = np.zeros([Npoints]+list(self.__dmisc['dmulti']['shape']))
+            newt = np.linspace(t[0], t[-1], Npoints)
+
+            for i in range(np.shape(newval)[1]):
+                newval[:, i] = np.interp(newt[:, i], t[:, i], v[:, i])
+            self.__dparam[k]['value'] = newval
+
     # ##############################
     #  Introspection
     # ##############################
@@ -543,7 +593,12 @@ class Hub():
         atol=None,
         max_time_step=None,
     ):
-        """ Run the simulation
+        """ Run the simulation, with any of the solver existing in :
+            - pgm.get_available_solvers(returnas=list)
+            Verb will have the following behavior :
+            - none no print of the step
+            - 1 at every step
+            - any float (like 1.1) the iteration is written at any of these value
 
         Compute each time step from the previous one using:
             - parameters
@@ -712,11 +767,39 @@ class Hub():
         dic1['reference'] = refval
 
     # ##############################
+    #       Multiple run stats
+    # ##############################
+
+    def CalculateStatSensitivity(self):
+        '''
+        When there are multiple run in parrallel, will associate to each variable
+        a dict 'sensibility' in dparam, with statistical measures
+
+        Do not use with grid=True
+        '''
+        R = self.__dparam
+        keys = [k for k in R.keys() if R[k].get('eqtype', 'param') != 'param']
+
+        for ke in keys:
+            R[ke]['sensitivity'] = {}
+
+            val = R[ke]['value']
+
+            V = R[ke]['sensitivity']
+            V['mean'] = np.mean(val, axis=1)
+            V['stdv'] = np.std(val, axis=1)
+            V['min'] = np.amin(val, axis=1)
+            V['max'] = np.amax(val, axis=1)
+            V['median'] = np.median(val, axis=1)
+        self.__dmisc['sensitivity'] = True
+
+    # ##############################
     #       plotting methods
     # ##############################
 
     def plot(
         self,
+        mode=False,
         # for forcing a color / label
         color=None,
         label=None,
@@ -750,6 +833,7 @@ class Hub():
 
         return _plot_timetraces.plot_timetraces(
             self,
+            mode=mode,
             # for forcing a color / label
             color=color,
             label=label,
@@ -767,6 +851,7 @@ class Hub():
             idx=idx,
             eqtype=eqtype,
             **kwdargs,
+
         )
 
     # ##############################
@@ -893,3 +978,41 @@ class Hub():
             verb=verb,
             return_dfail=return_dfail,
         )
+
+    def equations_description(self):
+        '''
+        Gives a full description of the model and its equations
+        '''
+
+        print('############# DIFFERENTIAL EQUATIONS ###########')
+        for key in self.__dmisc['dfunc_order']['ode']:
+            v = self.dparam[key]
+            print('### ', key, ' ###########')
+            print('Units        :', v['units'])
+            print('Equation     :', f'd{key}/dt=', v['source_exp'].replace(
+                'itself', key).replace('lamb', 'lambda'))
+            print('definition   :', v['definition'])
+            print('units        :', v['units'])
+            print('Comment      :', v['com'])
+            print('Dependencies :')
+            for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
+                v1 = self.dparam[key2]
+                print('    ', key2, (8-len(key2))*' ',
+                      v1['units'], (8-len(v1['units']))*' ', v1['definition'])
+            print(' ')
+        print('######### STATE VARIABLES EQUATIONS ###########')
+        for key in self.__dmisc['dfunc_order']['statevar']:
+            v = self.dparam[key]
+            print('### ', key, ' ###########')
+            print('Units        :', v['units'])
+            print('Equation     :', f'{key}=', v['source_exp'].replace(
+                'itself', key).replace('lamb', 'lambda'))
+            print('definition   :', v['definition'])
+            print('Comment      :', v['com'])
+            print('Dependencies :')
+            for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
+                v1 = self.dparam[key2]
+                print('    ', key2, (8-len(key2))*' ',
+                      v1['units'], (8-len(v1['units']))*' ', v1['definition'])
+            print(' ')
+            print(' ')
