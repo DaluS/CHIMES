@@ -87,12 +87,17 @@ class Test01_Hub():
         """ Make sure the main function runs from a python console """
         dmodel = pgm.get_available_models(
             returnas=dict,
+            from_user=False,
         )
         for model in dmodel.keys():
             lpresets = [None] + dmodel[model]['presets']
             self.dhub[model] = dict.fromkeys(lpresets)
             for preset in lpresets:
-                self.dhub[model][preset] = pgm.Hub(model, preset=preset)
+                self.dhub[model][preset] = pgm.Hub(
+                    model,
+                    preset=preset,
+                    from_user=False,
+                )
 
     def test02_get_summary_repr(self):
         for model in self.dhub.keys():
@@ -142,7 +147,11 @@ class Test01_Hub():
         for ii, model in enumerate(self.dhub.keys()):
             for jj, preset in enumerate(self.dhub[model].keys()):
                 self.dhub[model][preset] = {
-                    solver: pgm.Hub(model, preset=preset)
+                    solver: pgm.Hub(
+                        model,
+                        preset=preset,
+                        from_user=False,
+                    )
                     for solver in self.lsolvers
                 }
                 for kk, solver in enumerate(self.lsolvers):
