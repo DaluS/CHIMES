@@ -14,7 +14,8 @@ to get all the libraries you are going to need
 pygemmes has to be found by python so that it can loads it
 
 there are two methods :
-    a) Start your python terminal at the root of the library ( typically ...\\GitHub\\GEMMES ) or indicate it to spyder if you're using it (top-right folder)
+    a) Start your python terminal at the root of the library ( typically ...\\GitHub\\GEMMES )
+or indicate it to spyder if you're using it (top-right folder)
     b) Indicate to the system path where it is. In my case I'd have to use the lines :
 
 ```
@@ -28,12 +29,15 @@ if you do b) you have to do it every time
 
 ########## ONCE IT'S DONE YOU SHOULD RESTART YOUR IPYTHON TERMINAL ###########
 '''
-
-import sys  # a library that help python know where things are
+import sys
 path = "C:\\Users\\Paul Valcke\\Documents\\GitHub\\GEMMES"  # Where pygemmes is
 sys.path.insert(0, path)  # we tell python to look at the folder `path`
 
+import matplotlib.pyplot as plt
+import cv2
+import numpy as np
 import pygemmes as pgm  # we rename pygemmes as pgm to be shorter
+
 
 # %% PYTHON 101
 '''
@@ -45,61 +49,63 @@ Here are a few practical examples
 
 # There are multiple types of variables
 
-A = 'oneword' # A string (characters)
-B = "multiple words" #A string too !
+A = 'oneword'  # A string (characters)
+B = "multiple words"  # A string too !
 C = ''' A long description
 That can be on multiple lines '''
 
 D = 1
 E = 1.1
 F = True
-G = E>F
+G = E > F
 
-H={}
+H = {}
 keyvar = 'key'
 H[keyvar] = 42
 H['test'] = C
-H[C] = 0 # You can put anything as a list !
+H[C] = 0  # You can put anything as a list !
 H[3] = 'plop'
-I={}
-I['dictionnary']=H # A dictionnary inside a dictionnary
+I = {}
+I['dictionnary'] = H  # A dictionnary inside a dictionnary
 
 # Elements can be put together
-J= (A,D,H) # A tuple (a list that cannot be modified)
-K= [A,D,H] # A list
+J = (A, D, H)  # A tuple (a list that cannot be modified)
+K = [A, D, H]  # A list
 
 # Loops work with indentations
-for i in [1,2,3,4]:
+for i in [1, 2, 3, 4]:
     print(i)
 
 # Dictionnaries are objects, and objects have methods associated :
-for key,value in H.items():
-    print(key,value)
+for key, value in H.items():
+    print(key, value)
 
 # You can create your own objects
-def IAmAFunction(x,hello=1):
+
+
+def IAmAFunction(x, hello=1):
     '''
     This is a description to explain what is in the function
     '''
 
-    y = x+1 # y is created locally, once we leave the function we cannot acces y
-    if hello :
-        y*=2 # we have a if loop for fun, hello=0, hello=False or hello=None does not go in this section
-    return y-7 # the value that you get at the end
+    y = x+1  # y is created locally, once we leave the function we cannot acces y
+    if hello:
+        y *= 2  # we have a if loop for fun, hello=0, hello=False or hello=None does not go in this section
+    return y-7  # the value that you get at the end
 
-print(IAmAFunction(45)) # hello will take the value 1
+
+print(IAmAFunction(45))  # hello will take the value 1
 print(IAmAFunction(34))
-print(IAmAFunction(34,hello=False)) # hello is taking the non-default value
+print(IAmAFunction(34, hello=False))  # hello is taking the non-default value
 
 # USE ARRAYS !
-import numpy as np
-A = np.linspace(0,1,100)
-B = np.linspace(100,200,100)
+A = np.linspace(0, 1, 100)
+B = np.linspace(100, 200, 100)
 
-C= A*B
-D = np.zeros(100) #create 100 zeros
+C = A*B
+D = np.zeros(100)  # create 100 zeros
 for i in range(100):
-    D[i]=A[i]*B[i]
+    D[i] = A[i]*B[i]
 print(C-D)
 
 # %% OVERVIEWS : WHAT IS IN PYGEMMES ?
@@ -110,7 +116,7 @@ pgm.get_available_output()
 
 listofsolver = pgm.get_available_solvers(returnas=list)
 listofmodels = pgm.get_available_models(returnas=list)
-listoffields = [ v[0] for v in pgm.get_dfields_overview(returnas=list)]
+listoffields = [v[0] for v in pgm.get_dfields_overview(returnas=list)]
 
 # %% A FEW SIMPLE FUNCTIONS TO SHOW A FEW POSSIBILITIES
 pgm.comparesolver_Lorenz(dt=0.01, Npoints=10000)
@@ -180,13 +186,13 @@ print(groupsoffields)
 # %% Example : gaussian system
 hub_noise = pgm.Hub('Noise')
 hub_noise.run()
-dax=hub_noise.plot(key=['y'],label='-1')
+dax = hub_noise.plot(key=['y'], label='-1')
 for i in range(10):
     hub_noise.run()
-    dax=hub_noise.plot(key=['y'],dax=dax,label=i)
+    dax = hub_noise.plot(key=['y'], dax=dax, label=i)
 
 # %% CHANGING VALUES
-hub=pgm.Hub('GK',verb=False)
+hub = pgm.Hub('GK', verb=False)
 # One slowly
 hub.set_dparam(key='dt', value=0.01)
 hub.set_dparam(Tmax=50)
@@ -220,7 +226,7 @@ BigHub.run()
 BigHub.get_summary()
 dax = hub.plot(label='Full', dax=dax)
 
-# %% Generate a dictionary of dictionary, with for each key : { 'mean value", 'std' , 'distribution' }
+# %% Generate a dictionary of dictionary, with for each key:{'mean value", 'std' , 'distribution'}
 SensitivityDic = {
     'alpha': {'mu': .02,
               'sigma': .12,
@@ -248,7 +254,6 @@ hub.CalculateStatSensitivity()
 dax = hub.plot(mode='sensitivity')
 
 # %% BASIN OF ATTRACTION
-import numpy as np
 lambdavec = np.linspace(.5, .99, 10)
 omegavec = np.linspace(.5, .99, 10)
 dvec = np.linspace(3, 20, 10)
@@ -265,7 +270,7 @@ _DPRESETS = {'BasinOfAttraction':
 
 hub = pgm.Hub('GK-Reduced', preset='BasinOfAttraction', dpresets=_DPRESETS)
 hub.run(verb=1.1)
-#hub.plot(idx=[0, 0, 0])
+# hub.plot(idx=[0, 0, 0])
 
 # Extracting the infos we are looking for fron dparam
 R = hub.get_dparam(key=['lambda', 'omega', 'd', 'nt', 'dt', 'time'], returnas=dict)
@@ -274,8 +279,6 @@ omegaXYZ = R['omega']['value']
 dXYZ = R['d']['value']
 
 
-import cv2
-import matplotlib.pyplot as plt
 # FINDING THE LINES IN THE VALLEY OF STABILITY
 FrontierD = {}  # Dictionnary containing all the positions of the line
 for i in range(0, len(dvec)):
@@ -312,14 +315,11 @@ for j in range(0, len(dvec)):
         plt.pcolormesh(omegavec, lambdavec,
                        dXYZ[i, :, :, j], vmin=0, vmax=dvec[j], cmap='jet', shading='auto')
         # plt.plot(omegavec[XY[:, 0]], lambdavec[XY[:, 1]], c='k')
-        plt.xlabel('$\lambda(t=0)$')
-        plt.ylabel('$\omega(t=0)$')
+        plt.xlabel(r'$\lambda(t=0)$')
+        plt.ylabel(r'$\omega(t=0)$')
         plt.colorbar()
         plt.pause(Pause)
     plt.show()
-
-
-
 
 
 # %% Run everyyyyyyyyyyything
@@ -344,12 +344,15 @@ Exercise 1 : execute by yourself
     6. Plots Plot only lambda, then everything but lambda, then with cycles analysis activated
     7. Exploring dparam structure print all the keys of one field in dparam, then all their values
     8. Getting dparam values Get the values of omega over time as an array, plot it manually
-    9. Creating multiple process Create a preset with 5 values of the rate of productivity progress
+    9. Creating multiple process Create a preset with 5 values of the rate of productivity progres
 
 Exercise 2 : editing
     1. Accessing your personal folder find your personal folder where all models are
-    2. Copy-paste a file Copy the file model GK-Reduced, name it GK-CES-Reduced then reload pygemmes to see if you can load id
-    3. Modify the equations Use the equations for "lambda, omega, d" you find in McIsaac et al, Minskyan classical growth cycles, Mathematics and Financial Economics with the introduction of new parameters in _def_fields
+    2. Copy-paste a file Copy the file model GK-Reduced, name it GK-CES-Reduced then reload
+pygemmes to see if you can load id
+    3. Modify the equations Use the equations for "lambda, omega, d" you find in McIsaac et al,
+Minskyan classical growth cycles, Mathematics and Financial Economics with the introduction
+of new parameters in _def_fields
     4. See the impact of a parameter (1) Do an ensemble of run with different elasticity values
     5. See the impact on cycles Show the impact of the elasticity value on the cycles
     6. See the impact on stability Do a stability analysis with different values
