@@ -19,7 +19,21 @@ from ._plots import _plot_timetraces
 
 class Hub():
     """
-    Generic class to stock every data and method for the user to interac with
+    MOST IMPORTANT OBJECT FOR THE USER.
+
+    given a model name, it will load it and get its logics, presets and associated values. It will :
+        * identify what are the parameters, the state variables, the differential variables
+        * find their associated properties (definition, units, values)
+        * find an order of calculation
+
+    You then access to fields value modification, the structure and properties in the model,
+    simulation, plots, deeper analysis...
+
+    * model : string containing the model name
+    * from_user : if you want to use your file or the one provided in pygemmes
+    * preset : name of the preset in the actual dictionnary of preset
+    * dpreset : a dictionnary of preset one can use
+    * verb : print during the load of the model
     """
 
     def __init__(
@@ -266,7 +280,7 @@ class Hub():
         self.reset()
 
     def get_dparam(self, condition=None, verb=None, returnas=None, **kwdargs):
-        """ Return a copy of the input parameters dict
+        """ Return a copy of the input parameters dict that you can filter
 
         Return as:
             - dict: dict
@@ -277,6 +291,9 @@ class Hub():
         verb:
             - True: pretty-print the chosen parameters
             - False: print nothing
+
+        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype']
+
         """
         lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype']
         lprint = [
@@ -306,6 +323,8 @@ class Hub():
         if crit = 'units', return a dict with:
             - keys: the unique possible values of field 'units'
             - values: for each unique unit, the corresponding list of keys
+
+        lcrit = ['dimension', 'units', 'type', 'group', 'eqtype']
 
         Restrictions on the selection can be imposed by **kwdargs
         The selection is done using self.get_dparam() (single-sourced)
@@ -574,7 +593,12 @@ class Hub():
         atol=None,
         max_time_step=None,
     ):
-        """ Run the simulation
+        """ Run the simulation, with any of the solver existing in :
+            - pgm.get_available_solvers(returnas=list)
+            Verb will have the following behavior :
+            - none no print of the step
+            - 1 at every step
+            - any float (like 1.1) the iteration is written at any of these value
 
         Compute each time step from the previous one using:
             - parameters
