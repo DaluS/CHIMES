@@ -251,7 +251,7 @@ dax = hub.plot(mode='sensitivity')
 import numpy as np
 lambdavec = np.linspace(.5, .99, 10)
 omegavec = np.linspace(.5, .99, 10)
-dvec = np.linspace(10, 40, 10)
+dvec = np.linspace(3, 20, 10)
 dt = 0.005
 Tmax = 20
 
@@ -265,7 +265,7 @@ _DPRESETS = {'BasinOfAttraction':
 
 hub = pgm.Hub('GK-Reduced', preset='BasinOfAttraction', dpresets=_DPRESETS)
 hub.run(verb=1.1)
-hub.plot(idx=[0, 0, 0])
+#hub.plot(idx=[0, 0, 0])
 
 # Extracting the infos we are looking for fron dparam
 R = hub.get_dparam(key=['lambda', 'omega', 'd', 'nt', 'dt', 'time'], returnas=dict)
