@@ -230,7 +230,13 @@ def reproduce_article(
             continue
 
         # load and run
-        hub = _core.Hub(model=v0['model'], preset=v0['preset'], verb=verb)
+        hub = _core.Hub(
+            model=v0['model'],
+            preset=v0['preset'],
+            from_user=False,
+            verb=verb,
+        )
+
         hub.run(
             solver=v0.get('solver', 'eRK4-scipy'),
             verb=verb,
