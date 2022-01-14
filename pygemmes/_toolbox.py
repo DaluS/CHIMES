@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-
 # Here we decide what the user will see
 from ._core import Hub
 from ._models import get_available_models, get_dfields_overview
@@ -9,13 +8,33 @@ from ._utilities._saveload import get_available_output, load
 from ._models import get_available_models, _DFIELDS
 from pygemmes._utilities import _utils
 
+
 import matplotlib.pyplot as plt
 import numpy as np
-#from collections import defaultdict
+
+# #############################################################################
+
+__all__ = [
+    'get_dfields_overview',
+    'create_preset_from_model_preset',
+    'plot_one_run_all_solvers',
+    'comparesolver_Lorenz',
+    'testConvergence_DampOsc',
+    'Generate_network_logics',
+    'GenerateIndividualSensitivity',
+    'GenerateCoupledSensitivity'
+]
 
 
-def get_dfields_overview():
+def get_dfields_overview(returnas=False):
+    '''
+    Will load the library of fields, then all available models,
+    and will print the ensemble of fields with their properties and the models they are in.
 
+    returnas can be used on "list,dict"
+
+    if a field has no group, then it is only defined in model files
+    '''
     dparam_sub = _DFIELDS
     for key, val in dparam_sub.items():
         dparam_sub[key]['inmodel'] = []
@@ -35,11 +54,6 @@ def get_dfields_overview():
                 fieldsnotinDfields.append([key+(20-len(key)*' '), model])
 
     print(f'{len(dparam_sub)} fields in the library \n')
-
-    #print(f'{len(fieldsnotinDfields)} Fields defined in models but not in dfields')
-    # for l in fieldsnotinDfields:
-    #    print(l)
-    # print('')
 
     # ------------------
     # get column headers
@@ -65,7 +79,7 @@ def get_dfields_overview():
         lar=[ar2],
         lcol=[col2],
         verb=True,
-        returnas=False,
+        returnas=returnas,
     )
 
 
@@ -372,14 +386,16 @@ def GenerateCoupledSensitivity(InputDic, dictpreset={}, N=10, grid=False):
     return dictpreset
 
 
-def generate_html_network_logics(_MODEL, screensize=1080, custom=False, smoothtype='dynamic'):
+def Generate_network_logics(_MODEL,
+                            screensize=1080,
+                            custom=False,
+                            smoothtype='dynamic'):
     '''
-
+    Generate an HTML file showing you interactively how are variables linked with their adequate units
 
     Parameters
     ----------
-    _MODEL : TYPE
-        DESCRIPTION.
+    _MODEL : Model name you want to show
     screensize : TYPE, optional
         DESCRIPTION. The default is 1080.
     custom : TYPE, optional
