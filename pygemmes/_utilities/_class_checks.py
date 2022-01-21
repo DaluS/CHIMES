@@ -344,8 +344,9 @@ def _check_logics(dmodel=None, verb=None):
         for k0, v0 in dkout.items():
             for k1 in v0:
                 _models._DFIELDS[k1] = dict(dmodel['logics'][k0][k1])
-                _models._DFIELDS[k1]['eqtype'] = k0
-
+                #_models._DFIELDS[k1]['eqtype'] = k0
+                #_models._DFIELDS[k1]['args'] = {key:[] for key in _LEQTYPES }
+               # _models._DFIELDS[k1]['kargs']= []
         # Make sure all fields are set
         _models._complete_DFIELDS(
             dfields=_models._DFIELDS,
@@ -397,10 +398,12 @@ def get_dparam_from_logics(dmodel=None):
         k0: dict(dmodel['logics'][v0][k0]) for k0, v0 in lk[0].items()
     }
 
+
     # ---------------
     # Add eqtype
     for k0 in dparam.keys():
-        dparam[k0]['eqtype'] = lk[0][k0]
+        if lk[0][k0] not in ['param']:
+            dparam[k0]['eqtype'] = lk[0][k0]
 
     return dparam
 
@@ -1151,7 +1154,10 @@ def _check_func(dparam=None, dmulti=None, verb=None):
     # extract parameters that are functions
     lfunc = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
 
-    # ---------------------------------------
+
+
+
+   # ---------------------------------------
     # extract input args and check conformity
     dfail = {}
     for k0 in lfunc:
