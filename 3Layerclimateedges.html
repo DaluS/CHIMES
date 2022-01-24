@@ -1,0 +1,116 @@
+<html>
+<head>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.css" type="text/css" />
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis-network.min.js"> </script>
+<center>
+<h1>3Layerclimate Logical network</h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+
+<style type="text/css">
+
+        #mynetwork {
+            width: 1080;
+            height: 1080;
+            background-color: #ffffff;
+            border: 1px solid lightgray;
+            position: relative;
+            float: left;
+        }
+
+        
+
+        
+
+        
+</style>
+
+</head>
+
+<body>
+<div id = "mynetwork"></div>
+
+
+<script type="text/javascript">
+
+    // initialize global variables.
+    var edges;
+    var nodes;
+    var network; 
+    var container;
+    var options, data;
+
+    
+    // This method is responsible for drawing the graph, returns the drawn network
+    function drawGraph() {
+        var container = document.getElementById('mynetwork');
+        
+        
+
+        // parsing and collecting nodes and edges from the python
+        nodes = new vis.DataSet([{"color": ["#3da831"], "group": "ODE", "id": "CO2AT", "label": "CO2AT", "level": 1, "shape": "ellipse", "title": "Units\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:C\u003cbr\u003eEquation\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:dCO2AT/dt=Emission\u0026nbsp;-\u0026nbsp;phi12*CO2AT\u0026nbsp;+\u0026nbsp;phi12*CAT/CUP*CO2UP,\u003cbr\u003edefinition\u0026nbsp;\u0026nbsp;\u0026nbsp;:CO2\u0026nbsp;in\u0026nbsp;atmosphere\u003cbr\u003eComment\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:CO2\u0026nbsp;in\u0026nbsp;atmosphere\u0026nbsp;(Gt\u0026nbsp;C)\u003cbr\u003eDependencies\u0026nbsp;:\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;EmissionC.y^{-1}CO2\u0026nbsp;Emission\u0026nbsp;per\u0026nbsp;year\u0026nbsp;(Gt)\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;phi12\u0026nbsp;\u0026nbsp;\u0026nbsp;y^{-1}\u0026nbsp;\u0026nbsp;Transfer\u0026nbsp;rate\u0026nbsp;atmosphere-ocean\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CO2UP\u0026nbsp;\u0026nbsp;\u0026nbsp;C\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CO2\u0026nbsp;in\u0026nbsp;upper\u0026nbsp;ocean\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CUP\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;C\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Historical\u0026nbsp;CO2\u0026nbsp;in\u0026nbsp;upper\u0026nbsp;ocean\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CAT\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;C\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Historical\u0026nbsp;CO2\u0026nbsp;in\u0026nbsp;atmosphere\u003cbr\u003e"}, {"color": ["#3da831"], "group": "ODE", "id": "CO2UP", "label": "CO2UP", "level": 1, "shape": "ellipse", "title": "Units\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:C\u003cbr\u003eEquation\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:dCO2UP/dt=phi12*CO2AT\u0026nbsp;-\u0026nbsp;CO2UP*(phi12*CAT/CUP-phi23)\u0026nbsp;+\u0026nbsp;phi23*CUP/CLO*CO2LO,\u003cbr\u003edefinition\u0026nbsp;\u0026nbsp;\u0026nbsp;:CO2\u0026nbsp;in\u0026nbsp;upper\u0026nbsp;ocean\u003cbr\u003eComment\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:CO2\u0026nbsp;in\u0026nbsp;upper\u0026nbsp;layer\u0026nbsp;of\u0026nbsp;ocean\u0026nbsp;(Gt\u0026nbsp;C)\u003cbr\u003eDependencies\u0026nbsp;:\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;phi12\u0026nbsp;\u0026nbsp;\u0026nbsp;y^{-1}\u0026nbsp;\u0026nbsp;Transfer\u0026nbsp;rate\u0026nbsp;atmosphere-ocean\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;phi23\u0026nbsp;\u0026nbsp;\u0026nbsp;y^{-1}\u0026nbsp;\u0026nbsp;Transfer\u0026nbsp;rate\u0026nbsp;upper-lower\u0026nbsp;ocean\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CAT\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;C\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Historical\u0026nbsp;CO2\u0026nbsp;in\u0026nbsp;atmosphere\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CUP\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;C\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Historical\u0026nbsp;CO2\u0026nbsp;in\u0026nbsp;upper\u0026nbsp;ocean\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CLO\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;C\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Historical\u0026nbsp;CO2\u0026nbsp;in\u0026nbsp;lower\u0026nbsp;ocean\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CO2AT\u0026nbsp;\u0026nbsp;\u0026nbsp;C\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CO2\u0026nbsp;in\u0026nbsp;atmosphere\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CO2LO\u0026nbsp;\u0026nbsp;\u0026nbsp;C\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CO2\u0026nbsp;in\u0026nbsp;lower\u0026nbsp;ocean\u003cbr\u003e"}, {"color": ["#3da831"], "group": "ODE", "id": "CO2LO", "label": "CO2LO", "level": 1, "shape": "ellipse", "title": "Units\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:C\u003cbr\u003eEquation\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:dCO2LO/dt=phi23*CO2UP\u0026nbsp;-\u0026nbsp;phi23*CUP/CLO*CO2LO,\u003cbr\u003edefinition\u0026nbsp;\u0026nbsp;\u0026nbsp;:CO2\u0026nbsp;in\u0026nbsp;lower\u0026nbsp;ocean\u003cbr\u003eComment\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:CO2\u0026nbsp;in\u0026nbsp;lower\u0026nbsp;layer\u0026nbsp;of\u0026nbsp;ocean\u0026nbsp;(Gt\u0026nbsp;C)\u003cbr\u003eDependencies\u0026nbsp;:\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;phi23\u0026nbsp;\u0026nbsp;\u0026nbsp;y^{-1}\u0026nbsp;\u0026nbsp;Transfer\u0026nbsp;rate\u0026nbsp;upper-lower\u0026nbsp;ocean\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CO2UP\u0026nbsp;\u0026nbsp;\u0026nbsp;C\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CO2\u0026nbsp;in\u0026nbsp;upper\u0026nbsp;ocean\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CUP\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;C\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Historical\u0026nbsp;CO2\u0026nbsp;in\u0026nbsp;upper\u0026nbsp;ocean\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CLO\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;C\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Historical\u0026nbsp;CO2\u0026nbsp;in\u0026nbsp;lower\u0026nbsp;ocean\u003cbr\u003e"}, {"color": ["#3da831"], "group": "ODE", "id": "T", "label": "T", "level": 1, "shape": "ellipse", "title": "Units\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:Tc\u003cbr\u003eEquation\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:dT/dt=(F\u0026nbsp;-\u0026nbsp;rhoAtmo*T\u0026nbsp;-\u0026nbsp;gammaAtmo*(T-T0))/Capacity,\u003cbr\u003edefinition\u0026nbsp;\u0026nbsp;\u0026nbsp;:temperature\u0026nbsp;anomaly\u0026nbsp;of\u0026nbsp;atmosphere\u003cbr\u003eComment\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:Temperature\u0026nbsp;anomaly\u0026nbsp;in\u0026nbsp;atmosphere\u003cbr\u003eDependencies\u0026nbsp;:\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;F\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;undefined\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;rhoAtmo\u0026nbsp;undefinedradiative\u0026nbsp;feedback\u0026nbsp;parameter\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;gammaAtmoundefinedHeat\u0026nbsp;exchange\u0026nbsp;between\u0026nbsp;layers\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;T0\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Tc\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;temperature\u0026nbsp;anomaly\u0026nbsp;of\u0026nbsp;ocean\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CapacityundefinedHeat\u0026nbsp;capacity\u0026nbsp;atmosphere+upper\u0026nbsp;ocean\u003cbr\u003e"}, {"color": ["#3da831"], "group": "ODE", "id": "T0", "label": "T0", "level": 1, "shape": "ellipse", "title": "Units\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:Tc\u003cbr\u003eEquation\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:dT0/dt=(gammaAtmo*(T-T0))/Capacity0,\u003cbr\u003edefinition\u0026nbsp;\u0026nbsp;\u0026nbsp;:temperature\u0026nbsp;anomaly\u0026nbsp;of\u0026nbsp;ocean\u003cbr\u003eComment\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:Temperature\u0026nbsp;anomaly\u0026nbsp;in\u0026nbsp;ocean\u003cbr\u003eDependencies\u0026nbsp;:\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;gammaAtmoundefinedHeat\u0026nbsp;exchange\u0026nbsp;between\u0026nbsp;layers\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;T\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Tc\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;temperature\u0026nbsp;anomaly\u0026nbsp;of\u0026nbsp;atmosphere\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Capacity0undefinedHeat\u0026nbsp;capacity\u0026nbsp;lower\u0026nbsp;ocean\u003cbr\u003e"}, {"color": ["#3da831"], "group": "ODE", "id": "pseudot", "label": "pseudot", "level": 1, "shape": "ellipse", "title": "Units\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:undefined\u003cbr\u003eEquation\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:dpseudot/dt=1,\u003cbr\u003edefinition\u0026nbsp;\u0026nbsp;\u0026nbsp;:\u003cbr\u003eComment\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:false\u0026nbsp;time\u0026nbsp;because\u0026nbsp;practical\u003cbr\u003eDependencies\u0026nbsp;:\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;T\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Tc\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;temperature\u0026nbsp;anomaly\u0026nbsp;of\u0026nbsp;atmosphere\u003cbr\u003e"}, {"color": ["#3da831"], "group": "STATEVAR", "id": "F", "label": "F", "level": 2, "shape": "ellipse", "title": "Units\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:undefined\u003cbr\u003eEquation\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:F=F2CO2\u0026nbsp;/\u0026nbsp;np.log(2)\u0026nbsp;*\u0026nbsp;np.log(CO2AT/CAT),\u003cbr\u003edefinition\u0026nbsp;\u0026nbsp;\u0026nbsp;:\u003cbr\u003eComment\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:Temperature\u0026nbsp;forcing\u0026nbsp;from\u0026nbsp;CO2\u003cbr\u003eDependencies\u0026nbsp;:\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;F2CO2\u0026nbsp;\u0026nbsp;\u0026nbsp;undefinedForcing\u0026nbsp;when\u0026nbsp;doubling\u0026nbsp;CO2\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CO2AT\u0026nbsp;\u0026nbsp;\u0026nbsp;C\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CO2\u0026nbsp;in\u0026nbsp;atmosphere\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;CAT\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;C\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Historical\u0026nbsp;CO2\u0026nbsp;in\u0026nbsp;atmosphere\u003cbr\u003e"}, {"color": ["#3da831"], "group": "STATEVAR", "id": "Emission", "label": "Emission", "level": 2, "shape": "ellipse", "title": "Units\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:C.y^{-1}\u003cbr\u003eEquation\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:Emission=Emission0*np.exp(-pseudot*deltaEmission),\u003cbr\u003edefinition\u0026nbsp;\u0026nbsp;\u0026nbsp;:CO2\u0026nbsp;Emission\u0026nbsp;per\u0026nbsp;year\u0026nbsp;(Gt)\u003cbr\u003eComment\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;:CO2\u0026nbsp;Emission\u0026nbsp;rate\u0026nbsp;\u003cbr\u003eDependencies\u0026nbsp;:\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;Emission0C.y^{-1}CO2\u0026nbsp;Emission\u0026nbsp;per\u0026nbsp;year\u0026nbsp;(Gt)\u0026nbsp;at\u0026nbsp;t=0\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;deltaEmissiony^{-1}\u0026nbsp;\u0026nbsp;Diminution\u0026nbsp;rate\u0026nbsp;of\u0026nbsp;carbon\u0026nbsp;emission\u003cbr\u003e\u0026nbsp;\u0026nbsp;\u0026nbsp;\u0026nbsp;pseudot\u0026nbsp;undefined\u003cbr\u003e"}]);
+        edges = new vis.DataSet([{"arrows": "to", "from": "Emission", "to": "CO2AT"}, {"arrows": "to", "from": "CO2UP", "to": "CO2AT"}, {"arrows": "to", "from": "CO2AT", "to": "CO2AT"}, {"arrows": "to", "from": "CO2AT", "to": "CO2UP"}, {"arrows": "to", "from": "CO2LO", "to": "CO2UP"}, {"arrows": "to", "from": "CO2UP", "to": "CO2UP"}, {"arrows": "to", "from": "CO2UP", "to": "CO2LO"}, {"arrows": "to", "from": "CO2LO", "to": "CO2LO"}, {"arrows": "to", "from": "F", "to": "T"}, {"arrows": "to", "from": "T0", "to": "T"}, {"arrows": "to", "from": "T", "to": "T"}, {"arrows": "to", "from": "T", "to": "T0"}, {"arrows": "to", "from": "T0", "to": "T0"}, {"arrows": "to", "from": "T", "to": "pseudot"}, {"arrows": "to", "from": "CO2AT", "to": "F"}, {"arrows": "to", "from": "pseudot", "to": "Emission"}]);
+
+        // adding nodes and edges to the graph
+        data = {nodes: nodes, edges: edges};
+
+        var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "repulsion": {
+            "centralGravity": 0.2,
+            "damping": 0.09,
+            "nodeDistance": 100,
+            "springConstant": 0.05,
+            "springLength": 200
+        },
+        "solver": "repulsion",
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+        
+        
+
+        
+
+        network = new vis.Network(container, data, options);
+	 
+        
+
+
+        
+
+        return network;
+
+    }
+
+    drawGraph();
+
+</script>
+</body>
+</html>

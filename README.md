@@ -1,4 +1,39 @@
-# README HAS TO BE WRITTEN, THIS IS AN OLD VERSION. Look At The Ipython Notebook in doc/Tutorial.ipynb
+# What is pygemmes ?
+
+Pygemmes is a huge toolbox for ecological economist that want to understand interdisciplinar complex systems through models.
+
+It is :
+* An ensemble of fields, concepts that makes sense in our world (temperature, inflation, debt, production, carbon concentration, productivity...)
+* And ensemble of links : concepts that are related to each other in their definition or their evolution (the evolution of price is linked to inflation, the employement is linked to the workers and the population...)
+* An ensemble of model : each model is an ensemble of links consistent altogether, you can compare each model on its construction and their consequence, couple models...
+* An ensemble of tools to study the system : equation solvers, cycles analysis, sensitivity analysis, basin of attractions...
+
+In a few lines one can :
+* Explore and plot the litterature
+* Write his own model, prototype it
+* Analyse the outcomes
+
+THERE WILL BE AN IMAGE OF A NETWORK
+
+THERE WILL BE AN IMAGE OF A RUN
+
+
+# How to use it ?
+
+Look At The Ipython Notebook in doc/Tutorial.ipynb and execute line by line doc/Tutorial.py
+
+
+# IS IT AN IAM AS MANY OTHERS ?
+
+The goal of the library is to help the community of modellers, especially the ones working with IAM (Integrated assessment model). However, those are not constructed standard way : it is based on dynamical systems rather than intertemporal optimisation.
+
+As a consequence, the model is much more suited to take into account economy as a part of the world (ecology) rather than seeing the ecology as a part of the economy.
+It is much more convenient that way to couple different disciplines that way. This formulation is also stock-flow consistent : nothing appear or disappear out of nowhere by construction. This is a great help to get closer to a thermodynamic consistent model.
+
+The economic part is handled through Post-Keynesian approach, particularly efficient on rapidly-evolving, out of equilibrium dynamics with endogeneous crysis.
+
+In the general methodology, one could see similitudes with 'Limits to growth' but with 50 years of update in term of dynamical systems and interdisciplinary research, and more policy oriented.
+The model are based on descriptivity and allow the user to develop normativity.
 
 # Contributing
 

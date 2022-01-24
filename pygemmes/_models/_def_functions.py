@@ -1,15 +1,28 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sat Jan 22 11:02:26 2022
+Contains all the functions that can be share between models.
+To use them write first :
 
-@author: Paul Valcke
+from pygemmes._models import Funcs
+
+then call a function using for example :
+    Funcs.productivity.exogenous
+
+If you want the equation to be readable in network view/ get_summary, use lambda function
+In all other cases, use definition functions
+
+This way, changing a brick can be compared easily !
+When two brick do not target the same field but goes together (for example Y and L in a produciton function)
+Then they are in a subclass.
+
+itself is still used in a case of an ode calling itself,
+lamb is still used as a substitute to lambda
 """
 
 import numpy as np
 
-
 class Funcs:
-    class Phillips:
+    class phillips:
         """
         The Phillips function is linking the relative wage share increase rate to the
         employement.
@@ -26,24 +39,14 @@ class Funcs:
             '''
             return phiexp0 + phiexp1 * np.exp(phiexp2 * lamb)
 
-        def div(lamb=0,
-                phi0=0,
-                phi1=0,
-                phi2=0,
-                ):
-            '''
-            From article :
-            '''
-            return -phi0 + phi1 / (1 - lamb)**2
+        div = lambda lamb=0,phi0=0,phi1=0:-phi0 + phi1 / (1 - lamb)**2
 
-        def lin(lamb=0,
-                philinConst=0,
-                philinSlope=0,
-                ):
+        def lin(lamb=0,philinConst=0,philinSlope=0):
             '''
             From article :
             '''
             return philinConst + philinSlope * lamb,
+
 
     class kappa:
         """
@@ -65,12 +68,13 @@ class Funcs:
         def exp(pi=0,
                 k0=0,
                 k1=0,
-                k2=0,):
+                k2=0):
             '''
             From article :
             '''
             return k0 + k1 * np.exp(k2 * pi)
 
+        Ifromkappa = lambda GDP=0,kappa=0 : GDP*kappa
 
     class production:
         """
@@ -91,8 +95,8 @@ class Funcs:
             '''
             Case in which the amount of workers is the optimal one for profit optimisation
             '''
-            Y = 0
-            L = 0
+            Y = lambda K=0,nu=1 : K/nu
+            L = lambda K=0 : 0
             nu = lambda omega=0.1, b=1, A=1, eta=1: ((1 - omega) / b)**(-1./eta) / A
 
 
@@ -131,4 +135,16 @@ class Funcs:
         '''
         Price dynamics
         '''
-        markup = lambda mu=0, eta=0, omega=0: eta*(mu*omega-1),
+        pricefrominflation = lambda itself=0, inflation=0 : itself*inflation
+        markup = lambda mu=0, eta=0, omega=0: eta*(mu*omega-1)
+
+
+    class definitions:
+        '''
+        Classic intermediary variables that might be needed
+        '''
+        lamb = lambda L=0, N=1: L / N
+        omega = lambda w=0, L=0, Y=1, p=1: (w * L) / (Y*p)
+        d = lambda D=0, GDP=1: D / GDP
+        pi = lambda Pi=0, GDP=1: Pi/GDP
+        GDP_monosec = lambda Y=0, p=0: Y * p

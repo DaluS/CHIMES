@@ -17,99 +17,6 @@ Created on Wed Jul 21 15:11:15 2021
 """
 
 
-class Phillips:
-    """
-    The Phillips function is linking the relative wage share increase rate to the
-    employement.
-    The phenomena behind is a class struggle
-    """
-
-    def expo(lamb=0,
-             phiexp0=0,
-             phiexp1=0,
-             phiexp2=0,
-             ):
-        '''
-        From article :
-        '''
-        return phiexp0 + phiexp1 * np.exp(phiexp2 * lamb)
-
-    def div(lamb=0,
-            phi0=0,
-            phi1=0,
-            phi2=0,
-            ):
-        '''
-        From article :
-        '''
-        return -phi0 + phi1 / (1 - lamb)**2
-
-    def lin(lamb=0,
-            philinConst=0,
-            philinSlope=0,
-            ):
-        '''
-        From article :
-        '''
-        return philinConst + philinSlope * lamb,
-
-
-class kappa:
-    """
-    The kappa function is linking the relative profit to the share of GDP a firm
-    will invest in new productive capital
-
-    It is taking into account both the willingness of bankers to gives loans, and
-    the will of the firm to ask for such loan
-    """
-
-    def lin(pi=0,
-            kappalinConst=0,
-            kappalinSlope=0):
-        '''
-        From article :
-        '''
-        return kappalinConst + kappalinConst * pi
-
-    def exp(pi=0,
-            k0=0,
-            k1=0,
-            k2=0,):
-        '''
-        From article :
-        '''
-        return k0 + k1 * np.exp(k2 * pi)
-
-
-class productionYL:
-    """
-    Production functions are the output to input factors.
-
-    """
-    leontiev = lambda b=0.5,a=0,L=0,K=0,nu=1: 2*np.minimun((b*K/nu,(1-b)*a*L))
-    leontiev_optimised = lambda K=0,nu=1: K/nu
-    leontiev_labor_optimal = lambda b=0.5,a=0,L=0,K=0,nu=1: K*b/((1-b)*(a*nu))
-
-    CES = lambda A=1, b=0.5, K=1, L=1, a=1, eta=1: A*(b*K**(-eta) + (1 - b)*(L * a)**(-eta))**(-1./eta)
-    CES_nu_optimal = lambda omega=0.1, b=1, A=1, eta=1: ((1 - omega) / b)**(-1./eta) / A
-    CES_labord_optimal = lambda eta=0 : 0
-
-class productivity:
-    """
-    Productivity is the "human power" in production function, the ponderation of each unit
-    """
-    prod_exogenous = lambda itself=0, alpha=0 : itself*alpha
-    prod_Verdoorn = lambda itself=0, g=0, alpha=0, beta=0: itself * alpha + g * beta
-
-class shareholding:
-    """
-    Shareholding is the share of GDP going from the firm to the shareowner
-    """
-    def sharehold_lin(divlinSlope=0, divlinconst=0, pi=0):
-        """
-        From article :
-        """
-        return (divlinSlope*pi+divlinconst)
 
 # -------------------------
 # intermediate utility func
@@ -209,11 +116,11 @@ _LOGICS = {
 
         # Needed for computation
         'phillips': {
-            'func': Phillips.expo,.
+            'func': Func.phillips.expo,
             'com': 'Exponential curve',
         },
         'kappa': {
-            'func': kappa.exp,
+            'func': Func.kappa.exp,
             'com': 'Exponential curve',
         },
         'pi': {

@@ -150,7 +150,7 @@ def load_model(model=None, dmulti=None, verb=None, from_user=None):
         spec.loader.exec_module(foo)
 
         # checking attributes
-        lattr = [att for att in _MODEL_ATTR if not hasattr(foo, att)]
+        lattr = [att for att in _LMODEL_ATTR if not hasattr(foo, att)]
         if len(lattr) > 0:
             lstr = [f'\t- {att}' for att in lattr]
             msg = (
@@ -1076,7 +1076,7 @@ def _check_func_get_source(lfunc=None, dparam=None):
             assert dparam[k0].get('source_exp') is None
 
             # extract source and check if lambda
-            sour = inspect.getsource(dparam[k0]['func'])
+            sour = inspect.getsource(dparam[k0]['func']).replace('    ','')
             c0 = (
                 sour.count(':') >= 1
                 and (
@@ -1092,7 +1092,6 @@ def _check_func_get_source(lfunc=None, dparam=None):
                     and sour.startswith('def ')
                 )
             )
-
             if not c0:
                 msg = (
                     f"Non-valid function for {k0}: "
@@ -1118,7 +1117,7 @@ def _check_func_get_source(lfunc=None, dparam=None):
             if not all(['=' in kk for kk in kargs]):
                 msg = (
                     'Only keyword args can be used for lambda functions!\n'
-                    f'Provided:\n{source}'
+                    f'Provided:\n{sour}'
                 )
                 raise Exception(msg)
 
