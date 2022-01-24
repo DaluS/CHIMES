@@ -35,111 +35,11 @@ __FILLDEFAULTVALUES = True
 
 # #############################################################################
 # #############################################################################
-#                   FIELDS OF FIELDS AND EXPECTED VALUES
-# #############################################################################
-# dict of default value in fields
-
-
-__DEFAULTFIELDS = {
-    'value': {
-        'default': None,
-        'type': (int, float, np.int_, np.float_, np.ndarray, list),
-        'allowed': None,
-    },
-    'definition': {
-        'default': '',
-        'type': str,
-        'allowed': None,
-    },
-    'com': {
-        'default': 'No comment',
-        'type': str,
-        'allowed': None,
-    },
-    'dimension': {
-        'default': 'undefined',
-        'type': str,
-        'allowed': None,
-    },
-    'units': {
-        'default': 'undefined',
-        'type': str,
-        'allowed': [
-            'Units',  # Any physical quantity of something (capital, ressources...)
-            'y',      # Time
-            '$',      # Money
-            'C',      # Carbon Concentration
-            'Tc',     # Temperature (Celsius)
-            'Humans',  # Population
-            '',       # Dimensionless
-        ],
-    },
-    'type': {
-        'default': 'undefined',
-        'type': str,
-        'allowed': [
-            'intensive',
-            'extensive',
-            'dimensionless',
-        ],
-    },
-    'symbol': {
-        'default': '',
-        'type': str,
-        'allowed': None,
-    },
-    'group': {
-        'default': '',
-        'type': str,
-        'allowed': None,
-    },
-}
-
-
-# --------------------
-# Make sure the default is allowed
-for k0, v0 in __DEFAULTFIELDS.items():
-    if v0.get('allowed') is not None:
-        __DEFAULTFIELDS[k0]['allowed'].append(v0['default'])
-
-
-# #############################################################################
-# #############################################################################
 #                   Library (new formalism)
 # #############################################################################
 
 
 _LIBRARY = {
-    'Temporary': {
-        'Final': {'value': 0,
-                  'definition': 'Final value',
-                  },
-        'Omega': {'value': 1,
-                  'definition': 'Pulsation',
-                  },
-        'beta': {'value': 0.1,
-                 'definition': 'Lorenz related'},
-        'gamma': {'value': 1,
-                  'definition': 'Dampening',
-                  },
-        'm': {'value': 1,
-              'definition': 'Mass doublependulum',
-              },
-        'l': {'value': 1,
-              'definition': 'Length doublependulum'
-              },
-        'gravity': {'value': 9.8,
-                    'definition': 'gravity acceleration'
-                    },
-        'sigmanoise': {'value': 0.1,
-                       'definition': '',
-                       },
-        'seed': {'value': 0.1,
-                 'definition': '',
-                 },
-    },
-
-
     'Numerical': {
         'Tmax': {
             'value': 100,
@@ -181,11 +81,6 @@ _LIBRARY = {
             'definition': 'Population',
             'units': 'Humans',
         },
-        'Nmax': {
-            'value': 12,
-            'definition': 'Saturating population',
-            'units': 'Humans',
-        },
         'L': {
             'value': None,
             'definition': 'Workers',
@@ -206,8 +101,6 @@ _LIBRARY = {
             'definition': 'Individual purchasing power',
             'units': 'Units.y^{-1}.Humans^{-1}',
             'symbol': r'$\Omega$', },
-
-        # INTERMEDIARY TYPICAL VARIABLES
         'lambda': {
             'value': .97,
             'definition': 'employement rate',
@@ -233,6 +126,11 @@ _LIBRARY = {
             'definition': 'Rate of productivity increase',
             'units': 'y^{-1}',
         },
+        'Nmax': {
+            'value': 12,
+            'definition': 'Saturating population',
+            'units': 'Humans',
+        },
     },
 
 
@@ -256,6 +154,23 @@ _LIBRARY = {
 
 
     'Production': {
+        'A': {
+            'value': 1/3.,
+            'definition': 'Efficiency in CES prod',
+            'units': 'y^{-1}',
+        },
+        'nu': {
+            'value': 3,
+            'definition': 'Kapital to output ratio',
+            'units': '',
+            'symbol': r'$\nu$',
+        },
+        'b': {
+            'value': 0.5,
+            'definition': 'part of capital in prod intensity',
+            'units': '',
+        },
+
         # VARIABLES
         'K': {
             'value': 2.7,
@@ -315,12 +230,6 @@ _LIBRARY = {
             'units': 'y^{-1}',
             'symbol': r'$\delta$',
         },
-        'nu': {
-            'value': 3,
-            'definition': 'Kapital to output ratio',
-            'units': '',
-            'symbol': r'$\nu$',
-        },
         'gammai': {
             'value': 1,
             'definition': 'inflation awareness',
@@ -343,6 +252,8 @@ _LIBRARY = {
             'units': 'y^{-1}',
             'symbol': r'$\phi$',
         },
+
+        # Diverging Philips
         'phinull': {
             'value': 0.04,
             'definition': 'Unemployment rate with no salary increase',
@@ -362,6 +273,8 @@ _LIBRARY = {
             'units': '',
             'eqtype': 'param',
         },
+
+        # Linear Phillips (from Coping article)
         'philinConst': {
             'value': -0.292,
             'definition': 'wage rate when full unemployement',
@@ -372,6 +285,25 @@ _LIBRARY = {
             'definition': 'wage rate dependance to unemployement',
             'units': 'y^{-1}',
         },
+
+        # Exponential Philips (from CES article)
+        'phiexp0': {
+            'value': -0.01,
+            'definition': 'Constant in expo phillips',
+            'units': 'y^{-1}',
+        },
+        'phiexp1': {
+            'value': 0.5,
+            'definition': 'slope in expo phillips',
+            'units': 'y^{-1}',
+        },
+        'phiexp2': {
+            'value': 50,
+            'definition': 'exponent in expo phillips',
+            'units': '',
+        },
+
+        # Additional parameter
         'zphi': {
             'value': 0.1,
             'definition': 'nonlinearity on profit in negociation',
@@ -387,6 +319,8 @@ _LIBRARY = {
             'definition': 'Shareholding dividends',
             'units': '$.y^{-1}',
         },
+
+        # Dividend fit from copingwithcollapse
         'divlinSlope': {
             'value': 0.473,
             'definition': 'Shareholding dependency to profits (affine)',
@@ -825,6 +759,75 @@ _LIBRARY = {
     },
 
 }
+
+# #############################################################################
+# #############################################################################
+#                   FIELDS OF FIELDS AND EXPECTED VALUES
+# #############################################################################
+# dict of default value in fields
+
+
+__DEFAULTFIELDS = {
+    'value': {
+        'default': None,
+        'type': (int, float, np.int_, np.float_, np.ndarray, list),
+        'allowed': None,
+    },
+    'definition': {
+        'default': '',
+        'type': str,
+        'allowed': None,
+    },
+    'com': {
+        'default': 'No comment',
+        'type': str,
+        'allowed': None,
+    },
+    'dimension': {
+        'default': 'undefined',
+        'type': str,
+        'allowed': None,
+    },
+    'units': {
+        'default': 'undefined',
+        'type': str,
+        'allowed': [
+            'Units',  # Any physical quantity of something (capital, ressources...)
+            'y',      # Time
+            '$',      # Money
+            'C',      # Carbon Concentration
+            'Tc',     # Temperature (Celsius)
+            'Humans',  # Population
+            '',       # Dimensionless
+        ],
+    },
+    'type': {
+        'default': 'undefined',
+        'type': str,
+        'allowed': [
+            'intensive',
+            'extensive',
+            'dimensionless',
+        ],
+    },
+    'symbol': {
+        'default': '',
+        'type': str,
+        'allowed': None,
+    },
+    'group': {
+        'default': '',
+        'type': str,
+        'allowed': None,
+    },
+}
+
+
+# --------------------
+# Make sure the default is allowed
+for k0, v0 in __DEFAULTFIELDS.items():
+    if v0.get('allowed') is not None:
+        __DEFAULTFIELDS[k0]['allowed'].append(v0['default'])
 
 
 # ------------------------------------

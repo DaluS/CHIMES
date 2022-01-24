@@ -29,16 +29,7 @@ class Funcs:
         The phenomena behind is a class struggle
         """
 
-        def expo(lamb=0,
-                 phiexp0=0,
-                 phiexp1=0,
-                 phiexp2=0,
-                 ):
-            '''
-            From article :
-            '''
-            return phiexp0 + phiexp1 * np.exp(phiexp2 * lamb)
-
+        expo = lambda lamb=0,phiexp0=0,phiexp1=0,phiexp2=0: phiexp0 + phiexp1 * np.exp(phiexp2 * lamb)
         div = lambda lamb=0,phi0=0,phi1=0:-phi0 + phi1 / (1 - lamb)**2
 
         def lin(lamb=0,philinConst=0,philinSlope=0):
@@ -148,3 +139,4 @@ class Funcs:
         d = lambda D=0, GDP=1: D / GDP
         pi = lambda Pi=0, GDP=1: Pi/GDP
         GDP_monosec = lambda Y=0, p=0: Y * p
+        elasticity = lambda eta=0 : 1/(1+eta)
