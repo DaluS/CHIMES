@@ -1077,15 +1077,14 @@ def _check_func_get_source(lfunc=None, dparam=None):
 
             # extract source and check if lambda
             sour = inspect.getsource(dparam[k0]['func'])
-
             c0 = (
                 sour.count(':') >= 1
                 and (
                     sour.count('lambda') == 1
-                    and sour.count(':') == 2
-                    and 'lambda' in sour.split(':')[1]
+                    #and sour.count(':') == 2 # Comment for remote lambda expression
+                    #and 'lambda' in sour.split(':')[1] #Comment for remote lambda
                     and sour.count('\n') == 1
-                    and sour.endswith(',\n')
+                    #and sour.endswith(',\n') # Comment because comment at end of the line or no ',' when in a remote file
                 )
                 or (
                     sour.count('lambda') == 0
@@ -1093,6 +1092,7 @@ def _check_func_get_source(lfunc=None, dparam=None):
                     and sour.startswith('def ')
                 )
             )
+
             if not c0:
                 msg = (
                     f"Non-valid function for {k0}: "
