@@ -21,25 +21,31 @@ lamb is still used as a substitute to lambda
 
 import numpy as np
 
+
 class Funcs:
-    class phillips:
+    class Phillips:
         """
         The Phillips function is linking the relative wage share increase rate to the
         employement.
         The phenomena behind is a class struggle
         """
 
-        expo = lambda lamb=0,phiexp0=0,phiexp1=0,phiexp2=0: phiexp0 + phiexp1 * np.exp(phiexp2 * lamb)
-        div = lambda lamb=0,phi0=0,phi1=0:-phi0 + phi1 / (1 - lamb)**2
+        exp = {
+            'func': lambda lamb=0, phiexp0=0, phiexp1=0, phiexp2=0: phiexp0 + phiexp1 * np.exp(phiexp2 * lamb),
+            'com': 'Exponential fit'
+        }
 
-        def lin(lamb=0,philinConst=0,philinSlope=0):
-            '''
-            From article :
-            '''
-            return philinConst + philinSlope * lamb,
+        div = {
+            'func': lambda lamb=0, phi0=0, phi1=0: -phi0 + phi1 / (1 - lamb)**2,
+            'com': 'diverging fit (force omega \leq 1)'
+        }
 
+        lin = {
+            'func': lambda lamb=0, philinConst=0, philinSlope=0: philinConst + philinSlope * lamb,
+            'com': 'linear'
+        }
 
-    class kappa:
+    class Kappa:
         """
         The kappa function is linking the relative profit to the share of GDP a firm
         will invest in new productive capital
@@ -48,95 +54,155 @@ class Funcs:
         the will of the firm to ask for such loan
         """
 
-        def lin(pi=0,
-                kappalinConst=0,
-                kappalinSlope=0):
-            '''
-            From article :
-            '''
-            return kappalinConst + kappalinConst * pi
+        lin = {
+            'func': lambda pi=0, kappalinConst=0, kappalinSlope=0: kappalinConst + kappalinConst * pi,
+            'com': 'lin param curve'
+        }
+        exp = {
+            'func': lambda pi=0, k0=0, k1=0, k2=0: k0 + k1 * np.exp(k2 * pi),
+            'com': 'exp param curve'
+        }
+        ifromkappa = {
+            'func': lambda GDP=0, kappa=0: GDP*kappa,
+            'com': ''
+        }
 
-        def exp(pi=0,
-                k0=0,
-                k1=0,
-                k2=0):
-            '''
-            From article :
-            '''
-            return k0 + k1 * np.exp(k2 * pi)
-
-        Ifromkappa = lambda GDP=0,kappa=0 : GDP*kappa
-
-    class production:
+    class ProductionWorkers:
         """
         Production functions are the output to input factors.
-
         """
-        leontiev = lambda b=0.5,a=0,L=0,K=0,nu=1: 2*np.minimun((b*K/nu,(1-b)*a*L))
-        ces = lambda A=1, b=0.5, K=1, L=1, a=1, eta=1: A*(b*K**(-eta) + (1 - b)*(L * a)**(-eta))**(-1./eta)
+        leontiev = {
+            'func': lambda nu=1, b=0.5, K=1, L=1, a=1, eta=1: 2*np.minimum(((b*K/nu), (1-b)*a*L)),
+            'com': 'Leontiev production function'
+        }
+
+        ces = {
+            'func': lambda A=1, b=0.5, K=1, L=1, a=1, eta=1: A *
+            (b*K**(-eta) + (1 - b)*(L * a)**(-eta))**(-1./eta),
+            'com': 'CES production function'
+        }
 
         class Leontiev_Optimised:
             '''
             Case in which the amount of workers is the optimal one for profit optimisation
             '''
-            Y = lambda K=0,nu=1: K/nu
-            L = lambda b=0.5,a=1,K=0,nu=1: K*b/((1-b)*(a*nu))
+            Y = {
+                'func': lambda K=0, nu=1: K/nu,
+                'com': 'Assume full employement'
+            }
+            L = {
+                'func': lambda b=0.5, a=1, K=0, nu=1: K*b/((1-b)*(a*nu)),
+                'com': 'L for full capital use'
+            }
 
         class CES_Optimised:
             '''
             Case in which the amount of workers is the optimal one for profit optimisation
             '''
-            Y = lambda K=0,nu=1 : K/nu
-            L = lambda K=0 : 0
-            nu = lambda omega=0.1, b=1, A=1, eta=1: ((1 - omega) / b)**(-1./eta) / A
+            Y = {
+                'func': lambda K=0, nu=1: K/nu,
+                'com': 'Y CES with optimisation of profit'
+            }
+            L = {
+                'func': lambda K=0: 0,
+                'com': 'L CES, with ofptimisation of profit'
+            }
+            nu = {
+                'func': lambda omega=0.1, b=1, A=1, eta=1: ((1 - omega) / b)**(-1./eta) / A,
+                'com': 'nu deduced from CES optimisation of profit'
+            }
 
-
-    class productivity:
+    class Productivity:
         """
         Productivity is the "human power" in production function, the ponderation of each unit
         """
-        exogenous = lambda itself=0, alpha=0 : itself*alpha
-        verdoorn = lambda itself=0, g=0, alpha=0, beta=0: itself * alpha + g * beta
+        exogenous = {
+            'func': lambda itself=0, alpha=0: itself*alpha,
+            'com': 'exogenous, exponential',
+        }
 
-    class shareholding:
+        verdoorn = {
+            'func': lambda itself=0, g=0, alpha=0, beta=0: itself * alpha + g * beta,
+            'com': 'endogenous, impact of physical growth'
+        }
+
+    class Shareholding:
         """
         Shareholding is the share of GDP going from the firm to the shareowner
         """
-        def sharehold_lin(divlinSlope=0, divlinconst=0, pi=0):
-            """
-            From article :
-            """
-            return (divlinSlope*pi+divlinconst)
+        sharehold_lin = {
+            'func': lambda divlinSlope=0, divlinconst=0, pi=0: divlinSlope*pi+divlinconst,
+            'com': 'lin fit from Coping',
+        }
 
-    class damage:
-        """
-        Damages functions
-        """
-        Damage = lambda T=0, pi1=0, pi2=0, pi3=0, zeta3=1: 1 - 1/(1+pi1*T+pi2*T**2+pi3*T**zeta3),
+    class Speculation:
+        exp = {
+            'func': lambda g=0, SpeExpoConst=0, SpecExpoSlope=0, SpecExpoexpo1=0, SpecExpoexpo2=0: - SpeExpoConst+SpecExpoSlope*np.exp(SpecExpoexpo1+g * SpecExpoexpo2),
+            'com': 'speculation exponential function'
+        }
 
+    class Damage:
+        general = {
+            'func': lambda T=0, pi1=0, pi2=0, pi3=0, zeta3=1: 1 - 1/(1+pi1*T+pi2*T**2+pi3*T**zeta3),
+            'com': 'General damage function'
+        }
 
-    class population:
+    class Population:
         """
         Population evolution
         """
-        expo = lambda itself=0, n=1: itself * n
-        logistique = lambda itself=0, n=1, Nmax=1: itself * n * (1-itself/Nmax)
+        exp = {
+            'func': lambda itself=0, n=0: itself * n,
+            'com': 'exogenous exponential',
+        }
+        logistic = {
+            'func': lambda itself=0, n=1, Nmax=1: itself * n * (1-itself/Nmax),
+            'com': 'exogenous logistic (saturation)',
+        }
 
-    class inflation:
+    class Inflation:
         '''
-        Price dynamics
+        Price signal is important in the behavior of such system.
+        However, prices are often not defined as a statevariable, but rather as
+        the consequence of inflations processes : it is a social construct.
         '''
-        pricefrominflation = lambda itself=0, inflation=0 : itself*inflation
-        markup = lambda mu=0, eta=0, omega=0: eta*(mu*omega-1)
+        # Price dynamics deduced from inflation
+        pricefrominflation = {
+            'func': lambda itself=0, inflation=0: itself*inflation,
+            'com': 'Prices variation deduced from inflation',
+        }
 
+        # Inflation mechanism
+        markup = {
+            'func': lambda mu=0, eta=0, c=0, p=1: eta*(mu*c/p-1),
+            'com': 'markup on production costs',
+        }
 
-    class definitions:
+    class Definitions:
         '''
         Classic intermediary variables that might be needed
         '''
-        lamb = lambda L=0, N=1: L / N
-        omega = lambda w=0, L=0, Y=1, p=1: (w * L) / (Y*p)
-        d = lambda D=0, GDP=1: D / GDP
-        pi = lambda Pi=0, GDP=1: Pi/GDP
-        GDP_monosec = lambda Y=0, p=0: Y * p
-        elasticity = lambda eta=0 : 1/(1+eta)
+        lamb = {
+            'func': lambda L=0, N=1: L / N,
+            'com': 'definition',
+        }
+        omega = {
+            'func': lambda w=0, L=0, Y=1, p=1: (w * L) / (Y*p),
+            'com': 'definition',
+        }
+        d = {
+            'func': lambda D=0, GDP=1: D / GDP,
+            'com': 'definition',
+        }
+        pi = {
+            'func': lambda Pi=0, GDP=1: Pi/GDP,
+            'com': 'definition',
+        }
+        GDP_monosec = {
+            'func': lambda Y=0, p=0: Y * p,
+            'com': 'definition',
+        }
+        elasticity = {
+            'func': lambda eta=0: 1/(1+eta),
+            'com': 'definition',
+        }

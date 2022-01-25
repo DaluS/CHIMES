@@ -312,6 +312,38 @@ _LIBRARY = {
         }
     },
 
+    'Speculation': {
+        's': {
+            'value': 0,
+            'definition': 'share of GDP going to financial market',
+            'units': ''
+        },
+        'Speculation': {
+            'value': 0,
+            'definition': 'flux of money going from firm to finance',
+            'units': '$.y^{-1}'
+        },
+        'SpeExpoConst': {
+            'value': -0.25,
+            'definition': 'Speculation constant',
+            'units': '$.y^{-1}',
+        },
+        'SpecExpoSlope': {
+            'value': 0.25,
+            'definition': 'Speculation expo slope',
+            'units': '$.y^{-1}',
+        },
+        'SpecExpoexpo1': {
+            'value': 0.36,
+            'definition': 'Speculation attenuation in exp',
+            'units': '',
+        },
+        'SpecExpoexpo2': {
+            'value': 12,
+            'definition': 'Speculation sensitivity to growth',
+            'units': 'y',
+        },
+    },
 
     'Shareholding': {
         'Sh': {
