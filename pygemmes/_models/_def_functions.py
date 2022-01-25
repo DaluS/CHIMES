@@ -17,6 +17,7 @@ Then they are in a subclass.
 
 itself is still used in a case of an ode calling itself,
 lamb is still used as a substitute to lambda
+do not use _ in any name
 """
 
 import numpy as np
@@ -103,7 +104,7 @@ class Funcs:
                 'com': 'Y CES with optimisation of profit'
             }
             L = {
-                'func': lambda K=0: 0,
+                'func': lambda A=0, K=0, a=1, eta=1, omega=0.1: A*K/a * (1/(1-omega) - 1)**(-1/eta),
                 'com': 'L CES, with ofptimisation of profit'
             }
             nu = {
