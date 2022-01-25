@@ -77,8 +77,7 @@ class Funcs:
         }
 
         ces = {
-            'func': lambda A=1, b=0.5, K=1, L=1, a=1, eta=1: A *
-            (b*K**(-eta) + (1 - b)*(L * a)**(-eta))**(-1./eta),
+            'func': lambda A=1, b=0.5, K=1, L=1, a=1, eta=1: A * (b*K**(-eta) + (1 - b)*(L * a)**(-eta))**(-1./eta),
             'com': 'CES production function'
         }
 
@@ -130,18 +129,24 @@ class Funcs:
         """
         Shareholding is the share of GDP going from the firm to the shareowner
         """
-        sharehold_lin = {
+        shareholdlin = {
             'func': lambda divlinSlope=0, divlinconst=0, pi=0: divlinSlope*pi+divlinconst,
             'com': 'lin fit from Coping',
         }
 
     class Speculation:
+        """
+        Speculation is the flux of money going from or to the financial market
+        """
         exp = {
             'func': lambda g=0, SpeExpoConst=0, SpecExpoSlope=0, SpecExpoexpo1=0, SpecExpoexpo2=0: - SpeExpoConst+SpecExpoSlope*np.exp(SpecExpoexpo1+g * SpecExpoexpo2),
             'com': 'speculation exponential function'
         }
 
     class Damage:
+        """
+        Linking Temperature to economic impact
+        """
         general = {
             'func': lambda T=0, pi1=0, pi2=0, pi3=0, zeta3=1: 1 - 1/(1+pi1*T+pi2*T**2+pi3*T**zeta3),
             'com': 'General damage function'
@@ -198,7 +203,7 @@ class Funcs:
             'func': lambda Pi=0, GDP=1: Pi/GDP,
             'com': 'definition',
         }
-        GDP_monosec = {
+        GDPmonosec = {
             'func': lambda Y=0, p=0: Y * p,
             'com': 'definition',
         }

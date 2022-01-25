@@ -6,6 +6,9 @@ import importlib
 
 from ._def_fields import _DFIELDS, _LIBRARY, _complete_DFIELDS
 from ._def_functions import Funcs
+from .._utilities import _utils
+
+import inspect
 
 _PATH_HERE = os.path.dirname(__file__)
 _PATH_USER_HOME = os.path.expanduser('~')
@@ -64,7 +67,6 @@ def _get_DMODEL(from_user=None):
 # ####################################################
 # Generic function to get the list of available models
 # ####################################################
-
 
 def get_available_models(
     model=None,
@@ -180,10 +182,12 @@ def get_available_models(
         return msg
 
 
-
 def get_dfields_overview():
+    print('WARNING, WILL BE DEPRECIATED IN NEXT VERSION. USE `get_available_dfields` INSTEAD')
+    get_available_dfields()
 
 
+def get_available_dfields():
     # ----------------
     # get sub-dict of interest
     dparam_sub = _DFIELDS
@@ -217,3 +221,67 @@ def get_dfields_overview():
         verb=True,
         returnas=False,
     )
+
+
+def printsubgroupe(sub, it):
+
+    print(f"{3*it*' '}---- {it*'Sub'}group : {sub[0]} {60*'-'}")
+    print(str(sub[1].__doc__.replace('\n        ', '')))
+
+    subsubgroup = [f for f in inspect.getmembers(
+        sub[1]) if ('_' in f[0] and '__' not in f[0])]
+    for sub2 in subsubgroup:
+        printsubgroupe(sub2, it+1)
+
+    subfunc = [f for f in inspect.getmembers(sub[1]) if '_' not in f[0]]
+    col = ['name', 'com', 'function']
+    ar2 = [[v[0], v[1]['com'], inspect.getsource(v[1]['func']).split(':')[
+        2].replace('\n', '')] for v in subfunc]
+
+    _utils._get_summary(
+        lar=[ar2],
+        lcol=[col],
+        verb=True,
+        returnas=False,
+    )
+
+    print('\n')
+
+
+def get_available_functions():
+    '''
+    Print the content of the `def_function` file
+    '''
+    Subgroups = [f for f in inspect.getmembers(Funcs) if '_' not in f[0]]
+
+    print(f'found {len(Subgroups)} groups of functions :')
+    for sub in Subgroups:
+        print(f"-----------------{57*'-'}{len(sub[0])*'-'}")
+        it = 0
+        printsubgroupe(sub, it)
+        '''
+        print(f"-----------------{60*'-'}{len(sub[0])*'-'}")
+        print(f"---- Subgroup : {sub[0]} {60*'-'}")
+        print(str(sub[1].__doc__.replace('\n        ', '')))
+
+        subsubgroup = [f for f in inspect.getmembers(
+            sub[1]) if ('_' in f[0] and '__' not in f[0])]
+        if len(subsubgroup):
+            print('THERE IS A SUBSUBGROUP')
+            print(subsubgroup)
+
+        subfunc = [f for f in inspect.getmembers(sub[1]) if '_' not in f[0]]
+        col = ['name', 'com', 'function']
+        ar2 = [[v[0], v[1]['com'], inspect.getsource(v[1]['func']).split(':')[
+            2].replace('\n', '')] for v in subfunc]
+
+        _utils._get_summary(
+            lar=[ar2],
+            lcol=[col],
+            verb=True,
+            returnas=False,
+        )
+
+        print('\n')
+    # return(Funcs)
+        '''
