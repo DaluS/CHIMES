@@ -110,6 +110,45 @@ for k0, v0 in __DEFAULTFIELDS.items():
 
 
 _LIBRARY = {
+    'TemporaryCam': {
+        'K_R': {
+            'value': 1,
+            'units': 'Units',
+            'definition': 'extraction capital',
+                  },
+        'R': {
+            'value': 10,
+            'units': 'Units',
+            'definition': 'reserve',
+                  },
+        'M': {
+            'value': 0,
+            'units': 'Units.y^{-1}',
+            'definition': 'yearly extraction output',
+                  },
+        'a': {
+            'value': 1,
+            'units': '',
+            'definition': 'exploration efficiency allowing reserve growth',
+                  },
+        'b': {
+            'value': 0.08,
+            'units': '',
+            'definition': 'extraction efficiency',
+                  },
+        'delta_R': {
+            'value': 0.1,
+            'units': '',
+            'definition': 'extraction capital devaluation rate',
+                  },
+        'kappa_R': {
+            'value': 0.1,
+            'units': '',
+            'definition': '',
+                  },
+    },
+    
+    
     'Temporary': {
         'Final': {'value': 0,
                   'definition': 'Final value',

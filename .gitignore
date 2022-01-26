@@ -128,3 +128,4 @@ dmypy.json
 # Pyre type checker
 .pyre/
 Untitled.ipynb
+pygemmes/_models/.DS_Store

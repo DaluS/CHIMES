@@ -929,7 +929,6 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None):
     lkok = ['itself'] + lpar + lfunc
     for k0 in lfunc:
         key = 'lambda' if k0 == 'lamb' else k0
-
         if k0 in dparam.keys():
             kargs = inspect.getfullargspec(dparam[key]['func']).args
         else:
@@ -1048,12 +1047,12 @@ def _check_func_time_dependence(lfunc=None, dparam=None):
     # check consistency with declared eqtype
     dfail = {}
     for kk in lfunc:
-
         if kk in lft and dparam[kk]['eqtype'] not in ['ode', 'statevar']:
             dfail[kk] = f"Time dependent but eqtype='{dparam[kk]['eqtype']}'"
         elif kk not in lft and dparam[kk]['eqtype'] not in ['param']:
             dfail[kk] = f"Time independent but eqtype='{dparam[kk]['eqtype']}'"
-
+        
+        
     if len(dfail) > 0:
         lstr = [f"\t- {k0}: {v0}" for k0, v0 in dfail.items()]
         msg = (
@@ -1612,15 +1611,15 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None, dmulti=None):
         # get defaults
         defaults = list(dparam[k0]['func'].__defaults__)
         kargs = dparam[k0]['source_kargs'].split(', ')
-
         # update using fixed param (eqtype = None)
         for k1 in dparam[k0]['args'][None]:
+            
             key = 'lamb' if k1 == 'lambda' else k1
             defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
             ind = [ii for ii, vv in enumerate(kargs) if key in vv]
-            if len(ind) != 1:
-                msg = f"Inconsistency in (fixed) kargs for {k0}, {k1}"
-                raise Exception(msg)
+            #if len(ind) != 1:
+            #    msg = f"Inconsistency in (fixed) kargs for {k0}, {k1}"
+            #    raise Exception(msg)
             kargs[ind[0]] = "{}={}".format(key, dparam[k1]['value'])
 
         # update using param
