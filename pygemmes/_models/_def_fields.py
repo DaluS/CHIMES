@@ -170,7 +170,7 @@ _LIBRARY = {
             'definition': 'part of capital in prod intensity',
             'units': '',
         },
-        'CESexpo': {
+        'CESexp': {
             'value': 100,
             'definition': 'exponent in CES function',
             'units': '',
@@ -328,22 +328,22 @@ _LIBRARY = {
             'definition': 'flux of money going from firm to finance',
             'units': '$.y^{-1}'
         },
-        'SpeExpoConst': {
+        'SpecExpo1': {
             'value': -0.25,
-            'definition': 'Speculation constant',
+            'definition': 'Speculation constant (expo)',
             'units': '$.y^{-1}',
         },
-        'SpecExpoSlope': {
+        'SpecExpo2': {
             'value': 0.25,
-            'definition': 'Speculation expo slope',
+            'definition': 'Speculation expo slope (expo)',
             'units': '$.y^{-1}',
         },
-        'SpecExpoexpo1': {
+        'SpecExpo3': {
             'value': 0.36,
-            'definition': 'Speculation attenuation in exp',
+            'definition': 'Speculation attenuation in exp (expo)',
             'units': '',
         },
-        'SpecExpoexpo2': {
+        'SpecExpo4': {
             'value': 12,
             'definition': 'Speculation sensitivity to growth',
             'units': 'y',

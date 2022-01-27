@@ -68,7 +68,73 @@ _DARTICLE = {
         },
     },
 }
+'''
+        6: {
+            'model': 'GoodwinKeen-CES',
+            'preset': 'article_fig01-05',
+            'caption': '',
+            'com': '',
+            'png': '',
+            'func': 'plot_fig06',
+        },
+        7: {
+            'model': 'GoodwinKeen-CES',
+            'preset': 'article_fig01-05',
+            'caption': '',
+            'com': '',
+            'png': '',
+            'func': 'plot_fig07',
+        },
+        8: {
+            'model': 'GoodwinKeen-CES',
+            'preset': 'article_fig01-05',
+            'caption': '',
+            'com': '',
+            'png': '',
+            'func': 'plot_fig08',
+        },
+        9: {
+            'model': 'GoodwinKeen-CES',
+            'preset': 'article_fig01-05',
+            'caption': '',
+            'com': '',
+            'png': '',
+            'func': 'plot_fig09',
+        },
+        10: {
+            'model': 'GoodwinKeen-CES',
+            'preset': 'article_fig01-05',
+            'caption': '',
+            'com': '',
+            'png': '',
+            'func': 'plot_fig10',
+        },
+        11: {
+            'model': 'GoodwinKeen-CES',
+            'preset': 'article_fig01-05',
+            'caption': '',
+            'com': '',
+            'png': '',
+            'func': 'plot_fig11',
+        },
+        12: {
+            'model': 'GoodwinKeen-CES',
+            'preset': 'article_fig01-05',
+            'caption': '',
+            'com': '',
+            'png': '',
+            'func': 'plot_fig12',
+        },
+        13: {
+            'model': 'GoodwinKeen-CES',
+            'preset': 'article_fig01-05',
+            'caption': 'Trajectories of debt for different values of initial speculation and for (ω0, λ0, d0) = (0.85, 0.85, 1)',
+            'com': '',
+            'png': '',
+            'func': 'plot_fig13',
+        },
 
+'''
 
 # #############################################################################
 # #############################################################################

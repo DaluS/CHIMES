@@ -113,6 +113,7 @@ pgm.get_dfields_overview()
 pgm.get_available_solvers()
 pgm.get_available_models(details=True, verb=True)
 pgm.get_available_output()
+pgm.get_available_dfields()
 
 listofsolver = pgm.get_available_solvers(returnas=list)
 listofmodels = pgm.get_available_models(returnas=list)

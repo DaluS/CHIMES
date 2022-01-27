@@ -45,6 +45,10 @@ The phenomena behind is a class struggle
             'func': lambda lamb=0, philinConst=0, philinSlope=0: philinConst + philinSlope * lamb,
             'com': 'linear param curve'
         }
+        salaryfromPhillips = {
+            'func': lambda phillips=0, itself=0, gammai=0, inflation=0: itself * (phillips + gammai*inflation),
+            'com': 'salary through negociation',
+        }
 
     class Kappa:
         """
@@ -67,27 +71,39 @@ the will of the firm to ask for such loan
             'func': lambda GDP=0, kappa=0: GDP*kappa,
             'com': 'I deduced from kappa func'
         }
+        kfromI = {
+            'func': lambda I=0, itself=0, delta=0, p=1: I/p - itself * delta,
+            'com': 'Capital evolution from investment and depreciation', },
 
     class ProductionWorkers:
         """
 Production functions are the output to input factors.
         """
         leontiev = {
-            'func': lambda nu=1, b=0.5, K=1, L=1, a=1, A=0: 2*np.minimum(((b*K/nu), (1-b)*A*a*L)),
+            'func': lambda nu=1, b=0.5, K=1, L=1, a=1, A=0: np.minimum((b*K/nu, (1-b)*A*a*L)),
             'com': 'Leontiev production function'
         }
 
+        # CES FUNCTIONS
         cesY = {
-            'func': lambda A=1, b=0.5, K=1, L=1, a=1, CESexpo=1: A * (b*K**(-CESexpo) + (1 - b)*(L * A * a)**(-CESexpo))**(-1./CESexpo),
+            'func': lambda A=1, b=0.5, K=1, CESexp=100, L=1, a=1: (b*(A*K)**(-CESexp) + (1-b)*(a*L)**(-CESexp))**(-1/CESexp),
             'com': 'CES production function'
         }
+        cesY2 = {
+            'func': lambda cesYcarac=0, cesLcarac=1, CESexp=100, L=1: cesYcarac * ((1 + (L/cesLcarac)**(-CESexp))/2)**(-1/CESexp),
+            'com': 'CES production function using caracteristics'
+        }
         cesYcarac = {
-            'func': lambda A=1, b=0.5, K=1, CESexpo=1: A*K*b**(-1/CESexpo),
+            'func': lambda K=0, A=0, b=0.5, CESexp=100: K*A*(2*b)**(-1/CESexp),
             'com': 'Typical Y in CES'
         }
         cesLcarac = {
-            'func': lambda K=0, a=1, b=0.5, CESexpo=1:  K/a * ((1-b)/b)**(1/CESexpo),
+            'func': lambda A=0, K=0, a=1, b=0.5, CESexp=100:   A*(K/a) * (2*(1-b))**(1/CESexp),
             'com': 'Typical Labour in CES'
+        }
+        omegacarac = {
+            'func': lambda w=0, cesLcarac=0, p=1, cesYcarac=1: w*cesLcarac/(p*cesYcarac),
+            'com': 'Typical omega from K,p,w'
         }
 
         class Leontiev_Optimised:
@@ -131,16 +147,20 @@ l is thus the adjustment variable compared to a Leontiev : if $l=1$ then the sys
 
 $$l = \left( \omega_c^{-\frac{\eta}{(1+\eta)}} -1 \right)^{\frac{1}{\eta}}$$
             '''
+            l = {
+                'func': lambda omegacarac=0.5, CESexp=100: (omegacarac**(-CESexp/(1+CESexp)) - 1)**(1/CESexp),
+                'com': 'impact of elasticity on real employement'}
+
             Y = {
-                'func': lambda K=0, omega=.1, b=.5, CESexpo=.5, A=1: K*((1 - omega) / b)**(1./CESexpo) * A,
+                'func': lambda K=0, omega=.1, b=.5, CESexp=.5, A=1: K*((1 - omega) / b)**(1./CESexp) * A,
                 'com': 'Y CES with optimisation of profit'
             }
             L = {
-                'func': lambda cesLcarac=0.1, cesYcarac=1, w=0.1, p=1, CESexpo=100: cesLcarac*((cesLcarac*w/cesYcarac*p)**(-CESexpo/(CESexpo+1)) - 1)**(1/CESexpo),
-                'com': 'L CES, with ofptimisation of profit'
+                'func': lambda l=0, cesLcarac=0: cesLcarac*l,
+                'com': 'L CES, deduced from l'
             }
             nu = {
-                'func': lambda omega=0.1, b=1, A=1, CESexpo=1: ((1 - omega) / b)**(-1./CESexpo) / A,
+                'func': lambda omega=0.1, b=1, A=1, CESexp=1: ((1 - omega) / b)**(-1./CESexp) / A,
                 'com': 'nu deduced from CES optimisation of profit'
             }
 
@@ -172,7 +192,7 @@ Shareholding is the share of GDP going from the firm to the shareowner
 Speculation is the flux of money going from or to the financial market
         """
         exp = {
-            'func': lambda g=0, SpeExpoConst=0, SpecExpoSlope=0, SpecExpoexpo1=0, SpecExpoexpo2=0: - SpeExpoConst+SpecExpoSlope*np.exp(SpecExpoexpo1+g * SpecExpoexpo2),
+            'func': lambda g=0, SpecExpo1=0, SpecExpo2=0, SpecExpo3=0, SpecExpo4=0: - SpecExpo1+SpecExpo2*np.exp(SpecExpo3+g * SpecExpo4),
             'com': 'speculation exponential function'
         }
 
@@ -246,5 +266,9 @@ Classic intermediary variables that might be needed
         }
         elasticity = {
             'func': lambda eta=0: 1/(1+eta),
+            'com': 'definition',
+        }
+        s = {
+            'func': lambda Speculation=0, GDP=1: Speculation/GDP,
             'com': 'definition',
         }
