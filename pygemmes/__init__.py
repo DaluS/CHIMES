@@ -2,7 +2,7 @@
 
 
 # Here we decide what the user will see
-from ._models import get_available_models, get_dfields_overview, get_available_functions, get_available_functions
+from ._models import get_available_models, get_dfields_overview, get_available_dfields, get_available_functions
 from ._articles import get_available_articles, reproduce_article
 from ._toolbox import *
 from ._utilities._saveload import get_available_output, load

@@ -2,7 +2,7 @@
 
 # Here we decide what the user will see
 from ._core import Hub
-from ._models import get_available_models # get_dfields_overview
+from ._models import get_available_models  # get_dfields_overview
 from ._utilities._solvers import get_available_solvers
 from ._utilities._saveload import get_available_output, load
 from ._models import get_available_models, _DFIELDS
@@ -452,7 +452,7 @@ def Generate_network_logics(_MODEL,
         v = R[key]
         Title = ''
         Title += 'Units        :' + v['units']+'<br>'
-        Title += 'Equation     :'+f'{key}=' + v['source_exp'].replace(
+        Title += 'Equation     :'+f'{key}=' + v.get('source_exp', 'f()').replace(
             'itself', key).replace('lamb', 'lambda')+'<br>'
         Title += 'definition   :' + v['definition']+'<br>'
         Title += 'Comment      :' + v['com']+'<br>'

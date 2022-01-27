@@ -170,6 +170,11 @@ _LIBRARY = {
             'definition': 'part of capital in prod intensity',
             'units': '',
         },
+        'CESexpo': {
+            'value': 100,
+            'definition': 'exponent in CES function',
+            'units': '',
+        },
 
         # VARIABLES
         'K': {
@@ -486,7 +491,7 @@ _LIBRARY = {
             'units': '',
         },
         'eta': {
-            'value': .5,
+            'value': 0.5,
             'definition': 'timerate of price adjustment',
             'units': 'y^{-1}',
         },

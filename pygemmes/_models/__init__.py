@@ -223,7 +223,7 @@ def get_available_dfields():
     )
 
 
-def printsubgroupe(sub, it):
+def _printsubgroupe(sub, it):
 
     print(f"{3*it*' '}---- {it*'Sub'}group : {sub[0]} {60*'-'}")
     print(str(sub[1].__doc__.replace('\n        ', '')))
@@ -231,7 +231,7 @@ def printsubgroupe(sub, it):
     subsubgroup = [f for f in inspect.getmembers(
         sub[1]) if ('_' in f[0] and '__' not in f[0])]
     for sub2 in subsubgroup:
-        printsubgroupe(sub2, it+1)
+        _printsubgroupe(sub2, it+1)
 
     subfunc = [f for f in inspect.getmembers(sub[1]) if '_' not in f[0]]
     col = ['name', 'com', 'function']
@@ -258,7 +258,7 @@ def get_available_functions():
     for sub in Subgroups:
         print(f"-----------------{57*'-'}{len(sub[0])*'-'}")
         it = 0
-        printsubgroupe(sub, it)
+        _printsubgroupe(sub, it)
         '''
         print(f"-----------------{60*'-'}{len(sub[0])*'-'}")
         print(f"---- Subgroup : {sub[0]} {60*'-'}")
