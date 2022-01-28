@@ -23,24 +23,70 @@ _LS = [(0, ()),  # solide
        (0, (3, 1, 1, 1)),
        (0, (3, 1, 1, 1, 1, 1))]
 
-__all__ = ['plotnyaxis',
-           'phasespace',
-           'plot3D']
+__all__ = ['_plotnyaxis',
+           '_phasespace',
+           '_plot3D',
+           '_plotbyunits',
+           ]
 
-def plotbyunits(hub,title='',lw=1):
+
+def _plotbyunits(hub, title='', lw=1, idx=0, color='k'):
+    '''
+    generate one subfigure per set of units existing
+    '''
     groupsoffields = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['ode', 'statevar'])
-    
-    da
+    Nax = len(groupsoffields)
+
+    Ncol = 2
+    Nlin = Nax // Ncol + 1
+    allvars = [item for sublist in groupsoffields.values() for item in sublist]
+
+    R = hub.get_dparam(keys=[allvars], returnas=dict)
+    vy = {}
+
+    vx = R['time']['value'][:, idx]
+    units = r'$  '+R['time']['units'].replace('$', '\$')+'  $'
+
+    fig = plt.figure('Plots by units', figsize=(5*Ncol, 3*Nlin))
+
+    dax = {key: plt.subplot(Nlin, Ncol, i+1) for i, key in enumerate(groupsoffields.keys())}
+
+    for key, vvar in groupsoffields.items():
+        if vvar != 'time':
+            ax = dax[key]
+
+            vy[key] = {yyy: R[yyy]['value'][:, idx] for yyy in vvar}
+            ymin = np.min([np.min(v) for v in vy[key].values()])
+            ymax = np.max([np.max(v) for v in vy[key].values()])
+
+            units = r'$\  '+key.replace('$', '\$')+'  \ $'
+            ylabel = units
+            dax[key].set_ylabel(ylabel)
+            dax[key].set_ylim(ymin, ymax)
+            ax.set_xlabel(R['time']['symbol']+'years')
+            ax.set_xlim(vx[0], vx[-1])
+
+            for j, key2 in enumerate(vvar):
+                dax[key].plot(vx,
+                              vy[key][key2],
+                              color=color,
+                              label=key2,
+                              ls=_LS[j],
+                              lw=lw)
+            dax[key].legend()
+    plt.suptitle(title)
+    fig.tight_layout()
+    plt.show()
 
 
-def plotnyaxis(hub, x, y, idx=0, title='', lw=1):
+def _plotnyaxis(hub, x='time', y=[[]], idx=0, title='', lw=1):
     '''
     x must be a variable name (x axis organisation)
     y must be a list of list of variables names (each list is a shared axis)
     '''
     allvarname = [x]+[item for sublist in y for item in sublist]
     R = hub.get_dparam(keys=[allvarname], returnas=dict)
-    fig = plt.figure(figsize=(10, 5))
+    fig = plt.figure('NyAxis', figsize=(10, 5))
     ax = plt.gca()
     p = {}  # dictionnary of curves
 
@@ -66,7 +112,7 @@ def plotnyaxis(hub, x, y, idx=0, title='', lw=1):
         ymin = np.min([np.min(v) for v in vy[ii].values()])
         ymax = np.max([np.max(v) for v in vy[ii].values()])
         units = r'$(  '+R[y[ii][-1]]['units']+'  )$'
-        ylabel = ''.join([R[x]['symbol']+', ' for x in y[ii]]) + units
+        ylabel = ''.join([R[xx]['symbol']+', ' for xx in y[ii]]) + units
         dax[ii].set_ylabel(ylabel)
         dax[ii].set_ylim(ymin, ymax)
         color = np.array(plt.cm.hsv(ii/Nyaxis))
@@ -90,83 +136,7 @@ def plotnyaxis(hub, x, y, idx=0, title='', lw=1):
     plt.show()
 
 
-def plot3yaxis(hub, x, y1, y2, y3=[], idx=0):
-    '''
-    plot variables on multiple y axis (up to 3)
-    x must be a variable name
-    y must be a list of variable names
-
-    for the moment only 9 variables are accepted per list !
-    '''
-    color1 = plt.cm.jet(0)
-    color2 = plt.cm.jet(0.3)
-    color3 = plt.cm.jet(.9)
-
-    #########
-    allvarname = [x]+y1+y2+y3
-    R = hub.get_dparam(keys=[allvarname], returnas=dict)
-
-    fig, host = plt.subplots(figsize=(8, 5))
-    p = {}
-    host.set_xlabel(R[x]['symbol']+r'($ '+R[x]['units'].replace('$', '\$')+'$)')
-    vx = R[x]['value'][:, idx]
-    host.set_xlim(vx[0], vx[-1])
-
-    vy1 = {y: R[y]['value'][:, idx] for y in y1}
-    y1min = np.min([np.min(v) for v in vy1.values()])
-    y1max = np.max([np.max(v) for v in vy1.values()])
-    units = r'($'+R[y1[-1]]['units']+'$)'
-    ylabel1 = ''.join([R[x]['symbol']+' ' for x in y1])  # +units
-
-    host.set_ylabel(ylabel1)
-    for i, key in enumerate(y1):
-        p[key], = host.plot(vx, vy1[key],    color=color1, label=R[key]['symbol'], ls=_LS[i])
-    host.yaxis.label.set_color(color1)
-    host.set_ylim(y1min, y1max)
-
-    par1 = host.twinx()
-    vy2 = {y: R[y]['value'][:, idx] for y in y2}
-    y2min = np.min([np.min(v) for v in vy2.values()])
-    y2max = np.max([np.max(v) for v in vy2.values()])
-    ylabel2 = ''.join([R[x]['symbol']+' ' for x in y2]) + \
-        r'($ '+R[y2[-1]]['units'].replace('$', '\$')+'$)'
-    par1.set_ylabel(ylabel2)
-    for i, key in enumerate(y2):
-        p[key], = par1.plot(vx, vy2[key],    color=color2, label=R[key]['symbol'], ls=_LS[i])
-    par1.yaxis.label.set_color(color2)
-    par1.set_ylim(y2min, y2max)
-
-    if len(y3):
-        par2 = host.twinx()
-        vy3 = {y: R[y]['value'][:, idx] for y in y3}
-        y3min = np.min([np.min(v) for v in vy3.values()])
-        y3max = np.max([np.max(v) for v in vy3.values()])
-        ylabel3 = ''.join([R[x]['symbol']+' ' for x in y3]) + \
-            r'($ '+R[y3[-1]]['units'].replace('$', '\$')+'$)'
-        par2.set_ylabel(ylabel3)
-        for i, key in enumerate(y3):
-            p[key], = par2.plot(vx, vy3[key],    color=color3, label=R[key]['symbol'], ls=_LS[i])
-
-        # right, left, top, bottom
-        par2.spines['right'].set_position(('outward', 60))
-        par2.xaxis.set_ticks([])
-        par2.yaxis.label.set_color(color3)
-        par2.set_ylim(y3min, y3max)
-        # Sometimes handy, same for xaxis
-        # par2.yaxis.set_ticks_position('right')
-
-        # Move "Velocity"-axis to the left
-        # par2.spines['left'].set_position(('outward', 60))
-        # par2.spines['left'].set_visible(True)
-        # par2.yaxis.set_label_position('left')
-        # par2.yaxis.set_ticks_position('left')
-
-    host.legend(handles=p.values(), loc='best')
-
-    plt.show()
-
-
-def phasespace(sol, x='omega', y='lambda', color='time', idx=0):
+def _phasespace(hub, x='omega', y='lambda', color='time', idx=0):
     '''
     Plot of the trajectory of the system in a 2dimensional phase-space
 
@@ -182,7 +152,7 @@ def phasespace(sol, x='omega', y='lambda', color='time', idx=0):
     None.
 
     '''
-    allvars = sol.get_dparam(returnas=dict)
+    allvars = hub.get_dparam(returnas=dict)
     yval = allvars[y]['value'][:, idx]
     xval = allvars[x]['value'][:, idx]
     t = allvars[color]['value'][:, idx]
@@ -206,12 +176,12 @@ def phasespace(sol, x='omega', y='lambda', color='time', idx=0):
     plt.ylim([np.amin(yval), np.amax(yval)])
     plt.axis('scaled')
     plt.title('Phasespace ' + x + '-' + y + ' for model : '
-              + sol.dmodel['name'] + '| system number' + str(idx))
+              + hub.dmodel['name'] + '| system number' + str(idx))
 
     plt.show()
 
 
-def plot3D(hub, x, y, z, cinf, cmap='jet', index=0, title=''):
+def _plot3D(hub, x, y, z, cinf, cmap='jet', index=0, title=''):
     '''
     Plot a 3D curve, with a fourth information on the colour of the curve
 
@@ -229,7 +199,7 @@ def plot3D(hub, x, y, z, cinf, cmap='jet', index=0, title=''):
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
     norm = plt.Normalize(vc.min(), vc.max())
 
-    fig = plt.figure('', figsize=(10, 10))
+    fig = plt.figure('3D', figsize=(10, 10))
     ax = plt.axes(projection='3d')
     ax.plot(vx,
             vy,
@@ -251,7 +221,7 @@ def plot3D(hub, x, y, z, cinf, cmap='jet', index=0, title=''):
     plt.show()
 
 
-def Var(sol, key, idx=0, cycles=False, log=False):
+def Var(hub, key, idx=0, cycles=False, log=False):
     '''
     Parameters
     ----------
@@ -272,11 +242,10 @@ def Var(sol, key, idx=0, cycles=False, log=False):
     ax = plt.gca()
 
     # PLOT OF THE BASE
-    allvars = sol.get_dparam(returnas=dict)
+    allvars = hub.get_dparam(returnas=dict)
     y = allvars[key]['value'][:, idx]
     t = allvars['time']['value'][idx]
-    print('y', np.shape(y))
-    print('t', np.shape(t))
+
     plt.plot(t, y, lw=2, ls='-', c='k')
 
     # PLOT OF THE CYCLES
@@ -313,7 +282,7 @@ def Var(sol, key, idx=0, cycles=False, log=False):
     if log is True:
         ax.set_yscale('log')
     plt.title('Evolution of :' + key + ' in model : '
-              + sol.dmodel['name'] + '| system number' + str(idx))
+              + hub.dmodel['name'] + '| system number' + str(idx))
     plt.ylabel(key)
     plt.xlabel('time')
     plt.show()
@@ -488,4 +457,82 @@ def AllPhaseSpace(sol, variablesREF, idx=0):
         f"All Phasespace for model {sol.dmodel['name']}, system {idx}"
     )
     plt.suptitle(suptit)
+    plt.show()
+
+
+def plot3yaxis(hub, x, y1, y2, y3=[], idx=0):
+    '''
+
+    DEPRECIATED
+    plot variables on multiple y axis (up to 3)
+    x must be a variable name
+    y must be a list of variable names
+
+    for the moment only 9 variables are accepted per list !
+    '''
+    color1 = plt.cm.jet(0)
+    color2 = plt.cm.jet(0.3)
+    color3 = plt.cm.jet(.9)
+
+    #########
+    allvarname = [x]+y1+y2+y3
+    R = hub.get_dparam(keys=[allvarname], returnas=dict)
+
+    fig, host = plt.subplots(figsize=(8, 5))
+    p = {}
+    host.set_xlabel(R[x]['symbol']+r'($ '+R[x]['units'].replace('$', '\$')+'$)')
+    vx = R[x]['value'][:, idx]
+    host.set_xlim(vx[0], vx[-1])
+
+    vy1 = {y: R[y]['value'][:, idx] for y in y1}
+    y1min = np.min([np.min(v) for v in vy1.values()])
+    y1max = np.max([np.max(v) for v in vy1.values()])
+    units = r'($'+R[y1[-1]]['units']+'$)'
+    ylabel1 = ''.join([R[x]['symbol']+' ' for x in y1])  # +units
+
+    host.set_ylabel(ylabel1)
+    for i, key in enumerate(y1):
+        p[key], = host.plot(vx, vy1[key],    color=color1, label=R[key]['symbol'], ls=_LS[i])
+    host.yaxis.label.set_color(color1)
+    host.set_ylim(y1min, y1max)
+
+    par1 = host.twinx()
+    vy2 = {y: R[y]['value'][:, idx] for y in y2}
+    y2min = np.min([np.min(v) for v in vy2.values()])
+    y2max = np.max([np.max(v) for v in vy2.values()])
+    ylabel2 = ''.join([R[x]['symbol']+' ' for x in y2]) + \
+        r'($ '+R[y2[-1]]['units'].replace('$', '\$')+'$)'
+    par1.set_ylabel(ylabel2)
+    for i, key in enumerate(y2):
+        p[key], = par1.plot(vx, vy2[key],    color=color2, label=R[key]['symbol'], ls=_LS[i])
+    par1.yaxis.label.set_color(color2)
+    par1.set_ylim(y2min, y2max)
+
+    if len(y3):
+        par2 = host.twinx()
+        vy3 = {y: R[y]['value'][:, idx] for y in y3}
+        y3min = np.min([np.min(v) for v in vy3.values()])
+        y3max = np.max([np.max(v) for v in vy3.values()])
+        ylabel3 = ''.join([R[x]['symbol']+' ' for x in y3]) + \
+            r'($ '+R[y3[-1]]['units'].replace('$', '\$')+'$)'
+        par2.set_ylabel(ylabel3)
+        for i, key in enumerate(y3):
+            p[key], = par2.plot(vx, vy3[key],    color=color3, label=R[key]['symbol'], ls=_LS[i])
+
+        # right, left, top, bottom
+        par2.spines['right'].set_position(('outward', 60))
+        par2.xaxis.set_ticks([])
+        par2.yaxis.label.set_color(color3)
+        par2.set_ylim(y3min, y3max)
+        # Sometimes handy, same for xaxis
+        # par2.yaxis.set_ticks_position('right')
+
+        # Move "Velocity"-axis to the left
+        # par2.spines['left'].set_position(('outward', 60))
+        # par2.spines['left'].set_visible(True)
+        # par2.yaxis.set_label_position('left')
+        # par2.yaxis.set_ticks_position('left')
+
+    host.legend(handles=p.values(), loc='best')
+
     plt.show()

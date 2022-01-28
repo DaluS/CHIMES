@@ -15,6 +15,7 @@ import numpy as np
 from ._utilities import _utils, _class_checks, _class_utility
 from ._utilities import _solvers, _saveload
 from ._plots import _plot_timetraces
+from ._plots import _plotnyaxis, _phasespace, _plot3D, _plotbyunits
 
 
 class Hub():
@@ -796,6 +797,22 @@ class Hub():
     # ##############################
     #       plotting methods
     # ##############################
+
+    def plot_preset(self, preset=None):
+        if preset == None:
+            preset = self.dmodel['preset']
+        tempd = self.dmodel['presets'][preset]['plots']
+        plotdic = {
+            'timetrace': _plot_timetraces.plot_timetraces,
+            'plotnyaxis': _plotnyaxis,
+            'phasespace': _phasespace,
+            'plot3D': _plot3D,
+            'plotbyunits': _plotbyunits, }
+
+        for plot, funcplot in plotdic.items():
+            for argl in tempd.get(plot, []):
+                print(plot)
+                funcplot(self, **argl)
 
     def plot(
         self,
