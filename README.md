@@ -80,7 +80,7 @@ The goal of a modeller is to implement models given the framework of `pygemmes`
 4. Write your presets
 5. Define new fields and parameters if needed
 6. Define new functions if needed
-7. Define in your preset plot new functions if needed
+7. Define in your preset plot new functions if needed in `_plots/_plots`, add them in the core importation and `_plot_preset` function
 
 
 ### Sharing with the community : first pull request

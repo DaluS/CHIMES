@@ -194,8 +194,8 @@ def _printsubgroupe(sub, it):
 
     subfunc = [f for f in inspect.getmembers(sub[1]) if '_' not in f[0]]
     col = ['name', 'com', 'function']
-    ar2 = [[v[0], v[1]['com'], inspect.getsource(v[1]['func']).split(':')[
-        2].replace('\n', '')] for v in subfunc]
+    ar2 = [[v[0], v[1]['com'], inspect.getsource(v[1]['func']).split(':')[2].replace('\n', '')
+            ] for v in subfunc]
 
     _utils._get_summary(
         lar=[ar2],

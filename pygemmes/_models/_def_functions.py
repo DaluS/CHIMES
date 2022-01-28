@@ -30,7 +30,7 @@ The Phillips function is linking the relative wage share increase rate to the
 employement.
 The phenomena behind is a class struggle
         """
-
+        # DEFINTIIONS OF phillips
         exp = {
             'func': lambda lamb=0, phiexp0=0, phiexp1=0, phiexp2=0: phiexp0 + phiexp1 * np.exp(phiexp2 * lamb),
             'com': 'Exponential param curve'
@@ -45,9 +45,11 @@ The phenomena behind is a class struggle
             'func': lambda lamb=0, philinConst=0, philinSlope=0: philinConst + philinSlope * lamb,
             'com': 'linear param curve'
         }
+
+        # DEFINITION OF w (Wage)
         salaryfromPhillips = {
             'func': lambda phillips=0, itself=0, gammai=0, inflation=0: itself * (phillips + gammai*inflation),
-            'com': 'salary through negociation',
+            'com': 'salary through negociation'
         }
 
     class Kappa:
@@ -59,6 +61,7 @@ It is taking into account both the willingness of bankers to gives loans, and
 the will of the firm to ask for such loan
         """
 
+        # DEFINITION OF kappa
         lin = {
             'func': lambda pi=0, kappalinConst=0, kappalinSlope=0: kappalinConst + kappalinConst * pi,
             'com': 'linear param curve'
@@ -71,9 +74,11 @@ the will of the firm to ask for such loan
             'func': lambda GDP=0, kappa=0: GDP*kappa,
             'com': 'I deduced from kappa func'
         }
+        ############ DEFINITIONS OF K ########
         kfromI = {
             'func': lambda I=0, itself=0, delta=0, p=1: I/p - itself * delta,
-            'com': 'Capital evolution from investment and depreciation', },
+            'com': 'Capital evolution from investment and depreciation',
+        }
 
     class ProductionWorkers:
         """
@@ -98,7 +103,7 @@ Production functions are the output to input factors.
             'com': 'Typical Y in CES'
         }
         cesLcarac = {
-            'func': lambda A=0, K=0, a=1, b=0.5, CESexp=100:   A*(K/a) * (2*(1-b))**(1/CESexp),
+            'func': lambda A=0, K=0, a=1, b=0.5, CESexp=100: A*(K/a) * (2*(1-b))**(1/CESexp),
             'com': 'Typical Labour in CES'
         }
         omegacarac = {
@@ -242,33 +247,33 @@ Classic intermediary variables that might be needed
         '''
         lamb = {
             'func': lambda L=0, N=1: L / N,
-            'com': 'definition',
+            'com': 'its definition',
         }
         omega = {
             'func': lambda w=0, L=0, Y=1, p=1: (w * L) / (Y*p),
-            'com': 'definition',
+            'com': 'its definition',
         }
         d = {
             'func': lambda D=0, GDP=1: D / GDP,
-            'com': 'definition',
+            'com': 'its definition',
         }
         pi = {
             'func': lambda Pi=0, GDP=1: Pi/GDP,
-            'com': 'definition',
+            'com': 'its definition',
         }
         GDPmonosec = {
             'func': lambda Y=0, p=0: Y * p,
-            'com': 'definition',
+            'com': 'its definition',
         }
         nu = {
             'func': lambda Y=1, K=1: K/Y,
-            'com': 'definition',
+            'com': 'its definition',
         }
         elasticity = {
             'func': lambda eta=0: 1/(1+eta),
-            'com': 'definition',
+            'com': 'its definition',
         }
         s = {
             'func': lambda Speculation=0, GDP=1: Speculation/GDP,
-            'com': 'definition',
+            'com': 'its definition',
         }

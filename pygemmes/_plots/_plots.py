@@ -63,7 +63,7 @@ def _plotbyunits(hub, title='', lw=1, idx=0, color='k'):
             ylabel = units
             dax[key].set_ylabel(ylabel)
             dax[key].set_ylim(ymin, ymax)
-            ax.set_xlabel(R['time']['symbol']+'years')
+            ax.set_xlabel(R['time']['symbol']+' (years)')
             ax.set_xlim(vx[0], vx[-1])
 
             for j, key2 in enumerate(vvar):

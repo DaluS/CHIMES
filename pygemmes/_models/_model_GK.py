@@ -11,7 +11,7 @@ Created on Wed Jul 21 15:11:15 2021
 
 
 import numpy as np
-
+from pygemmes._models import Funcs
 
 # ---------------------------
 # user-defined function order (optional)
@@ -41,10 +41,10 @@ _LOGICS = {
             'com': 'Debt as Investment-Profit difference', },
         'w': {
             'func': lambda phillips=0, itself=0, gammai=0, inflation=0: itself * (phillips + gammai*inflation),
-            'com': 'salary through negociation, with inflation', },
+            'com': 'salary through negociation', },
         'p': {
             'func': lambda itself=0, inflation=0: itself * inflation,
-            'com': 'price deduced from inflation dynamics', },
+            'com': 'markup inflation', },
     },
     # Intermediary relevant functions
     'statevar': {
@@ -65,28 +65,28 @@ _LOGICS = {
             'com': 'Profit for production-Salary-debt func', },
         'lambda': {
             'func': lambda L=0, N=1: L / N,
-            'com': 'litteral definition', },
+            'com': 'employement rate', },
         'omega': {
             'func': lambda w=0, L=0, Y=1, p=1: (w * L) / (Y*p),
-            'com': 'litteral definition', },
+            'com': 'wage share', },
         'phillips': {
             'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
-            'com': 'Diverging Philips curve', },
+            'com': 'Wage increase rate through employement and profit', },
         'kappa': {
             'func': lambda k0=0, k1=0, k2=0, pi=0: k0 + k1 * np.exp(k2 * pi),
-            'com': 'Kappa-shape (Keen95) as exponential', },
+            'com': 'Relative GDP investment through relative profit', },
         'I': {
             'func': lambda GDP=0, kappa=0: GDP * kappa,
-            'com': 'Kappa GDP investment', },
+            'com': 'Investment value', },
         'd': {
             'func': lambda D=0, GDP=1: D / GDP,
-            'com': 'Calculated From D', },
+            'com': 'private debt ratio', },
         'pi': {
             'func': lambda Pi=0, GDP=1: Pi/GDP,
-            'com': 'Calculated From Pi', },
+            'com': 'relative profit', },
         'g': {
             'func': lambda I=0, K=1, delta=0, p=1: (I/p - K * delta)/K,
-            'com': 'copypaste of dot(K) then divided by K'},
+            'com': 'relative growth rate'},
     },
 }
 
