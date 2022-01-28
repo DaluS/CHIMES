@@ -13,6 +13,77 @@ import matplotlib.gridspec as gridspec
 from matplotlib.patches import Rectangle
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 
+_LS = [(0, ()),  # solide
+       (0, (1, 1)),  # densely dotted
+       (0, (5, 5)),  # dashed
+       (0, (3, 5, 1, 5)),  # dashdotted
+       (0, (3, 5, 1, 5, 1, 5)),  # dashdotdot
+       (0, (1, 5)),  # dotted
+       (0, (5, 1)),  # densely dashed
+       (0, (3, 1, 1, 1)),
+       (0, (3, 1, 1, 1, 1, 1))]
+
+__all__ = ['plot3yaxis',
+           'phasespace',
+           'plot3D']
+
+
+def plotnyaxis(hub, x, y, idx=0, title=''):
+    '''
+    x must be a variable name (x axis organisation)
+    y must be a list of list of variables names (each list is a shared axis)
+    '''
+    allvarname = [x]+[item for sublist in y for item in sublist]
+    R = hub.get_dparam(keys=[allvarname], returnas=dict)
+    fig = plt.figure(figsize=(10, 5))
+    ax = plt.gca()
+    p = {}  # dictionnary of curves
+
+    # Prepare x axis
+    vx = R[x]['value'][:, idx]
+    units = r'$(  '+R[x]['units']+'  )$'
+    ax.set_xlabel(R[x]['symbol']+units)
+    ax.set_xlim(vx[0], vx[-1])
+
+    # set ax dictionnary
+    Nyaxis = len(y)
+    dax = {0: ax}
+    for i in range(1, Nyaxis):
+        dax[i] = ax.twinx()
+
+    # set for each y
+    vy = {}
+    for ii, vlist in enumerate(y):
+        yy = y[ii]
+        vy[ii] = {yyy: R[yyy]['value'][:, idx] for yyy in yy}
+
+        # y axis
+        ymin = np.min([np.min(v) for v in vy[ii].values()])
+        ymax = np.max([np.max(v) for v in vy[ii].values()])
+        units = r'$(  '+R[y[ii][-1]]['units']+'  )$'
+        ylabel = ''.join([R[x]['symbol']+', ' for x in y[ii]]) + units
+        dax[ii].set_ylabel(ylabel)
+        dax[ii].set_ylim(ymin, ymax)
+        color = np.array(plt.cm.hsv(ii/Nyaxis))
+        color[:-1] *= 0.8
+        color = tuple(color)
+        # Add the curves
+        for j, key in enumerate(y[ii]):
+            p[key], = dax[ii].plot(vx, vy[ii][key],    color=color,
+                                   label=R[key]['symbol'], ls=_LS[j])
+        side = 'right' if ii % 2 else 'left'
+
+        dax[ii].spines[side].set_position(('outward', np.amax((0, 60*(ii//2)))))
+        if side == 'left':
+            dax[ii].yaxis.tick_left()
+            dax[ii].yaxis.set_label_position('left')
+        dax[ii].yaxis.label.set_color(color)
+        dax[ii].tick_params(axis='y', colors=color)
+
+    dax[ii].legend(handles=p.values(), loc='best')
+    plt.title(title)
+    plt.show()
+
 
 def plot3yaxis(hub, x, y1, y2, y3=[], idx=0):
     '''
@@ -22,15 +93,6 @@ def plot3yaxis(hub, x, y1, y2, y3=[], idx=0):
 
     for the moment only 9 variables are accepted per list !
     '''
-    ls = [(0, ()),  # solide
-          (0, (1, 1)),  # densely dotted
-          (0, (5, 5)),  # dashed
-          (0, (3, 5, 1, 5)),  # dashdotted
-          (0, (3, 5, 1, 5, 1, 5)),  # dashdotdot
-          (0, (1, 5)),  # dotted
-          (0, (5, 1)),  # densely dashed
-          (0, (3, 1, 1, 1)),
-          (0, (3, 1, 1, 1, 1, 1))]
     color1 = plt.cm.jet(0)
     color2 = plt.cm.jet(0.3)
     color3 = plt.cm.jet(.9)
@@ -48,11 +110,12 @@ def plot3yaxis(hub, x, y1, y2, y3=[], idx=0):
     vy1 = {y: R[y]['value'][:, idx] for y in y1}
     y1min = np.min([np.min(v) for v in vy1.values()])
     y1max = np.max([np.max(v) for v in vy1.values()])
-    ylabel1 = ''.join([R[x]['symbol']+' ' for x in y1]) + \
-        r'($ '+R[y1[-1]]['units'].replace('$', '\$')+'$)'
+    units = r'($'+R[y1[-1]]['units']+'$)'
+    ylabel1 = ''.join([R[x]['symbol']+' ' for x in y1])  # +units
+
     host.set_ylabel(ylabel1)
     for i, key in enumerate(y1):
-        p[key], = host.plot(vx, vy1[key],    color=color1, label=R[key]['symbol'], ls=ls[i])
+        p[key], = host.plot(vx, vy1[key],    color=color1, label=R[key]['symbol'], ls=_LS[i])
     host.yaxis.label.set_color(color1)
     host.set_ylim(y1min, y1max)
 
@@ -64,7 +127,7 @@ def plot3yaxis(hub, x, y1, y2, y3=[], idx=0):
         r'($ '+R[y2[-1]]['units'].replace('$', '\$')+'$)'
     par1.set_ylabel(ylabel2)
     for i, key in enumerate(y2):
-        p[key], = par1.plot(vx, vy2[key],    color=color2, label=R[key]['symbol'], ls=ls[i])
+        p[key], = par1.plot(vx, vy2[key],    color=color2, label=R[key]['symbol'], ls=_LS[i])
     par1.yaxis.label.set_color(color2)
     par1.set_ylim(y2min, y2max)
 
@@ -77,7 +140,7 @@ def plot3yaxis(hub, x, y1, y2, y3=[], idx=0):
             r'($ '+R[y3[-1]]['units'].replace('$', '\$')+'$)'
         par2.set_ylabel(ylabel3)
         for i, key in enumerate(y3):
-            p[key], = par2.plot(vx, vy3[key],    color=color3, label=R[key]['symbol'], ls=ls[i])
+            p[key], = par2.plot(vx, vy3[key],    color=color3, label=R[key]['symbol'], ls=_LS[i])
 
         # right, left, top, bottom
         par2.spines['right'].set_position(('outward', 60))
@@ -96,7 +159,6 @@ def plot3yaxis(hub, x, y1, y2, y3=[], idx=0):
     host.legend(handles=p.values(), loc='best')
 
     plt.show()
-    return
 
 
 def phasespace(sol, x='omega', y='lambda', color='time', idx=0):
