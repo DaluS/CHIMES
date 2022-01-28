@@ -23,12 +23,17 @@ _LS = [(0, ()),  # solide
        (0, (3, 1, 1, 1)),
        (0, (3, 1, 1, 1, 1, 1))]
 
-__all__ = ['plot3yaxis',
+__all__ = ['plotnyaxis',
            'phasespace',
            'plot3D']
 
+def plotbyunits(hub,title='',lw=1):
+    groupsoffields = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['ode', 'statevar'])
+    
+    da
 
-def plotnyaxis(hub, x, y, idx=0, title=''):
+
+def plotnyaxis(hub, x, y, idx=0, title='', lw=1):
     '''
     x must be a variable name (x axis organisation)
     y must be a list of list of variables names (each list is a shared axis)
@@ -70,7 +75,7 @@ def plotnyaxis(hub, x, y, idx=0, title=''):
         # Add the curves
         for j, key in enumerate(y[ii]):
             p[key], = dax[ii].plot(vx, vy[ii][key],    color=color,
-                                   label=R[key]['symbol'], ls=_LS[j])
+                                   label=R[key]['symbol'], ls=_LS[j], lw=lw)
         side = 'right' if ii % 2 else 'left'
 
         dax[ii].spines[side].set_position(('outward', np.amax((0, 60*(ii//2)))))
