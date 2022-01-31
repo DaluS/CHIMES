@@ -60,29 +60,29 @@ The phenomena behind is a class struggle
             '''
             As presented in CopingWithCollapse
             '''
-            'CO2AT' = {
+            CO2AT = {
                 'func': lambda Emission=0, phi12=0, CO2UP=0, CUP=1, CAT=1, itself = 0: Emission - phi12*itself + phi12*CAT/CUP*CO2UP,
-                'com': 'CO2 in atmosphere (Gt C)',
+                'com': '3-Layer dynamics (Atmosphere)',
             }
-            'CO2UP' = {
+            CO2UP = {
                 'func': lambda phi12=0, phi23=0, CAT=1, CUP=1, CLO=1, CO2AT=0, itself=0, CO2LO=0: phi12*CO2AT - itself*(phi12*CAT/CUP-phi23) + phi23*CUP/CLO*CO2LO,
-                'com': 'CO2 in upper layer of ocean (Gt C)',
+                'com': '3-Layer dynamics (Upper ocean)',
             }
-            'CO2LO' = {
+            CO2LO = {
                 'func': lambda phi23=0, CO2UP=0, CUP=1, CLO=1, itself = 0: phi23*CO2UP - phi23*CUP/CLO*itself,
-                'com': 'CO2 in lower layer of ocean (Gt C)',
+                'com': '3-Layer dynamics (lower ocean)',
             }
-            'T' = {
+            T = {
                 'func': lambda F=0, rhoAtmo=0, itself=0, gammaAtmo=0, T0=0, Capacity=1: (F - rhoAtmo*itself - gammaAtmo*(itself-T0))/Capacity,
-                'com': 'Temperature anomaly in atmosphere',
+                'com': 'Forcing and ocean dynamics',
             },
-            'T0' = {
+            T0 = {
                 'func': lambda gammaAtmo=0, T=0, itself=0, Capacity0=1: (gammaAtmo*(T-itself))/Capacity0,
-                'com': 'Temperature anomaly in ocean',
+                'com': 'Accumulation from atmosphere',
             }
-            'F' = {
+            F = {
                 'func': lambda F2CO2=0, CO2AT=1, CAT=1: F2CO2 / np.log(2) * np.log(CO2AT/CAT),
-                'com': 'Temperature forcing from CO2',
+                'com': 'Forcing as sensitivity,
             }
 
     class Kappa:
