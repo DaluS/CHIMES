@@ -39,75 +39,67 @@ from pygemmes._models import Funcs  # To get access to all pre-coded practical f
 
 _LOGICS = {
     'ode': {
-        # Exogenous entries in the model
+        # reduced system after paper derivation
+        'omega': {
+            'func': lambda itself=1, eta=1, phillips=1, alpha=0.1: itself * (eta / (1 + eta)) * (phillips - alpha),
+            'com': 'Explicit reduced dynamics'
+        },
+        'lambda': {
+            'func': lambda g=0, alpha=0, n=0: g - alpha - n,
+            'com': "explicit reduced dynamics",
+        },
+        'd': {
+            'func': lambda itself=0, kappa=0, pi=0, g=0, s=0: -itself*g + kappa - pi + s,
+            'com': "explicit reduced dynamics",
+        },
+        's': {
+            'func': lambda itself=0, Speculation=0, g=0, weirdterm=0: itself*(Speculation - g + weirdterm),
+            'com': "explicit reduced dynamics",
+        },
+
+        # Not needed for computation
         'a': Funcs.Productivity.exogenous,
         'N': Funcs.Population.exp,
-
-        # Stock-flow consistency
-        'D': {
-            'func': lambda I=0, Pi=0, Speculation=0: I - Pi-Speculation,
-            'com': 'Debt as Investment-Profit difference', },
         'K': {
-            'func': lambda I=0, itself=0, delta=0, p=1: I/p - itself * delta,
-            'com': 'Capital evolution from investment and depreciation', },
+            'func': lambda g=0, itself=0: itself * g,
+            'com': 'auxilliary from growth',
+        },
 
-        # Funcs.Kappa.kfromI,
-
-        # Price Dynamics
-        'w': Funcs.Phillips.salaryfromPhillips,
-        'p': Funcs.Inflation.pricefrominflation,
 
     },
 
     # Intermediary relevant functions
     'statevar': {
-
-        # Production function and its employement
-        'cesLcarac': Funcs.ProductionWorkers.cesLcarac,
-        'cesYcarac': Funcs.ProductionWorkers.cesYcarac,
-        'nu': Funcs.ProductionWorkers.CES_Optimised.nu,
-        'omegacarac': Funcs.ProductionWorkers.omegacarac,
-        'l': Funcs.ProductionWorkers.CES_Optimised.l,
-
-        'Y': Funcs.ProductionWorkers.CES_Optimised.Y,
-        'L': Funcs.ProductionWorkers.CES_Optimised.L,
-
-        # Parametric behavior functions
+        # Needed for computation
         'phillips': Funcs.Phillips.exp,
         'kappa': Funcs.Kappa.exp,
         'Speculation': Funcs.Speculation.exp,
-        'inflation': Funcs.Inflation.markup,
-        'I': Funcs.Kappa.ifromkappa,
 
-        # Intermediary variables with their definitions
-        'd': Funcs.Definitions.d,
-        'pi': Funcs.Definitions.pi,
-        'lambda': Funcs.Definitions.lamb,
-        'omega': Funcs.Definitions.omega,
-        'GDP': Funcs.Definitions.GDPmonosec,
-        's': Funcs.Definitions.s,
-
-        'c': {
-            'func': lambda w=0, a=1: w/a,
-            'com': 'price with only labor salary'},
-
-        # Stock-Flow consistency
-        'Pi': {
-            'func': lambda GDP=0, w=0, L=0, r=0, D=0: GDP - w * L - r * D,
-            'com': 'Profit for production-Salary-debt func', },
-
-        # UNPRACTICAL
-        'g': {
-            'func': lambda I=0, delta=0, p=1, K=1: (I/p - K * delta)/K,
-            'com': 'Homemade expression', },
-
-    },
-    'param': {
-        'CESexp': {
-            'value': 1000,
-            'definition': 'Coefficient in CES function'
+        'pi': {
+            'func': lambda omega=1, r=1, d=1: 1 - omega - r*d,
+            'com': 'stockflow reduced',
         },
+
+        'weirdterm': {
+            'func': lambda eta=1, phillips=1, alpha=0.1, omega=0.5: (1 / (1 + eta)) * (phillips - alpha) * omega/(1-omega),
+            'com': 'compensing term in all EQ',
+        },
+        # Not needed for computation
+        'Y': Funcs.ProductionWorkers.CES_Optimised.Y,
+        'nu': Funcs.ProductionWorkers.CES_Optimised.nu,
+        'Lopti': Funcs.ProductionWorkers.CES_Optimised.L,
+        'L': {
+            'func': lambda N=0, lamb=0: lamb*N,
+            'com': 'Auxilliary forn lambda'
+        },
+        'g': {
+            'func': lambda kappa=0, nu=1, delta=0, weirdterm=0: kappa/nu - delta - weirdterm,
+            'com': 'explicit expression',
+        },
+
+
     },
+    'param': {},
 }
 
 
@@ -122,23 +114,21 @@ _PRESETS = {
             'Tmax': 200,
 
             # initial ode values
-            'K': 2.7,
-            'w': .85,
-            'D': 0.1,
-            'a': 1,
-            'N': 1,
+            'lambda': 0.96,
+            'omega': 0.65,
+            'd': 2.94,
+            's': 0,
 
             # Production function
             'A': 1./3.,
             'b': 0.135,
-            'CESexp': 100,
+            'eta': 100,
 
             # Time rates
             'alpha': 0.02,
-            'n': 0.01,
+            'n': 0.01,   # 'n' in _def_fields
             'delta': 0.01,
             'r': 0.04,
-            'eta': 0.1,
 
             # Phillips curve
             'phiexp0': -0.01,
@@ -151,11 +141,10 @@ _PRESETS = {
             'k2': 1.75,
 
             # Speculation curve
-            'SpecExpo1': 0,
-            'SpecExpo2': 0,
-            'SpecExpo3': 0,
-            'SpecExpo4': 0,
-
+            'SpeExpoConst': 0,
+            'SpecExpoSlope': 0,
+            'SpecExpoexpo1': 0,
+            'SpecExpoexpo2': 0,
         },
         'com': 'speculation removed',
         'plots': [],

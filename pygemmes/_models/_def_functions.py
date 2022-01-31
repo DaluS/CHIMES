@@ -52,6 +52,39 @@ The phenomena behind is a class struggle
             'com': 'salary through negociation'
         }
 
+    class Atmosphere:
+        '''
+        Modelisation of an atmosphere, with CO2 and Temperature
+        '''
+        class ThreeLayers:
+            '''
+            As presented in CopingWithCollapse
+            '''
+            'CO2AT' = {
+                'func': lambda Emission=0, phi12=0, CO2UP=0, CUP=1, CAT=1, itself = 0: Emission - phi12*itself + phi12*CAT/CUP*CO2UP,
+                'com': 'CO2 in atmosphere (Gt C)',
+            }
+            'CO2UP' = {
+                'func': lambda phi12=0, phi23=0, CAT=1, CUP=1, CLO=1, CO2AT=0, itself=0, CO2LO=0: phi12*CO2AT - itself*(phi12*CAT/CUP-phi23) + phi23*CUP/CLO*CO2LO,
+                'com': 'CO2 in upper layer of ocean (Gt C)',
+            }
+            'CO2LO' = {
+                'func': lambda phi23=0, CO2UP=0, CUP=1, CLO=1, itself = 0: phi23*CO2UP - phi23*CUP/CLO*itself,
+                'com': 'CO2 in lower layer of ocean (Gt C)',
+            }
+            'T' = {
+                'func': lambda F=0, rhoAtmo=0, itself=0, gammaAtmo=0, T0=0, Capacity=1: (F - rhoAtmo*itself - gammaAtmo*(itself-T0))/Capacity,
+                'com': 'Temperature anomaly in atmosphere',
+            },
+            'T0' = {
+                'func': lambda gammaAtmo=0, T=0, itself=0, Capacity0=1: (gammaAtmo*(T-itself))/Capacity0,
+                'com': 'Temperature anomaly in ocean',
+            }
+            'F' = {
+                'func': lambda F2CO2=0, CO2AT=1, CAT=1: F2CO2 / np.log(2) * np.log(CO2AT/CAT),
+                'com': 'Temperature forcing from CO2',
+            }
+
     class Kappa:
         """
 The kappa function is linking the relative profit to the share of GDP a firm

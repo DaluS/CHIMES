@@ -112,7 +112,7 @@ _PRESETS = {
             'This is a run that should give simple '
             'convergent oscillations'),
         'plots': {
-            'timetrace': [[]],
+            'timetrace': [],
             'plotnyaxis': [{'x': 'time',
                            'y': [['lambda', 'omega'],
                                  ['d'],

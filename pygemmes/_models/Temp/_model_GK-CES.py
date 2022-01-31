@@ -63,15 +63,13 @@ _LOGICS = {
     'statevar': {
 
         # Production function and its employement
+        'Y': Funcs.ProductionWorkers.cesY,
+        'L': Funcs.ProductionWorkers.CES_Optimised.L,
+        # 'nu': Funcs.Definitions.nu,
         'cesLcarac': Funcs.ProductionWorkers.cesLcarac,
         'cesYcarac': Funcs.ProductionWorkers.cesYcarac,
-        'nu': Funcs.ProductionWorkers.CES_Optimised.nu,
         'omegacarac': Funcs.ProductionWorkers.omegacarac,
         'l': Funcs.ProductionWorkers.CES_Optimised.l,
-
-        'Y': Funcs.ProductionWorkers.CES_Optimised.Y,
-        'L': Funcs.ProductionWorkers.CES_Optimised.L,
-
         # Parametric behavior functions
         'phillips': Funcs.Phillips.exp,
         'kappa': Funcs.Kappa.exp,
