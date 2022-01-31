@@ -82,7 +82,7 @@ The phenomena behind is a class struggle
             }
             F = {
                 'func': lambda F2CO2=0, CO2AT=1, CAT=1: F2CO2 / np.log(2) * np.log(CO2AT/CAT),
-                'com': 'Forcing as sensitivity,
+                'com': 'Forcing as sensitivity',
             }
 
     class Kappa:
