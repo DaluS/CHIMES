@@ -157,7 +157,7 @@ $$l = \left( \omega_c^{-\frac{\eta}{(1+\eta)}} -1 \right)^{\frac{1}{\eta}}$$
                 'com': 'impact of elasticity on real employement'}
 
             Y = {
-                'func': lambda K=0, omega=.1, b=.5, CESexp=.5, A=1: K*((1 - omega) / b)**(1./CESexp) * A,
+                'func': lambda K=0, omegacarac=.1, l=0.5, b=.5, CESexp=.5, A=1: K*((1 - omegacarac*l) / b)**(1./CESexp) * A,
                 'com': 'Y CES with optimisation of profit'
             }
             L = {

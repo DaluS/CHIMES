@@ -56,13 +56,13 @@ def _plotbyunits(hub, title='', lw=1, idx=0, color='k'):
             ax = dax[key]
 
             vy[key] = {yyy: R[yyy]['value'][:, idx] for yyy in vvar}
-            ymin = np.min([np.min(v) for v in vy[key].values()])
-            ymax = np.max([np.max(v) for v in vy[key].values()])
+            ymin = np.amin([np.amin(v) for v in vy[key].values()])
+            ymax = np.amax([np.amax(v) for v in vy[key].values()])
 
             units = r'$\  '+key.replace('$', '\$')+'  \ $'
             ylabel = units
             dax[key].set_ylabel(ylabel)
-            dax[key].set_ylim(ymin, ymax)
+            #dax[key].set_ylim(ymin, ymax)
             ax.set_xlabel(R['time']['symbol']+' (years)')
             ax.set_xlim(vx[0], vx[-1])
 
@@ -109,8 +109,8 @@ def _plotnyaxis(hub, x='time', y=[[]], idx=0, title='', lw=1):
         vy[ii] = {yyy: R[yyy]['value'][:, idx] for yyy in yy}
 
         # y axis
-        ymin = np.min([np.min(v) for v in vy[ii].values()])
-        ymax = np.max([np.max(v) for v in vy[ii].values()])
+        ymin = np.amin([np.amin(v) for v in vy[ii].values()])
+        ymax = np.amax([np.amax(v) for v in vy[ii].values()])
         units = r'$(  '+R[y[ii][-1]]['units']+'  )$'
         ylabel = ''.join([R[xx]['symbol']+', ' for xx in y[ii]]) + units
         dax[ii].set_ylabel(ylabel)
@@ -485,8 +485,8 @@ def plot3yaxis(hub, x, y1, y2, y3=[], idx=0):
     host.set_xlim(vx[0], vx[-1])
 
     vy1 = {y: R[y]['value'][:, idx] for y in y1}
-    y1min = np.min([np.min(v) for v in vy1.values()])
-    y1max = np.max([np.max(v) for v in vy1.values()])
+    y1min = np.amin([np.amin(v) for v in vy1.values()])
+    y1max = np.amax([np.amax(v) for v in vy1.values()])
     units = r'($'+R[y1[-1]]['units']+'$)'
     ylabel1 = ''.join([R[x]['symbol']+' ' for x in y1])  # +units
 
@@ -498,8 +498,8 @@ def plot3yaxis(hub, x, y1, y2, y3=[], idx=0):
 
     par1 = host.twinx()
     vy2 = {y: R[y]['value'][:, idx] for y in y2}
-    y2min = np.min([np.min(v) for v in vy2.values()])
-    y2max = np.max([np.max(v) for v in vy2.values()])
+    y2min = np.amin([np.amin(v) for v in vy2.values()])
+    y2max = np.amax([np.amax(v) for v in vy2.values()])
     ylabel2 = ''.join([R[x]['symbol']+' ' for x in y2]) + \
         r'($ '+R[y2[-1]]['units'].replace('$', '\$')+'$)'
     par1.set_ylabel(ylabel2)
@@ -511,8 +511,8 @@ def plot3yaxis(hub, x, y1, y2, y3=[], idx=0):
     if len(y3):
         par2 = host.twinx()
         vy3 = {y: R[y]['value'][:, idx] for y in y3}
-        y3min = np.min([np.min(v) for v in vy3.values()])
-        y3max = np.max([np.max(v) for v in vy3.values()])
+        y3min = np.amin([np.amin(v) for v in vy3.values()])
+        y3max = np.amax([np.amax(v) for v in vy3.values()])
         ylabel3 = ''.join([R[x]['symbol']+' ' for x in y3]) + \
             r'($ '+R[y3[-1]]['units'].replace('$', '\$')+'$)'
         par2.set_ylabel(ylabel3)

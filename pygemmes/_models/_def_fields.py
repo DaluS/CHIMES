@@ -175,7 +175,34 @@ _LIBRARY = {
             'definition': 'exponent in CES function',
             'units': '',
         },
-
+        'cesLcarac': {
+            'func': lambda A=0, K=0, a=1, b=0.5, CESexp=100: A*(K/a) * (2*(1-b))**(1/CESexp),
+            'definition': 'Typical Labor from capital',
+            'com': 'Extracted from YCES',
+            'units': 'Humans',
+            'eqtype': 'param',
+        },
+        'cesYcarac': {
+            'func': lambda K=0, A=0, b=0.5, CESexp=100: K*A*(2*b)**(-1/CESexp),
+            'definition': 'Typical Y from capital',
+            'com':  'Extracted from YCES',
+            'units': 'Units.y^{-1}',
+            'eqtype': 'param',
+        },
+        'omegacarac': {
+            'func': lambda w=0, cesLcarac=0, p=1, cesYcarac=1: w*cesLcarac/(p*cesYcarac),
+            'definition': 'Typical omega without substituability',
+            'com':  'Extracted from YCES',
+            'units': '',
+            'eqtype': 'param',
+        },
+        'l': {
+            'func': lambda omegacarac=0.5, CESexp=100: (omegacarac**(-CESexp/(1+CESexp)) - 1)**(1/CESexp),
+            'definition': 'ratio btwn effective workers and typical worker',
+            'com': 'deduced from Pi optimisation',
+            'units': '',
+            'eqtype': 'param',
+        },
         # VARIABLES
         'K': {
             'value': 2.7,
@@ -298,7 +325,7 @@ _LIBRARY = {
             'units': 'y^{-1}',
         },
         'phiexp1': {
-            'value': 0.5,
+            'value': 2.35*10**(-23),
             'definition': 'slope in expo phillips',
             'units': 'y^{-1}',
         },
@@ -329,22 +356,22 @@ _LIBRARY = {
             'units': '$.y^{-1}'
         },
         'SpecExpo1': {
-            'value': -0.25,
+            'value': -0*0.25,
             'definition': 'Speculation constant (expo)',
             'units': '$.y^{-1}',
         },
         'SpecExpo2': {
-            'value': 0.25,
+            'value': 0*0.25,
             'definition': 'Speculation expo slope (expo)',
             'units': '$.y^{-1}',
         },
         'SpecExpo3': {
-            'value': 0.36,
+            'value': 0*0.36,
             'definition': 'Speculation attenuation in exp (expo)',
             'units': '',
         },
         'SpecExpo4': {
-            'value': 12,
+            'value': 0*12,
             'definition': 'Speculation sensitivity to growth',
             'units': 'y',
         },
