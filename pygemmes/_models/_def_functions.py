@@ -75,7 +75,7 @@ The phenomena behind is a class struggle
             T = {
                 'func': lambda F=0, rhoAtmo=0, itself=0, gammaAtmo=0, T0=0, Capacity=1: (F - rhoAtmo*itself - gammaAtmo*(itself-T0))/Capacity,
                 'com': 'Forcing and ocean dynamics',
-            },
+            }
             T0 = {
                 'func': lambda gammaAtmo=0, T=0, itself=0, Capacity0=1: (gammaAtmo*(T-itself))/Capacity0,
                 'com': 'Accumulation from atmosphere',

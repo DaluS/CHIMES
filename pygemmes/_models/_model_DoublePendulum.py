@@ -17,16 +17,20 @@ _LOGICS = {
         # Household properties
         't1': {
             'func': lambda dt1=0: dt1,
-            'com': 'Upper pendulum angle'},
+            'definition': 'Upper pendulum angle',
+            'initial': np.pi/2},
         't2': {
             'func': lambda dt2=0: dt2,
-            'com': 'lower pendulum angle'},
+            'definition': 'lower pendulum angle',
+            'initial': np.pi/2},
         'pt1': {
             'func': lambda dt1=0, dt2=0, t1=0, t2=0, m=0, l=1, g=0: -m*l**2/2 * (dt1*dt2 * np.sin(t1-t2) + 3 * g/l * np.sin(t1)),
-            'com': 'Upper pendulum impulsion'},
+            'definition': 'Upper pendulum impulsion',
+            'initial': np.pi/2},
         'pt2': {
             'func': lambda dt1=0, dt2=0, t1=0, t2=0, m=0, l=1, g=0: -m*l**2/2 * (-dt1*dt2 * np.sin(t1-t2) + g/l * np.sin(t2)),
-            'com': 'Lower pendulum impulsion'},
+            'definition': 'Upper pendulum impulsion',
+            'initial': np.pi/2},
 
     },
 
@@ -42,6 +46,15 @@ _LOGICS = {
             'func': lambda pt1=0, pt2=0, t1=0, t2=0, m=1, l=1: (6/m*l**2) * (8*pt1 - 3 * np.cos(t1-t2)*pt1)/(16 - 9 * np.cos(t1-t2)**2),
             'com': 'lower angle variation'},
     },
+    'param': {
+        'm': {'value': 1,
+              'definition': 'mass'},
+        'g': {'value': 1,
+              'definition': 'gravity'},
+        'l': {'value': 1,
+              'definition': 'length'}
+    },
+
 }
 
 

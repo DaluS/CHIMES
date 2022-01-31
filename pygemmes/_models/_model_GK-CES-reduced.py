@@ -85,9 +85,6 @@ _LOGICS = {
             'com': 'compensing term in all EQ',
         },
         # Not needed for computation
-        'Y': Funcs.ProductionWorkers.CES_Optimised.Y,
-        'nu': Funcs.ProductionWorkers.CES_Optimised.nu,
-        'Lopti': Funcs.ProductionWorkers.CES_Optimised.L,
         'L': {
             'func': lambda N=0, lamb=0: lamb*N,
             'com': 'Auxilliary forn lambda'

@@ -147,24 +147,27 @@ p = 1
 N = 4.83
 nu = 2.7
 
-_PRESETS = {
+_PRESETS = {}
 
+
+_PRESETS = {
     'CopingWithCollapse2016': {
-        'fields': {'K': Y*nu,
-                   'D': d*Y*p,
-                   'p': p,
-                   'N': N,
-                   'w': Y*omega*p/(lamb*N),
-                   'a': Y/(N*lamb),
-                   'eta': 0.5,
-                   'mu': 1.3,
-                   'nu': nu,
-                   'delta': .04,
-                   'alpha': .02,
-                   'r': .03,
-                   'n': .0305,
-                   'Tmax': 20
-                   },
+        'fields': {
+            'K': Y*nu,
+            'D': d*Y*p,
+            'p': p,
+            'N': N,
+            'w': Y*omega*p/(lamb*N),
+            'a': Y/(N*lamb),
+            'eta': 0.5,
+            'mu': 1.3,
+            'nu': nu,
+            'delta': .04,
+            'alpha': .02,
+            'r': .03,
+            'n': .0305,
+            'Tmax': 20
+        },
         'com': 'values from copingwithcollapse'
     },
     'DebtAndDamages2018': {
