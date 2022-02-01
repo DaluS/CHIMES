@@ -27,7 +27,7 @@ _DARTICLE = {
     # dict for figures (key, link to png, name of routine)
     'dfigures': {
         1: {
-            'model': 'GK-CES-Reduced',
+            'model': 'GoodwinKeen-CES',
             'preset': 'article_fig01-05',
             'caption': '',
             'com': 'Trajectory 3d',
@@ -35,7 +35,7 @@ _DARTICLE = {
             'func': 'plot_fig01',
         },
         2: {
-            'model': 'GK-CES-Reduced',
+            'model': 'GoodwinKeen-CES',
             'preset': 'article_fig01-05',
             'caption': '',
             'com': 'Trajectory 3d',
@@ -43,7 +43,7 @@ _DARTICLE = {
             'func': 'plot_fig02',
         },
         3: {
-            'model': 'GK-CES-Reduced',
+            'model': 'GoodwinKeen-CES',
             'preset': 'article_fig01-05',
             'caption': '',
             'com': 'Trajectory 3d',
@@ -51,7 +51,7 @@ _DARTICLE = {
             'func': 'plot_fig03',
         },
         4: {
-            'model': 'GK-CES-Reduced',
+            'model': 'GoodwinKeen-CES',
             'preset': 'article_fig01-05',
             'caption': '',
             'com': 'Time evolution',
@@ -59,7 +59,7 @@ _DARTICLE = {
             'func': 'plot_fig04',
         },
         5: {
-            'model': 'GK-CES-Reduced',
+            'model': 'GoodwinKeen-CES',
             'preset': 'article_fig01-05',
             'caption': '',
             'com': 'Time evolution',
@@ -70,7 +70,7 @@ _DARTICLE = {
 }
 '''
         6: {
-            'model': 'GK-CES-Reduced',
+            'model': 'GoodwinKeen-CES',
             'preset': 'article_fig01-05',
             'caption': '',
             'com': '',
@@ -78,7 +78,7 @@ _DARTICLE = {
             'func': 'plot_fig06',
         },
         7: {
-            'model': 'GK-CES-Reduced',
+            'model': 'GoodwinKeen-CES',
             'preset': 'article_fig01-05',
             'caption': '',
             'com': '',
@@ -86,7 +86,7 @@ _DARTICLE = {
             'func': 'plot_fig07',
         },
         8: {
-            'model': 'GK-CES-Reduced',
+            'model': 'GoodwinKeen-CES',
             'preset': 'article_fig01-05',
             'caption': '',
             'com': '',
@@ -94,7 +94,7 @@ _DARTICLE = {
             'func': 'plot_fig08',
         },
         9: {
-            'model': 'GK-CES-Reduced',
+            'model': 'GoodwinKeen-CES',
             'preset': 'article_fig01-05',
             'caption': '',
             'com': '',
@@ -102,7 +102,7 @@ _DARTICLE = {
             'func': 'plot_fig09',
         },
         10: {
-            'model': 'GK-CES-Reduced',
+            'model': 'GoodwinKeen-CES',
             'preset': 'article_fig01-05',
             'caption': '',
             'com': '',
@@ -110,7 +110,7 @@ _DARTICLE = {
             'func': 'plot_fig10',
         },
         11: {
-            'model': 'GK-CES-Reduced',
+            'model': 'GoodwinKeen-CES',
             'preset': 'article_fig01-05',
             'caption': '',
             'com': '',
@@ -118,7 +118,7 @@ _DARTICLE = {
             'func': 'plot_fig11',
         },
         12: {
-            'model': 'GK-CES-Reduced',
+            'model': 'GoodwinKeen-CES',
             'preset': 'article_fig01-05',
             'caption': '',
             'com': '',
@@ -126,7 +126,7 @@ _DARTICLE = {
             'func': 'plot_fig12',
         },
         13: {
-            'model': 'GK-CES-Reduced',
+            'model': 'GoodwinKeen-CES',
             'preset': 'article_fig01-05',
             'caption': 'Trajectories of debt for different values of initial speculation and for (ω0, λ0, d0) = (0.85, 0.85, 1)',
             'com': '',
