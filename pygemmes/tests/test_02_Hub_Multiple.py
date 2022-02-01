@@ -163,6 +163,7 @@ class Test01_Hub_MultipleSystems():
                         self.dhub[model][solver][grid].set_dparam(
                             key=k1, value=v1_nogrid, grid=grid,
                         )
+                    '''
                     else:
                         iserr = False
                         try:
@@ -175,7 +176,7 @@ class Test01_Hub_MultipleSystems():
                         self.dhub[model][solver][grid].set_dparam(
                             key=k1, value=v1_nogrid, grid=grid,
                         )
-
+                    '''
     def test01_get_summary(self):
         for model in self.lmodels:
             for solver in self.lsolvers:
