@@ -1,7 +1,27 @@
 # -*- coding: utf-8 -*-
 """
-DESCRIPTION : This is a Goodwin model based on extensive variables.
-Inflation not integrated to the process
+D. Bastidas et al., Math. and Financial Economics, 2018
+
+"Daniel Bastidas, Adrien Fabre, Florent Mc Isaac"
+"Minskyan classical growth cycles: "
+"stability analysis of a stock-flow consistent macrodynamic model, "
+"Mathematics and Financial Economics,"
+"2018, issue 13, pages 359-391"
+
+'https://doi.org/10.1007/s11579-018-0231-6'
+
+
+DESCRIPTION :
+    * 2 sector model ( Household and Firms ) with loans.
+    * The structure is the same as in a Goodwin-Keen typical models
+    * Productiob function has been substituted from an optimised Leontiev to a CES (Constant Elasticity of substitution)
+    * In consequence the optimisation problem makes the quantity of workers a function of wage share
+
+This is the reduced version : the dynamical variables are lambda,omega,d
+s dynamics is for speculation
+
+We add explicitely the calculation of L
+
 TYPICAL BEHAVIOR : Convergence toward solow point ( good equilibrium) or debt crisis
 LINKTOARTICLE:
 
@@ -9,86 +29,8 @@ Created on Wed Jul 21 15:11:15 2021
 @author: Paul Valcke
 """
 
-
 import numpy as np
-
-
-# ---------------------------
-# user-defined function order (optional)
-
-
-# -------------------------
-# intermediate utility func
-
-
-def _domega_on_omega(eta=1, phillips=1, al=0.1):
-    return (eta / (1 + eta)) * (phillips - al)
-
-
-def _term1(kappa=1, A=1, b=1, eta=1, omega=0.1):
-    return kappa * A * ((1-omega) / b)**(1./eta)
-
-
-def _term2(eta=1, phillips=1, al=0.1, omega=0.1):
-    omegadotomega = _domega_on_omega(eta=eta, phillips=phillips, al=al)
-    return omegadotomega / (eta * (1 - omega))
-
-
-# ---
-# ode
-
-
-def func_ode_omega(itself=1, eta=1, phillips=1, al=0.1):
-    return itself * _domega_on_omega(eta=eta, phillips=phillips, al=al)
-
-
-def func_ode_lambda(
-    itself=1, kappa=1, A=1, omega=0.1, b=1, eta=1,
-    delta=1, al=0.1, beta=1, phillips=1,
-):
-    term1 = _term1(kappa=kappa, A=A, b=b, eta=eta, omega=omega)
-    term2 = _term2(eta=eta, phillips=phillips, al=al, omega=omega)
-    return itself * (term1 - delta - al - beta - term2)
-
-
-def func_ode_d(
-    itself=1,
-    r=1,
-    kappa=1,
-    A=1,
-    omega=0.1,
-    b=1,
-    eta=1,
-    delta=1,
-    phillips=1,
-    al=0.1,
-):
-    term1 = _term1(kappa=kappa, A=A, b=b, eta=eta, omega=omega)
-    term2 = _term2(eta=eta, phillips=phillips, al=al, omega=omega)
-    return itself * (r - term1 + delta + term2) + kappa - (1 - omega)
-
-
-def func_ode_K(kappa=1, nu=1, delta=1):
-    return kappa / nu - delta
-
-
-# ---------------
-# state variables
-
-
-def func_Y(A=1, b=1, K=1, L=1, al=0.1, time=1, eta=1):
-    return A*(b*K**-eta + (1 - b)*(L * np.exp(al*time))**(-eta))**(-1./eta)
-
-
-def func_g(kappa=1, A=1, b=1, eta=1, phillips=1, al=0.1, omega=0.1, delta=1):
-    term1 = _term1(kappa=kappa, A=A, b=b, eta=eta, omega=omega)
-    term2 = _term2(eta=eta, phillips=phillips, al=al, omega=omega)
-    return term1 - delta - term2
-
-
-def func_phillips(phi0=0, phi1=0, phi2=0, lamb=0):
-    return phi0 + phi1 * np.exp(phi2 * lamb)
-
+from pygemmes._models import Funcs  # To get access to all pre-coded practical functions
 
 # ---------------------------
 # user-defined model
@@ -97,62 +39,64 @@ def func_phillips(phi0=0, phi1=0, phi2=0, lamb=0):
 
 _LOGICS = {
     'ode': {
+        # reduced system after paper derivation
         'omega': {
-            'func': func_ode_omega,
+            'func': lambda itself=1, eta=1, phillips=1, alpha=0.1: itself * (eta / (1 + eta)) * (phillips - alpha),
+            'com': 'Explicit reduced dynamics'
         },
         'lambda': {
-            'func': func_ode_lambda,
+            'func': lambda g=0, alpha=0, n=0: g - alpha - n,
+            'com': "explicit reduced dynamics",
         },
         'd': {
-            'func': func_ode_d,
+            'func': lambda itself=0, kappa=0, pi=0, g=0, s=0: -itself*g + kappa - pi + s,
+            'com': "explicit reduced dynamics",
+        },
+        's': {
+            'func': lambda itself=0, Speculation=0, g=0, weirdterm=0: itself*(Speculation - g + weirdterm),
+            'com': "explicit reduced dynamics",
         },
 
         # Not needed for computation
-        'N': {
-            'func': lambda itself=0, beta=1: beta * itself,
-        },
+        'a': Funcs.Productivity.exogenous,
+        'N': Funcs.Population.exp,
         'K': {
-            'func': func_ode_K,
+            'func': lambda g=0, itself=0: itself * g,
+            'com': 'auxilliary from growth',
         },
+
+
     },
 
     # Intermediary relevant functions
     'statevar': {
-
         # Needed for computation
-        'phillips': {
-            'func': func_phillips,
-            'com': 'Wage increase rate through employment',
-        },
-        'kappa': {
-            'func': lambda k0=0, k1=0, k2=0, pi=0: k0 + k1 * np.exp(k2 * pi),
-            'com': 'Investment as a share of output',
-        },
+        'phillips': Funcs.Phillips.exp,
+        'kappa': Funcs.Kappa.exp,
+        'Speculation': Funcs.Speculation.exp,
+
         'pi': {
             'func': lambda omega=1, r=1, d=1: 1 - omega - r*d,
-            'com': 'relative profit',
+            'com': 'stockflow reduced',
         },
 
-        # Not needed for computation
-        'Y': {
-            'func': func_Y,
-            'com': (
-                "CSE production function "
-                "(Leontieff, Cobb-Douglas, linear for eta = inf, 0, -1)"
-            ),
+        'weirdterm': {
+            'func': lambda eta=1, phillips=1, alpha=0.1, omega=0.5: (1 / (1 + eta)) * (phillips - alpha) * omega/(1-omega),
+            'com': 'compensing term in all EQ',
         },
+        # Not needed for computation
         'L': {
-            'func': lambda lamb=0, N=0: lamb*N,
+            'func': lambda N=0, lamb=0: lamb*N,
+            'com': 'Auxilliary forn lambda'
         },
         'g': {
-            'func': func_g,
-            'com': 'relative growth rate',
+            'func': lambda kappa=0, nu=1, delta=0, weirdterm=0: kappa/nu - delta - weirdterm,
+            'com': 'explicit expression',
         },
-        'nu': {
-            'func': lambda omega=0.1, b=1, A=1, eta=1: ((1 - omega) / b)**(-1./eta) / A,
-            'com': 'capital-to-output ratio (K/Y)',
-        },
+
+
     },
+    'param': {},
 }
 
 
@@ -160,29 +104,46 @@ _LOGICS = {
 # List of presets for specific interesting simulations
 
 _PRESETS = {
-    'article_fig01-05': {
+    'article': {
         'fields': {
-            'dt': 0.1,
+            # Time parameter
+            'dt': 0.01,
             'Tmax': 200,
-            'eta': [500, 100],
-            'phi0': -0.01,
-            'phi1': 2.35e-23,
-            'phi2': 50,
+
+            # initial ode values
+            'lambda': 0.96,
+            'omega': 0.65,
+            'd': 2.94,
+            's': 0,
+
+            # Production function
+            #'A': 1./3.,
+            #'b': 0.135,
+            'eta': 100,
+
+            # Time rates
+            'alpha': 0.02,
+            'n': 0.01,   # 'n' in _def_fields
+            'delta': 0.01,
+            'r': 0.04,
+
+            # Phillips curve
+            'phiexp0': -0.01,
+            'phiexp1': 2.35e-23,
+            'phiexp2': 50,
+
+            # Kappa curve
             'k0': 0.05,
             'k1': 0.05,
             'k2': 1.75,
-            'al': 0.02,
-            'beta': 0.01,   # 'n' in _def_fields
-            'delta': 0.01,
-            'r': 0.04,
-            'A': 1./3.,
-            'b': 0.135,
-            # initial ode values
-            'lambda': 0.99,
-            'omega': 0.99,
-            'd': 2.94,
+
+            # Speculation curve
+            'SpecExpo1': 0,
+            'SpecExpo2': 0,
+            'SpecExpo3': 0,
+            'SpecExpo4': 0,
         },
-        'com': '',
+        'com': 'speculation removed',
         'plots': [],
     },
 }

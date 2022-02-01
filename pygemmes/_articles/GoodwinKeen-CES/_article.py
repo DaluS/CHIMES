@@ -28,50 +28,50 @@ _DARTICLE = {
     'dfigures': {
         1: {
             'model': 'GoodwinKeen-CES',
-            'preset': 'article_fig01-05',
+            'preset': 'article',
             'caption': '',
             'com': 'Trajectory 3d',
-            'png': 'fig01_TrajectoryEtaInfinity.png',
+            'png': 'fig02_Trajectory.png',
             'func': 'plot_fig01',
         },
         2: {
             'model': 'GoodwinKeen-CES',
-            'preset': 'article_fig01-05',
+            'preset': 'article',
             'caption': '',
             'com': 'Trajectory 3d',
-            'png': 'fig02_TrajectoryEta500.png',
+            'png': 'fig02_Trajectory.png',
             'func': 'plot_fig02',
         },
         3: {
             'model': 'GoodwinKeen-CES',
-            'preset': 'article_fig01-05',
+            'preset': 'article',
             'caption': '',
             'com': 'Trajectory 3d',
-            'png': 'fig03_TrajectoryEta100.png',
+            'png': 'fig02_Trajectory.png',
             'func': 'plot_fig03',
         },
         4: {
             'model': 'GoodwinKeen-CES',
-            'preset': 'article_fig01-05',
+            'preset': 'article',
             'caption': '',
             'com': 'Time evolution',
-            'png': 'fig04_OmegavsTime.png',
+            'png': 'fig02_Trajectory.png',
             'func': 'plot_fig04',
         },
         5: {
             'model': 'GoodwinKeen-CES',
-            'preset': 'article_fig01-05',
+            'preset': 'article',
             'caption': '',
             'com': 'Time evolution',
-            'png': 'fig05_AllDynamicsvsTimeEta100.png',
-            'func': 'plot_fig05',
+            'png': 'fig02_Trajectory.png',
+            'func': 'plot_fig04',
         },
     },
 }
 '''
         6: {
             'model': 'GoodwinKeen-CES',
-            'preset': 'article_fig01-05',
+            'preset': 'article',
             'caption': '',
             'com': '',
             'png': '',
@@ -79,7 +79,7 @@ _DARTICLE = {
         },
         7: {
             'model': 'GoodwinKeen-CES',
-            'preset': 'article_fig01-05',
+            'preset': 'article',
             'caption': '',
             'com': '',
             'png': '',
@@ -87,7 +87,7 @@ _DARTICLE = {
         },
         8: {
             'model': 'GoodwinKeen-CES',
-            'preset': 'article_fig01-05',
+            'preset': 'article',
             'caption': '',
             'com': '',
             'png': '',
@@ -95,7 +95,7 @@ _DARTICLE = {
         },
         9: {
             'model': 'GoodwinKeen-CES',
-            'preset': 'article_fig01-05',
+            'preset': 'article',
             'caption': '',
             'com': '',
             'png': '',
@@ -103,7 +103,7 @@ _DARTICLE = {
         },
         10: {
             'model': 'GoodwinKeen-CES',
-            'preset': 'article_fig01-05',
+            'preset': 'article',
             'caption': '',
             'com': '',
             'png': '',
@@ -111,7 +111,7 @@ _DARTICLE = {
         },
         11: {
             'model': 'GoodwinKeen-CES',
-            'preset': 'article_fig01-05',
+            'preset': 'article',
             'caption': '',
             'com': '',
             'png': '',
@@ -119,7 +119,7 @@ _DARTICLE = {
         },
         12: {
             'model': 'GoodwinKeen-CES',
-            'preset': 'article_fig01-05',
+            'preset': 'article',
             'caption': '',
             'com': '',
             'png': '',
@@ -127,7 +127,7 @@ _DARTICLE = {
         },
         13: {
             'model': 'GoodwinKeen-CES',
-            'preset': 'article_fig01-05',
+            'preset': 'article',
             'caption': 'Trajectories of debt for different values of initial speculation and for (ω0, λ0, d0) = (0.85, 0.85, 1)',
             'com': '',
             'png': '',
@@ -175,7 +175,7 @@ def plot_fig01(hub=None):
     # --------------------
     # Load original figure
 
-    pfe_im = os.path.join(_PATH_HERE, 'fig02_TrajectoryEta500.png')
+    pfe_im = os.path.join(_PATH_HERE, 'fig02_Trajectory.png')
     im = img.imread(pfe_im)
 
     # --------------------
@@ -248,7 +248,7 @@ def plot_fig02(hub=None):
     # --------------------
     # Load original figure
 
-    pfe_im = os.path.join(_PATH_HERE, 'fig02_TrajectoryEta500.png')
+    pfe_im = os.path.join(_PATH_HERE, 'fig02_Trajectory.png')
     im = img.imread(pfe_im)
 
     # --------------------
@@ -319,7 +319,7 @@ def plot_fig03(hub=None):
     # --------------------
     # Load original figure
 
-    pfe_im = os.path.join(_PATH_HERE, 'fig03_TrajectoryEta100.png')
+    pfe_im = os.path.join(_PATH_HERE, 'fig02_Trajectory.png')
     im = img.imread(pfe_im)
 
     # --------------------
@@ -389,7 +389,7 @@ def plot_fig04(hub=None):
     # --------------------
     # Load original figure
 
-    pfe_im = os.path.join(_PATH_HERE, 'fig04_OmegavsTime.png')
+    pfe_im = os.path.join(_PATH_HERE, 'fig02_Trajectory.png')
     im = img.imread(pfe_im)
 
     # --------------------
@@ -454,8 +454,8 @@ def plot_fig05(hub=None):
         'd': {
             'props': {'color': 'r', 'ls': '-'},
         },
-        'nu': {
-            'props': {'color': 'o', 'ls': '-'},
+                'nu': {
+                    'props': {'color': 'o', 'ls': '-'},
         },
         'Y/N': {
             'props': {'color': 'm', 'ls': '-'},
@@ -488,7 +488,7 @@ def plot_fig05(hub=None):
     # --------------------
     # Load original figure
 
-    pfe_im = os.path.join(_PATH_HERE, 'fig05_AllDynamicsvsTimeEta100.png')
+    pfe_im = os.path.join(_PATH_HERE, 'fig02_Trajectory.png')
     im = img.imread(pfe_im)
 
     # --------------------
