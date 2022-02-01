@@ -327,10 +327,10 @@ dsolvers = pgm.get_available_solvers(returnas=list)
 for _MODEL in dmodels.keys():
     hub = pgm.Hub(_MODEL)  # , preset=preset, verb=False)
     hub.run(verb=0)
-    # for _SOLVER in dsolvers.keys():
+    for _SOLVER in dsolvers.keys():
         for preset in dmodels[_MODEL]['presets']:
             hub = pgm.Hub(_MODEL)  # , preset=preset, verb=False)
-            hub.run(verb=0) solver = _SOLVER)
+            hub.run(verb=0, solver = _SOLVER)
             hub.plot()
 
 # %% EXERCICES ##########################################
