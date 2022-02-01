@@ -150,33 +150,33 @@ class Test01_Hub_MultipleSystems():
                         group=('Numerical',),
                         returnas=list,
                     )
-                    k0 = lpar[0]
-                    v0 = hub.dparam[k0]['value'] * np.r_[0.5, 1, 2]
-                    k1 = lpar[1]
-                    v1_grid = hub.dparam[k1]['value'] * np.r_[1, 2]
-                    v1_nogrid = hub.dparam[k1]['value'] * np.r_[0.5, 1, 2]
+                    if len(lpar)>=2:
+                        k0 = lpar[0]
+                        v0 = hub.dparam[k0]['value'] * np.r_[0.9, 1, 1.1]
+                        k1 = lpar[1]
+                        v1_grid = hub.dparam[k1]['value'] * np.r_[1, 1.1]
+                        v1_nogrid = hub.dparam[k1]['value'] * np.r_[0.9, 1, 1.1]
 
-                    self.dhub[model][solver][grid].set_dparam(
-                        key=k0, value=v0, grid=grid,
-                    )
-                    if grid:
                         self.dhub[model][solver][grid].set_dparam(
-                            key=k1, value=v1_nogrid, grid=grid,
+                            key=k0, value=v0, grid=grid,
                         )
-                    '''
-                    else:
-                        iserr = False
-                        try:
+                        if grid:
                             self.dhub[model][solver][grid].set_dparam(
-                                key=k1, value=v1_grid, grid=grid,
+                                key=k1, value=v1_nogrid, grid=grid,
                             )
-                        except Exception as err:
-                            iserr = True
-                        assert iserr
-                        self.dhub[model][solver][grid].set_dparam(
-                            key=k1, value=v1_nogrid, grid=grid,
-                        )
-                    '''
+                        else:
+                            iserr = False
+                            try:
+                                self.dhub[model][solver][grid].set_dparam(
+                                    key=k1, value=v1_grid, grid=grid,
+                                )
+                            except Exception as err:
+                                iserr = True
+                            assert iserr
+                            self.dhub[model][solver][grid].set_dparam(
+                                key=k1, value=v1_nogrid, grid=grid,
+                            )
+
     def test01_get_summary(self):
         for model in self.lmodels:
             for solver in self.lsolvers:
