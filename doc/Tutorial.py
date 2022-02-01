@@ -5,12 +5,12 @@ Contains all the formulations one want to know
 
 # I MAKE SURE YOUR ENVIRONMENT IS READY ######################################
 '''
-### I.1 check that you have all the libraries
+# I.1 check that you have all the libraries
 
 to get all the libraries you are going to need
 `!pip freeze > requirement.txt -v`
 
-### I.2 Tell python where pygemmes is
+# I.2 Tell python where pygemmes is
 pygemmes has to be found by python so that it can loads it
 
 there are two methods :
@@ -325,10 +325,12 @@ for j in range(0, len(dvec)):
 dmodels = pgm.get_available_models(returnas=dict, details=False, verb=True,)
 dsolvers = pgm.get_available_solvers(returnas=list)
 for _MODEL in dmodels.keys():
-    for _SOLVER in dsolvers.keys():
+    hub = pgm.Hub(_MODEL)  # , preset=preset, verb=False)
+    hub.run(verb=0)
+    # for _SOLVER in dsolvers.keys():
         for preset in dmodels[_MODEL]['presets']:
             hub = pgm.Hub(_MODEL)  # , preset=preset, verb=False)
-            hub.run(verb=0, solver=_SOLVER)
+            hub.run(verb=0) solver = _SOLVER)
             hub.plot()
 
 # %% EXERCICES ##########################################
@@ -370,3 +372,16 @@ Exercise 3 : add on github
 # !pytest pygemmes/tests/test_00_get -v
 # !pytest pygemmes/tests/test_02_Hub_Multiple -v
 # !pytest pygemmes/tests/test_03_articles -v
+
+
+'''
+    def test02_test_all_solvers_2parrallel(self):
+
+    def test03_initialize_and_run_all_models_all_preset_all_plots(self):
+
+    def test04_relevant_prints_from_hub(self):
+
+    def test05_fillcycles_onesystem(self):
+
+    def test06_sensibility_test(self):
+'''

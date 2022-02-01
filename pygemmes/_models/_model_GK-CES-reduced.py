@@ -117,8 +117,8 @@ _PRESETS = {
             's': 0,
 
             # Production function
-            'A': 1./3.,
-            'b': 0.135,
+            #'A': 1./3.,
+            #'b': 0.135,
             'eta': 100,
 
             # Time rates
@@ -138,10 +138,10 @@ _PRESETS = {
             'k2': 1.75,
 
             # Speculation curve
-            'SpeExpoConst': 0,
-            'SpecExpoSlope': 0,
-            'SpecExpoexpo1': 0,
-            'SpecExpoexpo2': 0,
+            'SpecExpo1': 0,
+            'SpecExpo2': 0,
+            'SpecExpo3': 0,
+            'SpecExpo4': 0,
         },
         'com': 'speculation removed',
         'plots': [],

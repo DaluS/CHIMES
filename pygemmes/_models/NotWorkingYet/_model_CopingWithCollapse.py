@@ -175,11 +175,11 @@ _LOGICS = {
             'com': 'Linear Philips curve',
         },
         'kappa': {
-            'func': lambda kappalinConst=0, kappalinSlope=0, pi=0: kappalinConst + kappalinConst * pi,
+            'func': lambda kappalinConst=0, kappalinSlope=0, pi=0, kappalinMin=0, kappalinMax=0: np.clip(kappalinConst + kappalinConst * pi, kappalinMin, kappalinMax),
             'com': 'Relative GDP investment through relative profit',
         },
         'Sh': {
-            'func': lambda divlinSlope=0, divlinconst=0, pi=0, GDP=0: GDP*(divlinSlope*pi+divlinconst),
+            'func': lambda divlinSlope=0, divlinconst=0, pi=0, GDP=0, divlinMin=0, divlinMax=0: np.clip(GDP*(divlinSlope*pi+divlinconst), divlinMin, divlinMax),
             'com': 'Affine shareholding dividends dependency'
         },
         'Emission': {
