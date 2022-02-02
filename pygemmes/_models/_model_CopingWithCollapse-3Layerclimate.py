@@ -37,8 +37,8 @@ _LOGICS = {
         'CO2AT': Funcs.Atmosphere.Three_Layers.CO2AT,
         'CO2UP': Funcs.Atmosphere.Three_Layers.CO2UP,
         'CO2LO': Funcs.Atmosphere.Three_Layers.CO2LO,
-        'T': Funcs.Atmosphere.ThreeLayers.T,
-        'T0': Funcs.Atmosphere.ThreeLayers.T0,
+        'T': Funcs.Atmosphere.Three_Layers.T,
+        'T0': Funcs.Atmosphere.Three_Layers.T0,
 
         'pseudot': {
             'func': lambda T=0: 1,

@@ -278,7 +278,7 @@ Classic intermediary variables that might be needed
             'com': 'its definition',
         }
 
-    class ZAtmosphere:
+    class Atmosphere:
         '''
         Modelisation of an atmosphere, with CO2 and Temperature
         '''

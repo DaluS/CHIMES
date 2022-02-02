@@ -76,10 +76,6 @@ _LOGICS = {
             'com': 'relative growth rate'},
     },
     'param': {
-        'b': {
-            'value': 0.5,
-            'definition': 'plop',
-        },
     },
 }
 
@@ -112,7 +108,7 @@ _PRESETS = {
             'This is a run that should give simple '
             'convergent oscillations'),
         'plots': {
-            'timetrace': [[]],
+            'timetrace': [{}],
             'plotnyaxis': [{'x': 'time',
                            'y': [['lambda', 'omega'],
                                  ['d'],
