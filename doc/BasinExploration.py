@@ -2,6 +2,8 @@
 """
 Created on Tue Feb  1 14:30:11 2022
 
+Here is an ensemble of small functions to explore basin of attractions
+
 @author: Paul Valcke
 """
 
@@ -11,15 +13,21 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 
 
-def _generatecoordinates(dic, initial):
-    coords = np.array([np.random.normal(0, dic['Rini'], size=dic['Npts'])
+def _generateSpherecoordinates(dic, initial):
+    '''
+    Generate N-dimensional sphere coordinates and their normal vectors around a certain points
+    '''
+    coords = np.array([np.random.normal(0, 1, size=dic['Npts'])
                       for i in range(len(initial))])
     norm = np.linalg.norm(coords, axis=0)
     coords *= dic['Rini']/norm
     return {k: list(initial[k] + coords[i, :]) for i, k in enumerate(initial.keys())}, {k: list(coords[i, :]) for i, k in enumerate(initial.keys())}
 
 
-def _generatecoordinateinspace(dic):
+def _generateSpacecoordinate(dic):
+    '''
+    Generate points in a N-dimensional square domain, with random normalised vector associated
+    '''
     coords = np.array([np.random.uniform(dic['limits'][k][0], dic['limits'][k][1], size=dic['Npts'])
                       for k in dic['limits'].keys()])
     coords2 = np.array([np.random.normal(0, 1, size=dic['Npts'])
@@ -29,7 +37,11 @@ def _generatecoordinateinspace(dic):
     return {k:  coords[i, :] for i, k in enumerate(initial.keys())}, {k: list(coords2[i, :]) for i, k in enumerate(initial.keys())}
 
 
-def _FindAndPropagate(Allpoints, condini, vecs, dictforAttraction):
+def _Determinetime(condini, dictforAttraction):
+    '''
+    For initial conditions, run all systems and then determine the characteristic time
+    for stabilisation
+    '''
     # Create preset for the system
     _DPRESETS = {'BOA':
                  {'fields': {
@@ -54,6 +66,14 @@ def _FindAndPropagate(Allpoints, condini, vecs, dictforAttraction):
     time = R['time']['value'][:, 0]
     Tcarac = [next((t for e, t in zip(dist[:, i], time) if e < dictforAttraction['criteria']), False)
               for i in range(np.shape(dist)[1])]
+
+    return R, Tcarac
+
+
+def _Propagatepoints(R, Tcarac, Allpoints, condini, vecs, dictforAttraction):
+    '''
+    Given a characteristic time, points and a direction,
+    determine new positions and store information'''
 
     # Filter 1 : convergence in our time
     Tfilt = np.array(Tcarac) > 0
@@ -85,14 +105,20 @@ def _FindAndPropagate(Allpoints, condini, vecs, dictforAttraction):
 
 
 def basinofattraction_time(initial, dictforAttraction, initialtype='random'):
+    '''
+    Generate points in a domain, then run a dynamical system on those initial conditions.
+
+
+
+    '''
 
     Allpoints = {k: [] for k in initial.keys()}
     Allpoints['Tcarac'] = []
 
     if initialtype == 'random':
-        condini, vecs = _generatecoordinateinspace(dictforAttraction)
+        condini, vecs = _generateSpacecoordinate(dictforAttraction)
     else:
-        condini, vecs = _generatecoordinates(dictforAttraction, initial)
+        condini, vecs = _generateSpherecoordinates(dictforAttraction, initial)
 
     fig = plt.figure('3D', figsize=(10, 10))
     ax = plt.axes(projection='3d')
@@ -102,15 +128,17 @@ def basinofattraction_time(initial, dictforAttraction, initialtype='random'):
                c='k',
                s=0.5)
 
+    for numb in range(dictforAttraction['Niter']):
+        print(numb)
+        R, Tcarac = _Determinetime(condini, dictforAttraction)
+        Allpoints, condini, vecs = _Propagatepoints(
+            R, Tcarac, Allpoints, condini, vecs, dictforAttraction)
+
     ax.scatter(dictforAttraction['final']['lambda'],
                dictforAttraction['final']['omega'],
                dictforAttraction['final']['d'],
                c='k',
                s=200)
-
-    for numb in range(dictforAttraction['Niter']):
-        print(numb)
-        Allpoints, condini, vecs = _FindAndPropagate(Allpoints, condini, vecs, dictforAttraction)
 
     ax.scatter(Allpoints['lambda'],
                Allpoints['omega'],
@@ -157,7 +185,7 @@ dictforAttraction = {
 ##############################################################################
 #basinofattraction_time(initial, dictforAttraction)
 
-condini, vecs = _generatecoordinateinspace(dictforAttraction)
+condini, vecs = _generateSpacecoordinate(dictforAttraction)
 
 # Create preset for the system
 _DPRESETS = {'BOA':
