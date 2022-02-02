@@ -400,7 +400,6 @@ def get_dparam_from_logics(dmodel=None):
         k0: dict(dmodel['logics'][v0][k0]) for k0, v0 in lk[0].items()
     }
 
-
     # ---------------
     # Add eqtype
     for k0 in dparam.keys():
@@ -1079,15 +1078,15 @@ def _check_func_get_source(lfunc=None, dparam=None):
             assert dparam[k0].get('source_exp') is None
 
             # extract source and check if lambda
-            sour = inspect.getsource(dparam[k0]['func']).replace('    ','')
+            sour = inspect.getsource(dparam[k0]['func']).replace('    ', '')
             c0 = (
                 sour.count(':') >= 1
                 and (
                     sour.count('lambda') == 1
-                    #and sour.count(':') == 2 # Comment for remote lambda expression
-                    #and 'lambda' in sour.split(':')[1] #Comment for remote lambda
+                    # and sour.count(':') == 2 # Comment for remote lambda expression
+                    # and 'lambda' in sour.split(':')[1] #Comment for remote lambda
                     and sour.count('\n') == 1
-                    #and sour.endswith(',\n') # Comment because comment at end of the line or no ',' when in a remote file
+                    # and sour.endswith(',\n') # Comment because comment at end of the line or no ',' when in a remote file
                 )
                 or (
                     sour.count('lambda') == 0
@@ -1154,9 +1153,6 @@ def _check_func(dparam=None, dmulti=None, verb=None):
     # -------------------------------------
     # extract parameters that are functions
     lfunc = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
-
-
-
 
    # ---------------------------------------
     # extract input args and check conformity
@@ -1614,11 +1610,18 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None, dmulti=None):
         defaults = list(dparam[k0]['func'].__defaults__)
         kargs = dparam[k0]['source_kargs'].split(', ')
 
+        print(k0, defaults, kargs)
         # update using fixed param (eqtype = None)
         for k1 in dparam[k0]['args'][None]:
             key = 'lamb' if k1 == 'lambda' else k1
+
             defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
-            ind = [ii for ii, vv in enumerate(kargs) if key in vv]
+
+            for ii, vv in enumerate(kargs):
+                print(key, vv)
+            ind = [ii for ii, vv in enumerate(kargs) if key == vv.split('=')[0]]
+
+            print('    ', k0, k1, kargs, ind)
             if len(ind) != 1:
                 msg = f"Inconsistency in (fixed) kargs for {k0}, {k1}"
                 raise Exception(msg)
