@@ -178,12 +178,33 @@ _PRESETS = {
                    'D_R': 0.001,
                    'p_R': 0.1, },
         'com': '',
-        'plots': {'plotbyunits': [{'title': '',
-                                   'lw': 1,       # optional
-                                   'idx': 0,      # optional
-                                   'color': 'k'},  # optional
-                                  ],
-                  }
+        'plots': {
+            'timetrace': [{}],
+            'plotnyaxis': [{'x': 'time',
+                           'y': [['lambda', 'omega'],
+                                 ['d'],
+                                 ['kappa', 'pi'],
+                                 ],
+                            'idx':0,
+                            'title':'',
+                            'lw':1}],
+            'phasespace': [{'x': 'lambda',
+                            'y': 'omega',
+                            'color': 'd',
+                            'idx': 0}],
+            'plot3D': [{'x': 'lambda',
+                        'y': 'omega',
+                        'z': 'd',
+                        'cinf': 'pi',
+                        'cmap': 'jet',
+                        'index': 0,
+                        'title': ''}],
+            'plotbyunits': [{'title': '',
+                             'lw': 1,       # optional
+                             'idx': 0,      # optional
+                             'color': 'k'},  # optional
+                            ],
+        },
     },
 }
 
