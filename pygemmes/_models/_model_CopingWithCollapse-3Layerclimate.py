@@ -34,9 +34,9 @@ _FUNC_ORDER = None
 _LOGICS = {
     'ode': {
         # ATMOSPHERE ODE
-        'CO2AT': Funcs.Atmosphere.ThreeLayers.CO2AT,
-        'CO2UP': Funcs.Atmosphere.ThreeLayers.CO2UP,
-        'CO2LO': Funcs.Atmosphere.ThreeLayers.CO2LO,
+        'CO2AT': Funcs.Atmosphere.Three_Layers.CO2AT,
+        'CO2UP': Funcs.Atmosphere.Three_Layers.CO2UP,
+        'CO2LO': Funcs.Atmosphere.Three_Layers.CO2LO,
         'T': Funcs.Atmosphere.ThreeLayers.T,
         'T0': Funcs.Atmosphere.ThreeLayers.T0,
 
@@ -52,7 +52,7 @@ _LOGICS = {
 
     },
     'statevar': {
-        'F': Funcs.Atmosphere.ThreeLayers.F,
+        'F': Funcs.Atmosphere.F,
 
         'Emission': {
             'func': lambda Emission0=0, deltaEmission=0, pseudot=0: Emission0*np.exp(-pseudot*deltaEmission),

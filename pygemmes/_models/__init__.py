@@ -194,6 +194,7 @@ def _printsubgroupe(sub, it):
 
     subfunc = [f for f in inspect.getmembers(sub[1]) if '_' not in f[0]]
     col = ['name', 'com', 'function']
+
     ar2 = [[v[0], v[1]['com'], inspect.getsource(v[1]['func']).split(':')[2].replace('\n', '')
             ] for v in subfunc]
 
@@ -218,29 +219,3 @@ def get_available_functions():
         print(f"-----------------{57*'-'}{len(sub[0])*'-'}")
         it = 0
         _printsubgroupe(sub, it)
-        '''
-        print(f"-----------------{60*'-'}{len(sub[0])*'-'}")
-        print(f"---- Subgroup : {sub[0]} {60*'-'}")
-        print(str(sub[1].__doc__.replace('\n        ', '')))
-
-        subsubgroup = [f for f in inspect.getmembers(
-            sub[1]) if ('_' in f[0] and '__' not in f[0])]
-        if len(subsubgroup):
-            print('THERE IS A SUBSUBGROUP')
-            print(subsubgroup)
-
-        subfunc = [f for f in inspect.getmembers(sub[1]) if '_' not in f[0]]
-        col = ['name', 'com', 'function']
-        ar2 = [[v[0], v[1]['com'], inspect.getsource(v[1]['func']).split(':')[
-            2].replace('\n', '')] for v in subfunc]
-
-        _utils._get_summary(
-            lar=[ar2],
-            lcol=[col],
-            verb=True,
-            returnas=False,
-        )
-
-        print('\n')
-    # return(Funcs)
-        '''
