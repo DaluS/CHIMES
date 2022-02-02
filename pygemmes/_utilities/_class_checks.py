@@ -1610,18 +1610,14 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None, dmulti=None):
         defaults = list(dparam[k0]['func'].__defaults__)
         kargs = dparam[k0]['source_kargs'].split(', ')
 
-        print(k0, defaults, kargs)
         # update using fixed param (eqtype = None)
         for k1 in dparam[k0]['args'][None]:
             key = 'lamb' if k1 == 'lambda' else k1
 
             defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
 
-            for ii, vv in enumerate(kargs):
-                print(key, vv)
             ind = [ii for ii, vv in enumerate(kargs) if key == vv.split('=')[0]]
 
-            print('    ', k0, k1, kargs, ind)
             if len(ind) != 1:
                 msg = f"Inconsistency in (fixed) kargs for {k0}, {k1}"
                 raise Exception(msg)

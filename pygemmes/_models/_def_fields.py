@@ -73,6 +73,68 @@ _LIBRARY = {
         },
     },
 
+    'Ressources': {
+        'K_R': {
+            'value': 1.,
+            'definition': 'Kapital for ressource extraction',
+            'units': 'Units',
+        },
+        'D_R': {
+            'value': 1.,
+            'definition': 'Debt of ressource sector',
+            'units': '$',
+        },
+        'p_R': {
+            'value': 1.,
+            'definition': 'price of ressources',
+            'units': '$.Units^{-1}',
+        },
+        'kappa_R': {
+            'value': 1.,
+            'definition': 'Investment func for ressource sector',
+            'units': '',
+        },
+        'pi_R': {
+            'value': 1.,
+            'definition': 'relative profit of ressource sector',
+            'units': '',
+        },
+        'Pi_R': {
+            'value': 1.,
+            'definition': 'Absolute profit for ressource sector',
+            'units': '$.Units^{-1}',
+        },
+        'R': {
+            'value': 1.,
+            'definition': 'Available ressources',
+            'units': 'Units',
+        },
+        'M': {
+            'value': 1.,
+            'definition': 'Flux of extracted ressources',
+            'units': 'Units.y^{-1}',
+        },
+        'I_R': {
+            'value': 1.,
+            'definition': 'Investment (real) for ressources',
+            'units': 'Units.y^{-1}',
+        },
+        'Kstar': {
+            'value': 1.,
+            'definition': "Equivalent capital for services",
+            'units': 'Units',
+        },
+        'd_R': {
+            'value': 1.,
+            'definition': 'debt ratio ressources',
+            'units': 'y',
+        },
+        'inflation_R': {
+            'value': 1.,
+            'definition': 'inflation for ressources',
+            'units': 'y^{-1}',
+        },
+    },
 
     'Household': {
         # VARIABLES
