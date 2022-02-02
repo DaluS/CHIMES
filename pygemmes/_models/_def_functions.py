@@ -56,6 +56,11 @@ The phenomena behind is a class struggle
         '''
         Modelisation of an atmosphere, with CO2 and Temperature
         '''
+        F = {
+            'func': lambda F2CO2=0, CO2AT=1, CAT=1: F2CO2 / np.log(2) * np.log(CO2AT/CAT),
+            'com': 'Forcing as sensitivity',
+        }
+
         class ThreeLayers:
             '''
             As presented in CopingWithCollapse
@@ -79,10 +84,6 @@ The phenomena behind is a class struggle
             T0 = {
                 'func': lambda gammaAtmo=0, T=0, itself=0, Capacity0=1: (gammaAtmo*(T-itself))/Capacity0,
                 'com': 'Accumulation from atmosphere',
-            }
-            F = {
-                'func': lambda F2CO2=0, CO2AT=1, CAT=1: F2CO2 / np.log(2) * np.log(CO2AT/CAT),
-                'com': 'Forcing as sensitivity',
             }
 
     class Kappa:
