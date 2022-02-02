@@ -13,6 +13,26 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 
 
+initial = {'lambda': 0.96753452,
+           'omega': 0.84520232,
+           'd': -0.07660271, }
+
+dictforAttraction = {
+    'model': 'GK-Reduced',
+    'final': {k: v*1. for k, v in initial.items()},
+    'limits': {'lambda': [0, 1-0.0001],
+               'omega': [0, 1],
+               'd': [-1, 10]},
+    'Npts': 1000,
+    'Rini': 0.015,
+    'Niter': 1,
+    'criteria': 0.05,
+    'jump': 20,
+    'kwargdics': {
+        'Tmax': 100,
+        'dt': 0.01}}
+
+
 def _generateSpherecoordinates(dic, initial):
     '''
     Generate N-dimensional sphere coordinates and their normal vectors around a certain points
@@ -34,7 +54,7 @@ def _generateSpacecoordinate(dic):
                         for i in range(len(initial))])
     norm2 = np.linalg.norm(coords, axis=0)
     coords2 *= dic['Rini']/norm2
-    return {k:  coords[i, :] for i, k in enumerate(initial.keys())}, {k: list(coords2[i, :]) for i, k in enumerate(initial.keys())}
+    return {k:  coords[i, :] for i, k in enumerate(dic['limits'].keys())}, {k: list(coords2[i, :]) for i, k in enumerate(dic['limits'].keys())}
 
 
 def _Determinetime(condini, dictforAttraction):
@@ -107,9 +127,6 @@ def _Propagatepoints(R, Tcarac, Allpoints, condini, vecs, dictforAttraction):
 def basinofattraction_time(initial, dictforAttraction, initialtype='random'):
     '''
     Generate points in a domain, then run a dynamical system on those initial conditions.
-
-
-
     '''
 
     Allpoints = {k: [] for k in initial.keys()}
@@ -160,31 +177,15 @@ def basinofattraction_time(initial, dictforAttraction, initialtype='random'):
     ax.set_zlabel('d')
     plt.suptitle('Characteristic time for stabilisation')
     plt.show()
-##############################################################################
 
-
-initial = {'lambda': 0.96753452,
-           'omega': 0.84520232,
-           'd': -0.07660271, }
-
-dictforAttraction = {
-    'model': 'GK-Reduced',
-    'final': {k: v*1. for k, v in initial.items()},
-    'limits': {'lambda': [0, 1-0.0001],
-               'omega': [0, 1],
-               'd': [-1, 10]},
-    'Npts': 1000,
-    'Rini': 0.015,
-    'Niter': 1,
-    'criteria': 0.05,
-    'jump': 20,
-    'kwargdics': {
-        'Tmax': 100,
-        'dt': 0.01}}
 
 ##############################################################################
-#basinofattraction_time(initial, dictforAttraction)
+basinofattraction_time(initial, dictforAttraction)
 
+##############################################################################
+'''
+PLOT BASIN WITH TRAJECTORIES CONVERGENCE
+'''
 condini, vecs = _generateSpacecoordinate(dictforAttraction)
 
 # Create preset for the system
