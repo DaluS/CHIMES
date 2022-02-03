@@ -580,10 +580,12 @@ def _set_key_value(dparam=None, key=None, value=None, grid=None):
         )
         raise Exception(msg)
 
+    tochange = 'initial' if dparam[key]['eqtype'] == 'ode' else 'value'
+
     if hasattr(value, '__iter__'):
-        dparam[key]['value'] = np.atleast_1d(value).ravel()
+        dparam[key][tochange] = np.atleast_1d(value).ravel()
     else:
-        dparam[key]['value'] = float(value)
+        dparam[key][tochange] = float(value)
 
     if hasattr(value, '__iter__'):
         if grid is None:
