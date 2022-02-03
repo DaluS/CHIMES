@@ -52,6 +52,11 @@ The phenomena behind is a class struggle
             'com': 'salary through negociation'
         }
 
+        salaryfromPhillipsNoInflation = {
+            'func': lambda phillips=0, itself=0: itself * phillips,
+            'com': 'Phillips impact (no negociation)'
+        }
+
     class Kappa:
         """
 The kappa function is linking the relative profit to the share of GDP a firm
@@ -73,6 +78,10 @@ the will of the firm to ask for such loan
         ifromkappa = {
             'func': lambda GDP=0, kappa=0: GDP*kappa,
             'com': 'I deduced from kappa func'
+        }
+        ifromnobank = {
+            'func': lambda Pi=0: Pi,
+            'com': 'Benefits into investment'
         }
         ############ DEFINITIONS OF K ########
         kfromI = {
@@ -239,6 +248,11 @@ the consequence of inflations processes : it is a social construct.
         markup = {
             'func': lambda mu=0, eta=0, c=0, p=1: eta*(mu*c/p-1),
             'com': 'markup on production costs',
+        }
+
+        costonlylabor = {
+            'func': lambda w=0, a=1: w/a,
+            'com': 'price with only labor salary',
         }
 
     class Definitions:
