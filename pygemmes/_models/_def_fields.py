@@ -272,12 +272,12 @@ _LIBRARY = {
             'definition': 'Capital',
         },
         'Y': {
-            'value': None,
+            'value': 1,
             'definition': 'GDP in output quantity',
             'units': 'Units.y^{-1}',
         },
         'GDP': {
-            'value': None,
+            'value': 1,
             'definition': 'GDP in output quantity',
             'units': '$.y^{-1}',
         },
@@ -863,12 +863,12 @@ _LIBRARY = {
             'units': '',
         },
         'tauK': {
-            'value': 1,
+            'value': 0.01,
             'definition': 'typical time for capital to be effective',
             'units': 'y',
         },
         'taulamb': {
-            'value': 1,
+            'value': 0.01,
             'definition': 'typical time for capital to be effective',
             'units': '',
         },
