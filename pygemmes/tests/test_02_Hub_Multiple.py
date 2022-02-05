@@ -5,6 +5,7 @@ for pygemmes
 """
 
 # Built-in
+import pygemmes as pgm
 import os
 import sys
 import itertools as itt     # for iterating on parameters combinations
@@ -28,7 +29,6 @@ _PATH_OUTPUT_REF = os.path.join(_PATH_HERE, 'output_ref')
 
 # library-specific
 sys.path.insert(0, _PATH_PCK)   # ensure Main comes from .. => add PYTHONPATH
-import pygemmes as pgm
 sys.path.pop(0)                 # clean PYTHONPATH
 
 
@@ -150,7 +150,7 @@ class Test01_Hub_MultipleSystems():
                         group=('Numerical',),
                         returnas=list,
                     )
-                    if len(lpar)>=2:
+                    if len(lpar) >= 2:
                         k0 = lpar[0]
                         v0 = hub.dparam[k0]['value'] * np.r_[0.9, 1, 1.1]
                         k1 = lpar[1]
@@ -229,7 +229,7 @@ class Test01_Hub_MultipleSystems():
 
 class Test02_Hub_FromPresets(Test01_Hub_MultipleSystems):
 
-    lmodels = ['Goodwin-Reduced']
+    lmodels = ['G']
     lgrid = list(_DPRESETS.keys())
 
     def setup(self):
