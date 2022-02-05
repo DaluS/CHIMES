@@ -94,7 +94,7 @@ the will of the firm to ask for such loan
             'func': lambda Pi=0: Pi,
             'com': 'Benefits into investment'
         }
-        irfronI = {
+        irfromI = {
             'func': lambda I=0, p=1: I/p,
             'com': 'Real units from money invest and price'
         }

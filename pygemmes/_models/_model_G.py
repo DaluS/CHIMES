@@ -38,7 +38,7 @@ _LOGICS = {
         'N': Funcs.Population.exp,
 
         # Stock-flow consistency
-        'K': Funcs.Kappa.kfromI,
+        'K': Funcs.Kappa.kfromIr,
 
         # Price Dynamics
         'w': Funcs.Phillips.salaryfromPhillipsNoInflation,
@@ -54,7 +54,7 @@ _LOGICS = {
         # Parametric behavior functions
         'phillips': Funcs.Phillips.div,
         'I': Funcs.Kappa.ifromnobank,
-
+        'Ir': Funcs.Kappa.irfromI,
         # Intermediary variables with their definitions
         'pi': Funcs.Definitions.pi,
         'lambda': Funcs.Definitions.lamb,
