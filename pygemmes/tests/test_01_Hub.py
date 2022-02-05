@@ -64,7 +64,7 @@ class Test01_Hub():
         cls.dhub = {}
         cls.lsolvers = [
             'eRK4-homemade',
-            'eRK4-scipy',# 'eRK8-scipy', 'eRK2-scipy',
+            'eRK4-scipy',  # 'eRK8-scipy', 'eRK2-scipy',
         ]
 
     def setup(self):
@@ -98,6 +98,7 @@ class Test01_Hub():
                     preset=preset,
                     from_user=False,
                 )
+
 
     def test02_get_summary_repr(self):
         for model in self.dhub.keys():

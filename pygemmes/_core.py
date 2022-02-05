@@ -4,7 +4,6 @@
 
 # built-in
 import copy
-import time
 
 
 # Common
@@ -14,14 +13,16 @@ import numpy as np
 # Library-specific
 from ._utilities import _utils, _class_checks, _class_utility
 from ._utilities import _solvers, _saveload
-from ._plots import _plot_timetraces
+from ._plots._plots import _DPLOT
+#from ._plots import _plot_timetraces
 
 
 class Hub():
     """
     MOST IMPORTANT OBJECT FOR THE USER.
 
-    given a model name, it will load it and get its logics, presets and associated values. It will :
+    given a model name, it will load it and get its logics, presets and associated values.
+    It will :
         * identify what are the parameters, the state variables, the differential variables
         * find their associated properties (definition, units, values)
         * find an order of calculation
@@ -621,7 +622,7 @@ class Hub():
         # temporary dict of input
         lode = self.__dmisc['dfunc_order']['ode']
         lstate = self.__dmisc['dfunc_order']['statevar']
-        laux = []
+        # laux = []
 
         # ------------
         # start time loop
@@ -797,6 +798,22 @@ class Hub():
     #       plotting methods
     # ##############################
 
+    def plot_preset(self, preset=None):
+        '''
+        Automatically plot all functions that are defined in _plot.py, associated with the preset
+
+        If a preset is loaded, you do not need to precise it when using the function
+        If no preset is loaded, you can try to plot its associated plots by calling it.
+        '''
+
+        if preset is None:
+            preset = self.dmodel['preset']
+        tempd = self.dmodel['presets'][preset]['plots']
+
+        for plot, funcplot in _DPLOT.items():
+            for argl in tempd.get(plot, []):
+                funcplot(self, **argl)
+
     def plot(
         self,
         mode=False,
@@ -831,7 +848,7 @@ class Hub():
             dmulti=self.__dmisc.get('dmulti'),
         )
 
-        return _plot_timetraces.plot_timetraces(
+        return _DPLOT['timetrace'](
             self,
             mode=mode,
             # for forcing a color / label

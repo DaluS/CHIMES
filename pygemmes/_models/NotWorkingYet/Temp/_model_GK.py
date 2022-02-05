@@ -11,7 +11,7 @@ Created on Wed Jul 21 15:11:15 2021
 
 
 import numpy as np
-#from pygemmes._models import Funcs
+from pygemmes._models import Funcs
 
 # ---------------------------
 # user-defined function order (optional)
@@ -97,6 +97,7 @@ _LOGICS = {
 _PRESETS = {
     'default': {
         'fields': {
+            'dt': 0.01,
             'a': 1,
             'N': 1,
             'K': 2.9,

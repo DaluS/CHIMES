@@ -2,7 +2,7 @@
 
 # Here we decide what the user will see
 from ._core import Hub
-from ._models import get_available_models # get_dfields_overview
+from ._models import get_available_models  # get_dfields_overview
 from ._utilities._solvers import get_available_solvers
 from ._utilities._saveload import get_available_output, load
 from ._models import get_available_models, _DFIELDS
@@ -16,10 +16,11 @@ import numpy as np
 
 __all__ = [
     'get_dfields_overview',
+    'get_available_dfields',
     'create_preset_from_model_preset',
-    'plot_one_run_all_solvers',
-    'comparesolver_Lorenz',
-    'testConvergence_DampOsc',
+    # 'plot_one_run_all_solvers',
+    # 'comparesolver_Lorenz',
+    # 'testConvergence_DampOsc',
     'Generate_network_logics',
     'GenerateIndividualSensitivity',
     'GenerateCoupledSensitivity'
@@ -27,6 +28,11 @@ __all__ = [
 
 
 def get_dfields_overview(returnas=False):
+    print('WARNING, WILL BE DEPRECIATED IN NEXT VERSION. USE `get_available_dfields` INSTEAD')
+    get_available_dfields(returnas=returnas)
+
+
+def get_available_dfields(returnas=False):
     '''
     Will load the library of fields, then all available models,
     and will print the ensemble of fields with their properties and the models they are in.
@@ -42,7 +48,7 @@ def get_dfields_overview(returnas=False):
 
     fieldsnotinDfields = []
     for model in models:
-        # print(model)
+        print(model)
         hub = Hub(model, verb=False)
         params = hub.get_dparam(returnas=dict)
         for key in params.keys():
@@ -452,7 +458,7 @@ def Generate_network_logics(_MODEL,
         v = R[key]
         Title = ''
         Title += 'Units        :' + v['units']+'<br>'
-        Title += 'Equation     :'+f'{key}=' + v['source_exp'].replace(
+        Title += 'Equation     :'+f'{key}=' + v.get('source_exp', 'f()').replace(
             'itself', key).replace('lamb', 'lambda')+'<br>'
         Title += 'definition   :' + v['definition']+'<br>'
         Title += 'Comment      :' + v['com']+'<br>'

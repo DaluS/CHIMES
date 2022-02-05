@@ -35,111 +35,11 @@ __FILLDEFAULTVALUES = True
 
 # #############################################################################
 # #############################################################################
-#                   FIELDS OF FIELDS AND EXPECTED VALUES
-# #############################################################################
-# dict of default value in fields
-
-
-__DEFAULTFIELDS = {
-    'value': {
-        'default': None,
-        'type': (int, float, np.int_, np.float_, np.ndarray, list),
-        'allowed': None,
-    },
-    'definition': {
-        'default': '',
-        'type': str,
-        'allowed': None,
-    },
-    'com': {
-        'default': 'No comment',
-        'type': str,
-        'allowed': None,
-    },
-    'dimension': {
-        'default': 'undefined',
-        'type': str,
-        'allowed': None,
-    },
-    'units': {
-        'default': 'undefined',
-        'type': str,
-        'allowed': [
-            'Units',  # Any physical quantity of something (capital, ressources...)
-            'y',      # Time
-            '$',      # Money
-            'C',      # Carbon Concentration
-            'Tc',     # Temperature (Celsius)
-            'Humans',  # Population
-            '',       # Dimensionless
-        ],
-    },
-    'type': {
-        'default': 'undefined',
-        'type': str,
-        'allowed': [
-            'intensive',
-            'extensive',
-            'dimensionless',
-        ],
-    },
-    'symbol': {
-        'default': '',
-        'type': str,
-        'allowed': None,
-    },
-    'group': {
-        'default': '',
-        'type': str,
-        'allowed': None,
-    },
-}
-
-
-# --------------------
-# Make sure the default is allowed
-for k0, v0 in __DEFAULTFIELDS.items():
-    if v0.get('allowed') is not None:
-        __DEFAULTFIELDS[k0]['allowed'].append(v0['default'])
-
-
-# #############################################################################
-# #############################################################################
 #                   Library (new formalism)
 # #############################################################################
 
 
 _LIBRARY = {
-    'Temporary': {
-        'Final': {'value': 0,
-                  'definition': 'Final value',
-                  },
-        'Omega': {'value': 1,
-                  'definition': 'Pulsation',
-                  },
-        'beta': {'value': 0.1,
-                 'definition': 'Lorenz related'},
-        'gamma': {'value': 1,
-                  'definition': 'Dampening',
-                  },
-        'm': {'value': 1,
-              'definition': 'Mass doublependulum',
-              },
-        'l': {'value': 1,
-              'definition': 'Length doublependulum'
-              },
-        'gravity': {'value': 9.8,
-                    'definition': 'gravity acceleration'
-                    },
-        'sigmanoise': {'value': 0.1,
-                       'definition': '',
-                       },
-        'seed': {'value': 0.1,
-                 'definition': '',
-                 },
-    },
-
-
     'Numerical': {
         'Tmax': {
             'value': 100,
@@ -173,17 +73,74 @@ _LIBRARY = {
         },
     },
 
+    'Ressources': {
+        'K_R': {
+            'value': 1.,
+            'definition': 'Kapital for ressource extraction',
+            'units': 'Units',
+        },
+        'D_R': {
+            'value': 1.,
+            'definition': 'Debt of ressource sector',
+            'units': '$',
+        },
+        'p_R': {
+            'value': 1.,
+            'definition': 'price of ressources',
+            'units': '$.Units^{-1}',
+        },
+        'kappa_R': {
+            'value': 1.,
+            'definition': 'Investment func for ressource sector',
+            'units': '',
+        },
+        'pi_R': {
+            'value': 1.,
+            'definition': 'relative profit of ressource sector',
+            'units': '',
+        },
+        'Pi_R': {
+            'value': 1.,
+            'definition': 'Absolute profit for ressource sector',
+            'units': '$.Units^{-1}',
+        },
+        'R': {
+            'value': 1.,
+            'definition': 'Available ressources',
+            'units': 'Units',
+        },
+        'M': {
+            'value': 1.,
+            'definition': 'Flux of extracted ressources',
+            'units': 'Units.y^{-1}',
+        },
+        'I_R': {
+            'value': 1.,
+            'definition': 'Investment (real) for ressources',
+            'units': 'Units.y^{-1}',
+        },
+        'Kstar': {
+            'value': 1.,
+            'definition': "Equivalent capital for services",
+            'units': 'Units',
+        },
+        'd_R': {
+            'value': 1.,
+            'definition': 'debt ratio ressources',
+            'units': 'y',
+        },
+        'inflation_R': {
+            'value': 1.,
+            'definition': 'inflation for ressources',
+            'units': 'y^{-1}',
+        },
+    },
 
     'Household': {
         # VARIABLES
         'N': {
             'value': 1.,
             'definition': 'Population',
-            'units': 'Humans',
-        },
-        'Nmax': {
-            'value': 12,
-            'definition': 'Saturating population',
             'units': 'Humans',
         },
         'L': {
@@ -206,8 +163,6 @@ _LIBRARY = {
             'definition': 'Individual purchasing power',
             'units': 'Units.y^{-1}.Humans^{-1}',
             'symbol': r'$\Omega$', },
-
-        # INTERMEDIARY TYPICAL VARIABLES
         'lambda': {
             'value': .97,
             'definition': 'employement rate',
@@ -233,6 +188,11 @@ _LIBRARY = {
             'definition': 'Rate of productivity increase',
             'units': 'y^{-1}',
         },
+        'Nmax': {
+            'value': 12,
+            'definition': 'Saturating population',
+            'units': 'Humans',
+        },
     },
 
 
@@ -256,6 +216,55 @@ _LIBRARY = {
 
 
     'Production': {
+        'A': {
+            'value': 1/3.,
+            'definition': 'Efficiency in CES prod',
+            'units': 'y^{-1}',
+        },
+        'nu': {
+            'value': 3,
+            'definition': 'Kapital to output ratio',
+            'units': '',
+            'symbol': r'$\nu$',
+        },
+        'b': {
+            'value': 0.5,
+            'definition': 'part of capital in prod intensity',
+            'units': '',
+        },
+        'CESexp': {
+            'value': 100,
+            'definition': 'exponent in CES function',
+            'units': '',
+        },
+        'cesLcarac': {
+            'func': lambda A=0, K=0, a=1, b=0.5, CESexp=100: A*(K/a) * (2*(1-b))**(1/CESexp),
+            'definition': 'Typical Labor from capital',
+            'com': 'Extracted from YCES',
+            'units': 'Humans',
+            'eqtype': 'param',
+        },
+        'cesYcarac': {
+            'func': lambda K=0, A=0, b=0.5, CESexp=100: K*A*(2*b)**(-1/CESexp),
+            'definition': 'Typical Y from capital',
+            'com':  'Extracted from YCES',
+            'units': 'Units.y^{-1}',
+            'eqtype': 'param',
+        },
+        'omegacarac': {
+            'func': lambda w=0, cesLcarac=0, p=1, cesYcarac=1: w*cesLcarac/(p*cesYcarac),
+            'definition': 'Typical omega without substituability',
+            'com':  'Extracted from YCES',
+            'units': '',
+            'eqtype': 'param',
+        },
+        'l': {
+            'func': lambda omegacarac=0.5, CESexp=100: (omegacarac**(-CESexp/(1+CESexp)) - 1)**(1/CESexp),
+            'definition': 'ratio btwn effective workers and typical worker',
+            'com': 'deduced from Pi optimisation',
+            'units': '',
+            'eqtype': 'param',
+        },
         # VARIABLES
         'K': {
             'value': 2.7,
@@ -315,12 +324,6 @@ _LIBRARY = {
             'units': 'y^{-1}',
             'symbol': r'$\delta$',
         },
-        'nu': {
-            'value': 3,
-            'definition': 'Kapital to output ratio',
-            'units': '',
-            'symbol': r'$\nu$',
-        },
         'gammai': {
             'value': 1,
             'definition': 'inflation awareness',
@@ -343,6 +346,8 @@ _LIBRARY = {
             'units': 'y^{-1}',
             'symbol': r'$\phi$',
         },
+
+        # Diverging Philips
         'phinull': {
             'value': 0.04,
             'definition': 'Unemployment rate with no salary increase',
@@ -362,6 +367,8 @@ _LIBRARY = {
             'units': '',
             'eqtype': 'param',
         },
+
+        # Linear Phillips (from Coping article)
         'philinConst': {
             'value': -0.292,
             'definition': 'wage rate when full unemployement',
@@ -372,6 +379,25 @@ _LIBRARY = {
             'definition': 'wage rate dependance to unemployement',
             'units': 'y^{-1}',
         },
+
+        # Exponential Philips (from CES article)
+        'phiexp0': {
+            'value': -0.01,
+            'definition': 'Constant in expo phillips',
+            'units': 'y^{-1}',
+        },
+        'phiexp1': {
+            'value': 2.35*10**(-23),
+            'definition': 'slope in expo phillips',
+            'units': 'y^{-1}',
+        },
+        'phiexp2': {
+            'value': 50,
+            'definition': 'exponent in expo phillips',
+            'units': '',
+        },
+
+        # Additional parameter
         'zphi': {
             'value': 0.1,
             'definition': 'nonlinearity on profit in negociation',
@@ -380,6 +406,38 @@ _LIBRARY = {
         }
     },
 
+    'Speculation': {
+        's': {
+            'value': 0,
+            'definition': 'share of GDP going to financial market',
+            'units': ''
+        },
+        'Speculation': {
+            'value': 0,
+            'definition': 'flux of money going from firm to finance',
+            'units': '$.y^{-1}'
+        },
+        'SpecExpo1': {
+            'value': -0*0.25,
+            'definition': 'Speculation constant (expo)',
+            'units': '$.y^{-1}',
+        },
+        'SpecExpo2': {
+            'value': 0*0.25,
+            'definition': 'Speculation expo slope (expo)',
+            'units': '$.y^{-1}',
+        },
+        'SpecExpo3': {
+            'value': 0*0.36,
+            'definition': 'Speculation attenuation in exp (expo)',
+            'units': '',
+        },
+        'SpecExpo4': {
+            'value': 0*12,
+            'definition': 'Speculation sensitivity to growth',
+            'units': 'y',
+        },
+    },
 
     'Shareholding': {
         'Sh': {
@@ -387,6 +445,8 @@ _LIBRARY = {
             'definition': 'Shareholding dividends',
             'units': '$.y^{-1}',
         },
+
+        # Dividend fit from copingwithcollapse
         'divlinSlope': {
             'value': 0.473,
             'definition': 'Shareholding dependency to profits (affine)',
@@ -520,7 +580,7 @@ _LIBRARY = {
             'units': '',
         },
         'eta': {
-            'value': .5,
+            'value': 0.5,
             'definition': 'timerate of price adjustment',
             'units': 'y^{-1}',
         },
@@ -825,6 +885,75 @@ _LIBRARY = {
     },
 
 }
+
+# #############################################################################
+# #############################################################################
+#                   FIELDS OF FIELDS AND EXPECTED VALUES
+# #############################################################################
+# dict of default value in fields
+
+
+__DEFAULTFIELDS = {
+    'value': {
+        'default': None,
+        'type': (int, float, np.int_, np.float_, np.ndarray, list),
+        'allowed': None,
+    },
+    'definition': {
+        'default': '',
+        'type': str,
+        'allowed': None,
+    },
+    'com': {
+        'default': 'No comment',
+        'type': str,
+        'allowed': None,
+    },
+    'dimension': {
+        'default': 'undefined',
+        'type': str,
+        'allowed': None,
+    },
+    'units': {
+        'default': 'undefined',
+        'type': str,
+        'allowed': [
+            'Units',  # Any physical quantity of something (capital, ressources...)
+            'y',      # Time
+            '$',      # Money
+            'C',      # Carbon Concentration
+            'Tc',     # Temperature (Celsius)
+            'Humans',  # Population
+            '',       # Dimensionless
+        ],
+    },
+    'type': {
+        'default': 'undefined',
+        'type': str,
+        'allowed': [
+            'intensive',
+            'extensive',
+            'dimensionless',
+        ],
+    },
+    'symbol': {
+        'default': '',
+        'type': str,
+        'allowed': None,
+    },
+    'group': {
+        'default': '',
+        'type': str,
+        'allowed': None,
+    },
+}
+
+
+# --------------------
+# Make sure the default is allowed
+for k0, v0 in __DEFAULTFIELDS.items():
+    if v0.get('allowed') is not None:
+        __DEFAULTFIELDS[k0]['allowed'].append(v0['default'])
 
 
 # ------------------------------------

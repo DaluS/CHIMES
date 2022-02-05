@@ -10,6 +10,7 @@ import itertools as itt
 import copy
 import warnings
 import time
+import importlib
 
 # common
 import numpy as np
@@ -149,7 +150,7 @@ def load_model(model=None, dmulti=None, verb=None, from_user=None):
         spec.loader.exec_module(foo)
 
         # checking attributes
-        lattr = [att for att in _MODEL_ATTR if not hasattr(foo, att)]
+        lattr = [att for att in _LMODEL_ATTR if not hasattr(foo, att)]
         if len(lattr) > 0:
             lstr = [f'\t- {att}' for att in lattr]
             msg = (
@@ -344,9 +345,10 @@ def _check_logics(dmodel=None, verb=None):
         for k0, v0 in dkout.items():
             for k1 in v0:
                 _models._DFIELDS[k1] = dict(dmodel['logics'][k0][k1])
-                #_models._DFIELDS[k1]['eqtype'] = k0
-                #_models._DFIELDS[k1]['args'] = {key:[] for key in _LEQTYPES }
-               # _models._DFIELDS[k1]['kargs']= []
+                # _models._DFIELDS[k1]['eqtype'] = k0
+                # _models._DFIELDS[k1]['args'] = {key:[] for key in _LEQTYPES }
+                # _models._DFIELDS[k1]['kargs']= []
+
         # Make sure all fields are set
         _models._complete_DFIELDS(
             dfields=_models._DFIELDS,
@@ -397,7 +399,6 @@ def get_dparam_from_logics(dmodel=None):
     dparam = {
         k0: dict(dmodel['logics'][v0][k0]) for k0, v0 in lk[0].items()
     }
-
 
     # ---------------
     # Add eqtype
@@ -579,10 +580,12 @@ def _set_key_value(dparam=None, key=None, value=None, grid=None):
         )
         raise Exception(msg)
 
+    tochange = 'initial' if dparam[key].get('eqtype', None) == 'ode' else 'value'
+
     if hasattr(value, '__iter__'):
-        dparam[key]['value'] = np.atleast_1d(value).ravel()
+        dparam[key][tochange] = np.atleast_1d(value).ravel()
     else:
-        dparam[key]['value'] = float(value)
+        dparam[key][tochange] = float(value)
 
     if hasattr(value, '__iter__'):
         if grid is None:
@@ -1077,16 +1080,15 @@ def _check_func_get_source(lfunc=None, dparam=None):
             assert dparam[k0].get('source_exp') is None
 
             # extract source and check if lambda
-            sour = inspect.getsource(dparam[k0]['func'])
-
+            sour = inspect.getsource(dparam[k0]['func']).replace('    ', '')
             c0 = (
                 sour.count(':') >= 1
                 and (
                     sour.count('lambda') == 1
-                    and sour.count(':') == 2
-                    and 'lambda' in sour.split(':')[1]
+                    # and sour.count(':') == 2 # Comment for remote lambda expression
+                    # and 'lambda' in sour.split(':')[1] #Comment for remote lambda
                     and sour.count('\n') == 1
-                    and sour.endswith(',\n')
+                    # and sour.endswith(',\n') # Comment because comment at end of the line or no ',' when in a remote file
                 )
                 or (
                     sour.count('lambda') == 0
@@ -1119,7 +1121,7 @@ def _check_func_get_source(lfunc=None, dparam=None):
             if not all(['=' in kk for kk in kargs]):
                 msg = (
                     'Only keyword args can be used for lambda functions!\n'
-                    f'Provided:\n{source}'
+                    f'Provided:\n{sour}'
                 )
                 raise Exception(msg)
 
@@ -1153,9 +1155,6 @@ def _check_func(dparam=None, dmulti=None, verb=None):
     # -------------------------------------
     # extract parameters that are functions
     lfunc = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
-
-
-
 
    # ---------------------------------------
     # extract input args and check conformity
@@ -1616,8 +1615,11 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None, dmulti=None):
         # update using fixed param (eqtype = None)
         for k1 in dparam[k0]['args'][None]:
             key = 'lamb' if k1 == 'lambda' else k1
+
             defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
-            ind = [ii for ii, vv in enumerate(kargs) if key in vv]
+
+            ind = [ii for ii, vv in enumerate(kargs) if key == vv.split('=')[0]]
+
             if len(ind) != 1:
                 msg = f"Inconsistency in (fixed) kargs for {k0}, {k1}"
                 raise Exception(msg)

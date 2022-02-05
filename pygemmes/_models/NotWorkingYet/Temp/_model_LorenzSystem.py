@@ -58,9 +58,9 @@ _LOGICS = {
 _PRESETS = {
     'Canonical': {
         'fields': {
-            'Lorenz_x': np.linspace(1, 1.1, 1),
-            'Lorenz_y': 1,
-            'Lorenz_z': 1,
+            'x': np.linspace(1, 1.1, 1),
+            'y': 1,
+            'z': 1,
             'Lorenzsigma': 10,
             'Lorenzrho': 28,
             'Lorenzbeta': 8/3,

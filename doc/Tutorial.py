@@ -5,12 +5,12 @@ Contains all the formulations one want to know
 
 # I MAKE SURE YOUR ENVIRONMENT IS READY ######################################
 '''
-### I.1 check that you have all the libraries
+# I.1 check that you have all the libraries
 
 to get all the libraries you are going to need
 `!pip freeze > requirement.txt -v`
 
-### I.2 Tell python where pygemmes is
+# I.2 Tell python where pygemmes is
 pygemmes has to be found by python so that it can loads it
 
 there are two methods :
@@ -29,14 +29,13 @@ if you do b) you have to do it every time
 
 ########## ONCE IT'S DONE YOU SHOULD RESTART YOUR IPYTHON TERMINAL ###########
 '''
+import pygemmes as pgm  # we rename pygemmes as pgm to be shorter
+import numpy as np
+import cv2
+import matplotlib.pyplot as plt
 import sys
 path = "C:\\Users\\Paul Valcke\\Documents\\GitHub\\GEMMES"  # Where pygemmes is
 sys.path.insert(0, path)  # we tell python to look at the folder `path`
-
-import matplotlib.pyplot as plt
-import cv2
-import numpy as np
-import pygemmes as pgm  # we rename pygemmes as pgm to be shorter
 
 
 # %% PYTHON 101
@@ -109,20 +108,23 @@ for i in range(100):
 print(C-D)
 
 # %% OVERVIEWS : WHAT IS IN PYGEMMES ?
-pgm.get_dfields_overview()
 pgm.get_available_solvers()
 pgm.get_available_models(details=True, verb=True)
 pgm.get_available_output()
+pgm.get_available_dfields()
 
 listofsolver = pgm.get_available_solvers(returnas=list)
 listofmodels = pgm.get_available_models(returnas=list)
 listoffields = [v[0] for v in pgm.get_dfields_overview(returnas=list)]
 
 # %% A FEW SIMPLE FUNCTIONS TO SHOW A FEW POSSIBILITIES
-pgm.comparesolver_Lorenz(dt=0.01, Npoints=10000)
-pgm.plot_one_run_all_solvers('LorenzSystem', preset='Canonical')
-pgm.plot_one_run_all_solvers('GK')
-pgm.testConvergence_DampOsc([1, 0.1, 0.01, 0.001], solver='eRK4-homemade')
+'''
+Commented in the files, no use
+'''
+# pgm.comparesolver_Lorenz(dt=0.01, Npoints=10000)
+# pgm.plot_one_run_all_solvers('LorenzSystem', preset='Canonical')
+# pgm.plot_one_run_all_solvers('GK')
+# pgm.testConvergence_DampOsc([1, 0.1, 0.01, 0.001], solver='eRK4-homemade')
 
 
 # %% HUB : YOUR BEST FRIEND
@@ -152,6 +154,7 @@ dax = hub.plot()
 dax2 = hub.plot(key=['lambda', 'omega', 'd'])  # Select the variables
 dax3 = hub.plot(key=('GDP', 'a', 'Pi', 'kappa'))  # Remove some variables
 pgm._plots.phasespace(hub, x='omega', y='lambda', color='d', idx=0)
+hub.plot_preset(preset='default')
 
 # Fill Cycles
 hub.FillCyclesForAll(ref='lambda')
@@ -198,12 +201,8 @@ hub.set_dparam(key='dt', value=0.01)
 hub.set_dparam(Tmax=50)
 
 # Send a dictionnary
-dparam = {'alpha': 0, 'beta': 1}
-hub.set_dparam(dparam=dparam)
-
-# Send a dictionnary (alternative)
-dparam_changes = {'alpha': 0., 'delta': 0.}
-hub.set_dparam(dparam_changes)
+dparam = {'alpha': 0, 'n': 1}
+hub.set_dparam(**dparam)
 
 # Create N system in parrallel with different values
 hub.set_dparam(alpha=[0, 0.01, 0.02, 0.03])
@@ -326,10 +325,12 @@ for j in range(0, len(dvec)):
 dmodels = pgm.get_available_models(returnas=dict, details=False, verb=True,)
 dsolvers = pgm.get_available_solvers(returnas=list)
 for _MODEL in dmodels.keys():
+    hub = pgm.Hub(_MODEL)  # , preset=preset, verb=False)
+    hub.run(verb=0)
     for _SOLVER in dsolvers.keys():
         for preset in dmodels[_MODEL]['presets']:
             hub = pgm.Hub(_MODEL)  # , preset=preset, verb=False)
-            hub.run(verb=0, solver=_SOLVER)
+            hub.run(verb=0, solver = _SOLVER)
             hub.plot()
 
 # %% EXERCICES ##########################################
@@ -371,3 +372,16 @@ Exercise 3 : add on github
 # !pytest pygemmes/tests/test_00_get -v
 # !pytest pygemmes/tests/test_02_Hub_Multiple -v
 # !pytest pygemmes/tests/test_03_articles -v
+
+
+'''
+    def test02_test_all_solvers_2parrallel(self):
+
+    def test03_initialize_and_run_all_models_all_preset_all_plots(self):
+
+    def test04_relevant_prints_from_hub(self):
+
+    def test05_fillcycles_onesystem(self):
+
+    def test06_sensibility_test(self):
+'''
