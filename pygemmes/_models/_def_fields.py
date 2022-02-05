@@ -854,32 +854,42 @@ _LIBRARY = {
     'GK-Improvements': {
         'B': {
             'value': 0,
-            'com': 'Capital in a buffer before being productive',
+            'definition': 'Capital in a buffer before being productive',
             'units': 'Units',
         },
-        'lambperc': {
+        'lamb0': {
             'value': .95,
-            'com': 'Percieved employement',
+            'definition': 'Characteristic employement',
+            'units': '',
+        },
+        'tauK': {
+            'value': 1,
+            'definition': 'typical time for capital to be effective',
+            'units': 'y',
+        },
+        'taulamb': {
+            'value': 1,
+            'definition': 'typical time for capital to be effective',
             'units': '',
         },
         'flamb': {
             'value': 3.6,
-            'com': 'employement perception rate adjustment',
+            'definition': 'employement perception rate adjustment',
             'units': 'y^{-1}',
         },
         'beta': {
             'value': 0.1,
-            'com': 'Endogenous technical progress from growth',
+            'definition': 'Endogenous technical progress from growth',
             'units': '',
         },
         'zpi': {
             'value': 1,
-            'com': 'Influence of profit on salary negociation',
+            'definition': 'Influence of profit on salary negociation',
             'units': '',
         },
         'zsolv': {
             'value': 3.6,
-            'com': 'Influence of solvability on investment',
+            'definition': 'Influence of solvability on investment',
             'units': '',
         },
     },

@@ -57,6 +57,17 @@ The phenomena behind is a class struggle
             'com': 'Phillips impact (no negociation)'
         }
 
+        salaryfromPhillipsProfitsNoInflation = {
+            'func': lambda phillips=0, itself=0, pi=0, zpi=1: itself * phillips*pi**zpi,
+            'com': 'Phillips impact (no negociation)'
+        }
+
+        # Relaxation on lambda
+        lambdarelax = {
+            'func': lambda lamb0=0, itself=0, taulamb=1: (lamb0-itself)/taulamb,
+            'com': 'Percieved salary in negociation'
+        }
+
     class Kappa:
         """
 The kappa function is linking the relative profit to the share of GDP a firm
@@ -83,9 +94,25 @@ the will of the firm to ask for such loan
             'func': lambda Pi=0: Pi,
             'com': 'Benefits into investment'
         }
+        irfronI = {
+            'func': lambda I=0, p=1: I/p,
+            'com': 'Real units from money invest and price'
+        }
         ############ DEFINITIONS OF K ########
         kfromI = {
             'func': lambda I=0, itself=0, delta=0, p=1: I/p - itself * delta,
+            'com': 'Capital evolution from investment and depreciation',
+        }
+        kfromIr = {
+            'func': lambda Ir=0, itself=0, delta=0: Ir - itself * delta,
+            'com': 'Capital evolution from investment and depreciation',
+        }
+        bfromIr = {
+            'func': lambda Ir=0, itself=0, tauK=1: Ir - itself / tauK,
+            'com': 'Investment - activation with characteristic time',
+        }
+        kfromB = {
+            'func': lambda B=0, itself=0, delta=0, tauK=1: B/tauK - itself * delta,
             'com': 'Capital evolution from investment and depreciation',
         }
 
@@ -196,8 +223,8 @@ Productivity is the "human power" in production function, the ponderation of eac
         """
 Shareholding is the share of GDP going from the firm to the shareowner
         """
-        shareholdlin = {
-            'func': lambda divlinSlope=0, divlinconst=0, pi=0: divlinSlope*pi+divlinconst,
+        lin = {
+            'func': lambda divlinSlope=0, divlinconst=0, pi=0, GDP=0, divlinMin=0, divlinMax=0: np.clip(GDP*(divlinSlope*pi+divlinconst), divlinMin, divlinMax),
             'com': 'lin fit from Coping',
         }
 

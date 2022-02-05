@@ -1080,18 +1080,22 @@ def _check_func_get_source(lfunc=None, dparam=None):
             assert dparam[k0].get('source_exp') is None
 
             # extract source and check if lambda
-            sour = inspect.getsource(dparam[k0]['func']).replace('    ', '')
+            # print(k0, inspect.getsource(dparam[k0]['func']).replace(
+            #    '    ', '').split('] =')[-1].split('com')[0])
+            sour = inspect.getsource(dparam[k0]['func']).replace(
+                '    ', '').split('\n')[0]
             c0 = (
                 sour.count(':') >= 1
                 and (
-                    sour.count('lambda') == 1
+                    sour.replace(' ', '').count("'func':lambda") == 1
                     # and sour.count(':') == 2 # Comment for remote lambda expression
                     # and 'lambda' in sour.split(':')[1] #Comment for remote lambda
-                    and sour.count('\n') == 1
-                    # and sour.endswith(',\n') # Comment because comment at end of the line or no ',' when in a remote file
+                    # and sour.count('\n') == 1
+                    # Comment because comment at end of the line or no ',' when in a remote file
+                    # and sour.endswith(',\n')
                 )
                 or (
-                    sour.count('lambda') == 0
+                    sour.replace(' ', '').count("'func':lambda") == 0
                     and sour.count('def') == 1
                     and sour.startswith('def ')
                 )
@@ -1104,12 +1108,12 @@ def _check_func_get_source(lfunc=None, dparam=None):
                 raise Exception(msg)
 
             # Extract kargs and exp (for lambda only)
-            if sour.count('lambda') == 1:
+            if sour.replace(' ', '').count("'func':lambda") == 1:
                 # clean-up source
                 sour = sour.strip().replace(',\n', '').replace('\n', '')
                 sour = sour[sour.index('lambda') + len('lambda'):]
                 # separate keyword args from expression
-                kargs, exp = sour.split(':')
+                kargs, exp = sour.split(':')[:2]
 
                 # store exp for lambda only
                 dparam[k0]['source_exp'] = exp.strip()
@@ -1611,13 +1615,12 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None, dmulti=None):
         # get defaults
         defaults = list(dparam[k0]['func'].__defaults__)
         kargs = dparam[k0]['source_kargs'].split(', ')
-
+        # print(k0, dparam[k0]['source_kargs'])
         # update using fixed param (eqtype = None)
         for k1 in dparam[k0]['args'][None]:
             key = 'lamb' if k1 == 'lambda' else k1
 
             defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
-
             ind = [ii for ii, vv in enumerate(kargs) if key == vv.split('=')[0]]
 
             if len(ind) != 1:

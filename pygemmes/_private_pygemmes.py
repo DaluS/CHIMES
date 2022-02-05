@@ -85,8 +85,8 @@ def create_private_pygemmes(
         os.mkdir(path_target)
 
     # create / overwrite models _LIBRARY
-    pfe_source = os.path.join(path_source, '_def_fields.py')
-    pfe_target = os.path.join(path_target, '_def_fields.py')
+    #pfe_source = os.path.join(path_source, '_def_fields.py')
+    #pfe_target = os.path.join(path_target, '_def_fields.py')
     #shutil.copy(pfe_source, pfe_target)
 
     # create / overwrite all existing models

@@ -330,7 +330,7 @@ for _MODEL in dmodels.keys():
     for _SOLVER in dsolvers.keys():
         for preset in dmodels[_MODEL]['presets']:
             hub = pgm.Hub(_MODEL)  # , preset=preset, verb=False)
-            hub.run(verb=0, solver = _SOLVER)
+            hub.run(verb=0, solver=_SOLVER)
             hub.plot()
 
 # %% EXERCICES ##########################################
