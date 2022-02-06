@@ -28,7 +28,7 @@ _DARTICLE = {
     'dfigures': {
         1: {
             'model': 'GK-CES',
-            'preset': 'article',
+            'preset': 'CES',
             'caption': '',
             'com': 'Trajectory 3d',
             'png': 'fig02_Trajectory.png',
@@ -36,7 +36,7 @@ _DARTICLE = {
         },
         2: {
             'model': 'GK-CES',
-            'preset': 'article',
+            'preset': 'CES',
             'caption': '',
             'com': 'Trajectory 3d',
             'png': 'fig02_Trajectory.png',
@@ -44,7 +44,7 @@ _DARTICLE = {
         },
         3: {
             'model': 'GK-CES',
-            'preset': 'article',
+            'preset': 'CES',
             'caption': '',
             'com': 'Trajectory 3d',
             'png': 'fig02_Trajectory.png',
@@ -52,7 +52,7 @@ _DARTICLE = {
         },
         4: {
             'model': 'GK-CES',
-            'preset': 'article',
+            'preset': 'CES',
             'caption': '',
             'com': 'Time evolution',
             'png': 'fig02_Trajectory.png',
@@ -60,7 +60,7 @@ _DARTICLE = {
         },
         5: {
             'model': 'GK-CES',
-            'preset': 'article',
+            'preset': 'CES',
             'caption': '',
             'com': 'Time evolution',
             'png': 'fig02_Trajectory.png',
@@ -71,7 +71,7 @@ _DARTICLE = {
 '''
         6: {
             'model': 'GK-CES',
-            'preset': 'article',
+            'preset': 'CES',
             'caption': '',
             'com': '',
             'png': '',
@@ -79,7 +79,7 @@ _DARTICLE = {
         },
         7: {
             'model': 'GK-CES',
-            'preset': 'article',
+            'preset': 'CES',
             'caption': '',
             'com': '',
             'png': '',
@@ -87,7 +87,7 @@ _DARTICLE = {
         },
         8: {
             'model': 'GK-CES',
-            'preset': 'article',
+            'preset': 'CES',
             'caption': '',
             'com': '',
             'png': '',
@@ -95,7 +95,7 @@ _DARTICLE = {
         },
         9: {
             'model': 'GK-CES',
-            'preset': 'article',
+            'preset': 'CES',
             'caption': '',
             'com': '',
             'png': '',
@@ -103,7 +103,7 @@ _DARTICLE = {
         },
         10: {
             'model': 'GK-CES',
-            'preset': 'article',
+            'preset': 'CES',
             'caption': '',
             'com': '',
             'png': '',
@@ -111,7 +111,7 @@ _DARTICLE = {
         },
         11: {
             'model': 'GK-CES',
-            'preset': 'article',
+            'preset': 'CES',
             'caption': '',
             'com': '',
             'png': '',
@@ -119,7 +119,7 @@ _DARTICLE = {
         },
         12: {
             'model': 'GK-CES',
-            'preset': 'article',
+            'preset': 'CES',
             'caption': '',
             'com': '',
             'png': '',
@@ -127,7 +127,7 @@ _DARTICLE = {
         },
         13: {
             'model': 'GK-CES',
-            'preset': 'article',
+            'preset': 'CES',
             'caption': 'Trajectories of debt for different values of initial speculation and for (ω0, λ0, d0) = (0.85, 0.85, 1)',
             'com': '',
             'png': '',

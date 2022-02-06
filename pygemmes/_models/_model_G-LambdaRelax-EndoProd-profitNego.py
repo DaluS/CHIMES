@@ -30,15 +30,16 @@ _LOGICS['statevar']['lamb0'] = Funcs.Definitions.lamb
 # We remove lambda from statevar as there is now inertia in it, We place it in 'ode'
 _LOGICS['statevar'].pop('lambda', None)
 _LOGICS['ode']['lambda'] = Funcs.Phillips.lambdarelax
-_LOGICS['param']['taulamb'] = {'value': 1/2,
+_LOGICS['ode']['lambda']['initial'] = .91
+_LOGICS['param']['taulamb'] = {'value': 0.01,
                                'definition': 'typical time for employement to impact salary nego'}
 
 
 _LOGICS['ode']['w'] = Funcs.Phillips.salaryfromPhillipsProfitsNoInflation
 _LOGICS['ode']['a'] = Funcs.Productivity.verdoorn
-_LOGICS['param']['beta'] = {'value': 0.5,
+_LOGICS['param']['beta'] = {'value': 0.1,
                             'definition': 'impact of growth in productivity increase'}
-_LOGICS['param']['zpi'] = {'value': 2,
+_LOGICS['param']['zpi'] = {'value': 1,
                            'definition': 'impact of profit in salary negociation'}
 
 
