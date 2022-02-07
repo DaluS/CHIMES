@@ -12,9 +12,9 @@ import numpy as np
 
 # Library-specific
 from ._utilities import _utils, _class_checks, _class_utility
+from ._utilities import _Network
 from ._utilities import _solvers, _saveload
 from ._plots._plots import _DPLOT
-#from ._plots import _plot_timetraces
 
 
 class Hub():
@@ -43,7 +43,7 @@ class Hub():
         from_user=None,
         preset=None,
         dpresets=None,
-        verb=None,
+        verb=False,
     ):
 
         # Initialize the models
@@ -69,6 +69,7 @@ class Hub():
             eqtype=[None],
             group=('Numerical',),
         )
+
     # ##############################
     # %% Setting / getting parameters
     # ##############################
@@ -438,45 +439,7 @@ class Hub():
         # set run to False
         self.__dmisc['run'] = False
 
-    # ##############################
-    # variables
-    # ##############################
-
-    def get_variables_compact(self, eqtype=None):
-        """ Return a compact numpy arrays containing all variable
-
-        Return
-            - compact np.ndarray of all variables
-            - list of variable names, in the same order
-            - array of indices
-        """
-        # check inputs
-        leqtype = ['ode', 'intermediary', 'auxiliary']
-        if eqtype is None:
-            eqtype = ['ode', 'intermediary']
-        if isinstance(eqtype, str):
-            eqtype = [eqtype]
-            if any([ss not in leqtype for ss in eqtype]):
-                msg = (
-                    f"eqtype must be in {leqtype}\n"
-                    f"You provided: {eqtype}"
-                )
-                raise Exception(msg)
-
-        # list of keys of variables
-        keys = np.array([
-            k0 for k0, v0 in self.__dparam.items()
-            if v0.get('eqtype') in leqtype
-        ], dtype=str)
-
-        # get compact variable array
-        variables = np.swapaxes([
-            self.__dparam[k0]['value'] for k0 in keys
-        ], 0, 1)
-
-        return keys, variables
-
-    def reinterpolate_dparam(self, Npoints=100):
+    def reinterpolate_dparam(self, N=100):
         """
         If the system has run, takes dparam and reinterpolate all values.
         Typical use is to have lighter plots
@@ -495,8 +458,8 @@ class Hub():
         for k in self.__dmisc['dfunc_order']['statevar']+self.__dmisc['dfunc_order']['ode']:
             v = P[k]['value']
 
-            newval = np.zeros([Npoints]+list(self.__dmisc['dmulti']['shape']))
-            newt = np.linspace(t[0], t[-1], Npoints)
+            newval = np.zeros([N]+list(self.__dmisc['dmulti']['shape']))
+            newt = np.linspace(t[0], t[-1], N)
 
             for i in range(np.shape(newval)[1]):
                 newval[:, i] = np.interp(newt[:, i], t[:, i], v[:, i])
@@ -525,10 +488,10 @@ class Hub():
             self.__dmodel['name'],
             self.__dmodel['preset'],
             '{} + {}'.format(
-                len(self.get_dparam(returnas=list, eqtype=None)),
-                len(self.get_dparam(returnas=list, eqtype='param')),
+                len(self.get_dparam(returnas=list, eqtype=None))-1,
+                len(self.get_dparam(returnas=list, eqtype='param'))-1,
             ),
-            len(self.get_dparam(returnas=list, eqtype='ode')),
+            len(self.get_dparam(returnas=list, eqtype='ode'))-1,
             len(self.get_dparam(returnas=list, eqtype='statevar')),
             self.__dmisc['run'],
             self.__dmodel['file'],
@@ -548,6 +511,9 @@ class Hub():
         Print a str summary of the solver
 
         """
+
+        print(self.dmodel['description'])
+
         # ----------
         # check inputs
 
@@ -569,14 +535,18 @@ class Hub():
         col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx)
 
         # ----------
-        # functions
-        col3, ar3 = _class_utility._get_summary_functions(self, idx=idx)
+        # functions ODE
+        col3, ar3 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['ode'])
+
+        # ----------
+        # functions Statevar
+        col4, ar4 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['statevar'])
 
         # ----------
         # format output
         return _utils._get_summary(
-            lar=[ar0, ar1, ar2, ar3],
-            lcol=[col0, col1, col2, col3],
+            lar=[ar0, ar1, ar2, ar3, ar4],
+            lcol=[col0, col1, col2, col3, col4],
             verb=True,
             returnas=False,
         )
@@ -1033,3 +1003,49 @@ class Hub():
                       v1['units'], (8-len(v1['units']))*' ', v1['definition'])
             print(' ')
             print(' ')
+
+    def Network(self):
+        _Network.Network_pyvis(self,
+                               screensize=1080,
+                               custom=True)
+
+
+'''
+    # ##############################
+    # variables
+    # ##############################
+
+    def get_variables_compact(self, eqtype=None):
+        """ Return a compact numpy arrays containing all variable
+
+        Return
+            - compact np.ndarray of all variables
+            - list of variable names, in the same order
+            - array of indices
+        """
+        # check inputs
+        leqtype = ['ode', 'intermediary', 'auxiliary']
+        if eqtype is None:
+            eqtype = ['ode', 'intermediary']
+        if isinstance(eqtype, str):
+            eqtype = [eqtype]
+            if any([ss not in leqtype for ss in eqtype]):
+                msg = (
+                    f"eqtype must be in {leqtype}\n"
+                    f"You provided: {eqtype}"
+                )
+                raise Exception(msg)
+
+        # list of keys of variables
+        keys = np.array([
+            k0 for k0, v0 in self.__dparam.items()
+            if v0.get('eqtype') in leqtype
+        ], dtype=str)
+
+        # get compact variable array
+        variables = np.swapaxes([
+            self.__dparam[k0]['value'] for k0 in keys
+        ], 0, 1)
+
+        return keys, variables
+'''

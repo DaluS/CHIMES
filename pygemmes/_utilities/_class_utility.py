@@ -538,7 +538,7 @@ def _get_summary_parameters(hub, idx=None):
     return col2, ar2
 
 
-def _get_summary_functions(hub, idx=None):
+def _get_summary_functions(hub, idx=None, eqtype=['ode', 'statevar']):
 
     # ----------------
     # preliminary criterion
@@ -560,7 +560,7 @@ def _get_summary_functions(hub, idx=None):
 
     dparam_sub = hub.get_dparam(
         returnas=dict,
-        eqtype=['ode', 'statevar'],
+        eqtype=eqtype,
     )
 
     # ------------------
@@ -568,24 +568,24 @@ def _get_summary_functions(hub, idx=None):
 
     if large:
         col3 = [
-            'function', 'source',
+            str(''.join(eqtype)), 'source',
             'shape',
-            'units', 'eqtype',
+            'units',
             'definition', 'comment',
         ]
     else:
         if hub.dmisc['run']:
             col3 = [
-                'function', 'source',
+                str(''.join(eqtype)), 'source',
                 'initial', 'final',
-                'units', 'eqtype',
+                'units',
                 'definition', 'comment',
             ]
         else:
             col3 = [
-                'function', 'source',
+                str(''.join(eqtype)), 'source',
                 'initial',
-                'units', 'eqtype',
+                'units',
                 'definition', 'comment',
             ]
 
@@ -604,7 +604,6 @@ def _get_summary_functions(hub, idx=None):
                 ),
                 f"{v0.get('value').shape}",
                 v0['units'],
-                v0['eqtype'],
                 v0['definition'],
                 v0['com'],
             ]
@@ -625,7 +624,6 @@ def _get_summary_functions(hub, idx=None):
                     f"{v0.get('value')[0, ...]}",
                     f"{v0.get('value')[-1, ...]}",
                     v0['units'],
-                    v0['eqtype'],
                     v0['definition'],
                     v0['com'],
                 ]
@@ -643,7 +641,6 @@ def _get_summary_functions(hub, idx=None):
                     ),
                     f"{v0.get('value')[0, ...]}",
                     v0['units'],
-                    v0['eqtype'],
                     v0['definition'],
                     v0['com'],
                 ]
@@ -664,7 +661,6 @@ def _get_summary_functions(hub, idx=None):
                     f"{v0.get('value')[tuple(np.r_[0, idx[1:]])]}",
                     f"{v0.get('value')[tuple(np.r_[-1, idx[1:]])]}",
                     v0['units'],
-                    v0['eqtype'],
                     v0['definition'],
                     v0['com'],
                 ]
@@ -683,7 +679,6 @@ def _get_summary_functions(hub, idx=None):
                     ),
                     f"{v0.get('value')[tuple(np.r_[0, idx[1:]])]}",
                     v0['units'],
-                    v0['eqtype'],
                     v0['definition'],
                     v0['com'],
                 ]

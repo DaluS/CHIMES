@@ -61,7 +61,7 @@ _LIBRARY = {
         'nx': {
             'value': 1,
             'units': 'y',
-            'definition': 'NUMBER OF PARRALLEL SYSTEMS',
+            'definition': 'Number of system in parrallel',
         },
         'time': {
             'initial': 0.,

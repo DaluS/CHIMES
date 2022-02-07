@@ -6,19 +6,18 @@ Created on Sat Feb  5 17:50:35 2022
 """
 
 import pygemmes as pgm
-import matplotlib.pyplot as pl
 
 ##########
 pgm.get_available_solvers()
 pgm.get_available_models(details=True, verb=True)
 pgm.get_available_output()
-pgm.get_available_dfields()
+pgm.get_available_fields()
 pgm.get_available_articles()
 ###########
 
-hub = pgm.Hub('GK',)
+hub = pgm.Hub('GK', verb=True)
 hub
-pgm.Generate_network_logics('GK')
+hub.Network()
 hub.equations_description()
 hub.dmodel  # Gives the content of the model file
 hub.dmisc  # gives multiple informations on the run and the variables
@@ -59,16 +58,17 @@ SensitivityDic = {
 
 
 presetSimple = pgm.GenerateIndividualSensitivity(
-    'alpha', 0.02, .2, disttype='log', N=10)
+    'alpha', 0.02, .2, disttype='log', N=100)
 presetCoupled = pgm.GenerateCoupledSensitivity(SensitivityDic, N=10, grid=False)
 
 _DPRESETS = {'SensitivitySimple': {'fields': presetSimple, 'com': ''},
              'SensitivityCoupled': {'fields': presetCoupled, 'com': ''},
              }
+
 hub = pgm.Hub('GK', preset='SensitivityCoupled', dpresets=_DPRESETS)
 hub.run(verb=1.1)
 hub.CalculateStatSensitivity()
-dax = hub.plot(mode='sensitivity')
+dax = hub.plot(key=['omega', 'lambda', 'd'], mode='sensitivity')
 
 #############
 
