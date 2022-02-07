@@ -276,7 +276,14 @@ the consequence of inflations processes : it is a social construct.
             'func': lambda mu=0, eta=0, c=0, p=1: eta*(mu*c/p-1),
             'com': 'markup on production costs',
         }
-
+        markupInventory = {
+            'func': lambda mu=0, eta=0, c=0, p=1, chi=0, dotV=0, V=1: eta*(mu*c/p-1) + chi*dotV/V,
+            'com': 'markup+ relative inventory ',
+        }
+        markupInventY = {
+            'func': lambda mu=0, eta=0, c=0, p=1, chiY=0, dotV=0, Y=1: eta*(mu*c/p-1) + chiY*dotV/Y,
+            'com': 'markup+ inventory variat/Flux ',
+        }
         costonlylabor = {
             'func': lambda w=0, a=1: w/a,
             'com': 'price with only labor salary',

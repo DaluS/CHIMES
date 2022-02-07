@@ -30,9 +30,10 @@ _LOGICS = {
             'definition': 'quality of best resource',
             'com': 'exponential distribution'
         },
-        'nu': {
+        'nuMine': {
             'func': lambda nu0=0, Quality=1, a=1: nu0/(Quality*a),
             'com': 'impact of quality on production',
+            'definition': 'return of capital of mining sector',
         },
         'Gamma': {
             'func': lambda Gamma0=0, a=1, Quality=1, Gammabase=1: Gammabase + Gamma0/(Quality*a),

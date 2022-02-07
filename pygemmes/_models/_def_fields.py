@@ -587,8 +587,12 @@ _LIBRARY = {
         'chi': {
             'value': 1,
             'definition': 'inflation rate on inventory',
-            'units': 'y^{-1}', }
-
+            'units': 'y^{-1}',
+        },
+        'chiY': {
+            'value': 1,
+            'definition': 'inflation sensibility on dot{V}/Y',
+            'units': ''}
     },
 
 

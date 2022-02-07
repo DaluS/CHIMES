@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 ABSTRACT : This is a goodwin model with has a component of its production based on a depleting mining sector
-
-THE PRICE DYNAMICS IS NOT THERE (GOODWIN NOT GOODWIN-KEEN) AND WOULD IMPACT GREATLY
 I'd also put scenarios on the intensity curve (a society that goes toward less resource extraction) for publication-friendly content.
 
 TYPICAL BEHAVIOR :
@@ -36,9 +34,19 @@ _COUPLING = {
     'statevar': {
         # THE IMPACT ON PRODUCTION
         'Y': {
-            'func': lambda K=0, nu=1, Gamma=0, intensity=0: (K/nu) / (1-intensity*Gamma),
+            'func': lambda K=0, nuEQ=1, Gamma=0, intensity=0: (K/nuEQ) / (1-intensity*Gamma),
             'com': 'EROI impacting Leontiev'
+        },
+        'nuEQ': {
+            'func': lambda intensity=0, nu=1, nuMine=1: intensity*nuMine+(1-intensity)*nu,
+            'com': 'nu from both system together',
+            'definition': "nu when pseudo-bisectorial",
+        },
+        'c': {
+            'func': lambda w=0, a=1, Gamma=0, intensity=0:  w/(a*(1-intensity*Gamma)),
+            'com': 'price with only labor salary',
         }
+
     },
     'param': {
     },

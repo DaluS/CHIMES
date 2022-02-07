@@ -24,23 +24,23 @@ _DARTICLE = {
     # dict for figures (key, link to png, name of routine)
     'dfigures': {
         2: {
-            'model': 'Goodwin-Reduced',
-            'preset': 'smallcycle',
+            'model': 'G',
+            'preset': 'default',
             'caption': '',
             'com': 'Trajectory',
             'png': 'fig02.png',
             'func': 'plot_fig02',
         },
         3: {
-            'model': 'Goodwin-Reduced',
-            'preset': 'bigcycle',
+            'model': 'G',
+            'preset': 'default',
             'caption': '',
             'com': 'Basin of attraction',
             'png': 'fig03.png',
             'func': 'plot_fig03',
         },
         5: {
-            'model': 'Goodwin',
+            'model': 'G',
             'preset': 'default',
             'caption': '',
             'com': 'Blablabla',
@@ -48,7 +48,7 @@ _DARTICLE = {
             'func': 'plot_fig05',
         },
         6: {
-            'model': 'Goodwin',
+            'model': 'G',
             'preset': 'default',
             'caption': '',
             'com': 'Blablabla',
