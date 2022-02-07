@@ -35,7 +35,7 @@ sys.path.pop(0)                 # clean PYTHONPATH
 _DPRESETS = {
     'multi1': {
         'fields': {
-            'phinull': [0.3, 0.31],
+            'phinull': [0.1, 0.11],
         },
         'com': (
             'test multiple values for parameter'
@@ -43,7 +43,7 @@ _DPRESETS = {
     },
     'multi2': {
         'fields': {
-            'lambda': [0.97, 0.98, 0.99],
+            'lambda': [0.96, 0.966, 0.966],
         },
         'com': (
             'test multiple values for ode initial value'
@@ -51,8 +51,8 @@ _DPRESETS = {
     },
     'multi3': {
         'fields': {
-            'phinull': [0.3, 0.31, 0.32],
-            'lambda': [0.97, 0.98, 0.99],
+            'phinull': [0.1, 0.11, 0.12],
+            'lambda': [0.96, 0.966, 0.966],
         },
         'com': (
             'test multiple values for parameter and ode initial value'
@@ -60,7 +60,7 @@ _DPRESETS = {
     },
     'multi4': {
         'fields': {
-            'phinull': {'value': [0.3, 0.31]},
+            'phinull': {'value': [0.1, 0.11]},
         },
         'com': (
             'test multiple values for parameter'
@@ -68,7 +68,7 @@ _DPRESETS = {
     },
     'multi5': {
         'fields': {
-            'lambda': {'initial': [0.97, 0.98, 0.99], 'grid': True},
+            'lambda': {'initial': [0.96, 0.966, 0.966], 'grid': True},
         },
         'com': (
             'test multiple values for ode initial value'
@@ -76,8 +76,8 @@ _DPRESETS = {
     },
     'multi6': {
         'fields': {
-            'phinull': [0.3, 0.31],
-            'lambda': {'value': [0.97, 0.98, 0.99], 'grid': True},
+            'phinull': [0.1, 0.11],
+            'lambda': {'value': [0.96, 0.966, 0.966], 'grid': True},
         },
         'com': (
             'test multiple values for parameter and ode initial value'
