@@ -4,6 +4,7 @@ This module contains tests for tofu.geom in its structured version
 """
 
 # Built-in
+import pygemmes as pgm
 import os
 import sys
 import itertools as itt     # for iterating on parameters combinations
@@ -31,7 +32,6 @@ _PATH_MODELS = os.path.join(_PATH_PCK, 'pygemmes', '_models')
 
 # library-specific
 sys.path.insert(0, _PATH_PCK)   # ensure Main comes from .. => add PYTHONPATH
-import pygemmes as pgm
 sys.path.pop(0)                 # clean PYTHONPATH
 
 
@@ -99,7 +99,6 @@ class Test01_Hub():
                     from_user=False,
                 )
 
-
     def test02_get_summary_repr(self):
         for model in self.dhub.keys():
             for preset in self.dhub[model].keys():
@@ -129,11 +128,14 @@ class Test01_Hub():
                 out = hub.get_dparam_as_reverse_dict(
                     crit='units', verb=True,
                 )
+    '''
+    DEPRECIATED TEST : FUNCTION REMOVED BECAUSE USELESS
 
     def test05_get_variables_compact(self):
         for model in self.dhub.keys():
             for preset in self.dhub[model].keys():
                 out = self.dhub[model][preset].get_variables_compact()
+    '''
 
     def test06_set_single_param(self):
         for model in self.dhub.keys():
@@ -165,6 +167,7 @@ class Test01_Hub():
                         verb = ii + jj + kk / len(self.lsolvers)
 
                     try:
+                        self.dhub[model][preset][solver].set_dparam(Tmax=10)
                         self.dhub[model][preset][solver].run(
                             solver=solver,
                             verb=verb,

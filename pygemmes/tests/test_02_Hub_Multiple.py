@@ -5,6 +5,7 @@ for pygemmes
 """
 
 # Built-in
+
 import os
 import sys
 import itertools as itt     # for iterating on parameters combinations
@@ -43,7 +44,7 @@ _DPRESETS = {
     },
     'multi2': {
         'fields': {
-            'lambda': [0.96, 0.966, 0.966],
+            'alpha': [0.01, 0.02, 0.03],
         },
         'com': (
             'test multiple values for ode initial value'
@@ -52,7 +53,7 @@ _DPRESETS = {
     'multi3': {
         'fields': {
             'phinull': [0.1, 0.11, 0.12],
-            'lambda': [0.96, 0.966, 0.966],
+            'alpha': [0.01, 0.02, 0.03],
         },
         'com': (
             'test multiple values for parameter and ode initial value'
@@ -68,7 +69,7 @@ _DPRESETS = {
     },
     'multi5': {
         'fields': {
-            'lambda': {'initial': [0.96, 0.966, 0.966], 'grid': True},
+            'a': {'initial': [0.96, 0.966, 0.966], 'grid': True},
         },
         'com': (
             'test multiple values for ode initial value'
@@ -77,7 +78,7 @@ _DPRESETS = {
     'multi6': {
         'fields': {
             'phinull': [0.1, 0.11],
-            'lambda': {'value': [0.96, 0.966, 0.966], 'grid': True},
+            'a': {'value': [0.96, 0.966, 0.966], 'grid': True},
         },
         'com': (
             'test multiple values for parameter and ode initial value'
