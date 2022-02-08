@@ -1,102 +1,73 @@
 # -*- coding: utf-8 -*-
 """
-DESCRIPTION : This is a Goodwin model based on extensive variables.
-Inflation not integrated to the process
+DESCRIPTION : This is a Goodwin model with possibility to get loans at the bank, and have a price dynamics.
 TYPICAL BEHAVIOR : Convergence toward solow point ( good equilibrium) or debt crisis
 LINKTOARTICLE:
 
-Created on Wed Jul 21 15:11:15 2021
 @author: Paul Valcke
 """
 
 
 import numpy as np
-#from pygemmes._models import Funcs
-
-# ---------------------------
-# user-defined function order (optional)
+from pygemmes._models import Funcs
 
 
-_FUNC_ORDER = None
+# ----------------------------------------------------------------------------
+# We simply do a few modifications on a previous model : we load it as a basis
+from pygemmes._models._model_G import _LOGICS as _LOGICS0
+from copy import deepcopy
+_LOGICS = deepcopy(_LOGICS0)
 
-
-# ---------------------------
-# user-defined model
-# contains parameters and functions of various types
-
-
-_LOGICS = {
+# We write the fields we want to add/modify
+_GK_LOGICS = {
     'ode': {
-        'a': {
-            'func': lambda alpha=0, itself=0: alpha * itself,
-            'com': 'Exogenous technical progress as an exponential', },
-        'N': {
-            'func': lambda n=0, itself=0: n * itself,
-            'com': 'Exogenous population as an exponential', },
-        'K': {
-            'func': lambda I=0, itself=0, delta=0, p=1: I/p - itself * delta,
-            'com': 'Capital evolution from investment and depreciation', },
+        # Stock-flow consistency
         'D': {
             'func': lambda I=0, Pi=0: I - Pi,
             'com': 'Debt as Investment-Profit difference', },
-        'w': {
-            'func': lambda phillips=0, itself=0, gammai=0, inflation=0: itself * (phillips + gammai*inflation),
-            'com': 'salary through negociation', },
-        'p': {
-            'func': lambda itself=0, inflation=0: itself * inflation,
-            'com': 'markup inflation', },
+
+        # Price Dynamics
+        'w': Funcs.Phillips.salaryfromPhillips,
+        'p': Funcs.Inflation.pricefrominflation,
+
+
+
     },
+
     # Intermediary relevant functions
     'statevar': {
-        'Y': {
-            'func': lambda K=0, nu=1: K / nu,
-            'com': 'Leontiev optimized production function ', },
-        'GDP': {
-            'func': lambda Y=0, p=0: Y * p,
-            'com': 'Output with selling price ', },
-        'inflation': {
-            'func': lambda mu=0, eta=0, omega=0: eta*(mu*omega-1),
-            'com': 'markup dynamics', },
-        'L': {
-            'func': lambda K=0, a=1, nu=1: K / (a * nu),
-            'com': 'Full instant employement based on capital', },
+        # Stock-flow consistency
         'Pi': {
             'func': lambda GDP=0, w=0, L=0, r=0, D=0: GDP - w * L - r * D,
             'com': 'Profit for production-Salary-debt func', },
-        'lambda': {
-            'func': lambda L=0, N=1: L / N,
-            'com': 'employement rate', },
-        'omega': {
-            'func': lambda w=0, L=0, Y=1, p=1: (w * L) / (Y*p),
-            'com': 'wage share', },
-        'phillips': {
-            'func': lambda phi0=0, phi1=0, lamb=0: -phi0 + phi1 / (1 - lamb)**2,
-            'com': 'Wage increase rate through employement and profit', },
-        'kappa': {
-            'func': lambda k0=0, k1=0, k2=0, pi=0: k0 + k1 * np.exp(k2 * pi),
-            'com': 'Relative GDP investment through relative profit', },
-        'I': {
-            'func': lambda GDP=0, kappa=0: GDP * kappa,
-            'com': 'Investment value', },
-        'd': {
-            'func': lambda D=0, GDP=1: D / GDP,
-            'com': 'private debt ratio', },
-        'pi': {
-            'func': lambda Pi=0, GDP=1: Pi/GDP,
-            'com': 'relative profit', },
+
+        # Intermediary
+        'kappa': Funcs.Kappa.exp,
+        'inflation': Funcs.Inflation.markup,
+        'I': Funcs.Kappa.ifromkappa,
+        'd': Funcs.Definitions.d,
+
+        # Growth manually coded
         'g': {
-            'func': lambda I=0, K=1, delta=0, p=1: (I/p - K * delta)/K,
+            'func': lambda Ir=0, K=1, delta=0: (Ir - K * delta)/K,
             'com': 'relative growth rate'},
     },
+    'param': {
+    },
 }
+
+# We add them explicitely
+for category, dic in _GK_LOGICS.items():
+    for k, v in dic.items():
+        _LOGICS[category][k] = v
 
 
 # ---------------------------
 # List of presets for specific interesting simulations
-
 _PRESETS = {
     'default': {
         'fields': {
+            'dt': 0.01,
             'a': 1,
             'N': 1,
             'K': 2.9,
@@ -117,7 +88,33 @@ _PRESETS = {
         'com': (
             'This is a run that should give simple '
             'convergent oscillations'),
-        'plots': [],
+        'plots': {
+            'timetrace': [{}],
+            'plotnyaxis': [{'x': 'time',
+                           'y': [['lambda', 'omega'],
+                                 ['d'],
+                                 ['kappa', 'pi'],
+                                 ],
+                            'idx':0,
+                            'title':'',
+                            'lw':1}],
+            'phasespace': [{'x': 'lambda',
+                            'y': 'omega',
+                            'color': 'd',
+                            'idx': 0}],
+            'plot3D': [{'x': 'lambda',
+                        'y': 'omega',
+                        'z': 'd',
+                        'cinf': 'pi',
+                        'cmap': 'jet',
+                        'index': 0,
+                        'title': ''}],
+            'plotbyunits': [{'title': '',
+                             'lw': 1,       # optional
+                             'idx': 0,      # optional
+                             'color': 'k'},  # optional
+                            ],
+        },
     },
     'crisis': {
         'fields': {
@@ -142,6 +139,32 @@ _PRESETS = {
         'com': (
             'This is a run that should give simple '
             'convergent oscillations'),
-        'plots': [],
+        'plots': {
+            'timetrace': [],
+            'plotnyaxis': [{'x': 'time',
+                           'y': [['lambda', 'omega'],
+                                 ['d'],
+                                 ['kappa', 'pi'],
+                                 ],
+                            'idx':0,
+                            'title':'',
+                            'lw':1}],
+            'phasespace': [{'x': 'lambda',
+                            'y': 'omega',
+                            'color': 'd',
+                            'idx': 0}],
+            'plot3D': [{'x': 'lambda',
+                        'y': 'omega',
+                        'z': 'd',
+                        'cinf': 'pi',
+                        'cmap': 'jet',
+                        'index': 0,
+                        'title': ''}],
+            'plotbyunits': [{'title': '',
+                             'lw': 1,       # optional
+                             'idx': 0,      # optional
+                             'color': 'k'},  # optional
+                            ],
+        },
     },
 }

@@ -61,7 +61,7 @@ _LIBRARY = {
         'nx': {
             'value': 1,
             'units': 'y',
-            'definition': 'NUMBER OF PARRALLEL SYSTEMS',
+            'definition': 'Number of system in parrallel',
         },
         'time': {
             'initial': 0.,
@@ -71,7 +71,11 @@ _LIBRARY = {
             'units': 'y',
             'eqtype': 'ode',
         },
+        #'t': {
+        #    'value': 0,
+        #    'definition': 'time inside equations'}
     },
+
 
     'Ressources': {
         'K_R': {
@@ -109,7 +113,7 @@ _LIBRARY = {
             'definition': 'Available ressources',
             'units': 'Units',
         },
-        'M': {
+        'Y_R': {
             'value': 1.,
             'definition': 'Flux of extracted ressources',
             'units': 'Units.y^{-1}',
@@ -272,12 +276,12 @@ _LIBRARY = {
             'definition': 'Capital',
         },
         'Y': {
-            'value': None,
+            'value': 1,
             'definition': 'GDP in output quantity',
             'units': 'Units.y^{-1}',
         },
         'GDP': {
-            'value': None,
+            'value': 1,
             'definition': 'GDP in output quantity',
             'units': '$.y^{-1}',
         },
@@ -557,6 +561,18 @@ _LIBRARY = {
             'definition': 'capital compared to debt',
             'units': ''
         },
+        'M': {
+            'value':1 ,
+            'definition': 'amount of money in the system',
+            'units': '$'},
+        'm' : {
+            'value': 1,
+            'definition': 'money per unit of GDP',
+            'units': 'y'},
+        'v' : {
+            'value': 1,
+            'definition': 'money circulation speed',
+            'units': 'y^{-1}'},
     },
 
 
@@ -587,8 +603,12 @@ _LIBRARY = {
         'chi': {
             'value': 1,
             'definition': 'inflation rate on inventory',
-            'units': 'y^{-1}', }
-
+            'units': 'y^{-1}',
+        },
+        'chiY': {
+            'value': 1,
+            'definition': 'inflation sensibility on dot{V}/Y',
+            'units': ''}
     },
 
 
@@ -854,32 +874,42 @@ _LIBRARY = {
     'GK-Improvements': {
         'B': {
             'value': 0,
-            'com': 'Capital in a buffer before being productive',
+            'definition': 'Capital in a buffer before being productive',
             'units': 'Units',
         },
-        'lambperc': {
+        'lamb0': {
             'value': .95,
-            'com': 'Percieved employement',
+            'definition': 'Characteristic employement',
+            'units': '',
+        },
+        'tauK': {
+            'value': 0.01,
+            'definition': 'typical time for capital to be effective',
+            'units': 'y',
+        },
+        'taulamb': {
+            'value': 0.01,
+            'definition': 'typical time for capital to be effective',
             'units': '',
         },
         'flamb': {
             'value': 3.6,
-            'com': 'employement perception rate adjustment',
+            'definition': 'employement perception rate adjustment',
             'units': 'y^{-1}',
         },
         'beta': {
             'value': 0.1,
-            'com': 'Endogenous technical progress from growth',
+            'definition': 'Endogenous technical progress from growth',
             'units': '',
         },
         'zpi': {
             'value': 1,
-            'com': 'Influence of profit on salary negociation',
+            'definition': 'Influence of profit on salary negociation',
             'units': '',
         },
         'zsolv': {
             'value': 3.6,
-            'com': 'Influence of solvability on investment',
+            'definition': 'Influence of solvability on investment',
             'units': '',
         },
     },

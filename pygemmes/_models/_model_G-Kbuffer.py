@@ -2,12 +2,11 @@
 """
 DESCRIPTION :
 
-    This is a small modificaiton of Goodwin : the Leontiev optimised function has been
-    replaced by a CES (its generalisation). We
+    This is a small modification of a Goodwin in which we put a buffer for capital :
+        investment first go into the buffer then into capital
 
 LINKTOARTICLE: Nothing has been published
 
-Created on Wed Jul 21 15:11:15 2021
 @author: Paul Valcke
 """
 
@@ -17,27 +16,20 @@ from pygemmes._models import Funcs
 
 # ----------------------------------------------------------------------------
 # We simply do a few modifications on a previous model : we load it as a basis
-from pygemmes._models._model_GK import _LOGICS as _LOGICS0
+from pygemmes._models._model_G import _LOGICS as _LOGICS0
 from copy import deepcopy
 _LOGICS = deepcopy(_LOGICS0)
 
 
 # We write the fields we want to add/modify
 _CES_LOGICS = {
-    'statevar': {
-        # Characteristics of a CES
-        'cesLcarac': Funcs.ProductionWorkers.cesLcarac,
-        'cesYcarac': Funcs.ProductionWorkers.cesYcarac,
-        'omegacarac': Funcs.ProductionWorkers.omegacarac,
-
-        # From it are deduced optimised quantities
-        'nu': Funcs.ProductionWorkers.CES_Optimised.nu,
-        'l': Funcs.ProductionWorkers.CES_Optimised.l,
-
-        # From it are deduced Labor and Output
-        'Y': Funcs.ProductionWorkers.CES_Optimised.Y,
-        'L': Funcs.ProductionWorkers.CES_Optimised.L,
+    'ode': {
+        'B': Funcs.Kappa.bfromIr,
+        'K': Funcs.Kappa.kfromB,
     },
+    'param': {
+        'tauK': {'value': 1,
+                 'definition': 'typical time for capital to be effective'}}
 }
 
 # We add them explicitely
@@ -49,7 +41,7 @@ for category, dic in _CES_LOGICS.items():
 # ---------------------------
 # List of presets for specific interesting simulations
 _PRESETS = {
-    'CES': {
+    'B': {
         'fields': {
             'dt': 0.01,
             'Tmax': 100,
@@ -65,8 +57,8 @@ _PRESETS = {
             'delta': .005,
             'phinull': 0.1,
 
-            'CESexp': 1000,
-            'A': 1/3,
+            'B': 0.1,
+            'tauK': 0.1
         },
         'com': (
             'This is a run that should give simple '

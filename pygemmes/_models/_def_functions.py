@@ -52,6 +52,22 @@ The phenomena behind is a class struggle
             'com': 'salary through negociation'
         }
 
+        salaryfromPhillipsNoInflation = {
+            'func': lambda phillips=0, itself=0: itself * phillips,
+            'com': 'Phillips impact (no negociation)'
+        }
+
+        salaryfromPhillipsProfitsNoInflation = {
+            'func': lambda phillips=0, itself=0, pi=0, zpi=1: itself * phillips*pi**zpi,
+            'com': 'Phillips impact (no negociation)'
+        }
+
+        # Relaxation on lambda
+        lambdarelax = {
+            'func': lambda lamb0=0, itself=0, taulamb=1: (lamb0-itself)/taulamb,
+            'com': 'Percieved salary in negociation'
+        }
+
     class Kappa:
         """
 The kappa function is linking the relative profit to the share of GDP a firm
@@ -74,9 +90,29 @@ the will of the firm to ask for such loan
             'func': lambda GDP=0, kappa=0: GDP*kappa,
             'com': 'I deduced from kappa func'
         }
+        ifromnobank = {
+            'func': lambda Pi=0: Pi,
+            'com': 'Benefits into investment'
+        }
+        irfromI = {
+            'func': lambda I=0, p=1: I/p,
+            'com': 'Real units from money invest and price'
+        }
         ############ DEFINITIONS OF K ########
         kfromI = {
             'func': lambda I=0, itself=0, delta=0, p=1: I/p - itself * delta,
+            'com': 'Capital evolution from investment and depreciation',
+        }
+        kfromIr = {
+            'func': lambda Ir=0, itself=0, delta=0: Ir - itself * delta,
+            'com': 'Capital evolution from investment and depreciation',
+        }
+        bfromIr = {
+            'func': lambda Ir=0, itself=0, tauK=1: Ir - itself / tauK,
+            'com': 'Investment - activation with characteristic time',
+        }
+        kfromB = {
+            'func': lambda B=0, itself=0, delta=0, tauK=1: B/tauK - itself * delta,
             'com': 'Capital evolution from investment and depreciation',
         }
 
@@ -187,8 +223,8 @@ Productivity is the "human power" in production function, the ponderation of eac
         """
 Shareholding is the share of GDP going from the firm to the shareowner
         """
-        shareholdlin = {
-            'func': lambda divlinSlope=0, divlinconst=0, pi=0: divlinSlope*pi+divlinconst,
+        lin = {
+            'func': lambda divlinSlope=0, divlinconst=0, pi=0, GDP=0, divlinMin=0, divlinMax=0: np.clip(GDP*(divlinSlope*pi+divlinconst), divlinMin, divlinMax),
             'com': 'lin fit from Coping',
         }
 
@@ -240,6 +276,18 @@ the consequence of inflations processes : it is a social construct.
             'func': lambda mu=0, eta=0, c=0, p=1: eta*(mu*c/p-1),
             'com': 'markup on production costs',
         }
+        markupInventory = {
+            'func': lambda mu=0, eta=0, c=0, p=1, chi=0, dotV=0, V=1: eta*(mu*c/p-1) + chi*dotV/V,
+            'com': 'markup+ relative inventory ',
+        }
+        markupInventY = {
+            'func': lambda mu=0, eta=0, c=0, p=1, chiY=0, dotV=0, Y=1: eta*(mu*c/p-1) + chiY*dotV/Y,
+            'com': 'markup+ inventory variat/Flux ',
+        }
+        costonlylabor = {
+            'func': lambda w=0, a=1: w/a,
+            'com': 'price with only labor salary',
+        }
 
     class Definitions:
         '''
@@ -277,6 +325,19 @@ Classic intermediary variables that might be needed
             'func': lambda Speculation=0, GDP=1: Speculation/GDP,
             'com': 'its definition',
         }
+        m = {
+            'func': lambda M=0,GDP=1 : M/GDP,
+            'com': 'its definition',
+        }
+        v = {
+            'func': lambda GDP=0,M=1 : GDP/M,
+            'com': 'its definition (also 1/m)'
+            }
+        t = {
+            'func': lambda itself=0 : itself,
+            'com': 'time',
+            'initial':0,
+            }
 
     class Atmosphere:
         '''

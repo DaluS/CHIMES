@@ -5,6 +5,7 @@ for pygemmes
 """
 
 # Built-in
+
 import os
 import sys
 import itertools as itt     # for iterating on parameters combinations
@@ -35,7 +36,7 @@ sys.path.pop(0)                 # clean PYTHONPATH
 _DPRESETS = {
     'multi1': {
         'fields': {
-            'phinull': [0.3, 0.31],
+            'phinull': [0.1, 0.11],
         },
         'com': (
             'test multiple values for parameter'
@@ -43,7 +44,7 @@ _DPRESETS = {
     },
     'multi2': {
         'fields': {
-            'lambda': [0.97, 0.98, 0.99],
+            'alpha': [0.01, 0.02, 0.03],
         },
         'com': (
             'test multiple values for ode initial value'
@@ -51,8 +52,8 @@ _DPRESETS = {
     },
     'multi3': {
         'fields': {
-            'phinull': [0.3, 0.31, 0.32],
-            'lambda': [0.97, 0.98, 0.99],
+            'phinull': [0.1, 0.11, 0.12],
+            'alpha': [0.01, 0.02, 0.03],
         },
         'com': (
             'test multiple values for parameter and ode initial value'
@@ -60,7 +61,7 @@ _DPRESETS = {
     },
     'multi4': {
         'fields': {
-            'phinull': {'value': [0.3, 0.31]},
+            'phinull': {'value': [0.1, 0.11]},
         },
         'com': (
             'test multiple values for parameter'
@@ -68,7 +69,7 @@ _DPRESETS = {
     },
     'multi5': {
         'fields': {
-            'lambda': {'initial': [0.97, 0.98, 0.99], 'grid': True},
+            'a': {'initial': [0.96, 0.966, 0.966], 'grid': True},
         },
         'com': (
             'test multiple values for ode initial value'
@@ -76,8 +77,8 @@ _DPRESETS = {
     },
     'multi6': {
         'fields': {
-            'phinull': [0.3, 0.31],
-            'lambda': {'value': [0.97, 0.98, 0.99], 'grid': True},
+            'phinull': [0.1, 0.11],
+            'a': {'value': [0.96, 0.966, 0.966], 'grid': True},
         },
         'com': (
             'test multiple values for parameter and ode initial value'
@@ -150,7 +151,7 @@ class Test01_Hub_MultipleSystems():
                         group=('Numerical',),
                         returnas=list,
                     )
-                    if len(lpar)>=2:
+                    if len(lpar) >= 2:
                         k0 = lpar[0]
                         v0 = hub.dparam[k0]['value'] * np.r_[0.9, 1, 1.1]
                         k1 = lpar[1]
@@ -229,7 +230,7 @@ class Test01_Hub_MultipleSystems():
 
 class Test02_Hub_FromPresets(Test01_Hub_MultipleSystems):
 
-    lmodels = ['Goodwin-Reduced']
+    lmodels = ['G']
     lgrid = list(_DPRESETS.keys())
 
     def setup(self):

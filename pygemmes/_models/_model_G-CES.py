@@ -17,7 +17,7 @@ from pygemmes._models import Funcs
 
 # ----------------------------------------------------------------------------
 # We simply do a few modifications on a previous model : we load it as a basis
-from pygemmes._models._model_GK import _LOGICS as _LOGICS0
+from pygemmes._models._model_G import _LOGICS as _LOGICS0
 from copy import deepcopy
 _LOGICS = deepcopy(_LOGICS0)
 

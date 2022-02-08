@@ -15,29 +15,27 @@ import numpy as np
 # #############################################################################
 
 __all__ = [
-    'get_dfields_overview',
+    'get_available_fields',
     'get_available_dfields',
     'create_preset_from_model_preset',
-    # 'plot_one_run_all_solvers',
-    # 'comparesolver_Lorenz',
-    # 'testConvergence_DampOsc',
-    'Generate_network_logics',
     'GenerateIndividualSensitivity',
     'GenerateCoupledSensitivity'
 ]
 
 
-def get_dfields_overview(returnas=False):
-    print('WARNING, WILL BE DEPRECIATED IN NEXT VERSION. USE `get_available_dfields` INSTEAD')
-    get_available_dfields(returnas=returnas)
-
-
 def get_available_dfields(returnas=False):
+    print('WARNING, WILL BE DEPRECIATED IN NEXT VERSION. USE `get_available_fields` INSTEAD')
+    get_available_fields(returnas=returnas)
+
+
+def get_available_fields(returnas=False,showModels=False):
     '''
     Will load the library of fields, then all available models,
     and will print the ensemble of fields with their properties and the models they are in.
 
     returnas can be used on "list,dict"
+
+    showModels will show you the list of models that use this field
 
     if a field has no group, then it is only defined in model files
     '''
@@ -76,7 +74,7 @@ def get_available_dfields(returnas=False):
          v0['group'],
          v0['value'],
          v0['units'],
-         str(v0['inmodel'])
+         str(v0['inmodel']) if showModels else len(v0['inmodel'])
          ]
         for k0, v0 in dparam_sub.items() if v0['group'] != 'Numerical'
     ]
@@ -390,104 +388,3 @@ def GenerateCoupledSensitivity(InputDic, dictpreset={}, N=10, grid=False):
         for key, val in dictpreset.items():
             dictpreset[key] = {'value': val, 'grid': True}
     return dictpreset
-
-
-def Generate_network_logics(_MODEL,
-                            screensize=1080,
-                            custom=False,
-                            smoothtype='dynamic'):
-    '''
-    Generate an HTML file showing you interactively how are variables linked with their adequate units
-
-    Parameters
-    ----------
-    _MODEL : Model name you want to show
-    screensize : TYPE, optional
-        DESCRIPTION. The default is 1080.
-    custom : TYPE, optional
-        DESCRIPTION. The default is False.
-    smoothtype :    Possible options: 'dynamic', 'continuous',
-                    'discrete', 'diagonalCross', 'straightCross',
-                    'horizontal', 'vertical', 'curvedCW',
-                    'curvedCCW', 'cubicBezier'.
-                    When using dynamic, the edges will have an
-                    invisible support node guiding the shape.
-                    This node is part of the physics simulation.
-                    Default is set to continous.
-
-    Returns
-    -------
-    None.
-
-    '''
-    from pyvis.network import Network
-    hub = Hub(_MODEL, verb=False)
-    R = hub.get_dparam(returnas=dict)
-
-    ODENodes = hub.dfunc_order['ode']
-    ODENodes.remove('time')
-    StatevarNodes = hub.dfunc_order['statevar']
-
-    net = Network(directed=True, height=screensize, width=screensize,
-                  heading=_MODEL+' Logical network')
-
-    for key in ODENodes:
-        v = R[key]
-        Title = ''
-        Title += 'Units        :' + v['units']+'<br>'
-        Title += 'Equation     :'+f'd{key}/dt=' + v['source_exp'].replace(
-            'itself', key).replace('lamb', 'lambda')+'<br>'
-        Title += 'definition   :' + v['definition']+'<br>'
-        Title += 'Comment      :' + v['com']+'<br>'
-        Title += 'Dependencies :'+'<br>'
-        for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
-            v1 = hub.dparam[key2]
-            Title += '    '+key2 + (8-len(key2))*' ' + \
-                v1['units']+(8-len(v1['units']))*' '+v1['definition']+'<br>'
-
-        net.add_node(key,
-                     label=key,  # R[key]['symbol'],
-                     color=['#3da831'],
-                     title=Title.replace(' ', '&nbsp;'),
-                     group='ODE',
-                     level=1,
-                     shape='ellipse')
-
-    for key in StatevarNodes:
-
-        v = R[key]
-        Title = ''
-        Title += 'Units        :' + v['units']+'<br>'
-        Title += 'Equation     :'+f'{key}=' + v.get('source_exp', 'f()').replace(
-            'itself', key).replace('lamb', 'lambda')+'<br>'
-        Title += 'definition   :' + v['definition']+'<br>'
-        Title += 'Comment      :' + v['com']+'<br>'
-        Title += 'Dependencies :'+'<br>'
-        for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
-            v1 = hub.dparam[key2]
-            Title += '    '+key2 + (8-len(key2))*' ' + \
-                v1['units']+(8-len(v1['units']))*' '+v1['definition']+'<br>'
-
-        net.add_node(key,
-                     label=key,  # R[key]['symbol'],
-                     color=['#3da831'],
-                     title=Title.replace(' ', '&nbsp;'),
-                     group='STATEVAR',
-                     level=2,
-                     shape='ellipse')
-
-    for k in ODENodes+StatevarNodes:
-        v = R[k]
-        for k2 in [k3 for k3 in v['kargs'] if k3 in ODENodes+StatevarNodes]:
-            net.add_edge(k2, k)
-        if 'itself' in v['kargs']:
-            net.add_edge(k, k)
-
-    net.set_edge_smooth('dynamic')
-
-    net.repulsion(node_distance=100, spring_length=200)
-    if custom:
-        net.show_buttons(filter_=False)
-
-    # net.prep_notebook()
-    net.show(_MODEL+'edges.html')

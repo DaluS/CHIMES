@@ -2,71 +2,50 @@
 """
 DESCRIPTION :
 
-    This is a small modificaiton of Goodwin : the Leontiev optimised function has been
-    replaced by a CES (its generalisation). We
+    This is a small modificaiton of Goodwin, with now a endogenous growth rate :
 
-LINKTOARTICLE: Nothing has been published
+    $\dfrac{\partial a}{\partial t}= a (\alpha + \beta g)$
+
+
+LINKTOARTICLE:
 
 Created on Wed Jul 21 15:11:15 2021
 @author: Paul Valcke
 """
-
-
 import numpy as np
 from pygemmes._models import Funcs
 
 # ----------------------------------------------------------------------------
 # We simply do a few modifications on a previous model : we load it as a basis
-from pygemmes._models._model_GK import _LOGICS as _LOGICS0
+from pygemmes._models._model_G import _LOGICS as _LOGICS0
 from copy import deepcopy
 _LOGICS = deepcopy(_LOGICS0)
 
+# We add our modifications
+_LOGICS['ode']['w'] = Funcs.Phillips.salaryfromPhillipsNoInflation
+_LOGICS['ode']['a'] = Funcs.Productivity.verdoorn
+_LOGICS['param']['beta'] = {'value': 0.5,
+                            'definition': 'impact of growth in productivity increase'}
 
-# We write the fields we want to add/modify
-_CES_LOGICS = {
-    'statevar': {
-        # Characteristics of a CES
-        'cesLcarac': Funcs.ProductionWorkers.cesLcarac,
-        'cesYcarac': Funcs.ProductionWorkers.cesYcarac,
-        'omegacarac': Funcs.ProductionWorkers.omegacarac,
-
-        # From it are deduced optimised quantities
-        'nu': Funcs.ProductionWorkers.CES_Optimised.nu,
-        'l': Funcs.ProductionWorkers.CES_Optimised.l,
-
-        # From it are deduced Labor and Output
-        'Y': Funcs.ProductionWorkers.CES_Optimised.Y,
-        'L': Funcs.ProductionWorkers.CES_Optimised.L,
-    },
-}
-
-# We add them explicitely
-for category, dic in _CES_LOGICS.items():
-    for k, v in dic.items():
-        _LOGICS[category][k] = v
-
-
-# ---------------------------
+# ----------------------------------------------------------------------------
 # List of presets for specific interesting simulations
+betavec = np.arange(0, 1, 0.1)
 _PRESETS = {
-    'CES': {
+    'beta-productivity': {
         'fields': {
             'dt': 0.01,
-            'Tmax': 100,
-
             'a': 1,
             'N': 1,
-            'K': 2.75,
+            'K': 2.9,
             'D': 0,
-            'w': .80,
-
+            'w': .5*1.2,
             'alpha': 0.02,
             'n': 0.025,
+            'nu': 3,
             'delta': .005,
             'phinull': 0.1,
-
-            'CESexp': 1000,
-            'A': 1/3,
+            'alpha': 0.02,
+            'beta': betavec,
         },
         'com': (
             'This is a run that should give simple '
@@ -74,8 +53,8 @@ _PRESETS = {
         'plots': {
             'timetrace': [{}],
             'plotnyaxis': [{'x': 'time',
-                           'y': [['lambda', 'lamb0'],
-                                 ['omega'],
+                           'y': [['lambda', 'omega'],
+                                 ['K'],
                                  ],
                             'idx':0,
                             'title':'',
@@ -84,10 +63,10 @@ _PRESETS = {
                             'y': 'omega',
                             'color': 'time',
                             'idx': 0}],
-            'plot3D': [{'x': 'lamb0',
+            'plot3D': [{'x': 'lambda',
                         'y': 'omega',
-                        'z': 'lambda',
-                        'cinf': 'time',
+                        'z': 'time',
+                        'cinf': 'pi',
                         'cmap': 'jet',
                         'index': 0,
                         'title': ''}],
