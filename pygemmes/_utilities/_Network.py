@@ -6,12 +6,13 @@ Created on Mon Feb  7 09:46:30 2022
 """
 
 from pyvis.network import Network
-
+from copy import deepcopy
 
 def Network_pyvis(hub,
                   screensize=1080,
                   custom=False,
-                  smoothtype='dynamic'):
+                  smoothtype='dynamic',
+                  plot_params=True):
     '''
     Generate an HTML file showing you interactively how are variables linked with their adequate units
 
@@ -39,9 +40,10 @@ def Network_pyvis(hub,
 
     R = hub.get_dparam(returnas=dict)
 
-    ODENodes = hub.dfunc_order['ode']
+    ODENodes = deepcopy(hub.dfunc_order['ode'])
     ODENodes.remove('time')
-    StatevarNodes = hub.dfunc_order['statevar']
+    StatevarNodes = deepcopy(hub.dfunc_order['statevar'])
+    Parameters = deepcopy(hub.dmisc['parameters'])
 
     net = Network(directed=True, height=screensize, width=screensize,
                   heading=hub.dmodel['name']+' Logical network')
@@ -91,9 +93,26 @@ def Network_pyvis(hub,
                      level=2,
                      shape='ellipse')
 
+    if plot_params:
+        for key in Parameters:
+            v = R[key]
+            Title = ''
+            Title += 'Units        :' + v['units']+'<br>'
+            Title += 'definition   :' + v['definition']+'<br>'
+            net.add_node(key,
+                         label=key,  # R[key]['symbol'],
+                         color=['#1dc831'],
+                         title=Title.replace(' ', '&nbsp;'),
+                         group='Parameters',
+                         level=2,
+                         shape='ellipse')
+
+    listconnect = ODENodes+StatevarNodes
+    if plot_params:listconnect+=Parameters
+
     for k in ODENodes+StatevarNodes:
         v = R[k]
-        for k2 in [k3 for k3 in v['kargs'] if k3 in ODENodes+StatevarNodes]:
+        for k2 in [k3 for k3 in v['kargs'] if k3 in listconnect]:
             net.add_edge(k2, k)
         if 'itself' in v['kargs']:
             net.add_edge(k, k)

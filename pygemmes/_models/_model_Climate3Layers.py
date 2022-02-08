@@ -34,8 +34,8 @@ _LOGICS = {
         'T': Funcs.Atmosphere.Three_Layers.T,
         'T0': Funcs.Atmosphere.Three_Layers.T0,
         'pseudot': {
-            'func': lambda T=0: 1,
-            'com': 'false time because practical',
+            'func': lambda itself=0: 1,
+            'com': 'needed for explicit time dependency',
             'initial': 0,
         },
     },

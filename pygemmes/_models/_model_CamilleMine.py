@@ -16,7 +16,7 @@ from pygemmes._models import Funcs
 _LOGICS = {
     'ode': {
         'R': {
-            'func': lambda LVa=0, itself=0, M=0: LVa * itself - M,
+            'func': lambda LVa=0, itself=0, Y_R=0: LVa * itself - Y_R,
             'com': 'reserve of resource', },
         'K_R': {
             'func': lambda I_R=0, itself=0, delta_R=0: I_R - itself * delta_R,
@@ -34,7 +34,7 @@ _LOGICS = {
     # Intermediary relevant functions
     'statevar': {
         # Productive flux
-        'M': {
+        'Y_R': {
             'func': lambda LVb=0, R=0, K_R=0: LVb * R * K_R,
             'com': 'extraction output as product of extraction efficiency, extraction capital, and reserve', },
         # Investment flux
@@ -44,17 +44,17 @@ _LOGICS = {
             'com': 'investment monetary', },
         # Stock flow consistency
         'Pi_R': {
-            'func': lambda varphi=0, p_R=0, M=0, r=0, D_R=0: (1-varphi)*p_R*M - r * D_R,
+            'func': lambda varphi=0, p_R=0, Y_R=0, r=0, D_R=0: (1-varphi)*p_R*Y_R - r * D_R,
             'com': 'Profit for production-Salary-debt func', },
         'inflation_R': {
             'func': lambda mu=0, eta_R=0, varphi=0, p_R=1: eta_R * (mu * varphi - 1),
             'com': 'extraction markup dynamics', },
         'pi_R': {
-            'func': lambda Pi_R=0, p_R=1, M=1: Pi_R/(p_R*M),
+            'func': lambda Pi_R=0, p_R=1, Y_R=1: Pi_R/(p_R*Y_R),
             # 'initial': ,
             'com': 'relative profit', },
         'd_R': {
-            'func': lambda D_R=0, p_R=1, M=1: D_R / (p_R * M),
+            'func': lambda D_R=0, p_R=1, Y_R=1: D_R / (p_R * Y_R),
             # 'initial': ,
             'com': 'private extraction debt ratio', },
         'kappa_R': {

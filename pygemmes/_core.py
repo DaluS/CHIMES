@@ -281,7 +281,7 @@ class Hub():
         # reset all variables (keep only the first time step)
         self.reset()
 
-    def get_dparam(self, condition=None, verb=None, returnas=None, **kwdargs):
+    def get_dparam(self, condition=None, verb=None, returnas=dict, **kwdargs):
         """ Return a copy of the input parameters dict that you can filter
 
         Return as:
@@ -1004,10 +1004,11 @@ class Hub():
             print(' ')
             print(' ')
 
-    def Network(self):
+    def Network(self,params=False):
         _Network.Network_pyvis(self,
                                screensize=1080,
-                               custom=True)
+                               custom=True,
+                               plot_params=params)
 
 
 '''

@@ -94,6 +94,10 @@ _COUPLINGLOGICS = {
             'func': lambda Y0=0, sigmaEm=0, n=0: Y0*sigmaEm*(1-n),
             'com': 'Emission of the industry',
         },
+        'Emission': {
+            'func': lambda Eind=0: Eind,
+            'com': 'Only industrial emission for the moment',
+        },
 
         # COUPLING STATE VARIABLES
         'Damage': {
@@ -142,8 +146,8 @@ _PRESETS = {'default': {
         'gsigmaEm': -0.0152,
         'pbackstop': 547,
         'p': 1,
-        # 'lambda': .675,
-        # 'd': 1.53,
+        'lambda': .675,
+        'd': 1.53,
         'philinConst': -0.292,
         'philinSlope': 0.469,
         'kappalinSlope': 0.0318,

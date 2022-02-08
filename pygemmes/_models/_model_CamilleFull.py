@@ -35,7 +35,7 @@ _LOGICS_COUPLING = {
     'statevar': {
         # Definition of capital is slightly changed
         'Kstar': {
-            'func': lambda K=0, M=0, theta=0: (K**theta)*(M**(1-theta)),
+            'func': lambda K=0, Y_R=0, theta=0: (K**theta)*(Y_R**(1-theta)),
             'com': 'capital boost from mining', },
         'Y': {
             'func': lambda Kstar=0, nu=1: Kstar/nu,

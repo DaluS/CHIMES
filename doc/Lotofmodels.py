@@ -113,8 +113,18 @@ hub.run(verb=1.1)  # solver='eRK8-scipy', verb=1.1)
 hub.plot()
 
 
-#%% ################### GOOSWIN Buffer ########################################
+#%% ################### GOODWIN Buffer ########################################
 hub = pgm.Hub('G-Kbuffer', preset='B')
 hub.get_summary()
 hub.run(verb=1.1)  # solver='eRK8-scipy', verb=1.1)
 hub.plot()
+
+#%% ################## GOODWIN MINE ###########################################
+hub = pgm.Hub('MinePaul')
+hub.get_summary()
+hub = pgm.Hub('GMinePaul')
+hub.get_summary()
+hub.Network()
+hub.run()
+
+hub.set_dparam(intensity=0)
