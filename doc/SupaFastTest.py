@@ -9,10 +9,12 @@ import pygemmes as pgm
 
 ##########
 pgm.get_available_solvers()
+pgm.get_available_fields()
+pgm.get_available_functions()
+pgm.get_available_articles()
 pgm.get_available_models(details=True, verb=True)
 pgm.get_available_output()
-pgm.get_available_fields()
-pgm.get_available_articles()
+
 ###########
 
 hub = pgm.Hub('GK', verb=True)

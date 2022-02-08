@@ -71,7 +71,11 @@ _LIBRARY = {
             'units': 'y',
             'eqtype': 'ode',
         },
+        #'t': {
+        #    'value': 0,
+        #    'definition': 'time inside equations'}
     },
+
 
     'Ressources': {
         'K_R': {
@@ -109,7 +113,7 @@ _LIBRARY = {
             'definition': 'Available ressources',
             'units': 'Units',
         },
-        'M': {
+        'Y_R': {
             'value': 1.,
             'definition': 'Flux of extracted ressources',
             'units': 'Units.y^{-1}',
@@ -557,6 +561,18 @@ _LIBRARY = {
             'definition': 'capital compared to debt',
             'units': ''
         },
+        'M': {
+            'value':1 ,
+            'definition': 'amount of money in the system',
+            'units': '$'},
+        'm' : {
+            'value': 1,
+            'definition': 'money per unit of GDP',
+            'units': 'y'},
+        'v' : {
+            'value': 1,
+            'definition': 'money circulation speed',
+            'units': 'y^{-1}'},
     },
 
 

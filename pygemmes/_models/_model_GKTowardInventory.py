@@ -43,6 +43,9 @@ _INVENTORY = {
             'func': lambda w=0, L=0, C=0, p=0: C*p - w*L,
             'com': 'salary and consumption',
         },
+        'M' : {
+            'func': lambda itself=0: 0,
+            'com': 'empty placeholder'}
     },
 
     # Intermediary relevant functions
@@ -54,6 +57,8 @@ _INVENTORY = {
         'C': {
             'func': lambda Ir=0, Y=0: Y-Ir,
             'com': 'Says law'},
+        'm': Funcs.Definitions.m,
+        'v': Funcs.Definitions.v,
         'inflation': Funcs.Inflation.markupInventory,
         # 'inflation': Funcs.Inflation.markupInventY,
     },

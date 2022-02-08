@@ -325,6 +325,19 @@ Classic intermediary variables that might be needed
             'func': lambda Speculation=0, GDP=1: Speculation/GDP,
             'com': 'its definition',
         }
+        m = {
+            'func': lambda M=0,GDP=1 : M/GDP,
+            'com': 'its definition',
+        }
+        v = {
+            'func': lambda GDP=0,M=1 : GDP/M,
+            'com': 'its definition (also 1/m)'
+            }
+        t = {
+            'func': lambda itself=0 : itself,
+            'com': 'time',
+            'initial':0,
+            }
 
     class Atmosphere:
         '''

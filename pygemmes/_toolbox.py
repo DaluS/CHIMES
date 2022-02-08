@@ -28,12 +28,14 @@ def get_available_dfields(returnas=False):
     get_available_fields(returnas=returnas)
 
 
-def get_available_fields(returnas=False):
+def get_available_fields(returnas=False,showModels=False):
     '''
     Will load the library of fields, then all available models,
     and will print the ensemble of fields with their properties and the models they are in.
 
     returnas can be used on "list,dict"
+
+    showModels will show you the list of models that use this field
 
     if a field has no group, then it is only defined in model files
     '''
@@ -72,7 +74,7 @@ def get_available_fields(returnas=False):
          v0['group'],
          v0['value'],
          v0['units'],
-         str(v0['inmodel'])
+         str(v0['inmodel']) if showModels else len(v0['inmodel'])
          ]
         for k0, v0 in dparam_sub.items() if v0['group'] != 'Numerical'
     ]
