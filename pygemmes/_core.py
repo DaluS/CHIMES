@@ -16,7 +16,7 @@ from ._utilities import _Network
 from ._utilities import _solvers, _saveload
 from ._plots._plots import _DPLOT
 
-
+_FROM_USER = False
 class Hub():
     """
     MOST IMPORTANT OBJECT FOR THE USER.
@@ -40,7 +40,7 @@ class Hub():
     def __init__(
         self,
         model=None,
-        from_user=None,
+        from_user=_FROM_USER,
         preset=None,
         dpresets=None,
         verb=False,
@@ -115,7 +115,6 @@ class Hub():
 
         # -------------
         # load
-
         (
             self.__dmodel,
             self.__dparam,
@@ -763,6 +762,44 @@ class Hub():
             V['max'] = np.amax(val, axis=1)
             V['median'] = np.median(val, axis=1)
         self.__dmisc['sensitivity'] = True
+
+    # ##############################
+    #       Convergence toward a point
+    # ##############################
+    def convergeRate(self,finalpoint):
+        '''
+        Will calculate how the evolution of the distance of each trajectory to
+        the final point.
+        Then, it fit the trajectory with an exponential, and return the rate
+        of decrease of this exponential (the bigger the more stable).
+
+        finalpoint has to be :
+            { 'field1' : number1,
+              'field2' : number2,
+              'field3' : number3}
+        '''
+        # Final step studies ##################
+        R = self.get_dparam(key=[k for k in finalpoint]+['time'], returnas=dict)
+        Coords = [R[k]['value']-finalpoint[k] for k in finalpoint.keys()]
+        dist = np.linalg.norm(Coords, axis=0)
+        t = R['time']['value'][:, 0]
+
+
+        # Fit using an exponential ############
+        Nsys = self.dmisc['dmulti']['shape'][0]
+        ConvergeRate = np.zeros(Nsys)
+        for i in range(Nsys):
+            if (np.isnan(np.sum(dist[:, i])) or np.isinf(np.sum(dist[:, i]))):
+                ConvergeRate[i] = -np.inf
+            else:
+                fit = np.polyfit(t,
+                                 np.log(dist[:, i]),
+                                 1,
+                                 w=np.sqrt(dist[:, i]))
+                ConvergeRate[i] = -fit[0]
+                print(ConvergeRate[i])
+        return ConvergeRate
+
 
     # ##############################
     #       plotting methods

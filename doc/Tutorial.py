@@ -1,14 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-
 import sys
 path = "C:\\Users\\Paul Valcke\\Documents\\GitHub\\GEMMES"  # Where pygemmes is
 sys.path.insert(0, path)  # we tell python to look at the folder `path`
 """
-
-
-
-
 import pygemmes as pgm
 import numpy as np
 
@@ -16,15 +11,15 @@ import numpy as np
 Always use tab on pgm or hub, and ? on each functions
 '''
 
-# ############################################################################
-# #######################  LEVEL 1 : USER ####################################
-# ############################################################################
+# ########################################################################### #
+# #######################  LEVEL 1 : USER ################################### #
+# ########################################################################### #
 '''
 A user is someone who do not write his own models, but use the one of others for
 analysis.
 '''
 
-# %% OVERVIEW OF PYGEMMES
+# %% OVERVIEW OF PYGEMMES ############
 pgm.get_available_fields()
 pgm.get_available_models(details=False)
 pgm.get_available_solvers()
@@ -36,24 +31,23 @@ listofsolver = pgm.get_available_solvers(returnas=list)
 listofmodels = pgm.get_available_models(returnas=list)
 
 
-
-# %% LOADING A MODEL
-Modelname = 'GK'
-
+# %% LOADING A MODEL #################
 hub = pgm.Hub('GK')
 hub = pgm.Hub('GK',verb=True)
 
 # EXPLORING IT
-hub.get_summary()
+hub.get_summary() #definition concern the field definition, com the way it is calculated
 hub.equations_description()
 
 hub.Network()
 hub.Network(params=True)
 
+
 # %% MISC SUPPLEMENTARY INFORMATION
 hub.dmodel  # Gives the content of the model file
 hub.dmisc   # gives multiple informations on the run and the variables
 hub         # Minimalist informations
+
 
 # %% Calculation
 hub.run()
@@ -61,6 +55,7 @@ hub.run(verb=1.1)
 hub.run(solver=listofsolver[3])
 
 hub.get_summary()
+
 
 # %% Plots
 dax = hub.plot()
@@ -75,10 +70,12 @@ R.keys()
 R['lambda'].keys()
 np.shape(R['lambda']['value'])
 
+
 # %% Reinterpolate data to be lighter
 hub.reinterpolate_dparam(100)
 R = hub.get_dparam()
 np.shape(R['lambda']['value'])
+
 
 # %% Get more subtle criterias ['key', 'dimension', 'units', 'type', 'group', 'eqtype']
 R1= hub.get_dparam(key=['lambda','omega'])
@@ -88,12 +85,21 @@ R2.keys()
 
 groupsoffields = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['ode', 'statevar'])
 
+
 # %% STUDY OF CYCLES
 hub.FillCyclesForAll(ref='lambda')
 dax4 = hub.plot(mode='cycles',key=['lambda','omega','d','phillips'])
 
 
 # %% ##################### CHANGING VALUES ###################################
+'''
+Order of loading values/status (latest in the one kept) :
+    * the fields library (by default)
+    * the values inside _LOGICS of the model
+    * the values of the loaded preset
+    * the values of set_dparam
+'''
+
 
 # %% Using presets
 pgm.get_available_models(model='GK',details=True)
@@ -101,6 +107,7 @@ hub = pgm.Hub(model='GK',preset='default')
 hub.run()
 hub.plot_preset(preset='default')
 # dpreset use will be explained later
+
 
 # %% Using  set_dparam
 hub = pgm.Hub('GK')
@@ -121,7 +128,13 @@ hub.get_summary()
 hub.run()
 dax= hub.plot(key=['lambda','omega'])
 
+
 # %% ################### CALCULATING SENSIVITY ###############################
+'''
+Instead of doing one run, we do N run in parrallel, with each field having a
+value in its distribution
+'''
+
 SensitivityDic = {
     'alpha': {'mu': .02,
               'sigma': .12,
@@ -134,9 +147,14 @@ SensitivityDic = {
            'type': 'log'},
 }
 
-presetSimple = pgm.GenerateIndividualSensitivity(
-    'alpha', 0.02, .2, disttype='log', N=10)
-presetCoupled = pgm.GenerateCoupledSensitivity(SensitivityDic, N=10, grid=False)
+presetSimple = pgm.generate_dic_distribution({
+    'alpha':{'mu': 0.02,
+             'sigma': .2,
+             'type':'log'},},
+             N=10)
+presetCoupled = pgm.generate_dic_distribution(SensitivityDic,
+                                              N=10,
+                                              grid=False)
 
 hub = pgm.Hub('GK')
 hub.set_dparam(**presetCoupled)
@@ -146,15 +164,100 @@ dax = hub.plot()
 hub.CalculateStatSensitivity()
 dax = hub.plot(mode='sensitivity')
 
+
 # %% GENERATE DPRESET AND USE IT
 _DPRESETS = {'SensitivitySimple': {'fields': presetSimple, 'com': ''},
              'SensitivityCoupled': {'fields': presetCoupled, 'com': ''},
              }
 hub = pgm.Hub('GK', preset='SensitivityCoupled', dpresets=_DPRESETS)
+hub.CalculateStatSensitivity()
+dax = hub.plot(mode='sensitivity')
+
+# %% ################### BASIN OF ATTRACTIONS ################################
+'''
+This is an example on how someone can do more complex analysis
+'''
+
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+
+# Initialisation of the system with 1000 points in a box
+hub = pgm.Hub('GK-Reduced', preset='default')
+BasinDomain = {
+                'lambda': {'mu': 0.5,
+                           'sigma': 0.99,
+                           'type': 'uniform'},
+                'omega': {'mu': 0.5,
+                          'sigma': .98,
+                          'type': 'uniform'},
+                'd': {'mu': -1,
+                      'sigma': 1,
+                      'type': 'uniform'},
+              }
+initcond = pgm.generate_dic_distribution(BasinDomain,
+                                         N=1000,
+                                         grid=False)
+hub.set_dparam(**initcond)
+hub.run()
+hub.reinterpolate_dparam(N=1000)
+
+
+# Point we are trying to reach
+finalpoint = {
+              'lambda': 0.967297870750419,
+              'omega': 0.84547946985534,
+              'd': -0.0771062162051694,
+              }
+
+# We get the convergence rate
+ConvergeRate = hub.convergeRate(finalpoint)
+R = hub.get_dparam(key=[k for k in finalpoint]+['time'], returnas=dict)
+
+# Plot of everything ####################
+fig = plt.figure('3D', figsize=(10, 10))
+cmap = mpl.cm.jet_r
+ax = plt.axes(projection='3d')
+ax.set_xlabel(r'$\lambda$')
+ax.set_ylabel(r'$\omega$')
+ax.set_zlabel('d')
+t = R['time']['value'][:,0]
+
+# All the final points
+ax.scatter(finalpoint['lambda'],
+           finalpoint['omega'],
+           finalpoint['d'],
+           s=50,
+           c='k')
+
+# Scatter plot
+R = hub.get_dparam(key=[k for k in finalpoint]+['time'], returnas=dict)
+scat = ax.scatter(R['lambda']['value'][0, ConvergeRate > 0.001],
+                  R['omega']['value'][0, ConvergeRate > 0.001],
+                  R['d']['value'][0, ConvergeRate > 0.001],
+                  c=ConvergeRate[ConvergeRate > 0.001],
+                  cmap=cmap,
+                  vmin=10**(-3),
+                  norm=mpl.colors.LogNorm())
+plt.axis('tight')
+
+# Add trajectory of converging points
+
+for i in range(len(ConvergeRate)):
+    if ConvergeRate[i]:
+        ax.plot(R['lambda']['value'][:, i],
+                R['omega']['value'][:, i],
+                R['d']['value'][:, i], c='k', lw=0.1)
+
+# Add colobar
+cbar = fig.colorbar(scat)
+cbar.ax.set_ylabel(r'$f_{carac}^{stab} (y^{-1})$')
+plt.show()
 
 
 
-# %% EXERCICES ##########################################
+
+# %% EXERCICES ###############################################################
 '''
 Exercise 1 : execute by yourself
     1. Loading library "From scratch", load pygemmes
@@ -183,8 +286,8 @@ Exercise 3 : add on github
     2. Once your model is ready, put it in pygemmes/_models
     3. Create a branch with your modifications and push it
     4. Create a Pull Request with it
-
 '''
+
 
 # %% TESTS ##########################################
 # TO TEST THAT EVERYTHING IS WORKING WELL

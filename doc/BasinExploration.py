@@ -32,6 +32,48 @@ dictforAttraction = {
         'Tmax': 100,
         'dt': 0.01}}
 
+'''
+1) Generate Nseed random initial point in the domain
+2) Do a run for each
+'''
+
+finalpoints={'lambda':0.967297870750419,
+            'omega':0.84547946985534,
+            'd':-0.0771062162051694}
+
+def StabilisationTimefrompoint(self,
+                      finalpoints,
+                      distance = 0.1):
+
+    # Final step studies
+    R = hub.get_dparam(key=[k for k in finalpoints]+['time'], returnas=dict)
+    Coords = [R[k]['value']-finalpoints[k] for k in finalpoints.keys()]
+    dist = np.linalg.norm(Coords, axis=0)
+
+    # Fit using an exponential
+    Nsys=np.shape(R['time']['value'][1])
+    Typicaltime = [-1/np.polyfit(R['time']['value'][:,0],
+                                 np.log(dist[:,i]),
+                                 1,
+                                 w=np.sqrt(dist[:,i])) for i in range(Nsys)]
+    return Typicaltime
+
+
+SensitivityDic = {
+    'lambda': {'mu': 0.01,
+               'sigma': 0.99,
+               'type': 'uniform'},
+    'omega': {'mu': 0.01,
+              'sigma': .99,
+              'type': 'uniform'},
+    'd': {'mu': 0,
+          'sigma': 2,
+          'type': 'uniform'},
+}
+
+
+
+
 
 def _generateSpherecoordinates(dic, initial):
     '''

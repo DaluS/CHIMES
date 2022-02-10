@@ -15,6 +15,7 @@ _PATH_USER_HOME = os.path.expanduser('~')
 _PATH_PRIVATE_MODELS = os.path.join(_PATH_USER_HOME, '.pygemmes', '_models')
 _PATH_MODELS = _PATH_HERE
 
+_FROM_USER = False
 
 # if private pygemmes exists => load models from there
 if not os.path.isdir(_PATH_PRIVATE_MODELS):
@@ -27,7 +28,7 @@ if not os.path.isdir(_PATH_PRIVATE_MODELS):
 # ####################################################
 
 
-def _get_DMODEL(from_user=None):
+def _get_DMODEL(from_user=_FROM_USER):
 
     if from_user is None:
         from_user = True
@@ -73,7 +74,7 @@ def get_available_models(
     details=None,
     returnas=None,
     verb=None,
-    from_user=None,
+    from_user=_FROM_USER,
 ):
     '''
     Check all models available in pygemmes, and gives back the information that are asked.
