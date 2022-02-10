@@ -17,6 +17,8 @@ from ._utilities import _solvers, _saveload
 from ._plots._plots import _DPLOT
 
 _FROM_USER = False
+
+
 class Hub():
     """
     MOST IMPORTANT OBJECT FOR THE USER.

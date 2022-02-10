@@ -32,7 +32,6 @@ for example, let's define an exogenous equation for productivity :
 ```
 da/dt = a * (alpha + zouplala/proutprout)
 ```
-
 1. we check if the fields do exist :
     * a exist
     * alpha exist
