@@ -12,7 +12,6 @@ fields which are not explicitly described by the user / modeller in the model
 will be taken from this default database
 
 ----
-
 This file contains :
     _DFIELDS the big dictionnary with basic information on
         * Variables

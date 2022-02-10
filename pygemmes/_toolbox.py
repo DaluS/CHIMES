@@ -16,16 +16,12 @@ import numpy as np
 
 __all__ = [
     'get_available_fields',
-    'get_available_dfields',
     'create_preset_from_model_preset',
     'GenerateIndividualSensitivity',
     'GenerateCoupledSensitivity'
 ]
 
 
-def get_available_dfields(returnas=False):
-    print('WARNING, WILL BE DEPRECIATED IN NEXT VERSION. USE `get_available_fields` INSTEAD')
-    get_available_fields(returnas=returnas)
 
 
 def get_available_fields(returnas=False,showModels=False):
