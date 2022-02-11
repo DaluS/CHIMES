@@ -391,7 +391,7 @@ def generate_dic_distribution(InputDic, dictpreset={}, N=10, grid=False):
 
         IF THE DISTRIBUTION IS LOG, then mu is the median value
     '''
-
+    dictpreset = {}
     for key, val in InputDic.items():
         dictpreset = _GenerateIndividualSensitivity(key,
                                                     val['mu'],

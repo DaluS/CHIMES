@@ -43,7 +43,7 @@ _COUPLING = {
             'definition': "nu when pseudo-bisectorial",
         },
         'c': {
-            'func': lambda w=0, a=1, Gamma=0, intensity=0:  w/(a*(1-intensity*Gamma)),
+            'func': lambda w=0, a=1, Gamma=0, intensity=0:  w/(a*(1+intensity*Gamma)),
             'com': 'price with only labor salary',
         }
 

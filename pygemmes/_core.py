@@ -552,6 +552,50 @@ class Hub():
             returnas=False,
         )
 
+    def get_equations_description(self):
+        '''
+        Gives a full description of the model and its equations
+        '''
+
+        print('############# DIFFERENTIAL EQUATIONS ###########')
+        for key in self.__dmisc['dfunc_order']['ode']:
+            v = self.dparam[key]
+            print('### ', key, ' ###########')
+            print('Units        :', v['units'])
+            print('Equation     :', f'd{key}/dt=', v['source_exp'].replace(
+                'itself', key).replace('lamb', 'lambda'))
+            print('definition   :', v['definition'])
+            print('units        :', v['units'])
+            print('Comment      :', v['com'])
+            print('Dependencies :')
+            for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
+                v1 = self.dparam[key2]
+                print('    ', key2, (8-len(key2))*' ',
+                      v1['units'], (8-len(v1['units']))*' ', v1['definition'])
+            print(' ')
+        print('######### STATE VARIABLES EQUATIONS ###########')
+        for key in self.__dmisc['dfunc_order']['statevar']:
+            v = self.dparam[key]
+            print('### ', key, ' ###########')
+            print('Units        :', v['units'])
+            print('Equation     :', f'{key}=', v['source_exp'].replace(
+                'itself', key).replace('lamb', 'lambda'))
+            print('definition   :', v['definition'])
+            print('Comment      :', v['com'])
+            print('Dependencies :')
+            for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
+                v1 = self.dparam[key2]
+                print('    ', key2, (8-len(key2))*' ',
+                      v1['units'], (8-len(v1['units']))*' ', v1['definition'])
+            print(' ')
+            print(' ')
+
+    def get_Network(self, params=False):
+        _Network.Network_pyvis(self,
+                               screensize=1080,
+                               custom=True,
+                               plot_params=params)
+
     # ##############################
     # run simulation
     # ##############################
@@ -639,7 +683,7 @@ class Hub():
 
         # print(self.get_dparam(returnas=dict, eqtype=leq).items())
         for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
-            print(var, np.shape(dic1['value']))
+            #print(var, np.shape(dic1['value']))
 
             if ref is None:
                 self.FillCycles(var, var)
@@ -768,7 +812,7 @@ class Hub():
     # ##############################
     #       Convergence toward a point
     # ##############################
-    def convergeRate(self,finalpoint):
+    def ConvergeRate(self, finalpoint):
         '''
         Will calculate how the evolution of the distance of each trajectory to
         the final point.
@@ -1004,88 +1048,3 @@ class Hub():
             verb=verb,
             return_dfail=return_dfail,
         )
-
-    def equations_description(self):
-        '''
-        Gives a full description of the model and its equations
-        '''
-
-        print('############# DIFFERENTIAL EQUATIONS ###########')
-        for key in self.__dmisc['dfunc_order']['ode']:
-            v = self.dparam[key]
-            print('### ', key, ' ###########')
-            print('Units        :', v['units'])
-            print('Equation     :', f'd{key}/dt=', v['source_exp'].replace(
-                'itself', key).replace('lamb', 'lambda'))
-            print('definition   :', v['definition'])
-            print('units        :', v['units'])
-            print('Comment      :', v['com'])
-            print('Dependencies :')
-            for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
-                v1 = self.dparam[key2]
-                print('    ', key2, (8-len(key2))*' ',
-                      v1['units'], (8-len(v1['units']))*' ', v1['definition'])
-            print(' ')
-        print('######### STATE VARIABLES EQUATIONS ###########')
-        for key in self.__dmisc['dfunc_order']['statevar']:
-            v = self.dparam[key]
-            print('### ', key, ' ###########')
-            print('Units        :', v['units'])
-            print('Equation     :', f'{key}=', v['source_exp'].replace(
-                'itself', key).replace('lamb', 'lambda'))
-            print('definition   :', v['definition'])
-            print('Comment      :', v['com'])
-            print('Dependencies :')
-            for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
-                v1 = self.dparam[key2]
-                print('    ', key2, (8-len(key2))*' ',
-                      v1['units'], (8-len(v1['units']))*' ', v1['definition'])
-            print(' ')
-            print(' ')
-
-    def Network(self,params=False):
-        _Network.Network_pyvis(self,
-                               screensize=1080,
-                               custom=True,
-                               plot_params=params)
-
-
-'''
-    # ##############################
-    # variables
-    # ##############################
-
-    def get_variables_compact(self, eqtype=None):
-        """ Return a compact numpy arrays containing all variable
-
-        Return
-            - compact np.ndarray of all variables
-            - list of variable names, in the same order
-            - array of indices
-        """
-        # check inputs
-        leqtype = ['ode', 'intermediary', 'auxiliary']
-        if eqtype is None:
-            eqtype = ['ode', 'intermediary']
-        if isinstance(eqtype, str):
-            eqtype = [eqtype]
-            if any([ss not in leqtype for ss in eqtype]):
-                msg = (
-                    f"eqtype must be in {leqtype}\n"
-                    f"You provided: {eqtype}"
-                )
-                raise Exception(msg)
-
-        # list of keys of variables
-        keys = np.array([
-            k0 for k0, v0 in self.__dparam.items()
-            if v0.get('eqtype') in leqtype
-        ], dtype=str)
-
-        # get compact variable array
-        variables = np.swapaxes([
-            self.__dparam[k0]['value'] for k0 in keys
-        ], 0, 1)
-
-        return keys, variables
-'''

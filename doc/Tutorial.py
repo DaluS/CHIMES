@@ -19,6 +19,7 @@ A user is someone who do not write his own models, but use the one of others for
 analysis.
 '''
 
+
 # %% OVERVIEW OF PYGEMMES ############
 pgm.get_available_fields()
 pgm.get_available_models(details=False)
@@ -33,14 +34,14 @@ listofmodels = pgm.get_available_models(returnas=list)
 
 # %% LOADING A MODEL #################
 hub = pgm.Hub('GK')
-hub = pgm.Hub('GK',verb=True)
+hub = pgm.Hub('GK', verb=True)
 
 # EXPLORING IT
-hub.get_summary() #definition concern the field definition, com the way it is calculated
-hub.equations_description()
+hub.get_summary()  # definition concern the field definition, com the way it is calculated
+hub.get_equations_description()
 
-hub.Network()
-hub.Network(params=True)
+hub.get_Network()
+hub.get_Network(params=True)
 
 
 # %% MISC SUPPLEMENTARY INFORMATION
@@ -72,14 +73,14 @@ np.shape(R['lambda']['value'])
 
 
 # %% Reinterpolate data to be lighter
-hub.reinterpolate_dparam(100)
+hub.reinterpolate_dparam(1000)
 R = hub.get_dparam()
 np.shape(R['lambda']['value'])
 
 
 # %% Get more subtle criterias ['key', 'dimension', 'units', 'type', 'group', 'eqtype']
-R1= hub.get_dparam(key=['lambda','omega'])
-R2= hub.get_dparam(key=('lambda','omega'))
+R1 = hub.get_dparam(key=['lambda', 'omega'])
+R2 = hub.get_dparam(key=('lambda', 'omega'))
 R1.keys()
 R2.keys()
 
@@ -87,8 +88,10 @@ groupsoffields = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['ode', 'st
 
 
 # %% STUDY OF CYCLES
+hub = pgm.Hub('GK')
+hub.run()
 hub.FillCyclesForAll(ref='lambda')
-dax4 = hub.plot(mode='cycles',key=['lambda','omega','d','phillips'])
+dax4 = hub.plot(mode='cycles', key=['lambda', 'omega', 'd', 'phillips'])
 
 
 # %% ##################### CHANGING VALUES ###################################
@@ -102,8 +105,8 @@ Order of loading values/status (latest in the one kept) :
 
 
 # %% Using presets
-pgm.get_available_models(model='GK',details=True)
-hub = pgm.Hub(model='GK',preset='default')
+pgm.get_available_models(model='GK', details=True)
+hub = pgm.Hub(model='GK', preset='default')
 hub.run()
 hub.plot_preset(preset='default')
 # dpreset use will be explained later
@@ -123,10 +126,15 @@ dparam = {'alpha': 0, 'n': 1}
 hub.set_dparam(**dparam)
 
 # Create N system in parrallel with different values
-hub.set_dparam(alpha=[0, 0.01, 0.02, 0.03])
+hub = pgm.Hub('GK')
+hub.set_dparam(alpha=[0,
+                      0.01,
+                      0.02,
+                      0.03])
 hub.get_summary()
 hub.run()
-dax= hub.plot(key=['lambda','omega'])
+dax = hub.plot(key=['lambda',
+                    'omega'])
 
 
 # %% ################### CALCULATING SENSIVITY ###############################
@@ -147,11 +155,11 @@ SensitivityDic = {
            'type': 'log'},
 }
 
-presetSimple = pgm.generate_dic_distribution({
-    'alpha':{'mu': 0.02,
-             'sigma': .2,
-             'type':'log'},},
-             N=10)
+presetSimple = pgm.generate_dic_distribution(
+    {'alpha': {'mu': 0.02,
+               'sigma': .2,
+               'type': 'log'}, }, N=10)
+
 presetCoupled = pgm.generate_dic_distribution(SensitivityDic,
                                               N=10,
                                               grid=False)
@@ -161,8 +169,9 @@ hub.set_dparam(**presetCoupled)
 hub.run()
 dax = hub.plot()
 
+hub.reinterpolate_dparam(1000)
 hub.CalculateStatSensitivity()
-dax = hub.plot(mode='sensitivity')
+dax = hub.plot(key=['lambda', 'omega'], mode='sensitivity')
 
 
 # %% GENERATE DPRESET AND USE IT
@@ -170,6 +179,8 @@ _DPRESETS = {'SensitivitySimple': {'fields': presetSimple, 'com': ''},
              'SensitivityCoupled': {'fields': presetCoupled, 'com': ''},
              }
 hub = pgm.Hub('GK', preset='SensitivityCoupled', dpresets=_DPRESETS)
+hub.run()
+hub.reinterpolate_dparam(1000)
 hub.CalculateStatSensitivity()
 dax = hub.plot(mode='sensitivity')
 
@@ -180,10 +191,11 @@ This is an example on how someone can do more complex analysis
 
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-import numpy as np
+
 
 # Initialisation of the system with 1000 points in a box
 hub = pgm.Hub('GK-Reduced', preset='default')
+
 BasinDomain = {
                 'lambda': {'mu': 0.5,
                            'sigma': 0.99,
@@ -198,6 +210,7 @@ BasinDomain = {
 initcond = pgm.generate_dic_distribution(BasinDomain,
                                          N=1000,
                                          grid=False)
+
 hub.set_dparam(**initcond)
 hub.run()
 hub.reinterpolate_dparam(N=1000)
@@ -221,7 +234,7 @@ ax = plt.axes(projection='3d')
 ax.set_xlabel(r'$\lambda$')
 ax.set_ylabel(r'$\omega$')
 ax.set_zlabel('d')
-t = R['time']['value'][:,0]
+t = R['time']['value'][:, 0]
 
 # All the final points
 ax.scatter(finalpoint['lambda'],
@@ -242,19 +255,17 @@ scat = ax.scatter(R['lambda']['value'][0, ConvergeRate > 0.001],
 plt.axis('tight')
 
 # Add trajectory of converging points
-
+'''
 for i in range(len(ConvergeRate)):
     if ConvergeRate[i]:
         ax.plot(R['lambda']['value'][:, i],
                 R['omega']['value'][:, i],
                 R['d']['value'][:, i], c='k', lw=0.1)
-
+'''
 # Add colobar
 cbar = fig.colorbar(scat)
 cbar.ax.set_ylabel(r'$f_{carac}^{stab} (y^{-1})$')
 plt.show()
-
-
 
 
 # %% EXERCICES ###############################################################
@@ -295,3 +306,16 @@ Exercise 3 : add on github
 # !pytest pygemmes/tests/test_00_get -v
 # !pytest pygemmes/tests/test_02_Hub_Multiple -v
 # !pytest pygemmes/tests/test_03_articles -v
+
+
+listofsolver = pgm.get_available_solvers(returnas=list)
+listofsolver = [listofsolver[i] for i in [0, -2]]
+listofmodels = pgm.get_available_models(returnas=list)
+for model in listofmodels:
+    presets = pgm.get_available_models(returnas=dict)[model]['presets']
+    for preset in [None]+presets:
+        hub = pgm.Hub(model, preset=preset)
+        hub.set_dparam(Tmax=1, verb=False)
+        for solver in listofsolver:
+            print(model, preset, solver)
+            hub.run()
