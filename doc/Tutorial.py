@@ -224,7 +224,7 @@ finalpoint = {
               }
 
 # We get the convergence rate
-ConvergeRate = hub.convergeRate(finalpoint)
+ConvergeRate = hub.ConvergeRate(finalpoint)
 R = hub.get_dparam(key=[k for k in finalpoint]+['time'], returnas=dict)
 
 # Plot of everything ####################
@@ -250,8 +250,7 @@ scat = ax.scatter(R['lambda']['value'][0, ConvergeRate > 0.001],
                   R['d']['value'][0, ConvergeRate > 0.001],
                   c=ConvergeRate[ConvergeRate > 0.001],
                   cmap=cmap,
-                  vmin=10**(-3),
-                  norm=mpl.colors.LogNorm())
+                  norm=mpl.colors.LogNorm(vmin=10**(-3)))
 plt.axis('tight')
 
 # Add trajectory of converging points
@@ -309,7 +308,7 @@ Exercise 3 : add on github
 
 
 listofsolver = pgm.get_available_solvers(returnas=list)
-listofsolver = [listofsolver[i] for i in [0, -2]]
+listofsolver = [listofsolver[i] for i in [0]]#, -2]]
 listofmodels = pgm.get_available_models(returnas=list)
 for model in listofmodels:
     presets = pgm.get_available_models(returnas=dict)[model]['presets']

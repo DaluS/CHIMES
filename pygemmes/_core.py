@@ -843,7 +843,6 @@ class Hub():
                                  1,
                                  w=np.sqrt(dist[:, i]))
                 ConvergeRate[i] = -fit[0]
-                print(ConvergeRate[i])
         return ConvergeRate
 
 

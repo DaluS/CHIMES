@@ -104,9 +104,7 @@ _LOGICS = {
 
 _PRESETS = {
     'default': {
-        'fields': {'K_R': 0.0001,
-                   'D_R': 0.001,
-                   'p_R': 0.1, },
+        'fields': {},
         'com': '',
         'plots': {'plotbyunits': [{'title': '',
                                    'lw': 1,       # optional
