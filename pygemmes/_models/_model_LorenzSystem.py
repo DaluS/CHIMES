@@ -24,6 +24,7 @@ import numpy as np
 def Lorenz_Z (Lorenzbeta=0, Lorenz_x=0, Lorenz_y=0, itself=0):
     return Lorenz_x*Lorenz_y-Lorenzbeta*itself
 
+
 _LOGICS = {
     'ode': {
         'Lorenz_x': {
@@ -90,7 +91,7 @@ _PRESETS = {
         'fields': {
             'Lorenz_x': 1,
             'Lorenz_y': 1,
-            'Lorenz_z': np.linspace(1,1.1,50),
+            'Lorenz_z': np.linspace(1,1.1,N),
             'Lorenzsigma': 10,
             'Lorenzrho': 28,
             'Lorenzbeta': 8/3,

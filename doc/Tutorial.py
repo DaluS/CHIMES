@@ -10,7 +10,6 @@ import numpy as np
 '''
 Always use tab on pgm or hub, and ? on each functions
 '''
-
 # ########################################################################### #
 # #######################  LEVEL 1 : USER ################################### #
 # ########################################################################### #
@@ -20,7 +19,7 @@ analysis.
 '''
 
 
-# %% OVERVIEW OF PYGEMMES ############
+# %% OVERVIEW OF PYGEMMES
 pgm.get_available_fields()
 pgm.get_available_models(details=False)
 pgm.get_available_solvers()
@@ -32,7 +31,7 @@ listofsolver = pgm.get_available_solvers(returnas=list)
 listofmodels = pgm.get_available_models(returnas=list)
 
 
-# %% LOADING A MODEL #################
+# %% LOADING A MODEL
 hub = pgm.Hub('GK')
 hub = pgm.Hub('GK', verb=True)
 
@@ -94,7 +93,7 @@ hub.FillCyclesForAll(ref='lambda')
 dax4 = hub.plot(mode='cycles', key=['lambda', 'omega', 'd', 'phillips'])
 
 
-# %% ##################### CHANGING VALUES ###################################
+# %% CHANGING VALUES ########################################################
 '''
 Order of loading values/status (latest in the one kept) :
     * the fields library (by default)
@@ -137,7 +136,7 @@ dax = hub.plot(key=['lambda',
                     'omega'])
 
 
-# %% ################### CALCULATING SENSIVITY ###############################
+# %% CALCULATING SENSIVITY ##################################################
 '''
 Instead of doing one run, we do N run in parrallel, with each field having a
 value in its distribution
@@ -184,7 +183,7 @@ hub.reinterpolate_dparam(1000)
 hub.CalculateStatSensitivity()
 dax = hub.plot(mode='sensitivity')
 
-# %% ################### BASIN OF ATTRACTIONS ################################
+# %% BASIN OF ATTRACTIONS ####################################################
 '''
 This is an example on how someone can do more complex analysis
 '''
@@ -226,6 +225,7 @@ finalpoint = {
 # We get the convergence rate
 ConvergeRate = hub.ConvergeRate(finalpoint)
 R = hub.get_dparam(key=[k for k in finalpoint]+['time'], returnas=dict)
+
 
 # Plot of everything ####################
 fig = plt.figure('3D', figsize=(10, 10))
