@@ -11,7 +11,7 @@ import numpy as np
 Always use tab on pgm or hub, and ? on each functions
 '''
 # ########################################################################### #
-# #######################  LEVEL 1 : USER ################################### #
+# %%#####################  LEVEL 1 : USER ################################### #
 # ########################################################################### #
 '''
 A user is someone who do not write his own models, but use the one of others for
@@ -273,23 +273,27 @@ Exercise 1 : execute by yourself
     1. Loading library "From scratch", load pygemmes
     2. Access lists get the list of models, the list of solvers
     3. Load a model, then with a preset directly loaded
-    4. change value Run it with different timestep
-    5. change solver Run it with different solvers
-    6. Plots Plot only lambda, then everything but lambda, then with cycles analysis activated
-    7. Exploring dparam structure print all the keys of one field in dparam, then all their values
-    8. Getting dparam values Get the values of omega over time as an array, plot it manually
-    9. Creating multiple process Create a preset with 5 values of the rate of productivity progres
+    4. change value : Run it with different timestep
+    5. change solver : Run it with different solvers
+    6. Plots : Plot only lambda, then everything but lambda, then with cycles analysis activated
+    7. Exploring dparam structure : print all the keys of one field in dparam, then all their values
+    8. Getting dparam values : Get the values of omega over time as an array, plot it manually
+    9. Creating multiple process : Create a preset with 5 values of the rate of productivity progres
+'''
 
+# ########################################################################### #
+# %%#####################  LEVEL 2 : MODELLER ############################### #
+# ########################################################################### #
+'''
 Exercise 2 : editing
-    1. Accessing your personal folder find your personal folder where all models are
-    2. Copy-paste a file Copy the file model GK-Reduced, name it GK-CES-Reduced then reload
+    1. Copy-paste a file Copy the file model GK-CES name it GK-NEW then reload
 pygemmes to see if you can load id
-    3. Modify the equations Use the equations for "lambda, omega, d" you find in McIsaac et al,
+    2. Modify the equations Use the equations for "lambda, omega, d" you find in McIsaac et al,
 Minskyan classical growth cycles, Mathematics and Financial Economics with the introduction
 of new parameters in _def_fields
-    4. See the impact of a parameter (1) Do an ensemble of run with different elasticity values
-    5. See the impact on cycles Show the impact of the elasticity value on the cycles
-    6. See the impact on stability Do a stability analysis with different values
+    3. See the impact of a parameter : Do an ensemble of run with different elasticity values
+    4. See the impact on cycles : Show the impact of the elasticity value on the cycles
+    5. See the impact on stability : Do a stability analysis with different values
 
 Exercise 3 : add on github
     1. Create an issue on the github page
