@@ -16,7 +16,7 @@ import numpy as np
 
 __all__ = [
     'get_available_fields',
-    'create_preset_from_model_preset',
+    'generate_preset_from_model_preset',
     'generate_dic_distribution'
 ]
 
