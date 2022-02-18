@@ -145,7 +145,7 @@ class Hub():
         key=None,
         value=None,
         grid=None,
-        verb=None,
+        verb=False,
         **kwdargs,
     ):
         """ Set the dict of input parameters (dparam) or a single param
@@ -485,6 +485,7 @@ class Hub():
             'run',
             'source',
         ]
+
         ar0 = [
             self.__dmodel['name'],
             self.__dmodel['preset'],
@@ -667,7 +668,7 @@ class Hub():
     #       Deep analysis methods
     # ##############################
 
-    def FillCyclesForAll(self, ref=None):
+    def calculate_Cycles(self, ref=None):
         '''
         This function is a wrap-up on GetCycle to do it on all variables.
 
@@ -677,20 +678,31 @@ class Hub():
         '''
 
         leq = ['ode', 'statevar']
+        fields = ['reference',
+                  'period_indexes',
+                  'period_T_intervals',
+                  't_mean_cycle',
+                  'period_T',
+                  'meanval',
+                  'medval',
+                  'stdval',
+                  'minval',
+                  'maxval']
+        Nsys = self.dmisc['dmulti']['shape'][0]
 
-        # Workaround with the grid : reshape the n-dimensional array into
-        # a one-dimensional one, go on each index then reshape as previous
-
-        # print(self.get_dparam(returnas=dict, eqtype=leq).items())
         for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
-            #print(var, np.shape(dic1['value']))
+            self.__dparam[var]['cycles'] = [{k: [] for k in fields} for i in range(Nsys)]
 
-            if ref is None:
-                self.FillCycles(var, var)
-            else:
-                self.FillCycles(var, ref)
+        for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
+            for idx in range(Nsys):
+                if ref is None:
+                    self.__dparam[var]['cycles'][idx]['reference'] = var
+                    self._FillCycles(var, var, idx)
+                else:
+                    self.__dparam[var]['cycles'][idx]['reference'] = ref
+                    self._FillCycles(var, ref, idx)
 
-    def FillCycles(self, var, ref='lambda'):
+    def _FillCycles(self, var, ref='lambda', idx=0):
         '''
         it calculates the cycles properties
         ref is the reference variable on which the time of cycles is determined
@@ -700,31 +712,27 @@ class Hub():
         ref : reference for the oscillations detections
         '''
 
-        # Check if the run did occur
-
         # Get the new dictionnary to edit
         dic = self.__dparam[var]
-        if 'cycles' not in dic.keys():
-            dic['cycles'] = {'reference': ref}
+        dic1 = self.__dparam[var]['cycles'][idx]
 
         # check if reference has already calculated its period
         # the reference has cycle and this cycle has been calculated on itself
-        dic1 = dic['cycles']
         ready = False
         if 'cycles' in self.__dparam[ref].keys():
-            dic2 = self.__dparam[ref]['cycles']
+            dic2 = self.__dparam[ref]['cycles'][idx]
             if (dic2['reference'] == ref and 'period_indexes' in dic2):
                 # We can take the reference as the base
                 ready = True
         # If there is no good reference
         # We calculate it and put
         if not ready:
-            self.findCycles(ref)
-            dic2 = self.__dparam[ref]['cycles']
+            self._findCycles(ref, idx)
+            dic2 = self.__dparam[ref]['cycles'][idx]
 
         for key in ['period_indexes', 'period_T_intervals',
                     't_mean_cycle', 'period_T']:
-            dic1[key] = dic2[key]
+            dic1[key] = copy.deepcopy(dic2[key])
 
         tim = self.__dparam['time']['value']
         dic1['period_T_intervals'] = [[tim[idx[0], 0], tim[idx[1], 0]]
@@ -748,7 +756,7 @@ class Hub():
         dic1['maxval'] = [np.amax(values[idx[0]:idx[1]])
                           for idx in dic1['period_indexes']]
 
-    def findCycles(self, refval):
+    def _findCycles(self, refval, idx=0):
         '''
         Detect all positions of local maximums and the time that is linked
         '''
@@ -756,10 +764,9 @@ class Hub():
         periods = []
         id1 = 1
 
-        self.__dparam[refval]['cycles'] = {}
 
-        dic1 = self.__dparam[refval]['cycles']
-        val = self.__dparam[refval]['value']
+        dic1 = self.__dparam[refval]['cycles'][idx]
+        val = self.__dparam[refval]['value'][:,idx]
 
         # identification loop
         while id1 < len(val) - 2:
@@ -769,11 +776,11 @@ class Hub():
             id1 += 1
 
         # Fill the formalism
-        self.__dparam[refval]['cycles']['period_indexes'] = [
+        self.__dparam[refval]['cycles'][idx]['period_indexes'] = [
             [periods[i], periods[i + 1]] for i in range(len(periods) - 1)
         ]
         tim = self.__dparam['time']['value']
-        dic1 = self.__dparam[refval]['cycles']
+        dic1 = self.__dparam[refval]['cycles'][idx]
         dic1['period_T_intervals'] = [[tim[idx[0]], tim[idx[1]]]
                                       for idx in dic1['period_indexes']]
         dic1['t_mean_cycle'] = [
@@ -786,7 +793,7 @@ class Hub():
     #       Multiple run stats
     # ##############################
 
-    def CalculateStatSensitivity(self):
+    def calculate_StatSensitivity(self):
         '''
         When there are multiple run in parrallel, will associate to each variable
         a dict 'sensibility' in dparam, with statistical measures
@@ -812,7 +819,7 @@ class Hub():
     # ##############################
     #       Convergence toward a point
     # ##############################
-    def ConvergeRate(self, finalpoint):
+    def calculate_ConvergeRate(self, finalpoint):
         '''
         Will calculate how the evolution of the distance of each trajectory to
         the final point.
@@ -830,7 +837,6 @@ class Hub():
         dist = np.linalg.norm(Coords, axis=0)
         t = R['time']['value'][:, 0]
 
-
         # Fit using an exponential ############
         Nsys = self.dmisc['dmulti']['shape'][0]
         ConvergeRate = np.zeros(Nsys)
@@ -844,7 +850,6 @@ class Hub():
                                  w=np.sqrt(dist[:, i]))
                 ConvergeRate[i] = -fit[0]
         return ConvergeRate
-
 
     # ##############################
     #       plotting methods

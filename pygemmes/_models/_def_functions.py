@@ -86,6 +86,8 @@ the will of the firm to ask for such loan
             'func': lambda pi=0, k0=0, k1=0, k2=0: k0 + k1 * np.exp(k2 * pi),
             'com': 'exponential param curve'
         }
+
+        ############ DEFINITIONS OF IR AND I #
         ifromkappa = {
             'func': lambda GDP=0, kappa=0: GDP*kappa,
             'com': 'I deduced from kappa func'
@@ -107,6 +109,8 @@ the will of the firm to ask for such loan
             'func': lambda Ir=0, itself=0, delta=0: Ir - itself * delta,
             'com': 'Capital evolution from investment and depreciation',
         }
+
+        ########### USING B (Kapital Buffer) #
         bfromIr = {
             'func': lambda Ir=0, itself=0, tauK=1: Ir - itself / tauK,
             'com': 'Investment - activation with characteristic time',
@@ -120,9 +124,14 @@ the will of the firm to ask for such loan
         """
 Production functions are the output to input factors.
         """
+        leontievnu = {
+            'func': lambda nu=1,  K=1, L=1, a=1: np.minimum((K/nu, a*L)),
+            'com': 'Leontiev production function based on nu formalism'
+        }
+
         leontiev = {
-            'func': lambda nu=1, b=0.5, K=1, L=1, a=1, A=0: np.minimum((b*K/nu, (1-b)*A*a*L)),
-            'com': 'Leontiev production function'
+            'func': lambda nu=1, b=0.5, K=1, L=1, a=1, A=0: np.minimum((2*b*A*K, 2*(1-b)*a*L)),
+            'com': 'Leontiev production function with A and b'
         }
 
         # CES FUNCTIONS
@@ -151,8 +160,12 @@ Production functions are the output to input factors.
             '''
 Case in which the amount of workers is the optimal one for profit optimisation
             '''
-            Y = {
+            Yfnu = {
                 'func': lambda K=0, nu=1: K/nu,
+                'com': 'Assume full employement, nu formalism'
+            }
+            Y = {
+                'func': lambda K=0, A=0,b=0: 2*b*A*K,
                 'com': 'Assume full employement'
             }
             L = {

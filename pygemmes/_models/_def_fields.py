@@ -357,7 +357,7 @@ _LIBRARY = {
 
         # Diverging Philips
         'phinull': {
-            'value': 0.04,
+            'value': 0.1,
             'definition': 'Unemployment rate with no salary increase',
             'units': '',
         },

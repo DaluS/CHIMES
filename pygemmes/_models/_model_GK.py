@@ -18,6 +18,8 @@ from pygemmes._models._model_G import _LOGICS as _LOGICS0
 from copy import deepcopy
 _LOGICS = deepcopy(_LOGICS0)
 
+
+
 # We write the fields we want to add/modify
 _GK_LOGICS = {
     'ode': {

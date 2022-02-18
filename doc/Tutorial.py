@@ -13,7 +13,7 @@ os.getcwd()
 Always use tab on pgm or hub, and ? on each functions
 '''
 # ########################################################################### #
-# #######################  LEVEL 1 : USER ################################### #
+# %%#####################  LEVEL 1 : USER ################################### #
 # ########################################################################### #
 '''
 A user is someone who do not write his own models, but use the one of others for
@@ -91,7 +91,7 @@ groupsoffields = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['ode', 'st
 # %% STUDY OF CYCLES
 hub = pgm.Hub('GK')
 hub.run()
-hub.FillCyclesForAll(ref='lambda')
+hub.calculate_Cycles(ref='lambda')
 dax4 = hub.plot(mode='cycles', key=['lambda', 'omega', 'd', 'phillips'])
 
 
@@ -171,7 +171,7 @@ hub.run()
 dax = hub.plot()
 
 hub.reinterpolate_dparam(1000)
-hub.CalculateStatSensitivity()
+hub.calculate_StatSensitivity()
 dax = hub.plot(key=['lambda', 'omega'], mode='sensitivity')
 
 
@@ -182,7 +182,7 @@ _DPRESETS = {'SensitivitySimple': {'fields': presetSimple, 'com': ''},
 hub = pgm.Hub('GK', preset='SensitivityCoupled', dpresets=_DPRESETS)
 hub.run()
 hub.reinterpolate_dparam(1000)
-hub.CalculateStatSensitivity()
+hub.calculate_StatSensitivity()
 dax = hub.plot(mode='sensitivity')
 
 # %% BASIN OF ATTRACTIONS ####################################################
@@ -195,7 +195,7 @@ import matplotlib.pyplot as plt
 
 
 # Initialisation of the system with 1000 points in a box
-hub = pgm.Hub('GK-Reduced', preset='default')
+hub = pgm.Hub('GK_Reduced', preset='default')
 
 BasinDomain = {
                 'lambda': {'mu': 0.5,
@@ -225,7 +225,7 @@ finalpoint = {
               }
 
 # We get the convergence rate
-ConvergeRate = hub.ConvergeRate(finalpoint)
+ConvergeRate = hub.calculate_ConvergeRate(finalpoint)
 R = hub.get_dparam(key=[k for k in finalpoint]+['time'], returnas=dict)
 
 
@@ -269,29 +269,48 @@ cbar.ax.set_ylabel(r'$f_{carac}^{stab} (y^{-1})$')
 plt.show()
 
 
+# %% FORKING A LOADED MODEL ##################################################
+hub = pgm.Hub('GK')
+hub2 = hub.copy()
+
+
+# %% SAVING AND LOADING ######################################################
+hub = pgm.Hub('Reduced_GK', preset='default')
+hub.run()
+hub.save()
+
+loaddic = pgm.get_available_output(returnas=dict)
+hub = pgm.load(pgm.get_available_output(returnas=list)[0])[0]
+
+
 # %% EXERCICES ###############################################################
 '''
 Exercise 1 : execute by yourself
     1. Loading library "From scratch", load pygemmes
     2. Access lists get the list of models, the list of solvers
     3. Load a model, then with a preset directly loaded
-    4. change value Run it with different timestep
-    5. change solver Run it with different solvers
-    6. Plots Plot only lambda, then everything but lambda, then with cycles analysis activated
-    7. Exploring dparam structure print all the keys of one field in dparam, then all their values
-    8. Getting dparam values Get the values of omega over time as an array, plot it manually
-    9. Creating multiple process Create a preset with 5 values of the rate of productivity progres
+    4. change value : Run it with different timestep
+    5. change solver : Run it with different solvers
+    6. Plots : Plot only lambda, then everything but lambda, then with cycles analysis activated
+    7. Exploring dparam structure : print all the keys of one field in dparam, then all their values
+    8. Getting dparam values : Get the values of omega over time as an array, plot it manually
+    9. Creating multiple process : Create a preset with 5 values of the rate of productivity progres
+'''
 
+
+# ########################################################################### #
+# %%#####################  LEVEL 2 : MODELLER ############################### #
+# ########################################################################### #
+'''
 Exercise 2 : editing
-    1. Accessing your personal folder find your personal folder where all models are
-    2. Copy-paste a file Copy the file model GK-Reduced, name it GK-CES-Reduced then reload
+    1. Copy-paste a file Copy the file model GK-CES name it GK-NEW then reload
 pygemmes to see if you can load id
-    3. Modify the equations Use the equations for "lambda, omega, d" you find in McIsaac et al,
+    2. Modify the equations Use the equations for "lambda, omega, d" you find in McIsaac et al,
 Minskyan classical growth cycles, Mathematics and Financial Economics with the introduction
 of new parameters in _def_fields
-    4. See the impact of a parameter (1) Do an ensemble of run with different elasticity values
-    5. See the impact on cycles Show the impact of the elasticity value on the cycles
-    6. See the impact on stability Do a stability analysis with different values
+    3. See the impact of a parameter : Do an ensemble of run with different elasticity values
+    4. See the impact on cycles : Show the impact of the elasticity value on the cycles
+    5. See the impact on stability : Do a stability analysis with different values
 
 Exercise 3 : add on github
     1. Create an issue on the github page
@@ -310,7 +329,7 @@ Exercise 3 : add on github
 
 
 listofsolver = pgm.get_available_solvers(returnas=list)
-listofsolver = [listofsolver[i] for i in [0]]#, -2]]
+listofsolver = [listofsolver[i] for i in [0]]
 listofmodels = pgm.get_available_models(returnas=list)
 for model in listofmodels:
     presets = pgm.get_available_models(returnas=dict)[model]['presets']
