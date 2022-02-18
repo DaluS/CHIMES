@@ -37,12 +37,14 @@ def Network_pyvis(hub,
     None.
 
     '''
-
+    ### PREPARE THE DATA
     R = hub.get_dparam(returnas=dict)
 
     ODENodes = deepcopy(hub.dfunc_order['ode'])
     ODENodes.remove('time')
+
     StatevarNodes = deepcopy(hub.dfunc_order['statevar'])
+
     Parameters = deepcopy(hub.dmisc['parameters'])
 
     net = Network(directed=True, height=screensize, width=screensize,
@@ -50,13 +52,13 @@ def Network_pyvis(hub,
 
     for key in ODENodes:
         v = R[key]
-        Title = ''
-        Title += 'Units        :' + v['units']+'<br>'
-        Title += 'Equation     :'+f'd{key}/dt=' + v['source_exp'].replace(
-            'itself', key).replace('lamb', 'lambda')+'<br>'
-        Title += 'definition   :' + v['definition']+'<br>'
-        Title += 'Comment      :' + v['com']+'<br>'
-        Title += 'Dependencies :'+'<br>'
+        Title = f"""
+Units        :{v['units']}<br>
+Equation     :+d{key}/dt={v['source_exp'].replace('itself', key).replace('lamb','lambda')}<br>
+definition   :' + v['definition']+'<br>
+Comment      :' + v['com']+'<br>
+Dependencies :'+'<br>
+"""
         for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
             v1 = hub.dparam[key2]
             Title += '    '+key2 + (8-len(key2))*' ' + \
@@ -117,11 +119,12 @@ def Network_pyvis(hub,
         if 'itself' in v['kargs']:
             net.add_edge(k, k)
 
+    ### DYNAMIC APPEARANCE
     net.set_edge_smooth('dynamic')
-
     net.repulsion(node_distance=100, spring_length=200)
     if custom:
         net.show_buttons(filter_=False)
 
-    # net.prep_notebook()
+
+    #net.prep_notebook()
     net.show(hub.dmodel['name']+'.html')

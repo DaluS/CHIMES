@@ -89,7 +89,7 @@ groupsoffields = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['ode', 'st
 # %% STUDY OF CYCLES
 hub = pgm.Hub('GK')
 hub.run()
-hub.FillCyclesForAll(ref='lambda')
+hub.calculate_Cycles(ref='lambda')
 dax4 = hub.plot(mode='cycles', key=['lambda', 'omega', 'd', 'phillips'])
 
 
@@ -169,7 +169,7 @@ hub.run()
 dax = hub.plot()
 
 hub.reinterpolate_dparam(1000)
-hub.CalculateStatSensitivity()
+hub.calculate_StatSensitivity()
 dax = hub.plot(key=['lambda', 'omega'], mode='sensitivity')
 
 
@@ -180,7 +180,7 @@ _DPRESETS = {'SensitivitySimple': {'fields': presetSimple, 'com': ''},
 hub = pgm.Hub('GK', preset='SensitivityCoupled', dpresets=_DPRESETS)
 hub.run()
 hub.reinterpolate_dparam(1000)
-hub.CalculateStatSensitivity()
+hub.calculate_StatSensitivity()
 dax = hub.plot(mode='sensitivity')
 
 # %% BASIN OF ATTRACTIONS ####################################################
@@ -223,7 +223,7 @@ finalpoint = {
               }
 
 # We get the convergence rate
-ConvergeRate = hub.ConvergeRate(finalpoint)
+ConvergeRate = hub.calculate_ConvergeRate(finalpoint)
 R = hub.get_dparam(key=[k for k in finalpoint]+['time'], returnas=dict)
 
 
