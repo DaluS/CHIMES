@@ -82,11 +82,11 @@ def get_available_fields(returnas=False,showModels=False):
     )
 
 
-def create_preset_from_model_preset(targetmodel,
-                                    outputmodel,
-                                    targetpreset=False,
-                                    targetdpreset=False,
-                                    returnas='hub'):
+def generate_preset_from_model_preset(targetmodel,
+                                      outputmodel,
+                                      targetpreset=False,
+                                      targetdpreset=False,
+                                      returnas='hub'):
     '''
     Open targetmodel, with or without preset/dpreset, and then gives all necessary
     values to outputmodel so that, if they solve the same equations on different approaches,

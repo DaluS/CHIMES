@@ -193,7 +193,7 @@ import matplotlib.pyplot as plt
 
 
 # Initialisation of the system with 1000 points in a box
-hub = pgm.Hub('GK-Reduced', preset='default')
+hub = pgm.Hub('GK_Reduced', preset='default')
 
 BasinDomain = {
                 'lambda': {'mu': 0.5,
@@ -267,6 +267,20 @@ cbar.ax.set_ylabel(r'$f_{carac}^{stab} (y^{-1})$')
 plt.show()
 
 
+# %% FORKING A LOADED MODEL ##################################################
+hub = pgm.Hub('GK')
+hub2 = hub.copy()
+
+
+# %% SAVING AND LOADING ######################################################
+hub = pgm.Hub('Reduced_GK', preset='default')
+hub.run()
+hub.save()
+
+loaddic = pgm.get_available_output(returnas=dict)
+hub = pgm.load(pgm.get_available_output(returnas=list)[0])[0]
+
+
 # %% EXERCICES ###############################################################
 '''
 Exercise 1 : execute by yourself
@@ -312,7 +326,7 @@ Exercise 3 : add on github
 
 
 listofsolver = pgm.get_available_solvers(returnas=list)
-listofsolver = [listofsolver[i] for i in [0]]#, -2]]
+listofsolver = [listofsolver[i] for i in [0]]
 listofmodels = pgm.get_available_models(returnas=list)
 for model in listofmodels:
     presets = pgm.get_available_models(returnas=dict)[model]['presets']
