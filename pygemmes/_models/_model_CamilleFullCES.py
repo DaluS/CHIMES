@@ -1,24 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-DESCRIPTION : This is a Goodwin-Keen Resource model based on extensive variables.
+DESCRIPTION : This is a Goodwin-Keen Resource model based on extensive variables. 
+The Leontiev optimised production function is replaced by a CES.
 TYPICAL BEHAVIOR :
-LINKTOARTICLE: voir Figure 16 du rapport de stage
+LINKTOARTICLE: Green Growth
 
-Created on Thu Jan  20 2022
+Created on Fri Feb  18 2022
 @author: Camille Guittonneau
 """
 
 import numpy as np
+from pygemmes._models import Funcs
 
 # ----------------------------------------------------------------------------
 # We simply do a few modifications on two previous models : we load them as a basis
-from pygemmes._models._model_GK import _LOGICS as _LOGICS0
+from pygemmes._models._model_GKCES import _LOGICS as _LOGICSCES
 from pygemmes._models._model_CamilleMine import _LOGICS as _LOGICSMine
 from copy import deepcopy
 
-# The model is a start of a Goodwin-Keen model
-_LOGICS = deepcopy(_LOGICS0)
+# The model is a start of a Goodwin-Keen model with CES
+_LOGICS = deepcopy(_LOGICSCES)
 
 # We add the mine sector
 for category, dic in _LOGICSMine.items():
@@ -30,19 +32,17 @@ for category, dic in _LOGICSMine.items():
 _LOGICS_COUPLING = {
     # No ODE in mining sector are not modified
     'ode': {
+        # Stock-flow consistency
+        'K_0': Funcs.Kappa.kfromIr,
     },
     # We only modified stock-flux related quantities and production function
     'statevar': {
+        
+        
         # Definition of capital is slightly changed
-        'Kstar': {
-            'func': lambda K=0, Y_R=0, theta=0: (K**theta)*(Y_R**(1-theta)),
+        'K': {
+            'func': lambda K_0=0, Y_R=0, theta=0: (K_0**theta)*(Y_R**(1-theta)),
             'com': 'capital boost from mining', },
-        'Y': {
-            'func': lambda Kstar=0, nu=1: Kstar/nu,
-            'com': 'Leontief optimized production output', },
-        'L': {
-            'func': lambda Kstar=0, nu=1, a=1: Kstar / (nu * a),
-            'com': 'Full instant employement based on capital', },
 
         # A flux of money is paying for ressources
         'Pi': {
@@ -73,7 +73,8 @@ for category, dic in _LOGICS_COUPLING.items():
 
 _PRESETS = {
     'Nomining': {
-        'fields': {'K_R': 0.0001,
+        'fields': {'K_0': 0.0001,
+                   'K_R': 0.0001,
                    'D_R': 0.001,
                    'p_R': 0.1, },
         'com': '',
