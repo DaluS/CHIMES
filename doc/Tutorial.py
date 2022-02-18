@@ -6,6 +6,8 @@ sys.path.insert(0, path)  # we tell python to look at the folder `path`
 """
 import pygemmes as pgm
 import numpy as np
+import os
+os.getcwd()
 
 '''
 Always use tab on pgm or hub, and ? on each functions
