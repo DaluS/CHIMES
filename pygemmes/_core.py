@@ -145,7 +145,7 @@ class Hub():
         key=None,
         value=None,
         grid=None,
-        verb=None,
+        verb=False,
         **kwdargs,
     ):
         """ Set the dict of input parameters (dparam) or a single param
