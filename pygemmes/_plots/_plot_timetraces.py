@@ -341,8 +341,8 @@ def plot_timetraces(
             # Plot of enveloppe (mean-max)
             vmin = cyclvar['minval']
             vmax = cyclvar['maxval']
-            dax[k0].plot(tmcycles, vmin, '--', label='min value')
-            dax[k0].plot(tmcycles, vmax, '--', label='max value')
+            dax[k0].plot(tmcycles, vmin, '*-', label='min value')
+            dax[k0].plot(tmcycles, vmax, '*-', label='max value')
 
             # Plot of the mean value evolution
             meanv = np.array(cyclvar['meanval'])

@@ -18,6 +18,13 @@ from ._plots._plots import _DPLOT
 
 _FROM_USER = False
 
+def _cn(y,n):
+    '''
+    calculate cn fourier coefficients for one cycle, not normalized
+    '''
+    return np.array([np.abs(np.mean(y*np.exp(-1j*2*i*np.pi*np.linspace(0,1,len(y)) ) )) for i in range(10)])
+
+
 
 class Hub():
     """
@@ -668,7 +675,7 @@ class Hub():
     #       Deep analysis methods
     # ##############################
 
-    def calculate_Cycles(self, ref=None):
+    def calculate_Cycles(self, ref=None,n=10):
         '''
         This function is a wrap-up on GetCycle to do it on all variables.
 
@@ -697,12 +704,14 @@ class Hub():
             for idx in range(Nsys):
                 if ref is None:
                     self.__dparam[var]['cycles'][idx]['reference'] = var
-                    self._FillCycles(var, var, idx)
+                    self._FillCycles(var, var, idx,n=n)
                 else:
                     self.__dparam[var]['cycles'][idx]['reference'] = ref
-                    self._FillCycles(var, ref, idx)
+                    self._FillCycles(var, ref, idx,n=n)
 
-    def _FillCycles(self, var, ref='lambda', idx=0):
+        self.reverse_cycles_dic()
+
+    def _FillCycles(self, var, ref='lambda', id=0,n=10):
         '''
         it calculates the cycles properties
         ref is the reference variable on which the time of cycles is determined
@@ -712,23 +721,24 @@ class Hub():
         ref : reference for the oscillations detections
         '''
 
+
         # Get the new dictionnary to edit
         dic = self.__dparam[var]
-        dic1 = self.__dparam[var]['cycles'][idx]
+        dic1 = self.__dparam[var]['cycles'][id]
 
         # check if reference has already calculated its period
         # the reference has cycle and this cycle has been calculated on itself
         ready = False
         if 'cycles' in self.__dparam[ref].keys():
-            dic2 = self.__dparam[ref]['cycles'][idx]
+            dic2 = self.__dparam[ref]['cycles'][id]
             if (dic2['reference'] == ref and 'period_indexes' in dic2):
                 # We can take the reference as the base
                 ready = True
         # If there is no good reference
         # We calculate it and put
         if not ready:
-            self._findCycles(ref, idx)
-            dic2 = self.__dparam[ref]['cycles'][idx]
+            self._findCycles(ref, id)
+            dic2 = self.__dparam[ref]['cycles'][id]
 
         for key in ['period_indexes', 'period_T_intervals',
                     't_mean_cycle', 'period_T']:
@@ -743,7 +753,7 @@ class Hub():
             (t[1] - t[0]) for t in dic1['period_T_intervals']]
 
         # Fill for each the characteristics
-        values = dic['value']
+        values = dic['value'][:,id]
         # print(var, dic1)
         dic1['meanval'] = [np.mean(values[idx[0]:idx[1]])
                            for idx in dic1['period_indexes']]
@@ -755,6 +765,17 @@ class Hub():
                           for idx in dic1['period_indexes']]
         dic1['maxval'] = [np.amax(values[idx[0]:idx[1]])
                           for idx in dic1['period_indexes']]
+
+
+
+        #print([values[idx[0]:idx[1]] for idx in dic1['period_indexes']])
+
+        Coeffs = [_cn(values[idx[0]:idx[1]], n)
+                  for idx in dic1['period_indexes']]
+        dic1['Coeffs'] = [Coeffs[i][1:]/Coeffs[i][1]
+                          for i in range(len(Coeffs))]
+        dic1['Harmonicity'] = [np.sum(Coeffs[i][1:]**2)/np.sum(Coeffs[i]**2)
+                          for i in range(len(Coeffs))]
 
     def _findCycles(self, refval, idx=0):
         '''
@@ -788,6 +809,18 @@ class Hub():
         dic1['period_T'] = [
             (t[1] - t[0]) for t in dic1['period_T_intervals']]
         dic1['reference'] = refval
+
+    def reverse_cycles_dic(self):
+        leq = ['ode', 'statevar']
+        for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
+            c = dic1['cycles']
+            newcycles = {k : [] for k in c[0].keys()}
+            for i in range(len(c)):
+                for k in c[i].keys():
+                    newcycles[k].append(c[i][k])
+
+            self.__dparam[var]['cycles_bykey'] = copy.deepcopy(newcycles)
+
 
     # ##############################
     #       Multiple run stats
