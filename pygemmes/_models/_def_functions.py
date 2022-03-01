@@ -79,7 +79,7 @@ the will of the firm to ask for such loan
 
         # DEFINITION OF kappa
         lin = {
-            'func': lambda pi=0, kappalinConst=0, kappalinSlope=0: kappalinConst + kappalinSlope * pi,
+            'func': lambda pi=0, kappalinConst=0, kappalinSlope=0, kappalinMin=0, kappalinMax=0: np.clip(kappalinConst + kappalinSlope * pi, kappalinMin, kappalinMax),
             'com': 'linear param curve'
         }
         exp = {
@@ -326,18 +326,18 @@ Classic intermediary variables that might be needed
             'com': 'its definition',
         }
         m = {
-            'func': lambda M=0,GDP=1 : M/GDP,
+            'func': lambda M=0, GDP=1: M/GDP,
             'com': 'its definition',
         }
         v = {
-            'func': lambda GDP=0,M=1 : GDP/M,
+            'func': lambda GDP=0, M=1: GDP/M,
             'com': 'its definition (also 1/m)'
-            }
+        }
         t = {
-            'func': lambda itself=0 : itself,
+            'func': lambda itself=0: itself,
             'com': 'time',
-            'initial':0,
-            }
+            'initial': 0,
+        }
 
     class Atmosphere:
         '''

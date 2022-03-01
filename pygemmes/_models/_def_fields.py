@@ -70,7 +70,7 @@ _LIBRARY = {
             'units': 'y',
             'eqtype': 'ode',
         },
-        #'t': {
+        # 't': {
         #    'value': 0,
         #    'definition': 'time inside equations'}
     },
@@ -531,7 +531,7 @@ _LIBRARY = {
             'units': '',
         },
         'kappalinMax': {
-            'value': 3,
+            'value': 0.3,
             'definition': 'Maximum value of kappa (affine)',
             'units': '',
         },
@@ -571,14 +571,14 @@ _LIBRARY = {
             'units': ''
         },
         'M': {
-            'value':1 ,
+            'value': 1,
             'definition': 'amount of money in the system',
             'units': '$'},
-        'm' : {
+        'm': {
             'value': 1,
             'definition': 'money per unit of GDP',
             'units': 'y'},
-        'v' : {
+        'v': {
             'value': 1,
             'definition': 'money circulation speed',
             'units': 'y^{-1}'},

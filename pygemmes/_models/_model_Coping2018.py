@@ -2,7 +2,7 @@
 """
 ABSTRACT : This is the model Coping from Bovari 2018.
 
-TYPICAL BEHAVIOR : 
+TYPICAL BEHAVIOR :
 LINKTOARTICLE : Coping with Collapse: A Stock-Flow Consistent
 Monetary Macrodynamics of Glabal Warming.
 
@@ -13,23 +13,23 @@ Monetary Macrodynamics of Glabal Warming.
 TODO:
  - regler l'inflation pour qu'elle soit comme Coping 2.
  - parametrer tout le bordel
- - verefier unite 
+ - verefier unite
 """
 
 # imports --------------------------------------------------------------
 # packages
+
+# models
+
+# globals --------------------------------------------------------------
+# constants and statevar
 from pygemmes._models import Funcs
 from copy import deepcopy
 import numpy as np
-
-# models
 from pygemmes._models._model_GK import _LOGICS as _LOGICSGK
 from pygemmes._models._model_GK import _PRESETS as _PRESETSGK
 from pygemmes._models._model_Climate_3Layers import _LOGICS as _LOGICSCLIM
 from pygemmes._models._model_Climate_3Layers import  _PRESETS as _PRESETSCLIM
-
-# globals --------------------------------------------------------------
-# constants and statevar
 NU = 2.7
 CONVEXITYCOST = 2.6
 emissionreductionrate_INI = 0.03
@@ -55,7 +55,8 @@ T0_INI = 0.0068
 
 # second order initial conditions
 L_INI = lambda_INI * N_INI
-Abattement_INI = 1 / (1 + ((1 - emissionreductionrate_INI) * Y_INI * CONVEXITYCOST) / (0.001 * Eind_INI * pbackstop_INI * emissionreductionrate_INI ** CONVEXITYCOST * (1 - Dy_INI) ) )
+Abattement_INI = 1 / (1 + ((1 - emissionreductionrate_INI) * Y_INI * CONVEXITYCOST) /
+                      (0.001 * Eind_INI * pbackstop_INI * emissionreductionrate_INI ** CONVEXITYCOST * (1 - Dy_INI)))
 Y0_INI = Y_INI / (1 - Dy_INI) / (1 - Abattement_INI)
 sigmaEm_INI = Eind_INI / (1 - emissionreductionrate_INI) / Y0_INI
 Y_INI2 = (1.-Abattement_INI) * (1.-Dy_INI) * Y0_INI
@@ -83,19 +84,19 @@ del _LOGICS['statevar']['Ir']
 # add plenty of stuff
 _LOGICS_COPING2018 = {
 
-     'ode' : {
+    'ode': {
 
         'N': Funcs.Population.logistic,
         'w': Funcs.Phillips.salaryfromPhillipsNoInflation,
 
         # production group
-        'K':{
+        'K': {
             'func': lambda itself=0., deltad=0., I=0.: I - deltad*itself,
-            'initial' : NU * Y0_INI,
+            'initial': NU * Y0_INI,
             'com': 'Evolution of capital in Coping 2018',
         },
 
-        'D':{
+        'D': {
             'func': lambda Sh=0., K=0., Pi=0., deltad=0., p=0., I=0.: p*I - Pi - p*deltad*K + Sh,
             'initial': d_INI * p_INI * Y_INI,
             'com': 'Evolution of private debt',
@@ -105,10 +106,10 @@ _LOGICS_COPING2018 = {
         'pbackstop': {
             'func': lambda itself=0., deltapbackstop=0.: itself*deltapbackstop,
             'initial': pbackstop_INI,
-            'com' : 'Evolution of the backstop technology price',
+            'com': 'Evolution of the backstop technology price',
         },
-        
-       'pcarbon': { 
+
+        'pcarbon': {
             'func': lambda apc=0., bpc=0., itself=0., pbackstop=0., time=1.: np.minimum(pbackstop, itself*(apc + bpc/(time+1))),
             'initial': pcarbon_INI,
             'com': '',
@@ -117,13 +118,13 @@ _LOGICS_COPING2018 = {
         'sigmaEm': {
             'func': lambda itself=0., gsigmaEm=0.: itself*gsigmaEm,
             'initial': sigmaEm_INI,
-            'com' : 'Evolution of the sigma emission intensity of industries',
+            'com': 'Evolution of the sigma emission intensity of industries',
         },
 
         'gsigmaEm': {
             'func': lambda itself=0., deltagsigmaEm=0.: itself*deltagsigmaEm,
             'initial': gsigmaEm_INI,
-            'com' : 'Evolution of the gsigma emission intensity of industries',
+            'com': 'Evolution of the gsigma emission intensity of industries',
         },
 
         # Emissions group
@@ -133,9 +134,9 @@ _LOGICS_COPING2018 = {
             'com': 'Evolution of land use emissions',
         },
 
-     },
+    },
 
-     'statevar' : {
+    'statevar': {
         'phillips': Funcs.Phillips.lin,
         'kappa': Funcs.Kappa.lin,
         'Sh': Funcs.Shareholding.lin,
@@ -145,12 +146,12 @@ _LOGICS_COPING2018 = {
 
         'DK': {
             'func': lambda Damage=0., fk=0.: fk*Damage,
-            'com' : 'classic DY variable'
+            'com': 'classic DY variable'
         },
 
         'Dy': {
             'func': lambda DK=0., Damage=0.: 1. - (1.-Damage)/(1.-DK),
-            'com' : 'classic DY variable'
+            'com': 'classic DY variable'
         },
 
         'deltad': {
@@ -172,22 +173,22 @@ _LOGICS_COPING2018 = {
         # production group
         'Y': {
             'func': lambda Abattement=0., Dy=0., Y0=0.: (1.-Abattement)*(1.-Dy)*Y0,
-            'com' : 'Yearly Production with climate damage and abatment',
+            'com': 'Yearly Production with climate damage and abatment',
         },
- 
-       'Y0': {
+
+        'Y0': {
             'func': lambda K=0., nu=1.: K / nu,
-            'com' : 'Yearly Production without climate damage and abatment',
+            'com': 'Yearly Production without climate damage and abatment',
         },
-       
-       'L': {
+
+        'L': {
             'func': lambda Nmax=0., Y0=0., a=1.: np.minimum(Nmax, Y0 / a),
-            'com' : '',
+            'com': '',
         },
-       
-       'I': {
+
+        'I': {
             'func': lambda kappa=0, Y=0: kappa * Y,
-            'com' : 'investment function',
+            'com': 'investment function',
         },
 
         'Pi': {
@@ -203,24 +204,24 @@ _LOGICS_COPING2018 = {
         # carbon price group
         'emissionreductionrate': {
             'func': lambda pbackstop=1., convexitycost=2.6, pcarbon=0: np.minimum(1., (pcarbon/pbackstop)**(1./(convexitycost - 1.))),
-            'com' : 'Yearly Production without climate damage and abatment',
+            'com': 'Yearly Production without climate damage and abatment',
         },
 
         'Abattement': {
             'func': lambda sigmaEm=0., pbackstop=0., emissionreductionrate=0., convexitycost=1: 0.001*sigmaEm*pbackstop*(emissionreductionrate**convexitycost)/convexitycost,
-            'com': 'Definition of abatment ratio' ,
+            'com': 'Definition of abatment ratio',
         },
 
         'carbontax': {
             'func': lambda Eind=0., pcarbon=0., conv10to15=0.: pcarbon*Eind*conv10to15,
             'com': 'Carbon tax paid by private sector',
         },
-        
+
         'c': {
             'func': lambda p=0., omega=0.: p * omega,
             'com': '',
         }
-     },
+    },
 }
 
 
@@ -245,7 +246,7 @@ _LOGICS['ode']['a']['initial'] = Y0_INI / L_INI
 _PRESETS = {'coping': {
     'fields': {
         # parameters
-        'n':0.0305,
+        'n': 0.0305,
         'Nmax': 7.056,
         'philinConst': -0.292,
         'philinSlope': 0.469,
@@ -259,6 +260,8 @@ _PRESETS = {'coping': {
         'divlinMax': 0.3,
         'kappalinSlope': 0.575,
         'kappalinConst': 0.0318,
+        'kappalinMin': 0,
+        'kappalinMax': 0.3,
         # see for kappanlinMin and kappalinMax
         'eta': 0.192,
         'convexitycost': CONVEXITYCOST,
@@ -272,7 +275,7 @@ _PRESETS = {'coping': {
         'deltaEland': -0.022,
         'deltagsigmaEm': -0.001,
         'gammaAtmo': 0.0176,
-        'rhoAtmo': 3.681/3.1, # hence climate sensitivity not in the model (3.1)
+        'rhoAtmo': 3.681/3.1,  # hence climate sensitivity not in the model (3.1)
         'F2CO2': 3.681,
         'CAT': 588,
         'CUP': 360,
@@ -284,36 +287,35 @@ _PRESETS = {'coping': {
         'r': 0.01,
         'apc': 0.05,
         'bpc': 0.5,
-        
+
     },
     'com': ' Default run',
     'plots': {
-            'timetrace': [{}],
-            'plotnyaxis': [{'x': 'time',
-                           'y': [['lambda', 'omega'],
-                                 ['d'],
-                                 ['kappa', 'pi'],
-                                 ],
-                            'idx':0,
-                            'title':'',
-                            'lw':1}],
-            'phasespace': [{'x': 'lambda',
-                            'y': 'omega',
-                            'color': 'd',
-                            'idx': 0}],
-            'plot3D': [{'x': 'lambda',
+        'timetrace': [{}],
+        'plotnyaxis': [{'x': 'time',
+                        'y': [['lambda', 'omega'],
+                              ['d'],
+                              ['kappa', 'pi'],
+                              ],
+                        'idx':0,
+                        'title':'',
+                        'lw':1}],
+        'phasespace': [{'x': 'lambda',
                         'y': 'omega',
-                        'z': 'd',
-                        'cinf': 'pi',
-                        'cmap': 'jet',
-                        'index': 0,
-                        'title': ''}],
-            'plotbyunits': [{'title': '',
-                             'lw': 1,       # optional
-                             'idx': 0,      # optional
-                             'color': 'k'},  # optional
-                            ],
-        },
+                        'color': 'd',
+                        'idx': 0}],
+        'plot3D': [{'x': 'lambda',
+                    'y': 'omega',
+                    'z': 'd',
+                    'cinf': 'pi',
+                    'cmap': 'jet',
+                    'index': 0,
+                    'title': ''}],
+        'plotbyunits': [{'title': '',
+                         'lw': 1,       # optional
+                         'idx': 0,      # optional
+                         'color': 'k'},  # optional
+                        ],
     },
+},
 }
-
