@@ -79,7 +79,7 @@ the will of the firm to ask for such loan
 
         # DEFINITION OF kappa
         lin = {
-            'func': lambda pi=0, kappalinConst=0, kappalinSlope=0: kappalinConst + kappalinConst * pi,
+            'func': lambda pi=0, kappalinConst=0, kappalinSlope=0: kappalinConst + kappalinSlope * pi,
             'com': 'linear param curve'
         }
         exp = {
@@ -224,7 +224,7 @@ Productivity is the "human power" in production function, the ponderation of eac
 Shareholding is the share of GDP going from the firm to the shareowner
         """
         lin = {
-            'func': lambda divlinSlope=0, divlinconst=0, pi=0, GDP=0, divlinMin=0, divlinMax=0: np.clip(GDP*(divlinSlope*pi+divlinconst), divlinMin, divlinMax),
+            'func': lambda divlinSlope=0, divlinconst=0, pi=0, GDP=0, divlinMin=0, divlinMax=0: GDP*np.clip((divlinSlope*pi+divlinconst), divlinMin, divlinMax),
             'com': 'lin fit from Coping',
         }
 

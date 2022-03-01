@@ -284,11 +284,6 @@ _LIBRARY = {
             'definition': 'GDP in output quantity',
             'units': 'Units.y^{-1}',
         },
-        'Y0': {
-            'value': 1,
-            'definition': 'Yearly Production without climate damage and abatment',
-            'units': 'Units.y^{-1}',
-        },
         'GDP': {
             'value': 1,
             'definition': 'GDP in output quantity',
@@ -362,7 +357,7 @@ _LIBRARY = {
 
         # Diverging Philips
         'phinull': {
-            'value': 0.1,
+            'value': 0.04,
             'definition': 'Unemployment rate with no salary increase',
             'units': '',
         },
@@ -753,16 +748,6 @@ _LIBRARY = {
             'definition': 'aggregated price of carbon',
             'units': '',
         },
-        'apc': {
-            'value': 0,
-            'definition': 'parameter apc for ex. carbon price',
-            'units': '',
-        },
-        'bpc': {
-            'value': 0,
-            'definition': 'parameter bpc for ex. carbon price',
-            'units': '',
-        },
         'deltapbackstop': {
             'value': -0.005,
             'definition': 'growth rate of backstop price',
@@ -771,11 +756,6 @@ _LIBRARY = {
         'deltapcarbon': {
             'value': 0,
             'definition': 'Growth rate of carbon price',
-            'units': '',
-        },
-        'conv10to15': {
-            'value': 1.160723971/1000,
-            'definition': 'conversion factor',
             'units': '',
         },
         'emissionreductionrate': {
@@ -789,7 +769,7 @@ _LIBRARY = {
             'units': '',
         },
         'convexitycost': {
-            'value': 2.6,
+            'value': 1,
             'definition': 'Convexity of cost function for reduction',
             'units': '',
         },
