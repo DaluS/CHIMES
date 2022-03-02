@@ -29,7 +29,6 @@ def _cn(y,n):
 class Hub():
     """
     MOST IMPORTANT OBJECT FOR THE USER.
-
     given a model name, it will load it and get its logics, presets and associated values.
     It will :
         * identify what are the parameters, the state variables, the differential variables
@@ -39,11 +38,12 @@ class Hub():
     You then access to fields value modification, the structure and properties in the model,
     simulation, plots, deeper analysis...
 
-    * model : string containing the model name
-    * from_user : if you want to use your file or the one provided in pygemmes
-    * preset : name of the preset in the actual dictionnary of preset
-    * dpreset : a dictionnary of preset one can use
-    * verb : print during the load of the model
+    INPUTS :
+    * model : STRING containing the model name
+    * from_user : BOOLEAN if you want to use your file (True) or the one provided in pygemmes (False)
+    * preset : DICTIONNARY name of the preset in the actual dictionnary of preset
+    * dpreset : DICTOFDICTOFDIC a dictionnary of preset one can use (see model creation)
+    * verb : BOOLEAN True for print in terminal
     """
 
     def __init__(
@@ -173,30 +173,19 @@ class Hub():
 
         Typical usage
         -------------
-
-            >>> import pygemmes as pgm
-
-            # Set the dict of param from scratch (no model set)
-            >>> hub = pgm.Hub()
             >>> dparam = {'alpha': 0, 'beta': 1}
             >>> hub.set_dparam(dparam=dparam)
-
-            # The following are 2 equivalent ways of loading a model + preset
-            >>> hub = pgm.Hub('GK-Reduced', preset='default')
 
             >>> hub = pgm.Hub('GK-Reduced')
             >>> hub.set_dparam(preset='default')
 
             # The following 2 syntaxes are equivalent to set a single parameter
-            >>> hub = pgm.Hub('GK-Reduced')
             >>> hub.set_dparam(key='alpha', value=0)    # syntax 1
             >>> hub.set_dparam(alpha=0.1)                 # syntax 2
 
             # The following syntax allows to change several existing parameters
-            >>> hub = pgm.Hub('GK-Reduced')
             >>> dparam_changes = {'alpha': 0., 'delta': 0.}
             >>> hub.set_dparam(**dparam_changes)
-
         """
 
         # ----------------
@@ -517,8 +506,17 @@ class Hub():
 
     def get_summary(self, idx=None):
         """
-        Print a str summary of the solver
+        INTROSPECTION TOOL :
+        Print a str summary of the model, with
+        * Model description
+        * Parameters, their properties and their values
+        * ODE, their properties and their values
+        * Statevar, their properties and their values
 
+        For more precise elements, you can do introspection using hub.get_dparam()
+
+        INPUT :
+        * idx = index of the model you want the value to be shown when there are multiple models in parrallel
         """
 
         print(self.dmodel['description'])
@@ -562,7 +560,9 @@ class Hub():
 
     def get_equations_description(self):
         '''
-        Gives a full description of the model and its equations
+        Gives a full description of the model and its equations, closer to what one
+        would expect in an article.
+        get_Network to get the interactive version
         '''
 
         print('############# DIFFERENTIAL EQUATIONS ###########')
