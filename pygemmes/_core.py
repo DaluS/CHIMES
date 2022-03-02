@@ -601,10 +601,17 @@ class Hub():
             print(' ')
             print(' ')
 
-    def get_Network(self, params=False):
+    def get_Network(self,
+                    filters = (),
+                    auxilliary=False,
+                    screensize=1080,
+                    custom=True,
+                    params=False):
         _Network.Network_pyvis(self,
-                               screensize=1080,
-                               custom=True,
+                               filters = filters,
+                               auxilliary=auxilliary,
+                               screensize=screensize,
+                               custom=custom,
                                plot_params=params)
 
     # ##############################

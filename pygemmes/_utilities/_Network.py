@@ -25,7 +25,6 @@ def find_auxiliary(hub):
         for v2 in [v2 for v2 in v if v2 in impact.keys()]:
             impact[v2] += [k]
 
-    print(f'Auxilliary variables : {[k for k,v in impact.items() if len(v)==0]}')
 
     return kargs, impact
 
@@ -40,7 +39,6 @@ def filter_kargs(hub, filters):
     # Reverse filters if it is a list
     if type(filters) is not tuple:
         filters=tuple(set([k for k in kargs.keys()])-set(filters))
-
     # REMOVE THE KEY
     if type(filters) is tuple:
         for ii in range(len(filters)):
@@ -48,7 +46,7 @@ def filter_kargs(hub, filters):
                 klist = impact[key]
                 for k in klist:  # For each impacted field
                     kargs[k] = kargs[k]+kargs[key]
-                    kargs[k] = [v2 for v2 in kargs[k]]
+                    kargs[k] = list(set([v2 for v2 in kargs[k]]))
         for k, v in kargs.items():
             kargs[k] = [k for k in list(set(v)) if k not in filters]
     return kargs,filters
@@ -99,8 +97,6 @@ def Network_pyvis(hub,
     StatevarNodes = deepcopy(hub.dfunc_order['statevar'])
     Parameters = deepcopy(hub.dmisc['parameters'])
 
-    net = Network(directed=True, height=screensize, width=screensize,
-                  heading=hub.dmodel['name']+' Logical network')
 
     # REMOVE ALL UNNECESSARY ELEMENTS
     if not auxilliary:
@@ -124,6 +120,9 @@ def Network_pyvis(hub,
     for k in StatevarNodes:
         R[k]['kargs']=kargs[k]
 
+
+    net = Network(directed=True, height=screensize, width=screensize,
+                  heading=hub.dmodel['name']+f' Logical network, hidden:{filters}')
 
     for key in ODENodes:
         v = R[key]
@@ -202,7 +201,5 @@ Dependencies :'+'<br>
         net.show_buttons(filter_=False)
 
     # net.prep_notebook()
-    try:
-        net.show('doc/'+hub.dmodel['name']+'.html')
-    except BaseException:
-        net.show(hub.dmodel['name']+'.html')
+
+    net.show(hub.dmodel['name']+'.html')
