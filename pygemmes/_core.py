@@ -830,7 +830,6 @@ class Hub():
         dist = np.linalg.norm(Coords, axis=0)
         t = R['time']['value'][:, 0]
 
-
         # Fit using an exponential ############
         Nsys = self.dmisc['dmulti']['shape'][0]
         ConvergeRate = np.zeros(Nsys)
@@ -845,7 +844,6 @@ class Hub():
                 ConvergeRate[i] = -fit[0]
                 print(ConvergeRate[i])
         return ConvergeRate
-
 
     # ##############################
     #       plotting methods
@@ -865,6 +863,7 @@ class Hub():
 
         for plot, funcplot in _DPLOT.items():
             for argl in tempd.get(plot, []):
+                print(argl)
                 funcplot(self, **argl)
 
     def plot(

@@ -51,7 +51,7 @@ def _plotbyunits(hub, title='', lw=1, idx=0, color='k'):
     vx = R['time']['value'][:, idx]
     units = r'$  '+R['time']['units'].replace('$', '\$')+'  $'
 
-    fig = plt.figure('Plots by units', figsize=(5*Ncol, 3*Nlin))
+    fig = plt.figure(np.random.uniform(0, 10000), figsize=(5*Ncol, 3*Nlin))
 
     dax = {key: plt.subplot(Nlin, Ncol, i+1) for i, key in enumerate(groupsoffields.keys())}
 
@@ -90,7 +90,7 @@ def _plotnyaxis(hub, x='time', y=[[]], idx=0, title='', lw=1):
     '''
     allvarname = [x]+[item for sublist in y for item in sublist]
     R = hub.get_dparam(keys=[allvarname], returnas=dict)
-    fig = plt.figure('NyAxis', figsize=(10, 5))
+    fig = plt.figure(np.random.uniform(0, 1000000), figsize=(10, 5))
     ax = plt.gca()
     p = {}  # dictionnary of curves
 
@@ -169,7 +169,7 @@ def _phasespace(hub, x='omega', y='lambda', color='time', idx=0):
     lc.set_array(t)
     lc.set_linewidth(2)
 
-    fig = plt.figure('Phasespace' + x + ' ' + y + 'for system :' + str(idx),
+    fig = plt.figure(np.random.uniform(0, 10000),
                      figsize=(10, 7))
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
     line = ax.add_collection(lc)
@@ -203,7 +203,7 @@ def _plot3D(hub, x, y, z, cinf, cmap='jet', index=0, title=''):
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
     norm = plt.Normalize(vc.min(), vc.max())
 
-    fig = plt.figure('3D', figsize=(10, 10))
+    fig = plt.figure(np.random.uniform(0, 10000), figsize=(10, 10))
     ax = plt.axes(projection='3d')
     ax.plot(vx,
             vy,
@@ -241,7 +241,7 @@ def Var(hub, key, idx=0, cycles=False, log=False):
     None.
 
     '''
-    plt.figure('key :' + key + '| system idx' + str(idx), figsize=(10, 5))
+    plt.figure(np.random.uniform(0, 10000), figsize=(10, 5))
     fig = plt.gcf()
     ax = plt.gca()
 
