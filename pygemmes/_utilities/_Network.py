@@ -8,7 +8,55 @@ Created on Mon Feb  7 09:46:30 2022
 from pyvis.network import Network
 from copy import deepcopy
 
+
+def find_auxiliary(hub):
+
+    R = hub.get_dparam()
+    kargs = {k: [j.replace('itself', k)
+                 for j in R[k]['kargs']
+                 if j not in hub.dmisc['parameters']]
+             for k in R.keys() if
+             ('kargs' in R[k].keys()
+              and k not in hub.dmisc['dfunc_order']['param'])}
+
+    # SEE WHAT VARIABLE IMPACT WHAT
+    impact = {k: [] for k in kargs.keys()}
+    for k, v in kargs.items():
+        for v2 in [v2 for v2 in v if v2 in impact.keys()]:
+            impact[v2] += [k]
+
+    print(f'Auxilliary variables : {[k for k,v in impact.items() if len(v)==0]}')
+
+    return kargs, impact
+
+
+
+def filter_kargs(hub, filters):
+    '''
+    remove
+    '''
+    kargs, impact = find_auxiliary(hub)
+
+    # Reverse filters if it is a list
+    if type(filters) is not tuple:
+        filters=tuple(set([k for k in kargs.keys()])-set(filters))
+
+    # REMOVE THE KEY
+    if type(filters) is tuple:
+        for ii in range(len(filters)):
+            for key in filters:  # For each key in filters
+                klist = impact[key]
+                for k in klist:  # For each impacted field
+                    kargs[k] = kargs[k]+kargs[key]
+                    kargs[k] = [v2 for v2 in kargs[k]]
+        for k, v in kargs.items():
+            kargs[k] = [k for k in list(set(v)) if k not in filters]
+    return kargs,filters
+
+
 def Network_pyvis(hub,
+                  filters = (),
+                  auxilliary=False,
                   screensize=1080,
                   custom=False,
                   smoothtype='dynamic',
@@ -21,6 +69,8 @@ def Network_pyvis(hub,
     _MODEL : Model name you want to show
     screensize : TYPE, optional
         DESCRIPTION. The default is 1080.
+    auxilliary : Bool, if False they will not be shown
+    filters : list (only the fields kept) or tuple (fields removed)
     custom : TYPE, optional
         DESCRIPTION. The default is False.
     smoothtype :    Possible options: 'dynamic', 'continuous',
@@ -37,18 +87,43 @@ def Network_pyvis(hub,
     None.
 
     '''
-    ### PREPARE THE DATA
+    # PREPARE THE DATA
     R = hub.get_dparam(returnas=dict)
+    kargs, impact = find_auxiliary(hub)
+    kargs,filters = filter_kargs(hub, filters)
+
 
     ODENodes = deepcopy(hub.dfunc_order['ode'])
     ODENodes.remove('time')
 
     StatevarNodes = deepcopy(hub.dfunc_order['statevar'])
-
     Parameters = deepcopy(hub.dmisc['parameters'])
 
     net = Network(directed=True, height=screensize, width=screensize,
                   heading=hub.dmodel['name']+' Logical network')
+
+    # REMOVE ALL UNNECESSARY ELEMENTS
+    if not auxilliary:
+        for key in ODENodes:
+            if not R[key]['isneeded']:
+                ODENodes.remove(key)
+        for key in StatevarNodes:
+            if not R[key]['isneeded']:
+                StatevarNodes.remove(key)
+    for e in filters :
+        for key in [k for k in ODENodes if k==e]:
+            ODENodes.remove(key)
+        for key in [k for k in StatevarNodes if k==e]:
+            StatevarNodes.remove(key)
+        for key in [k for k in Parameters if k==e]:
+            Parameters.remove(key)
+
+    # UPDATE ALL KARGS WITH NEW DICTIONNARY
+    for k in ODENodes:
+        R[k]['kargs']=kargs[k]
+    for k in StatevarNodes:
+        R[k]['kargs']=kargs[k]
+
 
     for key in ODENodes:
         v = R[key]
@@ -110,7 +185,8 @@ Dependencies :'+'<br>
                          shape='ellipse')
 
     listconnect = ODENodes+StatevarNodes
-    if plot_params:listconnect+=Parameters
+    if plot_params:
+        listconnect += Parameters
 
     for k in ODENodes+StatevarNodes:
         v = R[k]
@@ -119,12 +195,14 @@ Dependencies :'+'<br>
         if 'itself' in v['kargs']:
             net.add_edge(k, k)
 
-    ### DYNAMIC APPEARANCE
+    # DYNAMIC APPEARANCE
     net.set_edge_smooth('dynamic')
     net.repulsion(node_distance=100, spring_length=200)
     if custom:
         net.show_buttons(filter_=False)
 
-
-    #net.prep_notebook()
-    net.show(hub.dmodel['name']+'.html')
+    # net.prep_notebook()
+    try:
+        net.show('doc/'+hub.dmodel['name']+'.html')
+    except BaseException:
+        net.show(hub.dmodel['name']+'.html')

@@ -538,7 +538,7 @@ def _get_summary_parameters(hub, idx=None):
     return col2, ar2
 
 
-def _get_summary_functions(hub, idx=None, eqtype=['ode', 'statevar']):
+def _get_summary_functions(hub, idx=None, eqtype=['ode', 'statevar'],isneeded=None):
 
     # ----------------
     # preliminary criterion
@@ -558,13 +558,23 @@ def _get_summary_functions(hub, idx=None, eqtype=['ode', 'statevar']):
     # ----------------
     # get sub-dict of interest
 
-    dparam_sub = hub.get_dparam(
-        returnas=dict,
-        eqtype=eqtype,
-    )
+    if isneeded is not None:
+        dparam_sub = hub.get_dparam(
+            returnas=dict,
+            eqtype=eqtype,
+            isneeded=isneeded
+        )
+    else :
+        dparam_sub = hub.get_dparam(
+            returnas=dict,
+            eqtype=eqtype,
+            isneeded=isneeded
+        )
 
     # ------------------
     # get column headers
+    if isneeded is False :
+        eqtype[0] ='auxilliary '+ eqtype[0]
 
     if large:
         col3 = [

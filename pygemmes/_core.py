@@ -11,19 +11,12 @@ import numpy as np
 
 
 # Library-specific
-from ._utilities import _utils, _class_checks, _class_utility
+from ._utilities import _utils, _class_checks, _class_utility, _cn
 from ._utilities import _Network
 from ._utilities import _solvers, _saveload
 from ._plots._plots import _DPLOT
 
 _FROM_USER = False
-
-def _cn(y,n):
-    '''
-    calculate cn fourier coefficients for one cycle, not normalized
-    '''
-    return np.array([np.abs(np.mean(y*np.exp(-1j*2*i*np.pi*np.linspace(0,1,len(y)) ) )) for i in range(10)])
-
 
 
 class Hub():
@@ -136,6 +129,7 @@ class Hub():
             from_user=from_user,
             verb=verb,
         )
+
 
         # ------------
         # update from preset if relevant
@@ -291,10 +285,10 @@ class Hub():
             - True: pretty-print the chosen parameters
             - False: print nothing
 
-        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype']
+        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype','isneeded']
 
         """
-        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype']
+        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype','isneeded']
         lprint = [
             'parameter', 'value', 'units', 'dimension', 'symbol',
             'type', 'eqtype', 'group', 'comment',
@@ -543,17 +537,26 @@ class Hub():
 
         # ----------
         # functions ODE
-        col3, ar3 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['ode'])
+        col3, ar3 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['ode'],isneeded=True)
 
         # ----------
         # functions Statevar
-        col4, ar4 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['statevar'])
+        col4, ar4 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['statevar'],isneeded=True)
+
+        # ----------
+        # functions ODE
+        col5, ar5 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['ode'],isneeded=False)
+
+        # ----------
+        # functions Statevar
+        col6, ar6 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['statevar'],isneeded=False)
+
 
         # ----------
         # format output
         return _utils._get_summary(
-            lar=[ar0, ar1, ar2, ar3, ar4],
-            lcol=[col0, col1, col2, col3, col4],
+            lar=[ar0, ar1, ar2, ar3, ar4, ar5, ar6],
+            lcol=[col0, col1, col2, col3, col4, col5, col6],
             verb=True,
             returnas=False,
         )
@@ -675,13 +678,15 @@ class Hub():
     #       Deep analysis methods
     # ##############################
 
-    def calculate_Cycles(self, ref=None,n=10):
+    def calculate_Cycles(self, ref=None, n=10):
         '''
         This function is a wrap-up on GetCycle to do it on all variables.
 
         For each variables, it calculates the cycles properties
         ref is the reference variable on which the time of cycles is determined
         by default the variable detect cycles in itself
+
+        n : int, number of harmonics calculated in fourier decomposition
         '''
 
         leq = ['ode', 'statevar']
@@ -704,14 +709,14 @@ class Hub():
             for idx in range(Nsys):
                 if ref is None:
                     self.__dparam[var]['cycles'][idx]['reference'] = var
-                    self._FillCycles(var, var, idx,n=n)
+                    self._FillCycles(var, var, idx, n=n)
                 else:
                     self.__dparam[var]['cycles'][idx]['reference'] = ref
-                    self._FillCycles(var, ref, idx,n=n)
+                    self._FillCycles(var, ref, idx, n=n)
 
         self.reverse_cycles_dic()
 
-    def _FillCycles(self, var, ref='lambda', id=0,n=10):
+    def _FillCycles(self, var, ref='lambda', id=0, n=10):
         '''
         it calculates the cycles properties
         ref is the reference variable on which the time of cycles is determined
@@ -720,7 +725,6 @@ class Hub():
         var : name of the variable we are working on
         ref : reference for the oscillations detections
         '''
-
 
         # Get the new dictionnary to edit
         dic = self.__dparam[var]
@@ -751,9 +755,11 @@ class Hub():
             (t[0] + t[1]) / 2 for t in dic1['period_T_intervals']]
         dic1['period_T'] = [
             (t[1] - t[0]) for t in dic1['period_T_intervals']]
+        dic1['frequency'] = [
+            1/(t[1] - t[0]) for t in dic1['period_T_intervals']]
 
         # Fill for each the characteristics
-        values = dic['value'][:,id]
+        values = dic['value'][:, id]
         # print(var, dic1)
         dic1['meanval'] = [np.mean(values[idx[0]:idx[1]])
                            for idx in dic1['period_indexes']]
@@ -766,8 +772,6 @@ class Hub():
         dic1['maxval'] = [np.amax(values[idx[0]:idx[1]])
                           for idx in dic1['period_indexes']]
 
-
-
         #print([values[idx[0]:idx[1]] for idx in dic1['period_indexes']])
 
         Coeffs = [_cn(values[idx[0]:idx[1]], n)
@@ -775,7 +779,7 @@ class Hub():
         dic1['Coeffs'] = [Coeffs[i][1:]/Coeffs[i][1]
                           for i in range(len(Coeffs))]
         dic1['Harmonicity'] = [np.sum(Coeffs[i][1:]**2)/np.sum(Coeffs[i]**2)
-                          for i in range(len(Coeffs))]
+                               for i in range(len(Coeffs))]
 
     def _findCycles(self, refval, idx=0):
         '''
@@ -785,9 +789,8 @@ class Hub():
         periods = []
         id1 = 1
 
-
         dic1 = self.__dparam[refval]['cycles'][idx]
-        val = self.__dparam[refval]['value'][:,idx]
+        val = self.__dparam[refval]['value'][:, idx]
 
         # identification loop
         while id1 < len(val) - 2:
@@ -814,13 +817,12 @@ class Hub():
         leq = ['ode', 'statevar']
         for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
             c = dic1['cycles']
-            newcycles = {k : [] for k in c[0].keys()}
+            newcycles = {k: [] for k in c[0].keys()}
             for i in range(len(c)):
                 for k in c[i].keys():
                     newcycles[k].append(c[i][k])
 
             self.__dparam[var]['cycles_bykey'] = copy.deepcopy(newcycles)
-
 
     # ##############################
     #       Multiple run stats
