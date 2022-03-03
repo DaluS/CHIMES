@@ -14,6 +14,7 @@ from matplotlib.patches import Rectangle
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from ._plot_timetraces import plot_timetraces
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.gridspec import GridSpec
 
 _LS = [
     (0, ()),
@@ -33,6 +34,70 @@ _LS = [
 matplotlib.rc('xtick', labelsize=15)
 matplotlib.rc('ytick', labelsize=15)
 plt.rcParams.update({'font.size': 15})
+
+
+def plot_variation_rate(hub, varlist):
+    '''
+    For each field in varlist, gives :
+        * the time evolution (y left axist)
+        * the time derivative (y right axis 1)
+        * the growth rate (y right axis 2)
+
+        DIFFERENTIAL VARIABLES ARE NOT WELL TREATED
+    '''
+    R = hub.get_dparam()
+
+    fig = plt.figure()
+    fig.set_size_inches(15, 5*len(varlist))
+    t = R['time']['value'][:, 0]
+    gs = GridSpec(len(varlist), 3)
+
+    # Axis for value and relative growth
+    ax0 = {key: fig.add_subplot(gs[i, 0]) for i, key in enumerate(varlist)}
+    ax02 = {key: ax0[key].twinx() for key in varlist}
+
+    # Axis for derivative and their contributions
+    ax = {key: fig.add_subplot(gs[i, 1:]) for i, key in enumerate(varlist)}
+
+    for key in varlist:
+        # Value
+        ax02[key].plot(t, R[key]['value'][:, 0], c='b')
+
+        ax02[key].set_ylabel(R[key]['symbol'])
+        ax02[key].spines['left'].set_position(('outward',  80))
+        ax02[key].yaxis.tick_left()
+        ax02[key].yaxis.set_label_position('left')
+        ax02[key].spines['left'].set_color('blue')
+        ax02[key].tick_params(axis='y', colors='blue')
+
+        # Log derivate
+        symb = R[key]['symbol'].replace('$', '')
+        label = r'$\dfrac{\dot{'+symb+r'}}{'+symb+'}$'
+
+        ax0[key].plot(t[1:-1], R[key]['time_log_derivate'][1:-1, 0], ls='--', c='g')
+        ax0[key].spines['left'].set_color('green')
+        ax0[key].tick_params(axis='y', colors='green')
+        ax0[key].set_ylabel(label)
+
+        # Derivate
+        ax[key].plot(t[1:-1], R[key]['time_derivate'][1:-1, 0],
+                     c='black', label=r'$\dfrac{d '+symb+r'}{dt}$')
+        ax[key].spines['right'].set_color('black')
+
+        vv = R[key]['partial_contribution']
+        for i, k2 in enumerate(vv.keys()):
+            symb2 = R[k2]['symbol'].replace('$', '')
+            ax[key].plot(t[1:-1], vv[k2][1:-1], ls=_LS[i+2 % len(_LS)],
+                         c='r', label=r'$\dfrac{\partial '+symb+r'}{\partial '+symb2+'}\dot{'+symb2+r'}$')
+        ax[key].yaxis.tick_right()
+        ax[key].yaxis.set_label_position('right')
+        label = r'$\dot{'+R[key]['symbol'].replace('$', '')+r'}$'
+        ax[key].set_ylabel(label)
+
+        ax[key].legend()
+    plt.subplots_adjust(wspace=0, hspace=0)
+    plt.suptitle('')
+    plt.show()
 
 
 def _plotbyunits(hub, title='', lw=1, idx=0, color='k', sharex=True):
