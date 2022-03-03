@@ -72,5 +72,7 @@ _PRESETS = {'default': {
         'T': 1,
         'T0': 0,
     },
-    'com': ' Default run'},
+    'com': ' Default run',
+    'plots': {},
+    },
 }

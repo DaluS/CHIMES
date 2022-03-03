@@ -195,7 +195,7 @@ import matplotlib.pyplot as plt
 
 
 # Initialisation of the system with 1000 points in a box
-hub = pgm.Hub('GK_Reduced', preset='default')
+hub = pgm.Hub('Reduced_GK', preset='default')
 
 BasinDomain = {
                 'lambda': {'mu': 0.5,

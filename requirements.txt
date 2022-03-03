@@ -4,4 +4,3 @@ scipy
 pyvis
 matplotlib
 opencv-python
-rich[jupyter]
