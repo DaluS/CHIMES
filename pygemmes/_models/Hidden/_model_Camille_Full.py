@@ -14,7 +14,7 @@ import numpy as np
 # ----------------------------------------------------------------------------
 # We simply do a few modifications on two previous models : we load them as a basis
 from pygemmes._models._model_GK import _LOGICS as _LOGICS0
-from pygemmes._models._model_CamilleMine import _LOGICS as _LOGICSMine
+from pygemmes._models._model_Camille_Mine import _LOGICS as _LOGICSMine
 from copy import deepcopy
 
 # The model is a start of a Goodwin-Keen model
@@ -73,9 +73,7 @@ for category, dic in _LOGICS_COUPLING.items():
 
 _PRESETS = {
     'Nomining': {
-        'fields': {'K_R': 0.0001,
-                   'D_R': 0.001,
-                   'p_R': 0.1, },
+        'fields': {},
         'com': '',
         'plots': {'plotbyunits': [{'title': '',
                                    'lw': 1,

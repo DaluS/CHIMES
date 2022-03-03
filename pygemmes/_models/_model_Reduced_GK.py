@@ -6,10 +6,13 @@ ABSTRACT: This is a 3 sector model : bank, household, and production.
 * Negociation by philips is impacted by the profit
 * Loans from banks are limited by solvability
 TYPICAL BEHAVIOR : convergent oscillation around a solow point / debt crisis
+
 LINKTOARTICLE : Goodwin, Richard, 1967. ‘A growth cycle’, in:
     Carl Feinstein, editor, Socialism, capitalism
     and economic growth. Cambridge, UK: Cambridge University Press.
+
 Created on Wed Jul 21 15:11:15 2021
+
 @author: Paul Valcke
 """
 
@@ -17,15 +20,6 @@ import numpy as np
 
 # ---------------------------
 # user-defined function order (optional)
-
-
-_FUNC_ORDER = None
-
-
-def omega(itself=0, phillips=0, gamma=0, i=0, pi=0, zphi=1):
-    """ bla bla"""
-    a = itself * phillips * pi**zphi + (gamma-1) * i
-    return a
 
 
 # ---------------------------
@@ -36,16 +30,15 @@ def omega(itself=0, phillips=0, gamma=0, i=0, pi=0, zphi=1):
 _LOGICS = {
     'ode': {
         'lambda': {
-            'func': lambda itself=0, g=0, alpha=0, beta=0: itself * (g - alpha - beta),
-            'com': 'reduced 2variables dynamical expression'
+            'func': lambda itself=0, g=0, alpha=0, n=0: itself * (g - alpha - n),
+            'com': 'reduced 3variables dynamical expression'
         },
         'omega': {
-            'func': omega,  # lambda itself=0, phillips=0: itself * phillips,
-            'com': 'reduced 2variables dynamical expression',
-            # 'initial': 0.8,
+            'func': lambda itself=0, phillips=0, inflation=0, gammai=0, alpha=0: itself * (phillips - (1 - gammai)*inflation-alpha),
+            'com': 'reduced 3variables dynamical expression',
         },
         'd': {
-            'func': lambda itself =0, kappa=0, pi=0, g=0, i=0: kappa - pi - itself*(g+i),
+            'func': lambda itself =0, kappa=0, pi=0, g=0, inflation=0: kappa - pi - itself*(g+inflation),
             'com': 'no solvability in loans'
         }
     },
@@ -63,17 +56,15 @@ _LOGICS = {
             'com': 'Goodwin relative profit',
         },
         'kappa': {
-            'func': lambda k0=0, k1=0, k2=0, pi=0, solvability=0: (k0 + k1 * np.exp(k2 * pi))*solvability,
+            'func': lambda k0=0, k1=0, k2=0, pi=0: k0 + k1 * np.exp(k2 * pi),
             'com': 'Relative GDP investment through relative profit',
         },
-        'solvability': {
-            'func': lambda d=0, nu=1, zsolv=0: (1-d/nu)**zsolv,
-            'com': 'loan dampening if non solvable',
-        },
-        'i': {
+        'inflation': {
             'func': lambda mu=0, eta=0, omega=0: eta*(mu*omega-1),
             'com': 'Markup dynamics',
         },
+    },
+    'param': {
     },
 }
 
@@ -81,4 +72,19 @@ _LOGICS = {
 # ---------------------------
 # List of presets for specific interesting simulations
 
-_PRESETS = {}
+_PRESETS = {'default': {
+    'fields': {
+        'lambda': 0.95,
+        'omega': 0.90,
+        'd': 2,
+        'alpha': 0.02,
+        'n': 0.025,
+        'nu': 3,
+        'delta': .005,
+        'phinull': .04,
+        'k0': -0.0065,
+        'k1': np.exp(-5),
+        'k2': 20,
+        'r': 0.03, },
+    'com': ' Default run'},
+}

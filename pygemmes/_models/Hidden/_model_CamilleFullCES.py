@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-DESCRIPTION : This is a Goodwin-Keen Resource model based on extensive variables. 
+DESCRIPTION : This is a Goodwin-Keen Resource model based on extensive variables.
 The Leontiev optimised production function is replaced by a CES.
 TYPICAL BEHAVIOR :
 LINKTOARTICLE: Green Growth
@@ -16,7 +16,7 @@ from pygemmes._models import Funcs
 # ----------------------------------------------------------------------------
 # We simply do a few modifications on two previous models : we load them as a basis
 from pygemmes._models._model_GKCES import _LOGICS as _LOGICSCES
-from pygemmes._models._model_CamilleMine import _LOGICS as _LOGICSMine
+from pygemmes._models._model_Camille_Mine import _LOGICS as _LOGICSMine
 from copy import deepcopy
 
 # The model is a start of a Goodwin-Keen model with CES
@@ -37,8 +37,8 @@ _LOGICS_COUPLING = {
     },
     # We only modified stock-flux related quantities and production function
     'statevar': {
-        
-        
+
+
         # Definition of capital is slightly changed
         'K': {
             'func': lambda K_0=0, Y_R=0, theta=0: (K_0**theta)*(Y_R**(1-theta)),

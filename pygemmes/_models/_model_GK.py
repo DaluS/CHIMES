@@ -18,6 +18,7 @@ from pygemmes._models._model_G import _LOGICS as _LOGICS0
 from copy import deepcopy
 _LOGICS = deepcopy(_LOGICS0)
 
+
 # We write the fields we want to add/modify
 _GK_LOGICS = {
     'ode': {
@@ -90,10 +91,17 @@ _PRESETS = {
             'convergent oscillations'),
         'plots': {
             'timetrace': [{}],
-            'plotnyaxis': [{'x': 'time',
+            'nyaxis': [{'x': 'time',
                            'y': [['lambda', 'omega'],
                                  ['d'],
                                  ['kappa', 'pi'],
+                                 ],
+                            'idx':0,
+                            'title':'',
+                            'lw':2},
+                           {'x': 'time',
+                           'y': [['K', 'Y', 'I', 'Pi'],
+                                 ['inflation', 'g'],
                                  ],
                             'idx':0,
                             'title':'',
@@ -102,18 +110,22 @@ _PRESETS = {
                             'y': 'omega',
                             'color': 'd',
                             'idx': 0}],
-            'plot3D': [{'x': 'lambda',
+            '3D': [{'x': 'lambda',
                         'y': 'omega',
                         'z': 'd',
                         'cinf': 'pi',
                         'cmap': 'jet',
                         'index': 0,
                         'title': ''}],
-            'plotbyunits': [{'title': '',
-                             'lw': 1,       # optional
+            'byunits': [{'title': '',
+                             'lw': 2,       # optional
                              'idx': 0,      # optional
                              'color': 'k'},  # optional
                             ],
+            'cycles_characteristics': [{'xaxis': 'omega',
+                                        'yaxis': 'lambda',
+                                        'ref': 'lambda'}
+                                       ]
         },
     },
     'crisis': {
@@ -141,30 +153,34 @@ _PRESETS = {
             'convergent oscillations'),
         'plots': {
             'timetrace': [],
-            'plotnyaxis': [{'x': 'time',
-                           'y': [['lambda', 'omega'],
-                                 ['d'],
-                                 ['kappa', 'pi'],
-                                 ],
-                            'idx':0,
-                            'title':'',
-                            'lw':1}],
+            'nyaxis': [{'x': 'time',
+                        'y': [['lambda', 'omega'],
+                              ['d'],
+                              ['kappa', 'pi'],
+                              ],
+                        'idx':0,
+                        'title':'',
+                        'lw':2}],
             'phasespace': [{'x': 'lambda',
                             'y': 'omega',
                             'color': 'd',
                             'idx': 0}],
-            'plot3D': [{'x': 'lambda',
-                        'y': 'omega',
-                        'z': 'd',
-                        'cinf': 'pi',
-                        'cmap': 'jet',
-                        'index': 0,
-                        'title': ''}],
-            'plotbyunits': [{'title': '',
-                             'lw': 1,       # optional
-                             'idx': 0,      # optional
-                             'color': 'k'},  # optional
-                            ],
+            '3D': [{'x': 'lambda',
+                    'y': 'omega',
+                    'z': 'd',
+                    'cinf': 'pi',
+                    'cmap': 'jet',
+                    'index': 0,
+                    'title': ''}],
+            'byunits': [{'title': '',
+                         'lw': 2,       # optional
+                         'idx': 0,      # optional
+                         'color': 'k'},  # optional
+                        ],
+            'cycles_characteristics': [{'xaxis': 'omega',
+                                        'yaxis': 'lambda',
+                                        'ref': 'lambda'}
+                                       ]
         },
     },
 }

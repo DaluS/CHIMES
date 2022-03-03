@@ -11,7 +11,7 @@ import numpy as np
 
 
 # Library-specific
-from ._utilities import _utils, _class_checks, _class_utility
+from ._utilities import _utils, _class_checks, _class_utility, _cn
 from ._utilities import _Network
 from ._utilities import _solvers, _saveload
 from ._plots._plots import _DPLOT
@@ -22,7 +22,6 @@ _FROM_USER = False
 class Hub():
     """
     MOST IMPORTANT OBJECT FOR THE USER.
-
     given a model name, it will load it and get its logics, presets and associated values.
     It will :
         * identify what are the parameters, the state variables, the differential variables
@@ -32,11 +31,12 @@ class Hub():
     You then access to fields value modification, the structure and properties in the model,
     simulation, plots, deeper analysis...
 
-    * model : string containing the model name
-    * from_user : if you want to use your file or the one provided in pygemmes
-    * preset : name of the preset in the actual dictionnary of preset
-    * dpreset : a dictionnary of preset one can use
-    * verb : print during the load of the model
+    INPUTS :
+    * model : STRING containing the model name
+    * from_user : BOOLEAN if you want to use your file (True) or the one provided in pygemmes (False)
+    * preset : DICTIONNARY name of the preset in the actual dictionnary of preset
+    * dpreset : DICTOFDICTOFDIC a dictionnary of preset one can use (see model creation)
+    * verb : BOOLEAN True for print in terminal
     """
 
     def __init__(
@@ -130,6 +130,7 @@ class Hub():
             verb=verb,
         )
 
+
         # ------------
         # update from preset if relevant
         if preset is not None:
@@ -145,7 +146,7 @@ class Hub():
         key=None,
         value=None,
         grid=None,
-        verb=None,
+        verb=False,
         **kwdargs,
     ):
         """ Set the dict of input parameters (dparam) or a single param
@@ -166,30 +167,19 @@ class Hub():
 
         Typical usage
         -------------
-
-            >>> import pygemmes as pgm
-
-            # Set the dict of param from scratch (no model set)
-            >>> hub = pgm.Hub()
             >>> dparam = {'alpha': 0, 'beta': 1}
             >>> hub.set_dparam(dparam=dparam)
-
-            # The following are 2 equivalent ways of loading a model + preset
-            >>> hub = pgm.Hub('GK-Reduced', preset='default')
 
             >>> hub = pgm.Hub('GK-Reduced')
             >>> hub.set_dparam(preset='default')
 
             # The following 2 syntaxes are equivalent to set a single parameter
-            >>> hub = pgm.Hub('GK-Reduced')
             >>> hub.set_dparam(key='alpha', value=0)    # syntax 1
             >>> hub.set_dparam(alpha=0.1)                 # syntax 2
 
             # The following syntax allows to change several existing parameters
-            >>> hub = pgm.Hub('GK-Reduced')
             >>> dparam_changes = {'alpha': 0., 'delta': 0.}
             >>> hub.set_dparam(**dparam_changes)
-
         """
 
         # ----------------
@@ -295,10 +285,10 @@ class Hub():
             - True: pretty-print the chosen parameters
             - False: print nothing
 
-        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype']
+        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype','isneeded']
 
         """
-        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype']
+        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype','isneeded']
         lprint = [
             'parameter', 'value', 'units', 'dimension', 'symbol',
             'type', 'eqtype', 'group', 'comment',
@@ -485,6 +475,7 @@ class Hub():
             'run',
             'source',
         ]
+
         ar0 = [
             self.__dmodel['name'],
             self.__dmodel['preset'],
@@ -509,8 +500,17 @@ class Hub():
 
     def get_summary(self, idx=None):
         """
-        Print a str summary of the solver
+        INTROSPECTION TOOL :
+        Print a str summary of the model, with
+        * Model description
+        * Parameters, their properties and their values
+        * ODE, their properties and their values
+        * Statevar, their properties and their values
 
+        For more precise elements, you can do introspection using hub.get_dparam()
+
+        INPUT :
+        * idx = index of the model you want the value to be shown when there are multiple models in parrallel
         """
 
         print(self.dmodel['description'])
@@ -537,24 +537,35 @@ class Hub():
 
         # ----------
         # functions ODE
-        col3, ar3 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['ode'])
+        col3, ar3 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['ode'],isneeded=True)
 
         # ----------
         # functions Statevar
-        col4, ar4 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['statevar'])
+        col4, ar4 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['statevar'],isneeded=True)
+
+        # ----------
+        # functions ODE
+        col5, ar5 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['ode'],isneeded=False)
+
+        # ----------
+        # functions Statevar
+        col6, ar6 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['statevar'],isneeded=False)
+
 
         # ----------
         # format output
         return _utils._get_summary(
-            lar=[ar0, ar1, ar2, ar3, ar4],
-            lcol=[col0, col1, col2, col3, col4],
+            lar=[ar0, ar1, ar2, ar3, ar4, ar5, ar6],
+            lcol=[col0, col1, col2, col3, col4, col5, col6],
             verb=True,
             returnas=False,
         )
 
     def get_equations_description(self):
         '''
-        Gives a full description of the model and its equations
+        Gives a full description of the model and its equations, closer to what one
+        would expect in an article.
+        get_Network to get the interactive version
         '''
 
         print('############# DIFFERENTIAL EQUATIONS ###########')
@@ -590,10 +601,17 @@ class Hub():
             print(' ')
             print(' ')
 
-    def get_Network(self, params=False):
+    def get_Network(self,
+                    filters = (),
+                    auxilliary=False,
+                    screensize=1080,
+                    custom=True,
+                    params=False):
         _Network.Network_pyvis(self,
-                               screensize=1080,
-                               custom=True,
+                               filters = filters,
+                               auxilliary=auxilliary,
+                               screensize=screensize,
+                               custom=custom,
                                plot_params=params)
 
     # ##############################
@@ -667,30 +685,45 @@ class Hub():
     #       Deep analysis methods
     # ##############################
 
-    def FillCyclesForAll(self, ref=None):
+    def calculate_Cycles(self, ref=None, n=10):
         '''
         This function is a wrap-up on GetCycle to do it on all variables.
 
         For each variables, it calculates the cycles properties
         ref is the reference variable on which the time of cycles is determined
         by default the variable detect cycles in itself
+
+        n : int, number of harmonics calculated in fourier decomposition
         '''
 
         leq = ['ode', 'statevar']
+        fields = ['reference',
+                  'period_indexes',
+                  'period_T_intervals',
+                  't_mean_cycle',
+                  'period_T',
+                  'meanval',
+                  'medval',
+                  'stdval',
+                  'minval',
+                  'maxval']
+        Nsys = self.dmisc['dmulti']['shape'][0]
 
-        # Workaround with the grid : reshape the n-dimensional array into
-        # a one-dimensional one, go on each index then reshape as previous
-
-        # print(self.get_dparam(returnas=dict, eqtype=leq).items())
         for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
-            #print(var, np.shape(dic1['value']))
+            self.__dparam[var]['cycles'] = [{k: [] for k in fields} for i in range(Nsys)]
 
-            if ref is None:
-                self.FillCycles(var, var)
-            else:
-                self.FillCycles(var, ref)
+        for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
+            for idx in range(Nsys):
+                if ref is None:
+                    self.__dparam[var]['cycles'][idx]['reference'] = var
+                    self._FillCycles(var, var, idx, n=n)
+                else:
+                    self.__dparam[var]['cycles'][idx]['reference'] = ref
+                    self._FillCycles(var, ref, idx, n=n)
 
-    def FillCycles(self, var, ref='lambda'):
+        self.reverse_cycles_dic()
+
+    def _FillCycles(self, var, ref='lambda', id=0, n=10):
         '''
         it calculates the cycles properties
         ref is the reference variable on which the time of cycles is determined
@@ -700,31 +733,27 @@ class Hub():
         ref : reference for the oscillations detections
         '''
 
-        # Check if the run did occur
-
         # Get the new dictionnary to edit
         dic = self.__dparam[var]
-        if 'cycles' not in dic.keys():
-            dic['cycles'] = {'reference': ref}
+        dic1 = self.__dparam[var]['cycles'][id]
 
         # check if reference has already calculated its period
         # the reference has cycle and this cycle has been calculated on itself
-        dic1 = dic['cycles']
         ready = False
         if 'cycles' in self.__dparam[ref].keys():
-            dic2 = self.__dparam[ref]['cycles']
+            dic2 = self.__dparam[ref]['cycles'][id]
             if (dic2['reference'] == ref and 'period_indexes' in dic2):
                 # We can take the reference as the base
                 ready = True
         # If there is no good reference
         # We calculate it and put
         if not ready:
-            self.findCycles(ref)
-            dic2 = self.__dparam[ref]['cycles']
+            self._findCycles(ref, id)
+            dic2 = self.__dparam[ref]['cycles'][id]
 
         for key in ['period_indexes', 'period_T_intervals',
                     't_mean_cycle', 'period_T']:
-            dic1[key] = dic2[key]
+            dic1[key] = copy.deepcopy(dic2[key])
 
         tim = self.__dparam['time']['value']
         dic1['period_T_intervals'] = [[tim[idx[0], 0], tim[idx[1], 0]]
@@ -733,9 +762,11 @@ class Hub():
             (t[0] + t[1]) / 2 for t in dic1['period_T_intervals']]
         dic1['period_T'] = [
             (t[1] - t[0]) for t in dic1['period_T_intervals']]
+        dic1['frequency'] = [
+            1/(t[1] - t[0]) for t in dic1['period_T_intervals']]
 
         # Fill for each the characteristics
-        values = dic['value']
+        values = dic['value'][:, id]
         # print(var, dic1)
         dic1['meanval'] = [np.mean(values[idx[0]:idx[1]])
                            for idx in dic1['period_indexes']]
@@ -748,7 +779,16 @@ class Hub():
         dic1['maxval'] = [np.amax(values[idx[0]:idx[1]])
                           for idx in dic1['period_indexes']]
 
-    def findCycles(self, refval):
+        #print([values[idx[0]:idx[1]] for idx in dic1['period_indexes']])
+
+        Coeffs = [_cn(values[idx[0]:idx[1]], n)
+                  for idx in dic1['period_indexes']]
+        dic1['Coeffs'] = [Coeffs[i][1:]/Coeffs[i][1]
+                          for i in range(len(Coeffs))]
+        dic1['Harmonicity'] = [np.sum(Coeffs[i][1:]**2)/np.sum(Coeffs[i]**2)
+                               for i in range(len(Coeffs))]
+
+    def _findCycles(self, refval, idx=0):
         '''
         Detect all positions of local maximums and the time that is linked
         '''
@@ -756,10 +796,8 @@ class Hub():
         periods = []
         id1 = 1
 
-        self.__dparam[refval]['cycles'] = {}
-
-        dic1 = self.__dparam[refval]['cycles']
-        val = self.__dparam[refval]['value']
+        dic1 = self.__dparam[refval]['cycles'][idx]
+        val = self.__dparam[refval]['value'][:, idx]
 
         # identification loop
         while id1 < len(val) - 2:
@@ -769,11 +807,11 @@ class Hub():
             id1 += 1
 
         # Fill the formalism
-        self.__dparam[refval]['cycles']['period_indexes'] = [
+        self.__dparam[refval]['cycles'][idx]['period_indexes'] = [
             [periods[i], periods[i + 1]] for i in range(len(periods) - 1)
         ]
         tim = self.__dparam['time']['value']
-        dic1 = self.__dparam[refval]['cycles']
+        dic1 = self.__dparam[refval]['cycles'][idx]
         dic1['period_T_intervals'] = [[tim[idx[0]], tim[idx[1]]]
                                       for idx in dic1['period_indexes']]
         dic1['t_mean_cycle'] = [
@@ -782,11 +820,22 @@ class Hub():
             (t[1] - t[0]) for t in dic1['period_T_intervals']]
         dic1['reference'] = refval
 
+    def reverse_cycles_dic(self):
+        leq = ['ode', 'statevar']
+        for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
+            c = dic1['cycles']
+            newcycles = {k: [] for k in c[0].keys()}
+            for i in range(len(c)):
+                for k in c[i].keys():
+                    newcycles[k].append(c[i][k])
+
+            self.__dparam[var]['cycles_bykey'] = copy.deepcopy(newcycles)
+
     # ##############################
     #       Multiple run stats
     # ##############################
 
-    def CalculateStatSensitivity(self):
+    def calculate_StatSensitivity(self):
         '''
         When there are multiple run in parrallel, will associate to each variable
         a dict 'sensibility' in dparam, with statistical measures
@@ -812,7 +861,7 @@ class Hub():
     # ##############################
     #       Convergence toward a point
     # ##############################
-    def ConvergeRate(self, finalpoint):
+    def calculate_ConvergeRate(self, finalpoint):
         '''
         Will calculate how the evolution of the distance of each trajectory to
         the final point.
@@ -842,7 +891,6 @@ class Hub():
                                  1,
                                  w=np.sqrt(dist[:, i]))
                 ConvergeRate[i] = -fit[0]
-                print(ConvergeRate[i])
         return ConvergeRate
 
     # ##############################
@@ -860,6 +908,8 @@ class Hub():
         if preset is None:
             preset = self.dmodel['preset']
         tempd = self.dmodel['presets'][preset]['plots']
+
+        #print(tempd)
 
         for plot, funcplot in _DPLOT.items():
             for argl in tempd.get(plot, []):

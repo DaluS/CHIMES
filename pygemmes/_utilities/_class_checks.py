@@ -41,6 +41,7 @@ _LEQTYPES = ['ode', 'pde', 'statevar', 'param', 'undeclared']
 _LEXTRAKEYS = [
     'func', 'kargs', 'args', 'initial', 'grid', 'multi_ind',
     'source_kargs', 'source_exp', 'source_name', 'isneeded',
+    'cycles', 'cycles_bykey'
 ]
 
 
@@ -120,8 +121,7 @@ def load_model(model=None, dmulti=None, verb=None, from_user=None):
     # -------------
     # check inputs
 
-
-    dmodels = _models._get_DMODEL(from_user = from_user)[1]
+    dmodels = _models._get_DMODEL(from_user=from_user)[1]
 
     if model in dmodels.keys():
         # Get from known models
@@ -250,7 +250,7 @@ def _check_dmodel_preset(dmodel=None):
             "The following presets are non-valid:\n"
             + "\n".join(lstr)
         )
-        raise Exception(msg)
+        #raise Exception(msg)
 
 
 # #############################################################################

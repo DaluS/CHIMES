@@ -320,12 +320,13 @@ def plot_timetraces(
                                  V['mean'] + V['stdv'], alpha=0.4, color='r', label=r'$\mu \pm \sigma$')
 
         elif mode == 'cycles':
+            if idx is None: idx=0
             allvars = hub.get_dparam(returnas=dict)
             y = allvars[k0]['value'][:, 0]
             t = allvars['time']['value']
 
             dax[k0].plot(t, y, c='k')
-            cyclvar = allvars[k0]['cycles']
+            cyclvar = allvars[k0]['cycles'][idx]
             tmcycles = cyclvar['t_mean_cycle']
 
             # Plot of each period by a rectangle
@@ -340,8 +341,8 @@ def plot_timetraces(
             # Plot of enveloppe (mean-max)
             vmin = cyclvar['minval']
             vmax = cyclvar['maxval']
-            dax[k0].plot(tmcycles, vmin, '--', label='min value')
-            dax[k0].plot(tmcycles, vmax, '--', label='max value')
+            dax[k0].plot(tmcycles, vmin, '*-', label='min value')
+            dax[k0].plot(tmcycles, vmax, '*-', label='max value')
 
             # Plot of the mean value evolution
             meanv = np.array(cyclvar['meanval'])
