@@ -660,6 +660,11 @@ _LIBRARY = {
 
 
     'Coping-Damages': {
+        'deltad': {
+            'value': 0.005,
+            'definition': 'Rate of capital depletion with CC',
+            'units': 'y^{-1}',
+        },
         'Dy': {
             'value': 0,
             'definition': 'Damage on production',
@@ -667,7 +672,7 @@ _LIBRARY = {
         },
         'DK': {
             'value': 0,
-            'definition': "intermediary damage on capital",
+            'definition': "Intermediary damage on capital",
             'units': '',
         },
         'Damage': {
@@ -750,7 +755,17 @@ _LIBRARY = {
         },
         'pcarbon': {
             'value': 100,
-            'definition': 'aggregated price of carbon',
+            'definition': 'aggregated real price of carbon',
+            'units': '',
+        },
+        'pcarbon_pot': {
+            'value': 100,
+            'definition': 'aggregated potential price of carbon',
+            'units': '',
+        },
+        'carbontax': {
+            'value': 100,
+            'definition': 'aggregated carbon tax paid by private sector',
             'units': '',
         },
         'apc': {

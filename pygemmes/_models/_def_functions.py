@@ -368,7 +368,7 @@ Classic intermediary variables that might be needed
             '''
 
             CO2AT = {
-                'func': lambda Emission=0, phi12=0, CO2UP=0, CUP=1, CAT=1, itself = 0: Emission - phi12*itself + phi12*CAT/CUP*CO2UP,
+                'func': lambda Emission=0, phi12=0, CO2UP=0, CUP=1, CAT=1, itself = 0: (1./3.666)*Emission - phi12*itself + phi12*CAT/CUP*CO2UP, # 1./3.666 is to convert from CO2 to C
                 'com': '3-Layer dynamics (Atmosphere)',
             }
             CO2UP = {
