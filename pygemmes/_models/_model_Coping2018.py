@@ -93,7 +93,9 @@ from pygemmes._models._model_Climate_3Layers import  _PRESETS as _PRESETSCLIM
 
 # second order initial conditions --------------------------------------
 L_INI = lambda_INI * N_INI
-Abattement_INI = 1./(1. + ((1. - emissionreductionrate_INI)*Y_INI*CONVEXITYCOST)/(0.001*Eind_INI*pbackstop_INI*emissionreductionrate_INI**CONVEXITYCOST*(1. - Dy_INI)))
+Abattement_INI = 1./(1. + ((1. - emissionreductionrate_INI)*Y_INI*     \
+    CONVEXITYCOST)/(0.001*Eind_INI*pbackstop_INI*                      \
+    emissionreductionrate_INI**CONVEXITYCOST*(1. - Dy_INI)))
 Y0_INI = Y_INI/(1. - Dy_INI)/(1. - Abattement_INI)
 sigmaEm_INI = Eind_INI/(1. - emissionreductionrate_INI)/Y0_INI
 Y_INI2 = (1. - Abattement_INI)*(1. - Dy_INI)*Y0_INI
@@ -127,7 +129,7 @@ _LOGICS_COPING2018 = {
             'func': lambda itself=0., deltad=0., I=0.:I - deltad*itself,
             'initial': NU * Y0_INI,
             'com': 'Evolution def. in Eq. (7) in Bovari2018',
-            'units': 'T$_t0',
+            'units': 'T$_{t0}',
             'definition':'Monetary Capital', 
         },
         'D': {
@@ -142,19 +144,19 @@ _LOGICS_COPING2018 = {
             'func': lambda itself=0., deltapbackstop=0.:itself*deltapbackstop,
             'initial': pbackstop_INI,
             'com': 'Exogenous Evolution is implicitely given in Bovari2018',
-            'units': '$_t0',
+            'units': '$_{t0}',
         },
         'pcarbon_pot': {
             'func': lambda apc=0., bpc=0., itself=0., time=1.:itself*(apc + bpc/(time + 1.)),
             'initial': pcarbon_INI,
             'com': 'Evolution of carbon price Eq. (38) in Bovari2018',
-            'units': '$_t0',
+            'units': '$_{t0}',
         },
         'sigmaEm': {
             'func': lambda itself=0., gsigmaEm=0.: itself*gsigmaEm,
             'initial': sigmaEm_INI,
             'com': 'Evolution of sigma in Eq. (17) in Bovari2018',
-            'units': 'GtCO2/T$_t0',
+            'units': 'GtCO2/T$_{t0}',
         },
         'gsigmaEm': {
             'func': lambda itself=0., deltagsigmaEm=0.:itself*deltagsigmaEm,
@@ -211,13 +213,13 @@ _LOGICS_COPING2018 = {
         'Y': {
             'func': lambda Abattement=0., Dy=0., Y0=0.:(1. - Abattement)*(1. - Dy)*Y0,
             'com': 'Defined in Eq. (2) in Bovari2018',
-            'units': 'T$_t0/y',
+            'units': 'T$_ {t0}/y',
             'definition': 'Yearly Production with impacts',
         },
         'Y0': {
             'func': lambda K=0., nu=1.:K / nu,
             'com': 'Definifiotn in Eq. (1) in Bovari2018',
-            'units': 'T$_t0/y',
+            'units': 'T$_{t0}/y',
             'definition': 'Yearly Production without impacts',
         },
         'L': {
@@ -228,7 +230,7 @@ _LOGICS_COPING2018 = {
             'func': lambda kappa=0, Y=0:kappa*Y, 
             'com': 'Defined in Eq. (6) in Bovari2018',
             'definition': 'Investment in capital',
-            'units': 'T$_t0/y',
+            'units': 'T$_{t0}/y',
         },
         'Pi': {
             'func': lambda GDP=0., w=0., L=0., r=0., D=0., p=0., carbontax=0., deltad=0., K=0.:GDP - w*L - r*D - p*carbontax - p*deltad*K,
@@ -251,7 +253,7 @@ _LOGICS_COPING2018 = {
             'func': lambda pcarbon_pot=0., pbackstop=0.:np.minimum(pcarbon_pot, pbackstop),
             'definition': 'Real carbon price as the minimum between pcarbon_pot and pbackstop',
             'com' : 'The carbon price used in emissionreductionrate',
-            'units': '$_t0/tCO2',
+            'units': '$_{t0}/tCO2',
         },
         'Abattement': {
             'func': lambda sigmaEm=0., pbackstop=0., emissionreductionrate=0., convexitycost=1.:0.001*sigmaEm*pbackstop*(emissionreductionrate**convexitycost)/convexitycost,
@@ -284,9 +286,9 @@ _LOGICS['statevar']['Sh']['units'] = 'T$/y'
 _LOGICS['statevar']['F']['units'] = 'W/m^2'
 _LOGICS['statevar']['GDP']['units'] = 'T$/y'
 _LOGICS['ode']['p']['units'] = ''
-_LOGICS['ode']['p']['definition'] = 'Normalized price of good (T$/T$_t0)'
+_LOGICS['ode']['p']['definition'] = 'Normalized price of good (T$/T$_{t0})'
 _LOGICS['ode']['w']['units'] = 'T$/Humans/y'
-_LOGICS['ode']['a']['units'] = 'T$_t0/Humans/y'
+_LOGICS['ode']['a']['units'] = 'T$_{t0}/Humans/y'
 
 # presets --------------------------------------------------------------
 # default value
@@ -314,7 +316,7 @@ fields = {
         'divlinconst': DIVLINCONST,
         'divlinSlope': DIVLINSLOPE,
         'divlinMin': DIVLINMIN,
-        'divlinMax': DIVLINMIN,
+        'divlinMax': DIVLINMAX,
         'kappalinSlope': KAPPALINSLOPE,
         'kappalinConst': KAPPALINCONST,
         'kappalinMin': KAPPALINMIN,
