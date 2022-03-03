@@ -60,8 +60,6 @@ Abattement_INI = 1 / (1 + ((1 - emissionreductionrate_INI) * Y_INI * CONVEXITYCO
 Y0_INI = Y_INI / (1 - Dy_INI) / (1 - Abattement_INI)
 sigmaEm_INI = Eind_INI / (1 - emissionreductionrate_INI) / Y0_INI
 Y_INI2 = (1.-Abattement_INI) * (1.-Dy_INI) * Y0_INI
-print(Y_INI2)
-
 
 # local functions ------------------------------------------------------
 
@@ -109,10 +107,10 @@ _LOGICS_COPING2018 = {
             'com': 'Evolution of the backstop technology price',
         },
 
-        'pcarbon': {
-            'func': lambda apc=0., bpc=0., itself=0., pbackstop=0., time=1.: np.minimum(pbackstop, itself*(apc + bpc/(time+1))),
+        'pcarbon_pot': {
+            'func': lambda apc=0., bpc=0., itself=0., time=1.: itself*(apc + bpc/(time+1)),
             'initial': pcarbon_INI,
-            'com': '',
+            'com': 'Potential carbon price',
         },
 
         'sigmaEm': {
@@ -205,6 +203,11 @@ _LOGICS_COPING2018 = {
         'emissionreductionrate': {
             'func': lambda pbackstop=1., convexitycost=2.6, pcarbon=0: np.minimum(1., (pcarbon/pbackstop)**(1./(convexitycost - 1.))),
             'com': 'Yearly Production without climate damage and abatment',
+        },
+
+        'pcarbon': {
+            'func': lambda pcarbon_pot=0., pbackstop=0.: np.minimum(pcarbon_pot, pbackstop),
+            'com': 'Real carbon price',
         },
 
         'Abattement': {
