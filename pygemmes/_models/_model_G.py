@@ -101,7 +101,7 @@ _PRESETS = {
             'convergent oscillations'),
         'plots': {
             'timetrace': [{}],
-            'plotnyaxis': [{'x': 'time',
+            'nyaxis': [{'x': 'time',
                            'y': [['lambda', 'omega'],
                                  ['K'],
                                  ],
@@ -112,14 +112,14 @@ _PRESETS = {
                             'y': 'omega',
                             'color': 'time',
                             'idx': 0}],
-            'plot3D': [{'x': 'lambda',
+            '3D': [{'x': 'lambda',
                         'y': 'omega',
                         'z': 'time',
                         'cinf': 'pi',
                         'cmap': 'jet',
                         'index': 0,
                         'title': ''}],
-            'plotbyunits': [],
+            'byunits': [],
         },
     },
     'many-orbits': {
@@ -138,14 +138,14 @@ _PRESETS = {
         },
         'com': (
             'Shows many trajectories'),
-        'plots': {
+        's': {
             'timetrace': [{'keys': ['lambda', 'omega']}],
-            'plotnyaxis': [],
+            'nyaxis': [],
             'phasespace': [{'x': 'lambda',
                            'y': 'omega',
                             'idx': 0}],
-            'plot3D': [],
-            'plotbyunits': [],
+            '3D': [],
+            'byunits': [],
         },
     },
 }

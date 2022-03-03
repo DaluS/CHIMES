@@ -80,10 +80,10 @@ _PRESETS = {
         'com': (''),
         'plots': {
             'timetrace': [{}],
-            'plotnyaxis': [{}],
+            'nyaxis': [{}],
             'phasespace': [{}],
-            'plot3D': [{}],
-            'plotbyunits': [],
+            '3D': [{}],
+            'byunits': [],
         },
     },
 }

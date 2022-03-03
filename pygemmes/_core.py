@@ -909,6 +909,8 @@ class Hub():
             preset = self.dmodel['preset']
         tempd = self.dmodel['presets'][preset]['plots']
 
+        #print(tempd)
+
         for plot, funcplot in _DPLOT.items():
             for argl in tempd.get(plot, []):
                 funcplot(self, **argl)

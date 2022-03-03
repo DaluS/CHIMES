@@ -91,7 +91,7 @@ _PRESETS = {
             'convergent oscillations'),
         'plots': {
             'timetrace': [{}],
-            'plotnyaxis': [{'x': 'time',
+            'nyaxis': [{'x': 'time',
                            'y': [['lambda', 'omega'],
                                  ['d'],
                                  ['kappa', 'pi'],
@@ -110,18 +110,22 @@ _PRESETS = {
                             'y': 'omega',
                             'color': 'd',
                             'idx': 0}],
-            'plot3D': [{'x': 'lambda',
+            '3D': [{'x': 'lambda',
                         'y': 'omega',
                         'z': 'd',
                         'cinf': 'pi',
                         'cmap': 'jet',
                         'index': 0,
                         'title': ''}],
-            'plotbyunits': [{'title': '',
+            'byunits': [{'title': '',
                              'lw': 2,       # optional
                              'idx': 0,      # optional
                              'color': 'k'},  # optional
                             ],
+            'cycles_characteristics': [{'xaxis': 'omega',
+                                        'yaxis': 'lambda',
+                                        'ref': 'lambda'}
+                                       ]
         },
     },
     'crisis': {
