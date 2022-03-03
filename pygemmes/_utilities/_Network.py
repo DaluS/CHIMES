@@ -95,8 +95,8 @@ def Network_pyvis(hub,
     ODENodes.remove('time')
 
     StatevarNodes = deepcopy(hub.dfunc_order['statevar'])
-    Parameters = deepcopy(hub.dmisc['parameters'])
-
+    Parameters = deepcopy(hub.dmisc['parameters'])+deepcopy(hub.dmisc['dfunc_order']['param'])
+    Parameters.remove('nt')
 
     # REMOVE ALL UNNECESSARY ELEMENTS
     if not auxilliary:
@@ -184,8 +184,8 @@ Dependencies :'+'<br>
                          shape='ellipse')
 
     listconnect = ODENodes+StatevarNodes
-    if plot_params:
-        listconnect += Parameters
+
+
 
     for k in ODENodes+StatevarNodes:
         v = R[k]
@@ -193,6 +193,11 @@ Dependencies :'+'<br>
             net.add_edge(k2, k)
         if 'itself' in v['kargs']:
             net.add_edge(k, k)
+        if plot_params:
+            for typ in [None,'param']:
+                for k2 in v['args'][typ]:
+                    if k2 not in filters:
+                        net.add_edge(k2,k)
 
     # DYNAMIC APPEARANCE
     net.set_edge_smooth('dynamic')
