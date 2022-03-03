@@ -250,7 +250,7 @@ def _check_dmodel_preset(dmodel=None):
             "The following presets are non-valid:\n"
             + "\n".join(lstr)
         )
-        raise Exception(msg)
+        #raise Exception(msg)
 
 
 # #############################################################################
