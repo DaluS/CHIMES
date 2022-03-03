@@ -197,6 +197,7 @@ class Test01_Hub_MultipleSystems():
         for model in self.lmodels:
             for solver in self.lsolvers:
                 for grid in self.lgrid:
+                    self.dhub[model][solver][grid].set_dparam(Tmax=1)
                     self.dhub[model][solver][grid].run(solver=solver)
 
     def test03_plot(self):
