@@ -38,12 +38,6 @@ plt.rcParams.update({'font.size': 15})
 
 def plot_variation_rate(hub, varlist):
     '''
-    For each field in varlist, gives :
-        * the time evolution (y left axist)
-        * the time derivative (y right axis 1)
-        * the growth rate (y right axis 2)
-
-        DIFFERENTIAL VARIABLES ARE NOT WELL TREATED
     '''
     R = hub.get_dparam()
 
@@ -80,18 +74,27 @@ def plot_variation_rate(hub, varlist):
         ax0[key].set_ylabel(label)
 
         # Derivate
-        ax[key].plot(t[1:-1], R[key]['time_derivate'][1:-1, 0],
-                     c='black', label=r'$\dfrac{d '+symb+r'}{dt}$')
+        if R[key]['eqtype'] == 'ode':
+            ax[key].plot(t[2:-2], R[key]['time_dderivate'][2:-2, 0],
+                         c='black', label=r'$\dfrac{d^2 '+symb+r'}{dt^2}$')
+            label = r'$\ddot{'+R[key]['symbol'].replace('$', '')+r'}$'
+        else:
+            ax[key].plot(t[1:-1], R[key]['time_derivate'][1:-1, 0],
+                         c='black', label=r'$\dfrac{d '+symb+r'}{dt}$')
+            label = r'$\dot{'+R[key]['symbol'].replace('$', '')+r'}$'
         ax[key].spines['right'].set_color('black')
 
         vv = R[key]['partial_contribution']
         for i, k2 in enumerate(vv.keys()):
             symb2 = R[k2]['symbol'].replace('$', '')
+            if R[key]['eqtype'] == 'ode':
+                lab = r'$\dfrac{\partial \dot{'+symb+r'}}{\partial '+symb2+'}\dot{'+symb2+r'}$'
+            else:
+                lab = r'$\dfrac{\partial '+symb+r'}{\partial '+symb2+'}\dot{'+symb2+r'}$'
             ax[key].plot(t[1:-1], vv[k2][1:-1], ls=_LS[i+2 % len(_LS)],
-                         c='r', label=r'$\dfrac{\partial '+symb+r'}{\partial '+symb2+'}\dot{'+symb2+r'}$')
+                         label=lab)
         ax[key].yaxis.tick_right()
         ax[key].yaxis.set_label_position('right')
-        label = r'$\dot{'+R[key]['symbol'].replace('$', '')+r'}$'
         ax[key].set_ylabel(label)
 
         ax[key].legend()
