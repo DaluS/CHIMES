@@ -4,10 +4,11 @@ import sys
 path = "C:\\Users\\Paul Valcke\\Documents\\GitHub\\GEMMES"  # Where pygemmes is
 sys.path.insert(0, path)  # we tell python to look at the folder `path`
 """
+import matplotlib.pyplot as plt
+import matplotlib as mpl
 import pygemmes as pgm
 import numpy as np
 import os
-os.getcwd()
 
 '''
 Always use tab on pgm or hub, and ? on each functions
@@ -94,7 +95,49 @@ hub.run()
 hub.calculate_Cycles(ref='lambda')
 dax4 = hub.plot(mode='cycles', key=['lambda', 'omega', 'd', 'phillips'])
 
+# && ####################### ACCESS TO INDIVIDUAL PLOTS ######################
+hub = pgm.Hub('GK')
 
+# Plots that are not related to a run but to a function
+pgm.plots.slices_wholelogic(hub, key='kappa', axes=[['pi', 0, 0.3]], N=100, tid=0, idx=0)
+pgm.plots.slices_wholelogic(hub, key='L', axes=[['a', 1, 3], ['K', 1, 5]], N=100, tid=0, idx=0)
+
+# Plots related to a run
+hub.run()
+
+pgm.plots.phasespace(hub, x='omega', y='lambda', color='d', idx=0)
+pgm.plots.phasespace(hub, x='lambda', y='pi', color='d', idx=0)
+pgm.plots.plotnyaxis(hub, x='time',
+                     y=[['lambda', 'omega'],
+                        ['d'],
+                        ['kappa', 'pi'],
+                        ],
+                     idx=0,
+                     title='',
+                     lw=2)
+pgm.plots.plot_timetraces(hub, key=['lambda', 'omega', 'd'])
+pgm.plots.plot3D(hub, x='lambda',
+                 y='omega',
+                 z='d',
+                 cinf='pi',
+                 cmap='jet',
+                 index=0,
+                 title='')
+pgm.plots.plotbyunits(hub)
+
+
+# Plots about derivates
+hub.calculate_variation_rate()
+
+pgm.plots.plot_variation_rate(hub, ['omega', 'lambda', 'd', 'D']
+                              )
+
+# plots about cycles
+hub.calculate_Cycles(ref='omega')
+
+pgm.plots.cycles_characteristics(hub, xaxis='omega',
+                                 yaxis='lambda',
+                                 ref='omega')
 # %% CHANGING VALUES ########################################################
 '''
 Order of loading values/status (latest in the one kept) :
@@ -190,24 +233,21 @@ dax = hub.plot(mode='sensitivity')
 This is an example on how someone can do more complex analysis
 '''
 
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-
 
 # Initialisation of the system with 1000 points in a box
 hub = pgm.Hub('Reduced_GK', preset='default')
 
 BasinDomain = {
-                'lambda': {'mu': 0.5,
-                           'sigma': 0.99,
-                           'type': 'uniform'},
-                'omega': {'mu': 0.5,
-                          'sigma': .98,
-                          'type': 'uniform'},
-                'd': {'mu': -1,
-                      'sigma': 1,
-                      'type': 'uniform'},
-              }
+    'lambda': {'mu': 0.5,
+               'sigma': 0.99,
+               'type': 'uniform'},
+    'omega': {'mu': 0.5,
+              'sigma': .98,
+              'type': 'uniform'},
+    'd': {'mu': -1,
+          'sigma': 1,
+          'type': 'uniform'},
+}
 initcond = pgm.generate_dic_distribution(BasinDomain,
                                          N=1000,
                                          grid=False)
@@ -219,10 +259,10 @@ hub.reinterpolate_dparam(N=1000)
 
 # Point we are trying to reach
 finalpoint = {
-              'lambda': 0.967297870750419,
-              'omega': 0.84547946985534,
-              'd': -0.0771062162051694,
-              }
+    'lambda': 0.967297870750419,
+    'omega': 0.84547946985534,
+    'd': -0.0771062162051694,
+}
 
 # We get the convergence rate
 ConvergeRate = hub.calculate_ConvergeRate(finalpoint)
