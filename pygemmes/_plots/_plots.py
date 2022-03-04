@@ -66,7 +66,7 @@ def slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0):
 
     Parameters
     ----------
-    key  : str.
+    key  : str. name of the field you are introspecting
     axes : [[str,valmin,valmax]] or [[str,valmin,valmax],[str,valmin,valmax]] for 2D
     N    : int, number of points in grid
     tid  : index of
@@ -293,6 +293,16 @@ def plotnyaxis(hub, x='time', y=[[]], idx=0, title='', lw=2):
     '''
     x must be a variable name (x axis organisation)
     y must be a list of list of variables names (each list is a shared axis)
+
+    example :
+        pgm.plots.plotnyaxis(hub, x='time',
+                     y=[['lambda', 'omega'],
+                        ['d'],
+                        ['kappa', 'pi'],
+                        ],
+                     idx=0,
+                     title='',
+                     lw=2)
     '''
     allvarname = [x]+[item for sublist in y for item in sublist]
     R = hub.get_dparam(keys=[allvarname], returnas=dict)
@@ -504,7 +514,9 @@ def Var(hub, key, idx=0, cycles=False, log=False):
 
 
 def cycles_characteristics(hub, xaxis='omega', yaxis='lambda', ref='lambda'):
-
+    '''
+    Plot frequency and harmonicity for each cycle found in the system
+    '''
     ####
     fig = plt.figure()
     ax1 = plt.subplot(121)
