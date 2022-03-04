@@ -130,7 +130,6 @@ class Hub():
             verb=verb,
         )
 
-
         # ------------
         # update from preset if relevant
         if preset is not None:
@@ -288,7 +287,7 @@ class Hub():
         lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype','isneeded']
 
         """
-        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype','isneeded']
+        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype', 'isneeded']
         lprint = [
             'parameter', 'value', 'units', 'dimension', 'symbol',
             'type', 'eqtype', 'group', 'comment',
@@ -537,20 +536,23 @@ class Hub():
 
         # ----------
         # functions ODE
-        col3, ar3 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['ode'],isneeded=True)
+        col3, ar3 = _class_utility._get_summary_functions(
+            self, idx=idx, eqtype=['ode'], isneeded=True)
 
         # ----------
         # functions Statevar
-        col4, ar4 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['statevar'],isneeded=True)
+        col4, ar4 = _class_utility._get_summary_functions(
+            self, idx=idx, eqtype=['statevar'], isneeded=True)
 
         # ----------
         # functions ODE
-        col5, ar5 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['ode'],isneeded=False)
+        col5, ar5 = _class_utility._get_summary_functions(
+            self, idx=idx, eqtype=['ode'], isneeded=False)
 
         # ----------
         # functions Statevar
-        col6, ar6 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['statevar'],isneeded=False)
-
+        col6, ar6 = _class_utility._get_summary_functions(
+            self, idx=idx, eqtype=['statevar'], isneeded=False)
 
         # ----------
         # format output
@@ -602,13 +604,13 @@ class Hub():
             print(' ')
 
     def get_Network(self,
-                    filters = (),
+                    filters=(),
                     auxilliary=False,
                     screensize=1080,
                     custom=True,
                     params=False):
         _Network.Network_pyvis(self,
-                               filters = filters,
+                               filters=filters,
                                auxilliary=auxilliary,
                                screensize=screensize,
                                custom=custom,
@@ -909,11 +911,8 @@ class Hub():
             preset = self.dmodel['preset']
         tempd = self.dmodel['presets'][preset]['plots']
 
-        #print(tempd)
-
         for plot, funcplot in _DPLOT.items():
             for argl in tempd.get(plot, []):
-                print(argl)
                 funcplot(self, **argl)
 
     def plot(
