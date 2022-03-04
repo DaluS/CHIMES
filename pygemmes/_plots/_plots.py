@@ -1,25 +1,29 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Jul 26 16:16:01 2021
-
 @author: Paul Valcke
+
 """
 
+from ._plot_timetraces import plot_timetraces
+from ._plot_tools import _multiline
 
+import copy
 import numpy as np
+
 import matplotlib.pyplot as plt
 import matplotlib
 from matplotlib.collections import LineCollection
 from matplotlib.patches import Rectangle
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
-from ._plot_timetraces import plot_timetraces
+
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.gridspec import GridSpec
+
 
 _LS = [
     (0, ()),
     (0, (1, 1)),
-
     (0, (5, 1)),  # densely dashed
     (0, (3, 1, 1, 1, 1, 1)),
     (0, (5, 5)),
@@ -36,8 +40,111 @@ matplotlib.rc('ytick', labelsize=15)
 plt.rcParams.update({'font.size': 15})
 
 
-def plot_variation_rate(hub, varlist):
+__all__ = [
+    'slices_wholelogic',
+    'plot_variation_rate',
+    'plot_timetraces',
+    'plotnyaxis',
+    'phasespace',
+    'plot3D',
+    'plotbyunits',
+    'Var',
+    'cycles_characteristics'
+    ]
+
+# ############################################################################
+# ############## IMPORTANT PLOTS #############################################
+def slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0):
     '''
+    Take the logic of a field, and calculate a slice given two of the argument fields that are modified
+
+    Example :
+        plotfunction(hub,key='Hid',axes=[['Omega',0,2]],N=100,tid=0,idx=0)
+        plotfunction(hub,key='Hid',axes=[['Omega',0,2],['x',0,100]],N=100,tid=0,idx=0)
+
+    Parameters
+    ----------
+    key  : str.
+    axes : [[str,valmin,valmax]] or [[str,valmin,valmax],[str,valmin,valmax]] for 2D
+    N    : int, number of points in grid
+    tid  : index of
+    idx : TYPE, optional
+        DESCRIPTION. The default is 0.
+
+    Raises
+    ------
+    Exception
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    '''
+    R = hub.get_dparam()
+
+    if len(axes) > 2:
+        raise Exception('Too many dimensions to plot !')
+    elif len(axes) == 2:
+        axx = axes[0]
+        axy = axes[1]
+        XX, YY = np.meshgrid(np.linspace(axx[1], axx[2], N),
+                             np.linspace(axy[1], axy[2], N))
+
+        keys = [axes[0][0], axes[1][0]]
+        defaultkeys = [k for k in R[key]['kargs'] if k not in keys]
+
+        defaultval = {k: R[k]['value'] for k in defaultkeys if k in hub.dmisc['parameters']}
+        defaultval.update({k: R[k]['value'][tid, idx]
+                          for k in defaultkeys if k in hub.dmisc['dfunc_order']['statevar']})
+        defaultval0 = copy.deepcopy(defaultval)
+        defaultval[keys[0]] = XX
+        defaultval[keys[1]] = YY
+
+        Z = R[key]['func'](**defaultval)
+
+        plt.figure(f'Function: {key} 2D')
+        plt.pcolormesh(XX, YY, Z, cmap='jet')
+        plt.xlabel(R[axes[0][0]]['symbol'])
+        plt.ylabel(R[axes[1][0]]['symbol'])
+        plt.title(R[key]['symbol']+f'\n {defaultval0}')
+        plt.colorbar()
+        plt.show()
+    elif len(axes) == 1:
+        XX = np.linspace(axes[0][1], axes[0][2], N)
+        defaultkeys = [k for k in R[key]['kargs'] if k not in [key]]
+
+        defaultval = {k: R[k]['value'] for k in defaultkeys if k in hub.dmisc['parameters']}
+
+        defaultval.update({k: R[k]['value'][tid, idx]
+                          for k in defaultkeys if k in hub.dmisc['dfunc_order']['statevar']})
+        defaultval0 = copy.deepcopy(defaultval)
+        defaultval[axes[0][0]] = XX
+
+        Z = R[key]['func'](**defaultval)
+
+        plt.figure(f'Function: {key} 1D')
+        plt.plot(XX, Z)
+        plt.xlabel(R[axes[0][0]]['symbol'])
+        plt.ylabel(R[key]['symbol'])
+        plt.title(f'{defaultval0}')
+        plt.show()
+
+
+def plot_variation_rate(hub, varlist, title='', idx=0):
+    '''
+    Allow one to observe the time variation and the contribution of each dependency.
+    Useful for debugging or understanding where are the main loops
+
+    THE SYSTEM NEEDS :
+        1) a run
+        2) calculate_variation_rate
+
+    for each field in varlist (ex : ['Y','L','w']) it will :
+        * Print the variable time evolution
+        * Print its relative growth rate
+        * if it is a Statevar, its time derivate, and the contribution of each of its dependency to its time derivate
+        * if it is an ODE, its second time derivate and the contribution of each of its dependency
     '''
     R = hub.get_dparam()
 
@@ -54,36 +161,40 @@ def plot_variation_rate(hub, varlist):
     ax = {key: fig.add_subplot(gs[i, 1:]) for i, key in enumerate(varlist)}
 
     for key in varlist:
-        # Value
-        ax02[key].plot(t, R[key]['value'][:, 0], c='b')
+        # ##################################
+        # Left Curves (y, relative growth)
+        ax02[key].plot(t, R[key]['value'][:, idx], c='b')
+        ax0[key].plot(t[1:-1], R[key]['time_log_derivate'][1:-1, idx], ls='--', c='g')
 
+        # Left side axis management
         ax02[key].set_ylabel(R[key]['symbol'])
         ax02[key].spines['left'].set_position(('outward',  80))
+
         ax02[key].yaxis.tick_left()
         ax02[key].yaxis.set_label_position('left')
         ax02[key].spines['left'].set_color('blue')
         ax02[key].tick_params(axis='y', colors='blue')
-
-        # Log derivate
         symb = R[key]['symbol'].replace('$', '')
         label = r'$\dfrac{\dot{'+symb+r'}}{'+symb+'}$'
-
-        ax0[key].plot(t[1:-1], R[key]['time_log_derivate'][1:-1, 0], ls='--', c='g')
         ax0[key].spines['left'].set_color('green')
         ax0[key].tick_params(axis='y', colors='green')
         ax0[key].set_ylabel(label)
 
-        # Derivate
+        # ##################################
+        # Right side (Derivates)
+
+        # Full curve
         if R[key]['eqtype'] == 'ode':
-            ax[key].plot(t[2:-2], R[key]['time_dderivate'][2:-2, 0],
+            ax[key].plot(t[2:-2], R[key]['time_dderivate'][2:-2, idx],
                          c='black', label=r'$\dfrac{d^2 '+symb+r'}{dt^2}$')
             label = r'$\ddot{'+R[key]['symbol'].replace('$', '')+r'}$'
         else:
-            ax[key].plot(t[1:-1], R[key]['time_derivate'][1:-1, 0],
+            ax[key].plot(t[1:-1], R[key]['time_derivate'][1:-1, idx],
                          c='black', label=r'$\dfrac{d '+symb+r'}{dt}$')
             label = r'$\dot{'+R[key]['symbol'].replace('$', '')+r'}$'
         ax[key].spines['right'].set_color('black')
 
+        #  Contribution
         vv = R[key]['partial_contribution']
         for i, k2 in enumerate(vv.keys()):
             symb2 = R[k2]['symbol'].replace('$', '')
@@ -91,19 +202,22 @@ def plot_variation_rate(hub, varlist):
                 lab = r'$\dfrac{\partial \dot{'+symb+r'}}{\partial '+symb2+'}\dot{'+symb2+r'}$'
             else:
                 lab = r'$\dfrac{\partial '+symb+r'}{\partial '+symb2+'}\dot{'+symb2+r'}$'
-            ax[key].plot(t[1:-1], vv[k2][1:-1], ls=_LS[i+2 % len(_LS)],
+            ax[key].plot(t[1:-1], vv[k2][1:-1, idx],
                          label=lab)
+
+        # Axis management
         ax[key].yaxis.tick_right()
         ax[key].yaxis.set_label_position('right')
         ax[key].set_ylabel(label)
-
         ax[key].legend()
+
+    # Figure management
     plt.subplots_adjust(wspace=0, hspace=0)
-    plt.suptitle('')
+    plt.suptitle(title)
     plt.show()
 
 
-def _plotbyunits(hub, title='', lw=1, idx=0, color='k', sharex=True):
+def plotbyunits(hub, title='', lw=1, idx=0, color='k', sharex=True):
     '''
     generate one subfigure per set of units existing
     '''
@@ -168,7 +282,7 @@ def _plotbyunits(hub, title='', lw=1, idx=0, color='k', sharex=True):
     plt.show()
 
 
-def _plotnyaxis(hub, x='time', y=[[]], idx=0, title='', lw=2):
+def plotnyaxis(hub, x='time', y=[[]], idx=0, title='', lw=2):
     '''
     x must be a variable name (x axis organisation)
     y must be a list of list of variables names (each list is a shared axis)
@@ -228,7 +342,7 @@ def _plotnyaxis(hub, x='time', y=[[]], idx=0, title='', lw=2):
     plt.show()
 
 
-def _phasespace(hub, x='omega', y='lambda', color='time', idx=0):
+def phasespace(hub, x='omega', y='lambda', color='time', idx=0):
     '''
     Plot of the trajectory of the system in a 2dimensional phase-space
 
@@ -262,8 +376,8 @@ def _phasespace(hub, x='omega', y='lambda', color='time', idx=0):
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
     line = ax.add_collection(lc)
     fig.colorbar(line, ax=ax, label=color)
-    plt.xlabel(x)
-    plt.ylabel(y)
+    plt.xlabel(allvars[x]['symbol'])
+    plt.ylabel(allvars[y]['symbol'])
     plt.xlim([np.amin(xval), np.amax(xval)])
     plt.ylim([np.amin(yval), np.amax(yval)])
     plt.axis('scaled')
@@ -273,7 +387,7 @@ def _phasespace(hub, x='omega', y='lambda', color='time', idx=0):
     plt.show()
 
 
-def _plot3D(hub, x, y, z, cinf, cmap='jet', index=0, title=''):
+def plot3D(hub, x, y, z, cinf, cmap='jet', index=0, title=''):
     '''
     Plot a 3D curve, with a fourth information on the colour of the curve
 
@@ -382,45 +496,7 @@ def Var(hub, key, idx=0, cycles=False, log=False):
     plt.show()
 
 
-def multiline(xs, ys, c, ax=None, **kwargs):
-    """Plot lines with different colorings
-
-    Parameters
-    ----------
-    xs : iterable container of x coordinates
-    ys : iterable container of y coordinates
-    c : iterable container of numbers mapped to colormap
-    ax (optional): Axes to plot on.
-    kwargs (optional): passed to LineCollection
-
-    Notes:
-        len(xs) == len(ys) == len(c) is the number of line segments
-        len(xs[i]) == len(ys[i]) is the number of points for each line (indexed by i)
-
-    Returns
-    -------
-    lc : LineCollection instance.
-    """
-
-    # find axes
-    ax = plt.gca() if ax is None else ax
-
-    # create LineCollection
-    segments = [np.column_stack([x, y]) for x, y in zip(xs, ys)]
-    lc = LineCollection(segments, **kwargs)
-
-    # set coloring of line segments
-    #    Note: I get an error if I pass c as a list here... not sure why.
-    lc.set_array(np.asarray(c))
-
-    # add lines to axes and rescale
-    #    Note: adding a collection doesn't autoscalee xlim/ylim
-    ax.add_collection(lc)
-    ax.autoscale()
-    return lc
-
-
-def _plot_cycles_characteristics(hub, xaxis='omega', yaxis='lambda', ref='lambda'):
+def cycles_characteristics(hub, xaxis='omega', yaxis='lambda', ref='lambda'):
 
     ####
     fig = plt.figure()
@@ -441,8 +517,8 @@ def _plot_cycles_characteristics(hub, xaxis='omega', yaxis='lambda', ref='lambda
             AllC1.append(cycs['frequency'][i][j])
             AllC2.append(cycs['Harmonicity'][i][j])
 
-    lc1 = multiline(AllX, AllY, AllC1, ax=ax1, cmap='jet', lw=2)
-    lc2 = multiline(AllX, AllY, AllC2, ax=ax2, cmap='jet', lw=2)
+    lc1 = _multiline(AllX, AllY, AllC1, ax=ax1, cmap='jet', lw=2)
+    lc2 = _multiline(AllX, AllY, AllC2, ax=ax2, cmap='jet', lw=2)
 
     ax1.set_xlabel(R[xaxis]['symbol'])
     ax1.set_ylabel(R[yaxis]['symbol'])
@@ -462,10 +538,15 @@ def _plot_cycles_characteristics(hub, xaxis='omega', yaxis='lambda', ref='lambda
     plt.show()
 
 
+
 _DPLOT = {
+    'Slice_logic': slices_wholelogic,
+    'variation_rate': plot_variation_rate,
     'timetrace': plot_timetraces,
-    'nyaxis': _plotnyaxis,
-    'phasespace': _phasespace,
-    '3D': _plot3D,
-    'byunits': _plotbyunits,
-    'cycles_characteristics': _plot_cycles_characteristics}
+    'nyaxis': plotnyaxis,
+    'phasespace': phasespace,
+    '3D': plot3D,
+    'byunits': plotbyunits,
+
+    'Onevariable': Var,
+    'cycles_characteristics': cycles_characteristics}

@@ -15,3 +15,5 @@ from ._toolbox import *
 from ._utilities._saveload import get_available_output, load
 from ._utilities._solvers import get_available_solvers
 from ._core import Hub
+
+from . import _plots as plots
