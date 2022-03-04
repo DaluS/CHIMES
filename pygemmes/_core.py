@@ -130,7 +130,6 @@ class Hub():
             verb=verb,
         )
 
-
         # ------------
         # update from preset if relevant
         if preset is not None:
@@ -288,7 +287,7 @@ class Hub():
         lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype','isneeded']
 
         """
-        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype','isneeded']
+        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype', 'isneeded']
         lprint = [
             'parameter', 'value', 'units', 'dimension', 'symbol',
             'type', 'eqtype', 'group', 'comment',
@@ -537,20 +536,23 @@ class Hub():
 
         # ----------
         # functions ODE
-        col3, ar3 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['ode'],isneeded=True)
+        col3, ar3 = _class_utility._get_summary_functions(
+            self, idx=idx, eqtype=['ode'], isneeded=True)
 
         # ----------
         # functions Statevar
-        col4, ar4 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['statevar'],isneeded=True)
+        col4, ar4 = _class_utility._get_summary_functions(
+            self, idx=idx, eqtype=['statevar'], isneeded=True)
 
         # ----------
         # functions ODE
-        col5, ar5 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['ode'],isneeded=False)
+        col5, ar5 = _class_utility._get_summary_functions(
+            self, idx=idx, eqtype=['ode'], isneeded=False)
 
         # ----------
         # functions Statevar
-        col6, ar6 = _class_utility._get_summary_functions(self, idx=idx, eqtype=['statevar'],isneeded=False)
-
+        col6, ar6 = _class_utility._get_summary_functions(
+            self, idx=idx, eqtype=['statevar'], isneeded=False)
 
         # ----------
         # format output
@@ -602,13 +604,13 @@ class Hub():
             print(' ')
 
     def get_Network(self,
-                    filters = (),
+                    filters=(),
                     auxilliary=False,
                     screensize=1080,
                     custom=True,
                     params=False):
         _Network.Network_pyvis(self,
-                               filters = filters,
+                               filters=filters,
                                auxilliary=auxilliary,
                                screensize=screensize,
                                custom=custom,
@@ -684,6 +686,70 @@ class Hub():
     # ##############################
     #       Deep analysis methods
     # ##############################
+
+    def calculate_variation_rate(self, epsilon=0.0001):
+        '''
+        Calculate all derivatives :
+            * time derivative
+            * time log_derivative (variation rate)
+            * partial_derivatives (gradient on the other variables)
+
+        partial derivative is associating to field Y a dic as {X : dY/dX} for each statevar
+
+        accessible in :
+            dparam[key]['time_derivate']
+            dparam[key]['time_log_derivate']
+            dparam[key]['partial_derivatives']
+        '''
+
+        R = self.__dparam
+
+        varlist = self.dmisc['dfunc_order']['statevar'] + \
+            self.dmisc['dfunc_order']['ode']
+
+        varlist.remove('time')
+
+        for k in varlist:
+            R[k]['time_derivate'] = np.gradient(R[k]['value'], axis=0)/R['dt']['value']
+            R[k]['time_log_derivate'] = R[k]['time_derivate']/R[k]['value']
+
+            if R[k]['eqtype'] == 'ode':
+                R[k]['time_dderivate'] = np.gradient(
+                    R[k]['time_derivate'], axis=0)/R['dt']['value']
+            # SENSITIVITY CALCULATION
+            func = R[k]['func']
+            args = R[k]['args']['ode']+R[k]['args']['statevar']
+            if 'itself' in R[k]['kargs']:
+                args += k
+
+            argsV = {k2: R[k2]['value'] for k2 in args}
+
+            if 'lambda' in args:
+                argsV['lamb'] = argsV['lambda']
+                del argsV['lambda']
+                args += ['lamb']
+                args.remove('lambda')
+            if k in args:
+                argsV['itself'] = argsV[k]
+                del argsV[k]
+                args += ['itself']
+                args.remove(k)
+
+            R[k]['partial_derivatives'] = {}
+            for k2 in args:
+                argTemp = copy.deepcopy(argsV)
+                argTemp[k2] += epsilon
+                if k2 == 'lamb':
+                    k2 = 'lambda'
+                if k2 == 'itself':
+                    k2 = k
+                R[k]['partial_derivatives'][k2] = (func(**argTemp)-func(**argsV))/epsilon
+
+        # Contribution of partial derivatives
+        for k in varlist:
+            R[k]['partial_contribution'] = {k2: R[k]['partial_derivatives'][k2]
+                                            * R[k2]['time_derivate']
+                                            for k2 in R[k]['partial_derivatives'].keys()}
 
     def calculate_Cycles(self, ref=None, n=10):
         '''
@@ -909,7 +975,7 @@ class Hub():
             preset = self.dmodel['preset']
         tempd = self.dmodel['presets'][preset]['plots']
 
-        #print(tempd)
+        # print(tempd)
 
         for plot, funcplot in _DPLOT.items():
             for argl in tempd.get(plot, []):
