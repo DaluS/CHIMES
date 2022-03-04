@@ -713,7 +713,7 @@ class Hub():
             R[k]['time_derivate'] = np.gradient(R[k]['value'], axis=0)/R['dt']['value']
             R[k]['time_log_derivate'] = R[k]['time_derivate']/R[k]['value']
 
-            if R[k]['eqtype'] is 'ode':
+            if R[k]['eqtype'] == 'ode':
                 R[k]['time_dderivate'] = np.gradient(
                     R[k]['time_derivate'], axis=0)/R['dt']['value']
             # SENSITIVITY CALCULATION
