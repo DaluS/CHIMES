@@ -50,10 +50,12 @@ __all__ = [
     'plotbyunits',
     'Var',
     'cycles_characteristics'
-    ]
+]
 
 # ############################################################################
 # ############## IMPORTANT PLOTS #############################################
+
+
 def slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0):
     '''
     Take the logic of a field, and calculate a slice given two of the argument fields that are modified
@@ -165,7 +167,11 @@ def plot_variation_rate(hub, varlist, title='', idx=0):
         # Left Curves (y, relative growth)
         ax02[key].plot(t, R[key]['value'][:, idx], c='b')
         ax0[key].plot(t[1:-1], R[key]['time_log_derivate'][1:-1, idx], ls='--', c='g')
+        ax0[key].axhline(y=0, color='k', lw=0.5)
 
+        # Ylim management
+        sort = np.sort(R[key]['time_log_derivate'][1:-1, idx])[int(0.05*len(t)):-int(0.05*len(t))]
+        ax0[key].set_ylim([1.3*np.amin(sort), 1.3*np.amax(sort)])
         # Left side axis management
         ax02[key].set_ylabel(R[key]['symbol'])
         ax02[key].spines['left'].set_position(('outward',  80))
@@ -193,6 +199,7 @@ def plot_variation_rate(hub, varlist, title='', idx=0):
                          c='black', label=r'$\dfrac{d '+symb+r'}{dt}$')
             label = r'$\dot{'+R[key]['symbol'].replace('$', '')+r'}$'
         ax[key].spines['right'].set_color('black')
+        ax[key].axhline(y=0, color='k', lw=0.5)
 
         #  Contribution
         vv = R[key]['partial_contribution']
@@ -536,7 +543,6 @@ def cycles_characteristics(hub, xaxis='omega', yaxis='lambda', ref='lambda'):
 
     plt.suptitle('Period analysis on : '+R[ref]['symbol'])
     plt.show()
-
 
 
 _DPLOT = {

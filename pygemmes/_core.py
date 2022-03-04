@@ -693,6 +693,7 @@ class Hub():
             * time derivative
             * time log_derivative (variation rate)
             * partial_derivatives (gradient on the other variables)
+            * partial_contribution (partial_derivatives time the respective time derivate)
 
         partial derivative is associating to field Y a dic as {X : dY/dX} for each statevar
 
@@ -700,6 +701,7 @@ class Hub():
             dparam[key]['time_derivate']
             dparam[key]['time_log_derivate']
             dparam[key]['partial_derivatives']
+            dparam[key]['partial_contribution']
         '''
 
         R = self.__dparam
