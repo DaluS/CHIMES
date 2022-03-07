@@ -159,18 +159,11 @@ class Test01_Hub():
                 }
                 for kk, solver in enumerate(self.lsolvers):
 
-                    if ii % 2 == 0:
-                        # testing verb = 0, 1, 2
-                        verb = (ii + jj) % 3
-                    else:
-                        # testing verb = float
-                        verb = ii + jj + kk / len(self.lsolvers)
-
                     try:
                         self.dhub[model][preset][solver].set_dparam(Tmax=10)
                         self.dhub[model][preset][solver].run(
                             solver=solver,
-                            verb=verb,
+                            verb=0,
                         )
                     except Exception as err:
                         dfail[f'{model} {preset} {solver}'] = str(err)
