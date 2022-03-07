@@ -5,9 +5,10 @@ from ._core import Hub
 from ._models import get_available_models  # get_dfields_overview
 from ._utilities._solvers import get_available_solvers
 from ._utilities._saveload import get_available_output, load
-from ._models import get_available_models, _DFIELDS
+from ._models import _DFIELDS
 from ._utilities import _utils
-
+from . import _plots as plots
+import inspect
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,11 +17,24 @@ import numpy as np
 
 __all__ = [
     'get_available_fields',
+    'get_available_plots',
+    'get_available_output',
     'generate_preset_from_model_preset',
     'generate_dic_distribution'
 ]
 
 
+
+def get_available_plots():
+    '''
+    Print all the plots routines with their docstring and dependencies
+    '''
+    all_functions = inspect.getmembers(plots, inspect.isfunction)
+
+    for i in all_functions:
+        print(f"##### {i[0]} {'#'*(30-len(i[0]))}####################")
+        print( inspect.signature(i[1]))
+        print(i[1].__doc__)
 
 
 def get_available_fields(returnas=False,showModels=False):

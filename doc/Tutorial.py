@@ -95,7 +95,49 @@ hub.run()
 hub.calculate_Cycles(ref='lambda')
 dax4 = hub.plot(mode='cycles', key=['lambda', 'omega', 'd', 'phillips'])
 
+# && ####################### ACCESS TO INDIVIDUAL PLOTS ######################
+hub = pgm.Hub('GK')
 
+# Plots that are not related to a run but to a function
+pgm.plots.slices_wholelogic(hub, key='kappa', axes=[['pi', 0, 0.3]], N=100, tid=0, idx=0)
+pgm.plots.slices_wholelogic(hub, key='L', axes=[['a', 1, 3], ['K', 1, 5]], N=100, tid=0, idx=0)
+
+# Plots related to a run
+hub.run()
+
+pgm.plots.phasespace(hub, x='omega', y='lambda', color='d', idx=0)
+pgm.plots.phasespace(hub, x='lambda', y='pi', color='d', idx=0)
+pgm.plots.plotnyaxis(hub, x='time',
+                     y=[['lambda', 'omega'],
+                        ['d'],
+                        ['kappa', 'pi'],
+                        ],
+                     idx=0,
+                     title='',
+                     lw=2)
+pgm.plots.plot_timetraces(hub, key=['lambda', 'omega', 'd'])
+pgm.plots.plot3D(hub, x='lambda',
+                 y='omega',
+                 z='d',
+                 cinf='pi',
+                 cmap='jet',
+                 index=0,
+                 title='')
+pgm.plots.plotbyunits(hub)
+
+
+# Plots about derivates
+hub.calculate_variation_rate()
+
+pgm.plots.plot_variation_rate(hub, ['omega', 'lambda', 'd', 'D']
+                              )
+
+# plots about cycles
+hub.calculate_Cycles(ref='omega')
+
+pgm.plots.cycles_characteristics(hub, xaxis='omega',
+                                 yaxis='lambda',
+                                 ref='omega')
 # %% CHANGING VALUES ########################################################
 '''
 Order of loading values/status (latest in the one kept) :
