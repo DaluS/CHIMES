@@ -79,7 +79,7 @@ the will of the firm to ask for such loan
 
         # DEFINITION OF kappa
         lin = {
-            'func': lambda pi=0, kappalinConst=0, kappalinSlope=0: kappalinConst + kappalinConst * pi,
+            'func': lambda pi=0, kappalinConst=0, kappalinSlope=0, kappalinMin=0, kappalinMax=0: np.clip(kappalinConst + kappalinSlope * pi, kappalinMin, kappalinMax),
             'com': 'linear param curve'
         }
         exp = {
@@ -237,7 +237,7 @@ Productivity is the "human power" in production function, the ponderation of eac
 Shareholding is the share of GDP going from the firm to the shareowner
         """
         lin = {
-            'func': lambda divlinSlope=0, divlinconst=0, pi=0, GDP=0, divlinMin=0, divlinMax=0: np.clip(GDP*(divlinSlope*pi+divlinconst), divlinMin, divlinMax),
+            'func': lambda divlinSlope=0, divlinconst=0, pi=0, GDP=0, divlinMin=0, divlinMax=0: GDP*np.clip((divlinSlope*pi+divlinconst), divlinMin, divlinMax),
             'com': 'lin fit from Coping',
         }
 
@@ -339,18 +339,18 @@ Classic intermediary variables that might be needed
             'com': 'its definition',
         }
         m = {
-            'func': lambda M=0,GDP=1 : M/GDP,
+            'func': lambda M=0, GDP=1: M/GDP,
             'com': 'its definition',
         }
         v = {
-            'func': lambda GDP=0,M=1 : GDP/M,
+            'func': lambda GDP=0, M=1: GDP/M,
             'com': 'its definition (also 1/m)'
-            }
+        }
         t = {
-            'func': lambda itself=0 : itself,
+            'func': lambda itself=0: itself,
             'com': 'time',
-            'initial':0,
-            }
+            'initial': 0,
+        }
 
     class Atmosphere:
         '''
@@ -368,7 +368,7 @@ Classic intermediary variables that might be needed
             '''
 
             CO2AT = {
-                'func': lambda Emission=0, phi12=0, CO2UP=0, CUP=1, CAT=1, itself = 0: Emission - phi12*itself + phi12*CAT/CUP*CO2UP,
+                'func': lambda Emission=0, phi12=0, CO2UP=0, CUP=1, CAT=1, itself = 0: (1./3.666)*Emission - phi12*itself + phi12*CAT/CUP*CO2UP, # 1./3.666 is to convert from CO2 to C
                 'com': '3-Layer dynamics (Atmosphere)',
             }
             CO2UP = {

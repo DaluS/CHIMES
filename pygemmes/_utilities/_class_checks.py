@@ -1008,7 +1008,7 @@ def _extract_parameters(dparam, verb=None):
     # print
     if verb is True:
         msg = (
-            "\nThe following undeclared parameters have been identified:\n"
+            "\nThe following fields are identified as parameters :\n"
             f"\t- param (fixed): {lpar_new}\n"
             f"\t- param (func.): {lfunc_new}"
         )

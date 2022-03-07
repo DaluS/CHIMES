@@ -70,7 +70,7 @@ _LIBRARY = {
             'units': 'y',
             'eqtype': 'ode',
         },
-        #'t': {
+        # 't': {
         #    'value': 0,
         #    'definition': 'time inside equations'}
     },
@@ -282,6 +282,11 @@ _LIBRARY = {
         'Y': {
             'value': 1,
             'definition': 'GDP in output quantity',
+            'units': 'Units.y^{-1}',
+        },
+        'Y0': {
+            'value': 1,
+            'definition': 'Yearly Production without climate damage and abatment',
             'units': 'Units.y^{-1}',
         },
         'GDP': {
@@ -526,7 +531,7 @@ _LIBRARY = {
             'units': '',
         },
         'kappalinMax': {
-            'value': 3,
+            'value': 0.3,
             'definition': 'Maximum value of kappa (affine)',
             'units': '',
         },
@@ -566,14 +571,14 @@ _LIBRARY = {
             'units': ''
         },
         'M': {
-            'value':1 ,
+            'value': 1,
             'definition': 'amount of money in the system',
             'units': '$'},
-        'm' : {
+        'm': {
             'value': 1,
             'definition': 'money per unit of GDP',
             'units': 'y'},
-        'v' : {
+        'v': {
             'value': 1,
             'definition': 'money circulation speed',
             'units': 'y^{-1}'},
@@ -655,6 +660,11 @@ _LIBRARY = {
 
 
     'Coping-Damages': {
+        'deltad': {
+            'value': 0.005,
+            'definition': 'Rate of capital depletion with CC',
+            'units': 'y^{-1}',
+        },
         'Dy': {
             'value': 0,
             'definition': 'Damage on production',
@@ -662,7 +672,7 @@ _LIBRARY = {
         },
         'DK': {
             'value': 0,
-            'definition': "intermediary damage on capital",
+            'definition': "Intermediary damage on capital",
             'units': '',
         },
         'Damage': {
@@ -745,7 +755,27 @@ _LIBRARY = {
         },
         'pcarbon': {
             'value': 100,
-            'definition': 'aggregated price of carbon',
+            'definition': 'aggregated real price of carbon',
+            'units': '',
+        },
+        'pcarbon_pot': {
+            'value': 100,
+            'definition': 'aggregated potential price of carbon',
+            'units': '',
+        },
+        'carbontax': {
+            'value': 100,
+            'definition': 'aggregated carbon tax paid by private sector',
+            'units': '',
+        },
+        'apc': {
+            'value': 0,
+            'definition': 'parameter apc for ex. carbon price',
+            'units': '',
+        },
+        'bpc': {
+            'value': 0,
+            'definition': 'parameter bpc for ex. carbon price',
             'units': '',
         },
         'deltapbackstop': {
@@ -756,6 +786,11 @@ _LIBRARY = {
         'deltapcarbon': {
             'value': 0,
             'definition': 'Growth rate of carbon price',
+            'units': '',
+        },
+        'conv10to15': {
+            'value': 1.160723971/1000,
+            'definition': 'conversion factor',
             'units': '',
         },
         'emissionreductionrate': {
@@ -769,7 +804,7 @@ _LIBRARY = {
             'units': '',
         },
         'convexitycost': {
-            'value': 1,
+            'value': 2.6,
             'definition': 'Convexity of cost function for reduction',
             'units': '',
         },

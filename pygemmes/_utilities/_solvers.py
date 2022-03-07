@@ -296,7 +296,7 @@ def get_func_dydt(
     dargs_temp = {
         k0: {
             k1: dbuffer['lambda' if k1 == 'lamb' else k1]
-            for k1 in dargs[k0].keys()
+            for k1 in dargs[k0].keys() if k1 != 'time'
         }
         for k0 in dargs.keys()
     }
