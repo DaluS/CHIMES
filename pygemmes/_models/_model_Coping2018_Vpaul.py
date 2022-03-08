@@ -290,17 +290,19 @@ df0 = {
 df0['L'] = df0['lambda'] * df['N']
 df0['Abattement'] = 1./(1. + ((1. - df0['emissionreductionrate'])*df0['Y'] *
                               df['convexitycost'])/(0.001*df0['Eind']*df['pbackstop'] *
-                                                    df0['emissionreductionrate']*df['convexitycost']*(1. - df0['Dy'])))
+                                                    df0['emissionreductionrate']**df['convexitycost']*(1. - df0['Dy'])))
 df0['Y0'] = df0['Y']/(1. - df0['Dy'])/(1. - df0['Abattement'])
 df0['sigmaEm'] = df0['Eind']/(1. - df0['emissionreductionrate'])/df0['Y0']
 df0['Y2'] = (1. - df0['Abattement'])*(1. - df0['Dy'])*df0['Y0']
 
-# We integrate our second order initial conditions
-df['K'] = df['nu'] * df0['Y0'],
-df['D'] = df0['d'] * df['p'] * df0['Y'],
-df['w'] = df0['omega'] * df['p'] * df0['Y'] / df0['L'],
-df['a'] = df0['Y0'] / df0['L'],
+# We integrate our second order initial condition
+df['K'] = df['nu'] * df0['Y0']
+df['D'] = df0['d'] * df['p'] * df0['Y']
+df['w'] = df0['omega'] * df['p'] * df0['Y'] / df0['L']
+df['a'] = df0['Y0'] / df0['L']
 df['rhoAtmo'] = 3.681/df0['climate_sens']
+
+df['sigmaEm'] = df0['Eind']/(1. - df0['emissionreductionrate'])/df0['Y0']
 
 # plots
 plots = {
@@ -347,40 +349,40 @@ plots = {
             }
            ],
     'byunits': [],
-},
+}
 
 # business as usual
 dict_BAU = dict(df)
 
 # business as usual with impacts and no carbon price
 dict_BAU_DAM = dict(df)
-dict_BAU_DAM['pi1'] = df0['PI1'],
-dict_BAU_DAM['pi2'] = df0['PI2'],
-dict_BAU_DAM['pi3'] = df0['PI3'],
+dict_BAU_DAM['pi1'] = df0['PI1']
+dict_BAU_DAM['pi2'] = df0['PI2']
+dict_BAU_DAM['pi3'] = df0['PI3']
 
 # business as usual with impacts and no carbon price
 dict_TRANSITION = dict(df)
-dict_TRANSITION['apc'] = df0['APC'],
-dict_TRANSITION['bpc'] = df0['BPC'],
-dict_TRANSITION['pi1'] = df0['PI1'],
-dict_TRANSITION['pi2'] = df0['PI2'],
-dict_TRANSITION['pi3'] = df0['PI3'],
+dict_TRANSITION['apc'] = df0['APC']
+dict_TRANSITION['bpc'] = df0['BPC']
+dict_TRANSITION['pi1'] = df0['PI1']
+dict_TRANSITION['pi2'] = df0['PI2']
+dict_TRANSITION['pi3'] = df0['PI3']
 
 # presets
 _PRESETS = {
     'BAU': {
         'fields': dict_BAU,
         'com': 'Business as Usual (no carbon price and no climate impacts)',
-        'plots': plots
+        'plots': dict(plots),
     },
     'BAU_DAM': {
         'fields': dict_BAU_DAM,
         'com': 'Business as Usual with Climate impacts but no carbon price',
-        'plots': plots
+        'plots': dict(plots),
     },
     'TRANSITION': {
         'fields': dict_TRANSITION,
         'com': 'Default transition scenario with climate damage and carbon price',
-        'plots': plots
+        'plots': dict(plots),
     },
 }

@@ -302,7 +302,7 @@ _LIBRARY = {
         'u': {
             'value': .85,
             'definition': 'Use intensity of capital',
-            'units': 'Units',
+            'units': '',
         },
 
 
