@@ -976,8 +976,6 @@ class Hub():
         if preset is None:
             preset = self.dmodel['preset']
         tempd = self.dmodel['presets'][preset]['plots']
-        print(type(tempd), dict(tempd))
-        # print(tempd)
 
         for plot, funcplot in _DPLOT.items():
             for argl in tempd.get(plot, []):
