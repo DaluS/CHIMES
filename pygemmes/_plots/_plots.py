@@ -261,6 +261,7 @@ def plotbyunits(hub, title='', lw=1, idx=0, color='k', sharex=True):
         #dax[key].set_ylim(ymin, ymax)
         #ax.set_xlabel(R['time']['symbol']+' (years)')
         ax.set_xlim(vx[0], vx[-1])
+        ax.axhline(y=0, color='k', lw=0.5)
         if 1 < index < Nax-2:
             ax.set_xticklabels([])
         else:

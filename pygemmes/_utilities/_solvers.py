@@ -509,12 +509,12 @@ def _solver_scipy(
     if atol is None:
         atol = 1.e-6
     if max_time_step is None:
-        max_time_step = 10. * dparam['dt']['value']
+        max_time_step = dparam['dt']['value'] *10.
 
     # -----------------
     # define t_span, t_eval
 
-    t_span = [dparam['time']['initial'], dparam['Tmax']['value']]
+    t_span = [dparam['time']['initial'],dparam['time']['initial']+ dparam['Tmax']['value']]
     t_eval = np.linspace(t_span[0], t_span[1], dparam['nt']['value'])
 
     # -----------------

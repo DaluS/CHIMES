@@ -45,6 +45,11 @@ _LIBRARY = {
             'units': 'y',
             'definition': 'Total simulated time',
         },
+        'Tini': {
+            'value': 2015,
+            'definition': 'Initial time',
+            'units': 'y',
+        },
         'dt': {
             'value': 0.01,
             'units': 'y',
@@ -302,7 +307,7 @@ _LIBRARY = {
         'u': {
             'value': .85,
             'definition': 'Use intensity of capital',
-            'units': 'Units',
+            'units': '',
         },
 
 
@@ -987,13 +992,15 @@ __DEFAULTFIELDS = {
         'default': 'undefined',
         'type': str,
         'allowed': [
-            'Units',  # Any physical quantity of something (capital, ressources...)
-            'y',      # Time
-            '$',      # Money
-            'C',      # Carbon Concentration
-            'Tc',     # Temperature (Celsius)
+            'Units',   # Any physical quantity of something (capital, ressources...)
+            'y',       # Time
+            '$',       # Money
+            'C',       # Carbon Concentration
+            'Tc',      # Temperature (Celsius)
             'Humans',  # Population
-            '',       # Dimensionless
+            'W',       # Energy
+            'L',       # Length
+            '',        # Dimensionless
         ],
     },
     'type': {
