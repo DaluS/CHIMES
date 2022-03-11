@@ -18,6 +18,7 @@ TODO:
  - verefier unite
 """
 ###############################################################################
+Tini = 2015
 
 _LOGICS = deepcopy(_LOGICSGK)
 # the main logics is from Goodwin-Keen
@@ -34,7 +35,6 @@ for category, dic in _LOGICSCLIM.items():
 del _LOGICS['ode']['pseudot']
 del _LOGICS['statevar']['Ir']
 
-tini = 2015
 # add plenty of stuff
 _LOGICS_COPING2018 = {
     # ode
@@ -59,7 +59,7 @@ _LOGICS_COPING2018 = {
             'com': 'Exogenous Evolution is implicitely given in Bovari2018',
         },
         'pcarbon_pot': {
-            'func': lambda apc=0., bpc=0., itself=0., time=1.: itself*(apc + bpc/(time - (tini - 1))),
+            'func': lambda apc=0., bpc=0., itself=0., time=1., Tini=0.: itself*(apc + bpc/(time - (Tini - 1))),
             'com': 'Evolution of carbon price Eq. (38) in Bovari2018',
         },
         'sigmaEm': {
@@ -216,6 +216,7 @@ _LOGICS['statevar']['pcarbon']['units'] = '$.C^{-1}'
 _LOGICS['statevar']['Abattement']['units'] = ''
 _LOGICS['statevar']['carbontax']['units'] = '$.y^{-1}'
 
+_LOGICS['param']['Tini'] = {'units': 'y'}
 _LOGICS['param']['Tmax'] = {'units': 'y'}
 _LOGICS['param']['dt'] = {'units': 'y'}
 _LOGICS['param']['nx'] = {'units': 'y'}
@@ -267,7 +268,8 @@ _LOGICS['param']['conv10to15'] = {'units': ''}
 # Dictionnary of fields for preset
 df = {
     # Time iteration
-    'dt': 1,
+    'dt': 1./12,
+    'Tini':Tini,
 
     # ode initial conditions
     'pbackstop': 547.22,
@@ -281,7 +283,7 @@ df = {
     'T0': 0.0068,
     'p': 1.,
     'N': 4.83,
-    'time': tini,
+    'time': Tini,
 
     # parameters
     'n': 0.0305,
