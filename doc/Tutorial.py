@@ -369,13 +369,13 @@ Exercise 3 : add on github
 
 
 listofsolver = pgm.get_available_solvers(returnas=list)
-listofsolver = [listofsolver[i] for i in [0]]
+listofsolver = [listofsolver[i] for i in [0,3]]
 listofmodels = pgm.get_available_models(returnas=list)
 for model in listofmodels:
     presets = pgm.get_available_models(returnas=dict)[model]['presets']
     for preset in [None]+presets:
         hub = pgm.Hub(model, preset=preset)
-        hub.set_dparam(Tmax=1, verb=False)
+        hub.set_dparam(Tmax=10, verb=False)
         for solver in listofsolver:
             print(model, preset, solver)
             hub.run()

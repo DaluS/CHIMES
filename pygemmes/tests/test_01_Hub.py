@@ -4,7 +4,6 @@ This module contains tests for tofu.geom in its structured version
 """
 
 # Built-in
-import pygemmes as pgm
 import os
 import sys
 import itertools as itt     # for iterating on parameters combinations
@@ -32,6 +31,7 @@ _PATH_MODELS = os.path.join(_PATH_PCK, 'pygemmes', '_models')
 
 # library-specific
 sys.path.insert(0, _PATH_PCK)   # ensure Main comes from .. => add PYTHONPATH
+import pygemmes as pgm
 sys.path.pop(0)                 # clean PYTHONPATH
 
 
@@ -164,6 +164,8 @@ class Test01_Hub():
                         self.dhub[model][preset][solver].run(
                             solver=solver,
                             verb=0,
+                            rtol=1,
+                            atol=1
                         )
                     except Exception as err:
                         dfail[f'{model} {preset} {solver}'] = str(err)

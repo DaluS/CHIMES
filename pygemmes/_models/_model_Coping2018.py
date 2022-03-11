@@ -269,7 +269,7 @@ _LOGICS['param']['conv10to15'] = {'units': ''}
 df = {
     # Time iteration
     'dt': 1./12,
-    'Tini':Tini,
+    #'Tini':Tini,
 
     # ode initial conditions
     'pbackstop': 547.22,
