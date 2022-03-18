@@ -129,6 +129,9 @@ def load_model(model=None, dmulti=None, verb=None, from_user=None):
         dmodel = dict(dmodels[model])
 
     elif os.path.isfile(model) and model.endswith('.py'):
+
+        raise Exception('Absolute path for models disactivated for the moment')
+        '''
         # get from arbitrary model file
         model_file = str(model)
 
@@ -145,7 +148,7 @@ def load_model(model=None, dmulti=None, verb=None, from_user=None):
             warnings.warn(msg)
             model = 'custom'
 
-        # load model file
+
         spec = importlib.util.spec_from_file_location(k0, model_file)
         foo = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(foo)
@@ -168,7 +171,7 @@ def load_model(model=None, dmulti=None, verb=None, from_user=None):
             'file': model_file,
             'name': model,
         }
-
+        '''
     else:
         msg = (
             "Arg model must be either:\n"
@@ -288,7 +291,6 @@ def _check_logics(dmodel=None, verb=None):
 
     In particulart, checks:
         - ode
-        - pde
         - statevar
 
     If necessary, add initial values
@@ -581,7 +583,8 @@ def _set_key_value(dparam=None, key=None, value=None, grid=None):
         )
         raise Exception(msg)
 
-    tochange = 'initial' if dparam[key].get('eqtype', None) == 'ode' else 'value'
+    tochange = 'initial' if dparam[key].get(
+        'eqtype', None) == 'ode' else 'value'
 
     if hasattr(value, '__iter__'):
         dparam[key][tochange] = np.atleast_1d(value).ravel()
@@ -1123,12 +1126,15 @@ def _check_func_get_source(lfunc=None, dparam=None):
                 dparam[k0]['source_name'] = dparam[k0]['func'].__name__
 
             kargs = [kk.strip() for kk in kargs.strip().split(',')]
+            '''
+            OK TO BE REMOVED IF ODER WORKING
             if not all(['=' in kk for kk in kargs]):
                 msg = (
                     'Only keyword args can be used for lambda functions!\n'
                     f'Provided:\n{sour}'
                 )
                 raise Exception(msg)
+            '''
 
             # store keyword args and cleaned-up expression separately
             kargs = ', '.join(kargs)
@@ -1168,6 +1174,8 @@ def _check_func(dparam=None, dmulti=None, verb=None):
         v0 = dparam[k0]
         kargs = inspect.getfullargspec(v0['func']).args
 
+        #print(k0, kargs,)
+
         # Replace lamb by lambda
         if 'lamb' in kargs:
             kargs[kargs.index('lamb')] = 'lambda'
@@ -1199,12 +1207,15 @@ def _check_func(dparam=None, dmulti=None, verb=None):
             continue
 
         # check the function is working
+        """
+        CAN BE REMOVED IF THERE IS A WORKAROUND ON EQUATION ORDER
         try:
             out = v0['func']()
             assert not np.any(np.isnan(out))
         except Exception as err:
             dfail[k0] = f"Function doesn't work with default values ({err})"
             continue
+        """
 
         # store keyword args
         dparam[k0]['kargs'] = kargs
@@ -1614,15 +1625,16 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None, dmulti=None):
             continue
 
         # get defaults
-        defaults = list(dparam[k0]['func'].__defaults__)
+        #defaults = list(dparam[k0]['func'].__defaults__)
         kargs = dparam[k0]['source_kargs'].split(', ')
-        # print(k0, dparam[k0]['source_kargs'])
+        defaults = len(kargs)*[0]
         # update using fixed param (eqtype = None)
         for k1 in dparam[k0]['args'][None]:
             key = 'lamb' if k1 == 'lambda' else k1
 
             defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
-            ind = [ii for ii, vv in enumerate(kargs) if key == vv.split('=')[0]]
+            ind = [ii for ii, vv in enumerate(
+                kargs) if key == vv.split('=')[0]]
 
             if len(ind) != 1:
                 msg = f"Inconsistency in (fixed) kargs for {k0}, {k1}"

@@ -65,12 +65,12 @@ _LOGICS = {
 
         # Stock-Flow consistency
         'Pi': {
-            'func': lambda GDP=0, w=0, L=0, r=0, D=0: GDP - w * L,
+            'func': lambda GDP, w, L, r, D: GDP - w * L,
             'com': 'Profit for production-Salary', },
 
         # Auxilliary for practical purpose
         'g': {
-            'func': lambda I=0, K=1, delta=0: (I - K * delta)/K,
+            'func': lambda I, K, delta: (I - K * delta)/K,
             'com': 'relative growth rate'},
     },
     'param': {
@@ -102,23 +102,23 @@ _PRESETS = {
         'plots': {
             'timetrace': [{}],
             'nyaxis': [{'x': 'time',
-                           'y': [['lambda', 'omega'],
-                                 ['K'],
-                                 ],
-                            'idx':0,
-                            'title':'',
-                            'lw':1}],
+                        'y': [['lambda', 'omega'],
+                              ['K'],
+                              ],
+                        'idx':0,
+                        'title':'',
+                        'lw':1}],
             'phasespace': [{'x': 'lambda',
                             'y': 'omega',
                             'color': 'time',
                             'idx': 0}],
             '3D': [{'x': 'lambda',
-                        'y': 'omega',
-                        'z': 'time',
-                        'cinf': 'pi',
-                        'cmap': 'jet',
-                        'index': 0,
-                        'title': ''}],
+                    'y': 'omega',
+                    'z': 'time',
+                    'cinf': 'pi',
+                    'cmap': 'jet',
+                    'index': 0,
+                    'title': ''}],
             'byunits': [],
         },
     },

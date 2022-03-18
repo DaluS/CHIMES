@@ -86,7 +86,8 @@ R2 = hub.get_dparam(key=('lambda', 'omega'))
 R1.keys()
 R2.keys()
 
-groupsoffields = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['ode', 'statevar'])
+groupsoffields = hub.get_dparam_as_reverse_dict(
+    crit='units', eqtype=['ode', 'statevar'])
 
 
 # %% STUDY OF CYCLES
@@ -99,8 +100,10 @@ dax4 = hub.plot(mode='cycles', key=['lambda', 'omega', 'd', 'phillips'])
 hub = pgm.Hub('GK')
 
 # Plots that are not related to a run but to a function
-pgm.plots.slices_wholelogic(hub, key='kappa', axes=[['pi', 0, 0.3]], N=100, tid=0, idx=0)
-pgm.plots.slices_wholelogic(hub, key='L', axes=[['a', 1, 3], ['K', 1, 5]], N=100, tid=0, idx=0)
+pgm.plots.slices_wholelogic(hub, key='kappa', axes=[
+                            ['pi', 0, 0.3]], N=100, tid=0, idx=0)
+pgm.plots.slices_wholelogic(hub, key='L', axes=[['a', 1, 3], [
+                            'K', 1, 5]], N=100, tid=0, idx=0)
 
 # Plots related to a run
 hub.run()
@@ -369,7 +372,7 @@ Exercise 3 : add on github
 
 
 listofsolver = pgm.get_available_solvers(returnas=list)
-listofsolver = [listofsolver[i] for i in [0,3]]
+listofsolver = [listofsolver[i] for i in [0]]
 listofmodels = pgm.get_available_models(returnas=list)
 for model in listofmodels:
     presets = pgm.get_available_models(returnas=dict)[model]['presets']
@@ -379,3 +382,4 @@ for model in listofmodels:
         for solver in listofsolver:
             print(model, preset, solver)
             hub.run()
+            hub.plot()
