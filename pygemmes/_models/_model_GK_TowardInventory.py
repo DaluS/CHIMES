@@ -32,30 +32,30 @@ _LOGICS = deepcopy(_LOGICS0)
 _INVENTORY = {
     'ode': {
         'V': {
-            'func': lambda dotV=0: dotV,
+            'func': lambda dotV: dotV,
             'com': 'logic in statevar dotV',
         },
         'H': {
-            'func': lambda itself=0, deltah=0, C=0: C - itself*deltah,
+            'func': lambda itself, deltah, C: C - itself*deltah,
             'com': 'Goods-Consume-Deterioration'
         },
         'Dh': {
-            'func': lambda w=0, L=0, C=0, p=0: C*p - w*L,
+            'func': lambda w, L, C, p: C*p - w*L,
             'com': 'salary and consumption',
         },
-        'M' : {
-            'func': lambda itself=0: 0,
+        'M': {
+            'func': lambda itself: 0,
             'com': 'empty placeholder'}
     },
 
     # Intermediary relevant functions
     'statevar': {
         'dotV': {
-            'func': lambda Y=0, Ir=0, C=0: Y - Ir - C,
+            'func': lambda Y, Ir, C: Y - Ir - C,
             'definition': 'variation of inventory',
             'com': 'Output Conso Invest'},
         'C': {
-            'func': lambda Ir=0, Y=0: Y-Ir,
+            'func': lambda Ir, Y: Y-Ir,
             'com': 'Says law'},
         'm': Funcs.Definitions.m,
         'v': Funcs.Definitions.v,

@@ -30,37 +30,37 @@ import numpy as np
 _LOGICS = {
     'ode': {
         'lambda': {
-            'func': lambda itself=0, g=0, alpha=0, n=0: itself * (g - alpha - n),
+            'func': lambda itself, g, alpha, n: itself * (g - alpha - n),
             'com': 'reduced 3variables dynamical expression'
         },
         'omega': {
-            'func': lambda itself=0, phillips=0, inflation=0, gammai=0, alpha=0: itself * (phillips - (1 - gammai)*inflation-alpha),
+            'func': lambda itself, phillips, inflation, gammai, alpha: itself * (phillips - (1 - gammai)*inflation-alpha),
             'com': 'reduced 3variables dynamical expression',
         },
         'd': {
-            'func': lambda itself =0, kappa=0, pi=0, g=0, inflation=0: kappa - pi - itself*(g+inflation),
+            'func': lambda itself, kappa, pi, g, inflation: kappa - pi - itself*(g+inflation),
             'com': 'no solvability in loans'
         }
     },
     'statevar': {
         'phillips': {
-            'func': lambda phi0=0, phi1=0, lamb=0: (-phi0 + phi1 / (1 - lamb)**2),
+            'func': lambda phi0, phi1, lamb: (-phi0 + phi1 / (1 - lamb)**2),
             'com': 'salary negociation on employement and profit',
         },
         'g': {
-            'func': lambda kappa=0, nu=1, delta=0: kappa / nu - delta,
+            'func': lambda kappa, nu, delta: kappa / nu - delta,
             'com': 'Goodwin explicit Growth',
         },
         'pi': {
-            'func': lambda omega=0, r=0, d=0: 1. - omega - r * d,
+            'func': lambda omega, r, d: 1. - omega - r * d,
             'com': 'Goodwin relative profit',
         },
         'kappa': {
-            'func': lambda k0=0, k1=0, k2=0, pi=0: k0 + k1 * np.exp(k2 * pi),
+            'func': lambda k0, k1, k2, pi: k0 + k1 * np.exp(k2 * pi),
             'com': 'Relative GDP investment through relative profit',
         },
         'inflation': {
-            'func': lambda mu=0, eta=0, omega=0: eta*(mu*omega-1),
+            'func': lambda mu, eta, omega: eta*(mu*omega-1),
             'com': 'Markup dynamics',
         },
     },

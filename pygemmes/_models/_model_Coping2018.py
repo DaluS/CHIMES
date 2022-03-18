@@ -44,35 +44,35 @@ _LOGICS_COPING2018 = {
         'w': Funcs.Phillips.salaryfromPhillipsNoInflation,
         # production group
         'K': {
-            'func': lambda itself=0., deltad=0., I=0.: I - deltad*itself,
+            'func': lambda itself, deltad, I: I - deltad*itself,
             'com': 'Evolution def. in Eq. (7) in Bovari2018',
             'definition': 'Monetary Capital',
         },
         'D': {
-            'func': lambda Sh=0., K=0., Pi=0., deltad=0., p=0., I=0.: p*I - Pi - p*deltad*K + Sh,
+            'func': lambda Sh, K, Pi, deltad, p, I: p*I - Pi - p*deltad*K + Sh,
             'com': 'Evolution def. in Eq. (8) in Bovari2018',
             'definition': 'Private debt in current $',
         },
         # carbon price group
         'pbackstop': {
-            'func': lambda itself=0., deltapbackstop=0.: itself*deltapbackstop,
+            'func': lambda itself, deltapbackstop: itself*deltapbackstop,
             'com': 'Exogenous Evolution is implicitely given in Bovari2018',
         },
         'pcarbon_pot': {
-            'func': lambda apc=0., bpc=0., itself=0., time=1., Tini=0.: itself*(apc + bpc/(time - (Tini - 1))),
+            'func': lambda apc, bpc, itself, time, Tini: itself*(apc + bpc/(time - (Tini - 1))),
             'com': 'Evolution of carbon price Eq. (38) in Bovari2018',
         },
         'sigmaEm': {
-            'func': lambda itself=0., gsigmaEm=0.: itself*gsigmaEm,
+            'func': lambda itself, gsigmaEm: itself*gsigmaEm,
             'com': 'Evolution of sigma in Eq. (17) in Bovari2018',
         },
         'gsigmaEm': {
-            'func': lambda itself=0., deltagsigmaEm=0.: itself*deltagsigmaEm,
+            'func': lambda itself, deltagsigmaEm: itself*deltagsigmaEm,
             'com': 'Evolution of gsigma in Eq. (18) in Bovari2018',
         },
         # Emissions group
         'Eland': {
-            'func': lambda itself=0., deltaEland=0.: deltaEland*itself,
+            'func': lambda itself, deltaEland: deltaEland*itself,
             'com': 'Evolution of land use emissions in Eq. (19) in Bovari2018',
         },
     },
@@ -87,42 +87,42 @@ _LOGICS_COPING2018 = {
 
         # damage group
         'DK': {
-            'func': lambda Damage=0., fk=0.: fk*Damage,
+            'func': lambda Damage, fk: fk*Damage,
             'com': 'Defined in Eq. (28) in Bovari2018'
         },
         'Dy': {
-            'func': lambda DK=0., Damage=0.: 1. - (1. - Damage)/(1. - DK),
+            'func': lambda DK, Damage: 1. - (1. - Damage)/(1. - DK),
             'com': 'Defined in Eq. (29) in Bovari2018'
         },
         'deltad': {
-            'func': lambda delta=0., DK=0.: delta + DK,
+            'func': lambda delta, DK: delta + DK,
             'definition': 'Capital depreciation with CC',
             'com': 'Defined below Eq. (3) in Bovari2018',
         },
         # emission group
         'Emission': {
-            'func': lambda Eind=0., Eland=0.: Eind + Eland,
+            'func': lambda Eind, Eland: Eind + Eland,
             'definition': 'Total emissions',
             'com': 'Sum of industrial and Land-Use',
         },
         'Eind': {
-            'func': lambda emissionreductionrate=0., sigmaEm=0., Y0=0.: (1. - emissionreductionrate)*sigmaEm*Y0,
+            'func': lambda emissionreductionrate, sigmaEm, Y0: (1. - emissionreductionrate)*sigmaEm*Y0,
             'definition': 'Industrial emissions',
             'com': 'Defined given in Eq. (16) in Bovari2018',
         },
         # production group
         'Y': {
-            'func': lambda Abattement=0., Dy=0., Y0=0.: (1. - Abattement)*(1. - Dy)*Y0,
+            'func': lambda Abattement, Dy, Y0: (1. - Abattement)*(1. - Dy)*Y0,
             'com': 'Defined in Eq. (2) in Bovari2018',
             'definition': 'Yearly Production with impacts',
         },
         'Y0': {
-            'func': lambda K=0., nu=1.: K / nu,
+            'func': lambda K, nu: K / nu,
             'com': 'Definifiotn in Eq. (1) in Bovari2018',
             'definition': 'Yearly Production without impacts',
         },
         'L': {
-            'func': lambda Nmax=0., Y0=0., a=1.: np.minimum(Nmax, Y0/a),
+            'func': lambda Nmax, Y0, a: np.minimum(Nmax, Y0/a),
             'com': 'Number of workers according to K, Eq. (1) in Bovari2018',
         },
         'I': {
@@ -131,37 +131,37 @@ _LOGICS_COPING2018 = {
             'definition': 'Investment in capital',
         },
         'Pi': {
-            'func': lambda GDP=0., w=0., L=0., r=0., D=0., p=0., carbontax=0., deltad=0., K=0.: GDP - w*L - r*D - p*carbontax - p*deltad*K,
+            'func': lambda GDP, w, L, r, D, p, carbontax, deltad, K: GDP - w*L - r*D - p*carbontax - p*deltad*K,
             'com': 'Defined in Eq. (3) in Bovari2018',
             'definition': 'Monetary profit of private sector',
         },
         'g': {
-            'func': lambda I=0., K=1., deltad=0.: (I - deltad*K)/K,
+            'func': lambda I, K, deltad: (I - deltad*K)/K,
             'com': 'Relative growth of GDP: Kdot / K',
         },
 
         # carbon price group
         'emissionreductionrate': {
-            'func': lambda pbackstop=1., convexitycost=2.6, pcarbon=0: np.minimum(1., (pcarbon/pbackstop)**(1./(convexitycost - 1.))),
+            'func': lambda pbackstop, convexitycost, pcarbon: np.minimum(1., (pcarbon/pbackstop)**(1./(convexitycost - 1.))),
             'com': 'Defined in Eq. (31) in Bovari2018',
         },
         'pcarbon': {
-            'func': lambda pcarbon_pot=0., pbackstop=0.: np.minimum(pcarbon_pot, pbackstop),
+            'func': lambda pcarbon_pot, pbackstop: np.minimum(pcarbon_pot, pbackstop),
             'definition': 'Real carbon price as the minimum between pcarbon_pot and pbackstop',
             'com': 'The carbon price used in emissionreductionrate',
         },
         'Abattement': {
-            'func': lambda sigmaEm=0., pbackstop=0., emissionreductionrate=0., convexitycost=1.: 0.001*sigmaEm*pbackstop*(emissionreductionrate**convexitycost)/convexitycost,
+            'func': lambda sigmaEm, pbackstop, emissionreductionrate, convexitycost: 0.001*sigmaEm*pbackstop*(emissionreductionrate**convexitycost)/convexitycost,
             'definition': 'Rate of production devoted to transition',
             'com': 'Defined in Eq. (30) in Bovari2018',
         },
         'carbontax': {
-            'func': lambda Eind=0., pcarbon=0., conv10to15=0.: pcarbon*Eind*conv10to15,
+            'func': lambda Eind, pcarbon, conv10to15: pcarbon*Eind*conv10to15,
             'definition': 'Carbon tax paid by private sector',
             'com': 'Defined below Eq. (3) in Bovari2018',
         },
         'c': {
-            'func': lambda p=0., omega=0.: p * omega,
+            'func': lambda p, omega: p * omega,
             'com': 'Production cost to get good inflation function',
         },
     },
@@ -269,7 +269,7 @@ _LOGICS['param']['conv10to15'] = {'units': ''}
 df = {
     # Time iteration
     'dt': 1./12,
-    #'Tini':Tini,
+    # 'Tini':Tini,
 
     # ode initial conditions
     'pbackstop': 547.22,

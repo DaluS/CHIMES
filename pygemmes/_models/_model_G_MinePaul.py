@@ -34,16 +34,16 @@ _COUPLING = {
     'statevar': {
         # THE IMPACT ON PRODUCTION
         'Y': {
-            'func': lambda K=0, nuEQ=1, Gamma=0, intensity=0: (K/nuEQ) / (1-intensity*Gamma),
+            'func': lambda K, nuEQ, Gamma, intensity: (K/nuEQ) / (1-intensity*Gamma),
             'com': 'EROI impacting Leontiev'
         },
         'nuEQ': {
-            'func': lambda intensity=0, nu=1, nuMine=1: intensity*nuMine+(1-intensity)*nu,
+            'func': lambda intensity, nu, nuMine: intensity*nuMine+(1-intensity)*nu,
             'com': 'nu from both system together',
             'definition': "nu when pseudo-bisectorial",
         },
         'c': {
-            'func': lambda w=0, a=1, Gamma=0, intensity=0:  w/(a*(1+intensity*Gamma)),
+            'func': lambda w, a, Gamma, intensity:  w/(a*(1+intensity*Gamma)),
             'com': 'price with only labor salary',
         }
 

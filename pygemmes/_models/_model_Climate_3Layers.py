@@ -34,7 +34,7 @@ _LOGICS = {
         'T': Funcs.Atmosphere.Three_Layers.T,
         'T0': Funcs.Atmosphere.Three_Layers.T0,
         'pseudot': {
-            'func': lambda itself=0: 1,
+            'func': lambda itself: 1,
             'com': 'needed for explicit time dependency',
             'initial': 0,
         },
@@ -42,7 +42,7 @@ _LOGICS = {
     'statevar': {
         'F': Funcs.Atmosphere.F,
         'Emission': {
-            'func': lambda Emission0=0, deltaEmission=0, pseudot=0: Emission0*np.exp(-pseudot*deltaEmission),
+            'func': lambda Emission0, deltaEmission, pseudot: Emission0*np.exp(-pseudot*deltaEmission),
             'com': 'CO2 Emission rate ',
         },
     },
@@ -74,5 +74,5 @@ _PRESETS = {'default': {
     },
     'com': ' Default run',
     'plots': {},
-    },
+},
 }
