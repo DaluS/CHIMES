@@ -15,7 +15,6 @@ This way, changing a brick can be compared easily !
 When two brick do not target the same field but goes together (for example Y and L in a produciton function)
 Then they are in a subclass.
 
-itself is still used in a case of an ode calling itself,
 lamb is still used as a substitute to lambda
 do not use _ in any name
 """
@@ -48,23 +47,23 @@ The phenomena behind is a class struggle
 
         # DEFINITION OF w (Wage)
         salaryfromPhillips = {
-            'func': lambda phillips, itself, gammai, inflation: itself * (phillips + gammai*inflation),
+            'func': lambda phillips, w, gammai, inflation: w * (phillips + gammai*inflation),
             'com': 'salary through negociation'
         }
 
         salaryfromPhillipsNoInflation = {
-            'func': lambda phillips, itself: itself * phillips,
+            'func': lambda phillips, w: w * phillips,
             'com': 'Phillips impact (no negociation)'
         }
 
         salaryfromPhillipsProfitsNoInflation = {
-            'func': lambda phillips, itself, pi, zpi: itself * phillips*pi**zpi,
+            'func': lambda phillips, w, pi, zpi: w * phillips*pi**zpi,
             'com': 'Phillips impact (no negociation)'
         }
 
         # Relaxation on lambda
         lambdarelax = {
-            'func': lambda lamb0, itself, taulamb: (lamb0-itself)/taulamb,
+            'func': lambda lamb0, lamb, taulamb: (lamb0-lamb)/taulamb,
             'com': 'Percieved salary in negociation'
         }
 
@@ -102,21 +101,21 @@ the will of the firm to ask for such loan
         }
         ############ DEFINITIONS OF K ########
         kfromI = {
-            'func': lambda I, itself, delta, p: I/p - itself * delta,
+            'func': lambda I, K, delta, p: I/p - K * delta,
             'com': 'Capital evolution from investment and depreciation',
         }
         kfromIr = {
-            'func': lambda Ir, itself, delta: Ir - itself * delta,
+            'func': lambda Ir, K, delta: Ir - K * delta,
             'com': 'Capital evolution from investment and depreciation',
         }
 
         ########### USING B (Kapital Buffer) #
         bfromIr = {
-            'func': lambda Ir, itself, tauK: Ir - itself / tauK,
+            'func': lambda Ir, B, tauK: Ir - B / tauK,
             'com': 'Investment - activation with characteristic time',
         }
         kfromB = {
-            'func': lambda B, itself, delta, tauK: B/tauK - itself * delta,
+            'func': lambda B, K, delta, tauK: B/tauK - K * delta,
             'com': 'Capital evolution from investment and depreciation',
         }
 
@@ -223,12 +222,12 @@ $$l = \left( \omega_c^{-\frac{\eta}{(1+\eta)}} -1 \right)^{\frac{1}{\eta}}$$
 Productivity is the "human power" in production function, the ponderation of each unit
         """
         exogenous = {
-            'func': lambda itself, alpha: itself*alpha,
+            'func': lambda a, alpha: a*alpha,
             'com': 'ODE exogenous, exponential',
         }
 
         verdoorn = {
-            'func': lambda itself, g, alpha, beta: itself * alpha + g * beta,
+            'func': lambda a, g, alpha, beta: a * (alpha + g * beta),
             'com': 'ODE endogenous, impact of physical growth'
         }
 
@@ -264,11 +263,11 @@ Linking Temperature to economic impact
 Population evolution
         """
         exp = {
-            'func': lambda itself, n: itself * n,
+            'func': lambda N, n: N * n,
             'com': 'ODE exogenous exponential',
         }
         logistic = {
-            'func': lambda itself, n, Nmax: itself * n * (1-itself/Nmax),
+            'func': lambda N, n, Nmax: N * n * (1-N/Nmax),
             'com': 'ODE exogenous logistic (saturation)',
         }
 
@@ -280,7 +279,7 @@ the consequence of inflations processes : it is a social construct.
         '''
         # Price dynamics deduced from inflation
         pricefrominflation = {
-            'func': lambda itself, inflation: itself*inflation,
+            'func': lambda p, inflation: p*inflation,
             'com': 'ODE Prices variation deduced from inflation',
         }
 
@@ -347,7 +346,7 @@ Classic intermediary variables that might be needed
             'com': 'its definition (also 1/m)'
         }
         t = {
-            'func': lambda itself: itself,
+            'func': lambda t: 1,
             'com': 'time',
             'initial': 0,
         }
@@ -369,22 +368,22 @@ Classic intermediary variables that might be needed
 
             CO2AT = {
                 # 1./3.666 is to convert from CO2 to C
-                'func': lambda Emission, phi12, CO2UP, CUP, CAT, itself = 0: (1./3.666)*Emission - phi12*itself + phi12*CAT/CUP*CO2UP,
+                'func': lambda Emission, phi12, CO2UP, CUP, CAT, CO2AT = 0: (1./3.666)*Emission - phi12*CO2AT + phi12*CAT/CUP*CO2UP,
                 'com': '3-Layer dynamics (Atmosphere)',
             }
             CO2UP = {
-                'func': lambda phi12, phi23, CAT, CUP, CLO, CO2AT, itself, CO2LO: phi12*CO2AT - itself*(phi12*CAT/CUP-phi23) + phi23*CUP/CLO*CO2LO,
+                'func': lambda phi12, phi23, CAT, CUP, CLO, CO2AT, CO2UP, CO2LO: phi12*CO2AT - CO2UP*(phi12*CAT/CUP-phi23) + phi23*CUP/CLO*CO2LO,
                 'com': '3-Layer dynamics (Upper ocean)',
             }
             CO2LO = {
-                'func': lambda phi23, CO2UP, CUP, CLO, itself = 0: phi23*CO2UP - phi23*CUP/CLO*itself,
+                'func': lambda phi23, CO2UP, CUP, CLO, CO2LO = 0: phi23*CO2UP - phi23*CUP/CLO*CO2LO,
                 'com': '3-Layer dynamics (lower ocean)',
             }
             T = {
-                'func': lambda F, rhoAtmo, itself, gammaAtmo, T0, Capacity: (F - rhoAtmo*itself - gammaAtmo*(itself-T0))/Capacity,
+                'func': lambda F, rhoAtmo, T, gammaAtmo, T0, Capacity: (F - rhoAtmo*T - gammaAtmo*(T-T0))/Capacity,
                 'com': 'Forcing and ocean dynamics',
             }
             T0 = {
-                'func': lambda gammaAtmo, T, itself, Capacity0: (gammaAtmo*(T-itself))/Capacity0,
+                'func': lambda gammaAtmo, T, T0, Capacity0: (gammaAtmo*(T-T0))/Capacity0,
                 'com': 'Accumulation from atmosphere',
             }

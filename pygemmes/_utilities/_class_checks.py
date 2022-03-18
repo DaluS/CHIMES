@@ -118,61 +118,8 @@ def load_model(model=None, dmulti=None, verb=None, from_user=None):
 
     """
 
-    # -------------
-    # check inputs
-
-    dmodels = _models._get_DMODEL(from_user=from_user)[1]
-
-    if model in dmodels.keys():
-        # Get from known models
-        model_file = dmodels[model]['file']
-        dmodel = dict(dmodels[model])
-
-    elif os.path.isfile(model) and model.endswith('.py'):
-
-        raise Exception('Absolute path for models disactivated for the moment')
-        '''
-        # get from arbitrary model file
-        model_file = str(model)
-
-        # trying to derive model name from file name
-        model = os.path.split(model_file)[-1]
-        if model.startswith('_model_') and model.count('_') == 2:
-            model = model[model.index('_model_') + len('_model_'):-3]
-        else:
-            msg = (
-                "model file has non-standard name:\n"
-                f"\t- model file: {model_file}\n"
-                "  => setting model name to 'custom'"
-            )
-            warnings.warn(msg)
-            model = 'custom'
-
-
-        spec = importlib.util.spec_from_file_location(k0, model_file)
-        foo = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(foo)
-
-        # checking attributes
-        lattr = [att for att in _LMODEL_ATTR if not hasattr(foo, att)]
-        if len(lattr) > 0:
-            lstr = [f'\t- {att}' for att in lattr]
-            msg = (
-                "The provided model file should have at least attributes:\n"
-                + "\n".join(lstr)
-            )
-            raise Exception(msg)
-
-        # loading attributes
-        dmodel = {
-            'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
-            'presets': {k0: v0 for k0, v0 in foo._PRESETS.items()},
-            'description': foo.__doc__,
-            'file': model_file,
-            'name': model,
-        }
-        '''
-    else:
+    # CHECK THAT MODEL FILE EXIST #############################################
+    if model not in _models._get_DMODEL(from_user=from_user)[1]:
         msg = (
             "Arg model must be either:\n"
             "\t- the absolute path to valid .py file\n"
@@ -181,13 +128,14 @@ def load_model(model=None, dmulti=None, verb=None, from_user=None):
         )
         raise Exception(msg)
 
-    # -------------
-    # check conformity of dmodel (has 'file', 'name', 'logics', ...)
-    _check_dmodel_preset(dmodel)
+    # LOAD THE FILE ###########################################################
+    dmodels = _models._get_DMODEL(from_user=from_user)[1]
+    model_file = dmodels[model]['file']
+    dmodel = dict(dmodels[model])
     dmodel['preset'] = None
 
-    # --------------
-    # check conformity of logics (has 'ode', 'pde', 'statevar'...)
+    # CHECK THAT MODEL FILE IS VALID ##########################################
+    _check_dmodel(dmodel)
     _check_logics(dmodel, verb=verb)
 
     # convert logics (new formalism) to dparam
@@ -209,15 +157,18 @@ def load_model(model=None, dmulti=None, verb=None, from_user=None):
 # #############################################################################
 
 
-def _check_dmodel_preset(dmodel=None):
-    """ Check dmodel is a dict with proper keys """
+def _check_dmodel(dmodel=None):
+    """ Check dmodel is a dict with proper keys : 
+        1) dmodel is a dict
+        2) all keys from dmodel are valid    
+        3) preset are well written
+    """
 
-    # ----------
-    # check dmodel
+    # 1) CHECK THAT IT IS A DICT
     if not isinstance(dmodel, dict):
-        msg = f"Arg dmodel must be a dict\nProvided: {type(dmodel)}"
-        raise Exception(msg)
+        raise Exception(f"Arg dmodel must be a dict\nProvided: {type(dmodel)}")
 
+    # 2) CHECK THAT ALL KEYS FROM _DMODEL ARE INSIDE
     dkout = {
         k0: type(dmodel.get(k0))
         for k0, v0 in _DMODEL_KEYS.items()
@@ -234,9 +185,7 @@ def _check_dmodel_preset(dmodel=None):
         )
         raise Exception(msg)
 
-    # ----------
-    # check presets
-
+    # 3) CHECK THAT PRESETS ARE WELL WRITTEN
     lkout = [
         k0 for k0, v0 in dmodel['presets'].items()
         if not (
@@ -246,14 +195,8 @@ def _check_dmodel_preset(dmodel=None):
             and isinstance(v0['fields'], dict)
         )
     ]
-
     if len(lkout) > 0:
-        lstr = ["\t- {k0}" for k0 in lkout]
-        msg = (
-            "The following presets are non-valid:\n"
-            + "\n".join(lstr)
-        )
-        #raise Exception(msg)
+        print(f"WARNING :The following presets are non-valid:\n {lkout}")
 
 
 # #############################################################################
@@ -286,7 +229,7 @@ def _check_are_functions(indict=None):
         raise Exception(msg)
 
 
-def _check_logics(dmodel=None, verb=None):
+def _check_logics(dmodel=None, verb=True):
     """ Check conformity of the 'logics' sub-dict
 
     In particulart, checks:
@@ -296,20 +239,14 @@ def _check_logics(dmodel=None, verb=None):
     If necessary, add initial values
     Checks all keys are known to _models._DFIELDS
     """
-
-    if verb is None:
-        verb = True
+    DFIELDS = copy.deepcopy(_models._DFIELDS)
 
     if verb is True:
-        msg = (
-            "#" * 20
-            + f"\nLoading model {dmodel['name']} from {dmodel['file']}"
-        )
-        print(msg)
+        print("#" * 20
+              + f"\nLoading model {dmodel['name']} from {dmodel['file']}"
+              )
 
-    # ---------------
-    # list non-conform keys
-
+    #  list non-conform keys in LOGICS #############
     lkout = [
         k0 for k0, v0 in dmodel['logics'].items()
         if not (
@@ -319,22 +256,18 @@ def _check_logics(dmodel=None, verb=None):
     ]
     if len(lkout) > 0:
         lstr = [f'\t- {kk}' for kk in lkout]
-        msg = (
+        raise Exception(
             "The following keys in _LOGIC are not supported:\n"
-            + "\n".join(lstr)
+            + "\n".join(lstr) + '\n, valid list is'.join(_LEQTYPES)
         )
-        raise Exception(msg)
 
-    # --------------------
     # List all keys in all dict that are not known to _DFIELDS
-
     dkout = {
-        k0: [k1 for k1 in v0.keys() if k1 not in _models._DFIELDS]
+        k0: [k1 for k1 in v0.keys() if k1 not in DFIELDS]
         for k0, v0 in dmodel['logics'].items()
-        if any([k1 for k1 in v0.keys() if k1 not in _models._DFIELDS])
+        if any([k1 for k1 in v0.keys() if k1 not in DFIELDS])
     }
     if len(dkout) > 0:
-
         if verb is True:
             lstr = [f'\t- {k0}: {v0}' for k0, v0 in dkout.items()]
             msg = (
@@ -347,21 +280,19 @@ def _check_logics(dmodel=None, verb=None):
         # adding to local _models._DFIELDS
         for k0, v0 in dkout.items():
             for k1 in v0:
-                _models._DFIELDS[k1] = dict(dmodel['logics'][k0][k1])
+                DFIELDS[k1] = dict(dmodel['logics'][k0][k1])
                 # _models._DFIELDS[k1]['eqtype'] = k0
                 # _models._DFIELDS[k1]['args'] = {key:[] for key in _LEQTYPES }
                 # _models._DFIELDS[k1]['kargs']= []
 
         # Make sure all fields are set
         _models._complete_DFIELDS(
-            dfields=_models._DFIELDS,
+            dfields=DFIELDS,
             complete=True,
             check=True,
         )
 
-    # -----------------------
-    # check ode
-
+    # check ode ############
     if 'ode' in dmodel['logics'].keys():
 
         # list non-conform keys (must have a 'func' function)
@@ -373,11 +304,7 @@ def _check_logics(dmodel=None, verb=None):
                 dmodel['logics']['ode'][k1]['initial'] \
                     = _models._DFIELDS[k1]['value']
 
-    # -----------------------
-    # check pde
-
-    # -----------------------
-    # check statevar
+    # check statevar #######
     if 'statevar' in dmodel['logics'].keys():
 
         # list non-conform keys (must have a 'func' function)
@@ -392,7 +319,6 @@ def _check_logics(dmodel=None, verb=None):
 
 def get_dparam_from_logics(dmodel=None):
     """ Convert logic (from dmodel) to dparam (used in instance)
-
     """
 
     lk = [dict.fromkeys(v0.keys(), k0) for k0, v0 in dmodel['logics'].items()]
@@ -403,7 +329,6 @@ def get_dparam_from_logics(dmodel=None):
         k0: dict(dmodel['logics'][v0][k0]) for k0, v0 in lk[0].items()
     }
 
-    # ---------------
     # Add eqtype
     for k0 in dparam.keys():
         if lk[0][k0] not in ['param']:
@@ -434,24 +359,10 @@ def _check_dparam(dparam=None):
     # check type is dict
 
     if not isinstance(dparam, dict):
-        msg = (
+        raise Exception((
             "dparam must be a dict!\n"
             f"You provided: {type(dparam)}"
-        )
-        raise Exception(msg)
-
-    # ---------------
-    # check keys are known to _models._DFIELDS
-
-    lk0 = [
-        k0 for k0 in dparam.keys() if k0 not in _models._DFIELDS.keys()
-    ]
-    if len(lk0) > 0:
-        msg = (
-            "dparam must have keys identified in _models._DFIELDS!\n"
-            f"You provided: {lk0}"
-        )
-        raise Exception(msg)
+        ))
 
     # ---------------------------------------
     # add numerical parameters if not included
@@ -541,20 +452,6 @@ def _check_dparam(dparam=None):
                 # fixed valkue
                 dfail[k0] = f"Invalid value type ({type(v0['value'])})"
 
-            # set grid
-            c0 = (
-                dparam[k0].get('eqtype') is None
-                and isinstance(dparam[k0]['value'], tuple(_LTYPES_ARRAY))
-            )
-            if c0 and dparam[k0].get('grid') is None:
-                dparam[k0]['grid'] = _GRID
-            c0 = (
-                dparam[k0].get('eqtype') == 'ode'
-                and isinstance(dparam[k0]['initial'], tuple(_LTYPES_ARRAY))
-            )
-            if c0 and dparam[k0].get('grid') is None:
-                dparam[k0]['grid'] = _GRID
-
     # ----------------
     # Raise Exception if any failure
     if len(dfail) > 0:
@@ -599,7 +496,6 @@ def _set_key_value(dparam=None, key=None, value=None, grid=None):
 
 def _get_multiple_systems(dparam, dmulti=None):
     """
-
     A mix of grid=False and grid=True is possible only if all grid=False are
     together
     """
@@ -683,55 +579,41 @@ def _get_multiple_systems(dparam, dmulti=None):
             size = dparam[k0][kval].size
 
             if k0 not in lkeys:
-                if dparam[k0]['grid'] is True:
-                    shape.append(size)
-                    shape_keys.append([k0])
-                    lkeys.append(k0)
-                elif dparam[k0]['grid'] is False:
-                    if hasFalse:
-                        if size != shape[0]:
-                            msg = f"Inconsistent shape for dparam['{k0}']"
-                            raise Exception(msg)
-                        else:
-                            shape_keys[0].append(k0)
-                            lkeys.insert(0, k0)
+                if hasFalse:
+                    if size != shape[0]:
+                        msg = f"Inconsistent shape for dparam['{k0}']"
+                        raise Exception(msg)
                     else:
-                        shape.insert(0, size)
-                        shape_keys.insert(0, [k0])
+                        shape_keys[0].append(k0)
                         lkeys.insert(0, k0)
-                        hasFalse = True
                 else:
-                    msg = f"Inconsistent shape for dparam['{k0}']"
-                    raise Exception(msg)
+                    shape.insert(0, size)
+                    shape_keys.insert(0, [k0])
+                    lkeys.insert(0, k0)
+                    hasFalse = True
 
         # -----------
         # double-check all
 
-        if hasFalse is not any([dparam[k0]['grid'] is False for k0 in lk0]):
-            msg = "Inconsistent hasFalse"
-            raise Exception(msg)
+        # if hasFalse is not any([dparam[k0]['grid'] is False for k0 in lk0]):
+        #    msg = "Inconsistent hasFalse"
+        #    raise Exception(msg)
 
         for k0 in lk0:
 
             kval = 'value' if dparam[k0].get('eqtype') is None else 'initial'
 
-            if dparam[k0]['grid'] is False:
-                indi = 0
-            else:
-                indi = [ii for ii, lk in enumerate(shape_keys) if k0 in lk]
-                if len(indi) != 1:
-                    msg = f"Inconsistent index for dparam['{k0}']"
-                    raise Exception(msg)
-                indi = indi[0]
+            indi = [ii for ii, lk in enumerate(shape_keys) if k0 in lk]
+            if len(indi) != 1:
+                msg = f"Inconsistent index for dparam['{k0}']"
+                raise Exception(msg)
+            indi = indi[0]
 
             # double-check the size vs the common shape
             if dparam[k0][kval].size != shape[indi]:
                 msg = f"Inconsistent size for dparam['{k0}']"
                 raise Exception(msg)
-            if dparam[k0]['grid'] is True and shape_keys[indi] != [k0]:
-                msg = ""
-                raise Exception(msg)
-            elif dparam[k0]['grid'] is False and k0 not in shape_keys[indi]:
+            elif k0 not in shape_keys[indi]:
                 msg = ""
                 raise Exception(msg)
 
@@ -771,6 +653,7 @@ def _get_multiple_systems_functions(dparam=None, dmulti=None):
 
     dmulti['dparfunc'] = {k0: [] for k0 in dmulti['keys']}
 
+    # print(dmulti)
     if dmulti['multi']:
 
         # A unique dimension for variation
@@ -955,15 +838,12 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None):
     return lpar_add, lfunc_add
 
 
-def _extract_parameters(dparam, verb=None):
+def _extract_parameters(dparam, verb=True):
     """ Extract fixed-value parameters
 
     If relevant, the list of fixed-value parameters is extracted from
         the func kwdargs
     """
-
-    if verb is None:
-        verb = True
 
     lpar = [k0 for k0, v0 in dparam.items() if v0.get('func') is None]
     lfunc = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
@@ -979,10 +859,11 @@ def _extract_parameters(dparam, verb=None):
             lpar=lpar + lpar_new,
             dparam=dparam,
         )
-        if len(lp) > 0:
-            lpar_new += lp
-        if len(lf) > 0:
-            lfunc_new += lf
+        if len(lp)+len(lf) > 0:
+            if len(lp) > 0:
+                lpar_new += lp
+            if len(lf) > 0:
+                lfunc_new += lf
         else:
             keepon = False
 
@@ -1033,6 +914,7 @@ def _check_func_time_dependence(lfunc=None, dparam=None):
 
     # first functions that explicitly depend on time
     lft = [kk for kk in lfunc if 'time' in dparam[kk]['kargs']]
+    print(lft)
 
     # then ode
     for kk in lfunc:
@@ -1126,15 +1008,6 @@ def _check_func_get_source(lfunc=None, dparam=None):
                 dparam[k0]['source_name'] = dparam[k0]['func'].__name__
 
             kargs = [kk.strip() for kk in kargs.strip().split(',')]
-            '''
-            OK TO BE REMOVED IF ODER WORKING
-            if not all(['=' in kk for kk in kargs]):
-                msg = (
-                    'Only keyword args can be used for lambda functions!\n'
-                    f'Provided:\n{sour}'
-                )
-                raise Exception(msg)
-            '''
 
             # store keyword args and cleaned-up expression separately
             kargs = ', '.join(kargs)
@@ -1200,24 +1073,6 @@ def _check_func(dparam=None, dmulti=None, verb=None):
         if c0:
             dfail[k0] = "ode equation needs a 'initial' value"
             continue
-
-        # Check is there is a circular dependency
-        '''
-        CAN BE REMOVED IF THERE IS A WORKAROUND ON ITSELF
-        if k0 in kargs:
-            dfail[k0] = "circular dependency!"
-            continue
-        '''
-        # check the function is working
-        """
-        CAN BE REMOVED IF THERE IS A WORKAROUND ON EQUATION ORDER
-        try:
-            out = v0['func']()
-            assert not np.any(np.isnan(out))
-        except Exception as err:
-            dfail[k0] = f"Function doesn't work with default values ({err})"
-            continue
-        """
 
         # store keyword args
         dparam[k0]['kargs'] = kargs

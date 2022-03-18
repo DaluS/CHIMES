@@ -37,86 +37,35 @@ class Hub():
     * preset : DICTIONNARY name of the preset in the actual dictionnary of preset
     * dpreset : DICTOFDICTOFDIC a dictionnary of preset one can use (see model creation)
     * verb : BOOLEAN True for print in terminal
+
+    model files are named _model_<model-name>.py
+
+    A number of pre-defined models are available from the library,
+        see pgm.get_available_models() to get a list
+
+    All pre-defined model files are copied into your $HOME/.pygemmes/
+        folder so you can:
+            - edit them to change some parameters
+            - create new model files that will be accessible to pygemmes
+    You can use them using `from_user=True'
     """
 
     def __init__(
         self,
-        model=None,
+        model,
         from_user=_FROM_USER,
         preset=None,
         dpresets=None,
         verb=False,
     ):
 
-        # Initialize the models
-        self.__dparam = {}
-        self.__dmodel = dict.fromkeys(
-            ['name', 'file', 'description', 'presets', 'preset']
-        )
-        self.__dmisc = dict.fromkeys(
-            ['dmulti', 'dfunc_order', 'run', 'solver']
-        )
-        self.__dargs = {}
-        if model is not None:
-            self.load_model(
-                model,
-                from_user=from_user,
-                preset=preset,
-                dpresets=dpresets,
-                verb=verb,
-            )
+        # Initialize the hub main dictionnaries ###############################
+        self.__dparam = {}  # Contains all the fields and their relative properties
+        self.__dmodel = {}  # Contains the model informations
+        self.__dmisc = {}  # Contains miscellaneous, practical informations
+        self.__dargs = {}  # Pointer for each field and function values
 
-        self.__dmisc['parameters'] = self.get_dparam(
-            returnas=list,
-            eqtype=[None],
-            group=('Numerical',),
-        )
-
-    # ##############################
-    # %% Setting / getting parameters
-    # ##############################
-
-    def load_model(
-        self,
-        model=None,
-        preset=None,
-        dpresets=None,
-        from_user=None,
-        verb=None,
-    ):
-        """ Load a model from a model file
-
-        model files are named _model_<model-name>.py
-
-        A number of pre-defined models are available from the library,
-            see pgm.get_available_models() to get a list
-
-        All pre-defined model files are copied into your $HOME/.pygemmes/
-            folder so you can:
-                - edit them to change some parameters
-                - create new model files that will be accessible to pygemmes
-
-        If you want to make sure you're using the default library's models and
-            not your (maybe edited) model files, just use 'from_user=False'
-
-        """
-
-        # ------------
-        # check model
-
-        if model is None:
-            if self.__dmodel.get('name') is not None:
-                model = self.__dmodel.get('name')
-            else:
-                model = False
-        if model is False:
-            msg = (
-                "Select a model, see get_available_models()"
-            )
-            raise Exception(msg)
-
-        # -------------
-        # load
+        # Load model files ####################################################
         (
             self.__dmodel,
             self.__dparam,
@@ -125,17 +74,46 @@ class Hub():
             self.__dargs,
         ) = _class_checks.load_model(
             model,
-            dmulti=self.__dmisc['dmulti'],
             from_user=from_user,
             verb=verb,
         )
 
-        # ------------
-        # update from preset if relevant
+        # Actualise list of parameters to be accessible
+        types = ['parameters', 'ode', 'statevar']
+        eqtype = [None, 'ode', 'statevar']
+        for ty, eq in zip(types, eqtype):
+            self.__dmisc[ty] = self.get_dparam(
+                returnas=list,
+                eqtype=[eq],
+                group=('Numerical',),
+            )
+
+        # update from preset if relevant ######################################
         if preset is not None:
-            self.set_dparam(preset=preset, dpresets=dpresets, verb=verb)
+            self.set_preset(preset=preset, dpresets=dpresets, verb=verb)
         else:
             self.reset()
+
+    # ##############################
+    # %% Setting / getting parameters
+    # ##############################
+    def set_preset(self, preset, dpresets=None, verb=False):
+        """
+        Simpler version of set_dparam with just preset
+        """
+
+        (self.__dparam,
+         self.__dmisc['dmulti'],
+         self.__dmisc['dfunc_order'],
+         self.__dargs) = _class_checks.update_from_preset(
+            dparam=self.__dparam,
+            dmodel=self.__dmodel,
+            preset=preset,
+            dpresets=dpresets,
+            verb=verb,
+        )
+
+        self.reset()
 
     def set_dparam(
         self,
@@ -144,7 +122,6 @@ class Hub():
         dpresets=None,
         key=None,
         value=None,
-        grid=None,
         verb=False,
         **kwdargs,
     ):
@@ -181,14 +158,8 @@ class Hub():
             >>> hub.set_dparam(**dparam_changes)
         """
 
-        # ----------------
-        # check input
-
-        if grid is None:
-            if self.__dmisc.get('dmulti') is None:
-                grid = False
-            else:
-                grid = self.__dmisc['dmulti'].get('grid')
+        if preset != None:
+            print('WARNING : USE set_dpreset() this will be removed later')
 
         # Check input: dparam xor (key, value)
         lc = [
@@ -220,13 +191,11 @@ class Hub():
         if preset is not None:
             (
                 self.__dparam,
-                self.__dmisc['dmulti'],
                 self.__dmisc['dfunc_order'],
                 self.__dargs,
             ) = _class_checks.update_from_preset(
                 dparam=self.__dparam,
                 dmodel=self.__dmodel,
-                dmulti=self.__dmisc['dmulti'],
                 preset=preset,
                 dpresets=dpresets,
                 verb=verb,
@@ -238,7 +207,6 @@ class Hub():
                     dparam=self.__dparam,
                     key=key,
                     value=value,
-                    grid=grid,
                 )
                 dparam = self.__dparam
 
@@ -250,7 +218,6 @@ class Hub():
                         dparam=self.__dparam,
                         key=kk,
                         value=vv['value'],
-                        grid=vv.get('grid'),
                     )
                 dparam = self.__dparam
 
@@ -264,7 +231,6 @@ class Hub():
                 self.__dargs,
             ) = _class_checks.check_dparam(
                 dparam=dparam,
-                dmulti=self.__dmisc['dmulti'],
                 verb=verb,
             )
 
@@ -287,7 +253,8 @@ class Hub():
         lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype','isneeded']
 
         """
-        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype', 'isneeded']
+        lcrit = ['key', 'dimension', 'units',
+                 'type', 'group', 'eqtype', 'isneeded']
         lprint = [
             'parameter', 'value', 'units', 'dimension', 'symbol',
             'type', 'eqtype', 'group', 'comment',
@@ -712,7 +679,8 @@ class Hub():
         varlist.remove('time')
 
         for k in varlist:
-            R[k]['time_derivate'] = np.gradient(R[k]['value'], axis=0)/R['dt']['value']
+            R[k]['time_derivate'] = np.gradient(
+                R[k]['value'], axis=0)/R['dt']['value']
             R[k]['time_log_derivate'] = R[k]['time_derivate']/R[k]['value']
 
             if R[k]['eqtype'] == 'ode':
@@ -745,7 +713,8 @@ class Hub():
                     k2 = 'lambda'
                 if k2 == 'itself':
                     k2 = k
-                R[k]['partial_derivatives'][k2] = (func(**argTemp)-func(**argsV))/epsilon
+                R[k]['partial_derivatives'][k2] = (
+                    func(**argTemp)-func(**argsV))/epsilon
 
         # Contribution of partial derivatives
         for k in varlist:
@@ -778,7 +747,8 @@ class Hub():
         Nsys = self.dmisc['dmulti']['shape'][0]
 
         for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
-            self.__dparam[var]['cycles'] = [{k: [] for k in fields} for i in range(Nsys)]
+            self.__dparam[var]['cycles'] = [{k: []
+                                             for k in fields} for i in range(Nsys)]
 
         for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
             for idx in range(Nsys):
@@ -847,7 +817,7 @@ class Hub():
         dic1['maxval'] = [np.amax(values[idx[0]:idx[1]])
                           for idx in dic1['period_indexes']]
 
-        #print([values[idx[0]:idx[1]] for idx in dic1['period_indexes']])
+        # print([values[idx[0]:idx[1]] for idx in dic1['period_indexes']])
 
         Coeffs = [_cn(values[idx[0]:idx[1]], n)
                   for idx in dic1['period_indexes']]
@@ -942,7 +912,8 @@ class Hub():
               'field3' : number3}
         '''
         # Final step studies ##################
-        R = self.get_dparam(key=[k for k in finalpoint]+['time'], returnas=dict)
+        R = self.get_dparam(
+            key=[k for k in finalpoint]+['time'], returnas=dict)
         Coords = [R[k]['value']-finalpoint[k] for k in finalpoint.keys()]
         dist = np.linalg.norm(Coords, axis=0)
         t = R['time']['value'][:, 0]

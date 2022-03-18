@@ -30,15 +30,15 @@ import numpy as np
 _LOGICS = {
     'ode': {
         'lambda': {
-            'func': lambda itself, g, alpha, n: itself * (g - alpha - n),
+            'func': lambda lamb, g, alpha, n: lamb * (g - alpha - n),
             'com': 'reduced 3variables dynamical expression'
         },
         'omega': {
-            'func': lambda itself, phillips, inflation, gammai, alpha: itself * (phillips - (1 - gammai)*inflation-alpha),
+            'func': lambda omega, phillips, inflation, gammai, alpha: omega * (phillips - (1 - gammai)*inflation-alpha),
             'com': 'reduced 3variables dynamical expression',
         },
         'd': {
-            'func': lambda itself, kappa, pi, g, inflation: kappa - pi - itself*(g+inflation),
+            'func': lambda d, kappa, pi, g, inflation: kappa - pi - d*(g+inflation),
             'com': 'no solvability in loans'
         }
     },

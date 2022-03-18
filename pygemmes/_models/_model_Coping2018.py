@@ -32,7 +32,7 @@ for category, dic in _LOGICSCLIM.items():
         _LOGICS[category][k] = v
 
 # remove unused variables and params
-del _LOGICS['ode']['pseudot']
+#del _LOGICS['ode']['t']
 del _LOGICS['statevar']['Ir']
 
 # add plenty of stuff
@@ -44,7 +44,7 @@ _LOGICS_COPING2018 = {
         'w': Funcs.Phillips.salaryfromPhillipsNoInflation,
         # production group
         'K': {
-            'func': lambda itself, deltad, I: I - deltad*itself,
+            'func': lambda K, deltad, I: I - deltad*K,
             'com': 'Evolution def. in Eq. (7) in Bovari2018',
             'definition': 'Monetary Capital',
         },
@@ -55,24 +55,24 @@ _LOGICS_COPING2018 = {
         },
         # carbon price group
         'pbackstop': {
-            'func': lambda itself, deltapbackstop: itself*deltapbackstop,
+            'func': lambda pbackstop, deltapbackstop: pbackstop*deltapbackstop,
             'com': 'Exogenous Evolution is implicitely given in Bovari2018',
         },
         'pcarbon_pot': {
-            'func': lambda apc, bpc, itself, time, Tini: itself*(apc + bpc/(time - (Tini - 1))),
+            'func': lambda apc, bpc, pcarbon_pot, time, Tini: pcarbon_pot*(apc + bpc/(time - (Tini - 1))),
             'com': 'Evolution of carbon price Eq. (38) in Bovari2018',
         },
         'sigmaEm': {
-            'func': lambda itself, gsigmaEm: itself*gsigmaEm,
+            'func': lambda sigmaEm, gsigmaEm: sigmaEm*gsigmaEm,
             'com': 'Evolution of sigma in Eq. (17) in Bovari2018',
         },
         'gsigmaEm': {
-            'func': lambda itself, deltagsigmaEm: itself*deltagsigmaEm,
+            'func': lambda gsigmaEm, deltagsigmaEm: gsigmaEm*deltagsigmaEm,
             'com': 'Evolution of gsigma in Eq. (18) in Bovari2018',
         },
         # Emissions group
         'Eland': {
-            'func': lambda itself, deltaEland: deltaEland*itself,
+            'func': lambda Eland, deltaEland: deltaEland*Eland,
             'com': 'Evolution of land use emissions in Eq. (19) in Bovari2018',
         },
     },
@@ -379,7 +379,8 @@ plots = {
         {
             'x': 'time',
             'y': [['lambda', 'omega'],
-                  ['d', 'g'],
+                  ['d'],
+                  ['g'],
                   ['kappa', 'pi'],
                   ],
             'idx':0,

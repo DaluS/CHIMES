@@ -36,7 +36,7 @@ _INVENTORY = {
             'com': 'logic in statevar dotV',
         },
         'H': {
-            'func': lambda itself, deltah, C: C - itself*deltah,
+            'func': lambda H, deltah, C: C - H*deltah,
             'com': 'Goods-Consume-Deterioration'
         },
         'Dh': {
@@ -44,7 +44,7 @@ _INVENTORY = {
             'com': 'salary and consumption',
         },
         'M': {
-            'func': lambda itself: 0,
+            'func': lambda M: 0,
             'com': 'empty placeholder'}
     },
 

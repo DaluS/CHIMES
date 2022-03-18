@@ -29,7 +29,7 @@ import numpy as np
 _LOGICS = {
     'ode': {
         'y': {
-            'func': lambda itself, Noisesigma: itself * Noisesigma * np.random.normal(),
+            'func': lambda y, Noisesigma: y * Noisesigma * np.random.normal(),
             'com': 'exponential noise !',
             'initial': 1,
         },

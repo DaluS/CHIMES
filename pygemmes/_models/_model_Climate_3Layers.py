@@ -33,16 +33,16 @@ _LOGICS = {
         'CO2LO': Funcs.Atmosphere.Three_Layers.CO2LO,
         'T': Funcs.Atmosphere.Three_Layers.T,
         'T0': Funcs.Atmosphere.Three_Layers.T0,
-        'pseudot': {
-            'func': lambda itself: 1,
-            'com': 'needed for explicit time dependency',
-            'initial': 0,
-        },
+        # 't': {
+        #    'func': lambda t: 1,
+        #    'com': 'needed for explicit time dependency',
+        #    'initial': 0,
+        # },
     },
     'statevar': {
         'F': Funcs.Atmosphere.F,
         'Emission': {
-            'func': lambda Emission0, deltaEmission, pseudot: Emission0*np.exp(-pseudot*deltaEmission),
+            'func': lambda Emission0, deltaEmission, time: Emission0*np.exp(-time*deltaEmission),
             'com': 'CO2 Emission rate ',
         },
     },

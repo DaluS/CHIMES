@@ -21,14 +21,15 @@ LINK TO ARTICLE :
 
 import numpy as np
 
-def Lorenz_Z (Lorenzbeta=0, Lorenz_x=0, Lorenz_y=0, itself=0):
+
+def Lorenz_Z(Lorenzbeta=0, Lorenz_x=0, Lorenz_y=0, itself=0):
     return Lorenz_x*Lorenz_y-Lorenzbeta*itself
 
 
 _LOGICS = {
     'ode': {
         'Lorenz_x': {
-            'func': lambda Lorenzsigma=0, Lorenz_y=0, itself=0: Lorenzsigma*(Lorenz_y-itself),
+            'func': lambda Lorenzsigma=0, Lorenz_y=0, Lorenz_x=0: Lorenzsigma*(Lorenz_y-Lorenz_x),
             'initial': 0,
             'definition': 'Simplified rate of convection',
             'com': 'Reduced equation from article',
@@ -36,7 +37,7 @@ _LOGICS = {
             'symbol': r'$\mathcal{x}$'
         },
         'Lorenz_y': {
-            'func': lambda Lorenzrho=0, Lorenz_x=0, Lorenz_z=0, itself=0: Lorenz_x*(Lorenzrho-Lorenz_z)-itself,
+            'func': lambda Lorenzrho=0, Lorenz_x=0, Lorenz_z=0, Lorenz_y=0: Lorenz_x*(Lorenzrho-Lorenz_z)-Lorenz_y,
             'initial': 1,
             'definition': 'horizontal temperature variation',
         },
@@ -47,11 +48,11 @@ _LOGICS = {
         },
     },
     'statevar': {
-        'Lorenz_distance' : {
-            'func': lambda Lorenz_x=0,Lorenz_y=0,Lorenz_z=0 : np.sqrt(Lorenz_x**2 + Lorenz_y**2 + Lorenz_z**2 ),
+        'Lorenz_distance': {
+            'func': lambda Lorenz_x=0, Lorenz_y=0, Lorenz_z=0: np.sqrt(Lorenz_x**2 + Lorenz_y**2 + Lorenz_z**2),
             'definition': 'distance to the (0,0,0)',
             'com': 'calculated using norm L2'
-            },
+        },
     },
     'param': {
         'Lorenzrho': {
@@ -91,7 +92,7 @@ _PRESETS = {
         'fields': {
             'Lorenz_x': 1,
             'Lorenz_y': 1,
-            'Lorenz_z': np.linspace(1,1.1,N),
+            'Lorenz_z': np.linspace(1, 1.1, N),
             'Lorenzsigma': 10,
             'Lorenzrho': 28,
             'Lorenzbeta': 8/3,
