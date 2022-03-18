@@ -382,4 +382,4 @@ for model in listofmodels:
         for solver in listofsolver:
             print(model, preset, solver)
             hub.run()
-            hub.plot()
+            # hub.plot()

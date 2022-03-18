@@ -41,7 +41,10 @@ _LOGICS = {
         'K': Funcs.Kappa.kfromIr,
 
         # Price Dynamics
-        'w': Funcs.Phillips.salaryfromPhillipsNoInflation,
+        'w': {
+            'func': lambda phillips, w: w * phillips,
+            'com': 'Phillips impact (no negociation)'
+        }
     },
 
     # Intermediary relevant functions

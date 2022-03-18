@@ -1202,10 +1202,12 @@ def _check_func(dparam=None, dmulti=None, verb=None):
             continue
 
         # Check is there is a circular dependency
+        '''
+        CAN BE REMOVED IF THERE IS A WORKAROUND ON ITSELF
         if k0 in kargs:
             dfail[k0] = "circular dependency!"
             continue
-
+        '''
         # check the function is working
         """
         CAN BE REMOVED IF THERE IS A WORKAROUND ON EQUATION ORDER
