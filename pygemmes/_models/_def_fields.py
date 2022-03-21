@@ -27,9 +27,7 @@ This file contains :
 """
 import numpy as np
 
-
-__DOTHECHECK = True
-__FILLDEFAULTVALUES = True
+from ..__config import __DOTHECHECK, __FILLDEFAULTVALUES, __DEFAULTFIELDS
 
 
 # #############################################################################
@@ -967,64 +965,6 @@ _LIBRARY = {
 # dict of default value in fields
 
 
-__DEFAULTFIELDS = {
-    'value': {
-        'default': None,
-        'type': (int, float, np.int_, np.float_, np.ndarray, list),
-        'allowed': None,
-    },
-    'definition': {
-        'default': '',
-        'type': str,
-        'allowed': None,
-    },
-    'com': {
-        'default': 'No comment',
-        'type': str,
-        'allowed': None,
-    },
-    'dimension': {
-        'default': 'undefined',
-        'type': str,
-        'allowed': None,
-    },
-    'units': {
-        'default': 'undefined',
-        'type': str,
-        'allowed': [
-            'Units',   # Any physical quantity of something (capital, ressources...)
-            'y',       # Time
-            '$',       # Money
-            'C',       # Carbon Concentration
-            'Tc',      # Temperature (Celsius)
-            'Humans',  # Population
-            'W',       # Energy
-            'L',       # Length
-            '',        # Dimensionless
-        ],
-    },
-    'type': {
-        'default': 'undefined',
-        'type': str,
-        'allowed': [
-            'intensive',
-            'extensive',
-            'dimensionless',
-        ],
-    },
-    'symbol': {
-        'default': '',
-        'type': str,
-        'allowed': None,
-    },
-    'group': {
-        'default': '',
-        'type': str,
-        'allowed': None,
-    },
-}
-
-
 # --------------------
 # Make sure the default is allowed
 for k0, v0 in __DEFAULTFIELDS.items():
@@ -1142,6 +1082,7 @@ def _complete_DFIELDS(
             + "\n".join(lstr)
         )
         raise Exception(msg)
+    return _DFIELDS
 
 
-_complete_DFIELDS()
+_DFIELDS = _complete_DFIELDS(_DFIELDS)

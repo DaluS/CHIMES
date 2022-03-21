@@ -11,12 +11,12 @@ import numpy as np
 
 
 # Library-specific
+from .__config import _FROM_USER
 from ._utilities import _utils, _class_checks, _class_utility, _cn
+from ._utilities import _class_set
 from ._utilities import _Network
 from ._utilities import _solvers, _saveload
 from ._plots._plots import _DPLOT
-
-_FROM_USER = False
 
 
 class Hub():
@@ -60,33 +60,19 @@ class Hub():
     ):
 
         # Initialize the hub main dictionnaries ###############################
-        self.__dparam = {}  # Contains all the fields and their relative properties
-        self.__dmodel = {}  # Contains the model informations
         self.__dmisc = {}  # Contains miscellaneous, practical informations
-        self.__dargs = {}  # Pointer for each field and function values
 
         # Load model files ####################################################
         (
-            self.__dmodel,
-            self.__dparam,
-            self.__dmisc['dmulti'],
+            self.__dmodel,  # Contains the model informations
+            self.__dparam,  # Contains all the fields and their relative properties
             self.__dmisc['dfunc_order'],
-            self.__dargs,
-        ) = _class_checks.load_model(
+            self.__dargs,  # Pointer for each field and function values
+        ) = _class_set.load_model(
             model,
             from_user=from_user,
             verb=verb,
         )
-
-        # Actualise list of parameters to be accessible
-        types = ['parameters', 'ode', 'statevar']
-        eqtype = [None, 'ode', 'statevar']
-        for ty, eq in zip(types, eqtype):
-            self.__dmisc[ty] = self.get_dparam(
-                returnas=list,
-                eqtype=[eq],
-                group=('Numerical',),
-            )
 
         # update from preset if relevant ######################################
         if preset is not None:
@@ -97,6 +83,7 @@ class Hub():
     # ##############################
     # %% Setting / getting parameters
     # ##############################
+
     def set_preset(self, preset, dpresets=None, verb=False):
         """
         Simpler version of set_dparam with just preset
@@ -104,7 +91,6 @@ class Hub():
 
         (self.__dparam,
          self.__dmisc['dmulti'],
-         self.__dmisc['dfunc_order'],
          self.__dargs) = _class_checks.update_from_preset(
             dparam=self.__dparam,
             dmodel=self.__dmodel,
@@ -160,40 +146,10 @@ class Hub():
 
         if preset != None:
             print('WARNING : USE set_dpreset() this will be removed later')
-
-        # Check input: dparam xor (key, value)
-        lc = [
-            dparam is not None,
-            preset is not None,
-            key is not None and value is not None,
-            len(kwdargs) > 0,
-        ]
-        if np.sum(lc) != 1:
-            lstr = [
-                '\t- {}: {}'.format(kk, vv)
-                for kk, vv in [
-                    ('dparam', dparam),
-                    ('preset', preset),
-                    ('key', key), ('value', value),
-                    ('kwdargs', kwdargs),
-                ]
-            ]
-            msg = (
-                "Provide dparam xor preset xor (key, value) xor kwdargs!\n"
-                "You provided:\n"
-                + "\n".join(lstr)
-            )
-            raise Exception(msg)
-
-        # ----------------
-        # set dparam or update desired key
-
-        if preset is not None:
-            (
-                self.__dparam,
-                self.__dmisc['dfunc_order'],
-                self.__dargs,
-            ) = _class_checks.update_from_preset(
+            (self.__dparam,
+             self.__dmisc['dfunc_order'],
+             self.__dargs,
+             ) = _class_checks.update_from_preset(
                 dparam=self.__dparam,
                 dmodel=self.__dmodel,
                 preset=preset,
@@ -202,39 +158,68 @@ class Hub():
             )
         else:
 
-            if key is not None:
-                _class_checks._set_key_value(
-                    dparam=self.__dparam,
-                    key=key,
-                    value=value,
+            # Check input: dparam xor (key, value)
+            lc = [
+                dparam is not None,
+                preset is not None,
+                key is not None and value is not None,
+                len(kwdargs) > 0,
+            ]
+            if np.sum(lc) != 1:
+                lstr = [
+                    '\t- {}: {}'.format(kk, vv)
+                    for kk, vv in [
+                        ('dparam', dparam),
+                        ('preset', preset),
+                        ('key', key), ('value', value),
+                        ('kwdargs', kwdargs),
+                    ]
+                ]
+                msg = (
+                    "Provide dparam xor preset xor (key, value) xor kwdargs!\n"
+                    "You provided:\n"
+                    + "\n".join(lstr)
                 )
-                dparam = self.__dparam
-
-            elif len(kwdargs) > 0:
-                for kk, vv in kwdargs.items():
-                    if not isinstance(vv, dict):
-                        vv = {'value': vv, 'grid': False}
-                    _class_checks._set_key_value(
-                        dparam=self.__dparam,
-                        key=kk,
-                        value=vv['value'],
-                    )
-                dparam = self.__dparam
+                raise Exception(msg)
 
             # ----------------
-            # Update to check consistency
+            # set dparam or update desired key
 
-            (
-                self.__dparam,
-                self.__dmisc['dmulti'],
-                self.__dmisc['dfunc_order'],
-                self.__dargs,
-            ) = _class_checks.check_dparam(
-                dparam=dparam,
-                verb=verb,
-            )
+            if preset is not None:
 
-        # reset all variables (keep only the first time step)
+                if key is not None:
+                    _class_checks._set_key_value(
+                        dparam=self.__dparam,
+                        key=key,
+                        value=value,
+                    )
+                    dparam = self.__dparam
+
+                elif len(kwdargs) > 0:
+                    for kk, vv in kwdargs.items():
+                        if not isinstance(vv, dict):
+                            vv = {'value': vv, 'grid': False}
+                        _class_checks._set_key_value(
+                            dparam=self.__dparam,
+                            key=kk,
+                            value=vv['value'],
+                        )
+                    dparam = self.__dparam
+
+                # ----------------
+                # Update to check consistency
+
+                (
+                    self.__dparam,
+                    self.__dmisc['dmulti'],
+                    self.__dmisc['dfunc_order'],
+                    self.__dargs,
+                ) = _class_checks.check_dparam(
+                    dparam=dparam,
+                    verb=verb,
+                )
+
+            # reset all variables (keep only the first time step)
         self.reset()
 
     def get_dparam(self, condition=None, verb=None, returnas=dict, **kwdargs):

@@ -10,17 +10,7 @@ from .._utilities import _utils
 
 import inspect
 
-_PATH_HERE = os.path.dirname(__file__)
-_PATH_USER_HOME = os.path.expanduser('~')
-_PATH_PRIVATE_MODELS = os.path.join(_PATH_USER_HOME, '.pygemmes', '_models')
-_PATH_MODELS = _PATH_HERE
-
-_FROM_USER = False
-
-# if private pygemmes exists => load models from there
-if not os.path.isdir(_PATH_PRIVATE_MODELS):
-    _PATH_PRIVATE_MODELS = None
-
+from ..__config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS
 
 # ####################################################
 # ####################################################
@@ -29,12 +19,6 @@ if not os.path.isdir(_PATH_PRIVATE_MODELS):
 
 
 def _get_DMODEL(from_user=_FROM_USER):
-
-    if from_user is None:
-        from_user = True
-
-    # ------------
-    # path_model
 
     if from_user is True and _PATH_PRIVATE_MODELS is not None:
         path_models = _PATH_PRIVATE_MODELS
@@ -55,12 +39,12 @@ def _get_DMODEL(from_user=_FROM_USER):
         spec.loader.exec_module(foo)
         _DMODEL[v0] = {
             'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
-            # 'func_order': foo._FUNC_ORDER,
             'file': foo.__file__,
             'description': foo.__doc__,
             'presets': {k0: dict(v0) for k0, v0 in foo._PRESETS.items()},
             'name': v0,
         }
+
     return path_models, _DMODEL
 
 
