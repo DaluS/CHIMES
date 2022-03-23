@@ -17,13 +17,19 @@ import types
 # library specific
 from . import _class_check_2
 from .. import _models
-from ..__config import _LMODEL_ATTR, _DMODEL_KEYS, _LTYPES, _LTYPES_ARRAY, _LEQTYPES, _LEXTRAKEYS
+from ..__config import _LMODEL_ATTR
+from ..__config import _LTYPES
+from ..__config import _LTYPES_ARRAY
+from ..__config import _LEQTYPES
+from ..__config import _LEXTRAKEYS
 from ..__config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS
 from ..__config import _MODEL_NAME_CONVENTION
 
 ###############################################################################
 #############                  MAIN FUNCTION                      #############
 ###############################################################################
+
+# %% MAIN FUNCTION : LOAD MODEL
 
 
 def load_model(model=None, verb=None, from_user=None):
@@ -34,50 +40,44 @@ def load_model(model=None, verb=None, from_user=None):
             - from_user = False => loaded from the library
             - from_user = True => loaded the user's personal .pygemmes folder
         - the absolute path to an abitrary model file
-
     """
 
     # LOAD THE FILE AND THE LIBRARY ###########################################
-    # _class_check_2.model_name(model, from_user, verb=verb)
+    _class_check_2.model_name(model, from_user, verb=verb)
     dmodel = load_dmodel(model, from_user=None)
     dfields = load_complete_DFIELDS(dmodel, verb=verb)
-    # _class_check_2.dmodel(dmodel)
+    _class_check_2.dmodel(dmodel)
 
     # CREATE DPARAM ###########################################################
     dparam = logics_into_dparam(dmodel)
-    dparam = add_numerical_group(dparam)
+    dparam = add_numerical_group_default_fields(dparam, dfields)
 
-    '''Put all the default characteristics from dfield'''
-    dparam = add_default_fields(dparam, dfields)
-
-    """ Extract fixed-value parameters
-    If relevant, the list of fixed-value parameters is extracted from
-        the func kwdarg"""
-    dparam, lparam = extract_parameters(dparam, verb=verb)
-
-    # _class_check_2.dparam(dparam)
-
-    '''Get all dependencies for each equations, find who can not be usefull
-    Set args and kargs'''
+    """ Extract fixed-value parameters"""
+    dparam, lparam = extract_parameters(dparam, dfields, verb=verb)
     dparam = set_args_auxilliary(dparam)
-
-    # _class_check_2.functions(dparam)
-
-    '''Find order of resolution, parameters are just for same formalism'''
     dfunc_order = set_func_order(dparam, verb=verb)
     dfunc_order['parameters'] = lparam
 
+    _class_check_2.dparam(dparam)
+
+    '''Get all dependencies for each equations, find who can not be usefull
+    Set args and kargs'''
+
+    # _class_check_2.functions(dparam)
+
     '''Initial values and shapes'''
-    param = set_shapes_values(dparam, dfunc_order, verb=verb)
+    dparam = set_shapes_values(dparam, dfunc_order, verb=verb)
 
     '''Big dictionnary of pointers'''
     dargs = get_dargs_by_reference(dparam, dfunc_order=dfunc_order)
 
     return dmodel, dparam, dfunc_order, dargs
 
-###############################################################################
-#############                 SUB FUNCTION                        #############
-###############################################################################
+# #############################################################################
+# ###########                 SUB FUNCTION                        #############
+# #############################################################################
+
+# %% 1) LOAD_DMODEL
 
 
 def load_dmodel(model, from_user=False):
@@ -85,36 +85,61 @@ def load_dmodel(model, from_user=False):
     Load the model from its file
     """
 
-    # CHOOSE THE FOLDER
+    # %% a) choose the folder
     if from_user is True and _PATH_PRIVATE_MODELS is not None:
         path_models = _PATH_PRIVATE_MODELS
     else:
         path_models = _PATH_MODELS
 
-    # LOAD THE MODEL
+    # %% b) load python file
     file_address = _MODEL_NAME_CONVENTION + model + '.py'
     pfe = os.path.join(path_models, file_address)
     spec = importlib.util.spec_from_file_location(file_address, pfe)
     foo = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(foo)
 
+    # %% c) write it as a dict
     dmodel = {
         'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
         'file': foo.__file__,
         'description': foo.__doc__,
         'presets': {k0: dict(v0) for k0, v0 in foo._PRESETS.items()},
+        # Name of the chosen preset
+        'preset': None,
         'name': model,
     }
 
+    # %% d) convert 'ode' into 'differential'
+    if ('differential' in dmodel['logics'].keys() and 'ode' in dmodel['logics'].keys()):
+        raise Exception(
+            'Model use both ode and differential formalism ! Use one only')
+    if 'differential' not in dmodel.keys():
+        dmodel['logics']['differential'] = copy.deepcopy(
+            dmodel['logics'].get('ode', {}))
+        del dmodel['logics']['ode']
+
+    # %% e) convert 'param' into 'parameter'
+    if ('parameter' in dmodel['logics'].keys() and 'param' in dmodel['logics'].keys()):
+        raise Exception(
+            'Model use both ode and differential formalism ! Use one only')
+    if 'parameter' not in dmodel.keys():
+        dmodel['logics']['parameter'] = copy.deepcopy(
+            dmodel['logics'].get('param', {}))
+        del dmodel['logics']['param']
+
     return dmodel
+
+# %% 2) LOAD AND COMPLETE DFIELDS
 
 
 def load_complete_DFIELDS(dmodel, verb=False):
     '''
     Identify fields not existing in library, and add them to it, then complete
     '''
+    # %% a) get access to dfields
     DFIELDS = copy.deepcopy(_models._DFIELDS)
 
+    # %% b) find what needs to be added
     dkout = {
         k0: [k1 for k1 in v0.keys() if k1 not in DFIELDS]
         for k0, v0 in dmodel['logics'].items()
@@ -123,8 +148,9 @@ def load_complete_DFIELDS(dmodel, verb=False):
     if verb is True:
         lstr = [f'\t- {k0}: {v0}' for k0, v0 in dkout.items()]
         print(
-            f"Fields defined in the model but not it the library : \n    - {lstr} ")
+            f"The following fields are defined in the model but not it the library : \n    - {lstr} ")
 
+    # %% c) add them
     for k0, v0 in dkout.items():
         for k1 in v0:
             DFIELDS[k1] = dict(dmodel['logics'][k0][k1])
@@ -132,6 +158,7 @@ def load_complete_DFIELDS(dmodel, verb=False):
             # _models._DFIELDS[k1]['args'] = {key:[] for key in _LEQTYPES }
             # _models._DFIELDS[k1]['kargs']= []
 
+    # %% d) use dfields autocompletion
     DFIELDS = _models._complete_DFIELDS(
         dfields=DFIELDS,
         complete=True,
@@ -140,11 +167,14 @@ def load_complete_DFIELDS(dmodel, verb=False):
     return DFIELDS
 
 
+# %% 3) LOGICS INTO DPARAM
+
 def logics_into_dparam(dmodel):
     """
     Takes dmodel and translate the logics
     """
-    # convert logics (new formalism) to dparam
+
+    # %% a) convert logics formalism into dparam formalism
     lk = [dict.fromkeys(v0.keys(), k0) for k0, v0 in dmodel['logics'].items()]
     for ii, dd in enumerate(lk[1:]):
         lk[0].update(dd)
@@ -153,38 +183,33 @@ def logics_into_dparam(dmodel):
         k0: dict(dmodel['logics'][v0][k0]) for k0, v0 in lk[0].items()
     }
 
-    # Add eqtype
+    # %% b) Add eqtype
     for k0 in dparam.keys():
-        if lk[0][k0] not in ['param']:
+        if lk[0][k0] not in ['parameter']:
             dparam[k0]['eqtype'] = lk[0][k0]
     return dparam
 
 
-def add_numerical_group(dparam):
+# %% 4) ADD NUMERICAL GROUP AND DEFAULT FIELDS
+
+def add_numerical_group_default_fields(dparam, dfields):
     """
     complete dparam with numerical parameters
     """
-    # ---------------------------------------
-    # add numerical parameters if not included
+    # %% a) add numerical parameters if not included
 
     lknum = [
-        k0 for k0, v0 in _models._DFIELDS.items()
+        k0 for k0, v0 in dfields.items()
         if v0['group'] == 'Numerical'
     ]
     for k0 in lknum:
         if k0 not in dparam.keys():
-            dparam[k0] = _models._DFIELDS[k0]
+            dparam[k0] = dfields[k0]
 
     if 'time' not in dparam.keys():
-        dparam['time'] = dict(_models._DFIELDS['time'])
+        dparam['time'] = dict(dfields['time'])
 
-    return dparam
-
-
-def add_default_fields(dparam, dfields):
-    '''
-    Put all the default characteristics from dfield
-    '''
+    # %% b) add default fields
     for k0, v0 in dparam.items():
 
         # if value directly provided => put into dict
@@ -199,31 +224,34 @@ def add_default_fields(dparam, dfields):
 
         # initial ODE handling
         if 'eqtype' in v0.keys():
-            if v0['eqtype'] == 'ode' and not 'initial' in v0.keys():
+            if v0['eqtype'] == 'differential' and not 'initial' in v0.keys():
                 v0['initial'] = dfields[k0]['value']
     return dparam
 
+# %% 5) EXTRACT PARAMETERS
 
-def extract_parameters(dparam, verb=True):
+
+def extract_parameters(dparam, dfields, verb=True):
     """ Extract fixed-value parameters
 
     If relevant, the list of fixed-value parameters is extracted from
         the func kwdargs
     """
 
+    # %% a) Identify what is a parameter or not from start
     lpar = [k0 for k0, v0 in dparam.items() if v0.get('func') is None]
     lfunc = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
     lpar_new = []
     lfunc_new = []
 
-    # ---------------------------------------
-    # extract input args and check conformity
+    # %% b) try to check if their inputs corresponds and add them if necessary
     keepon = True
     while keepon:
         lp, lf = _extract_par_from_func(
             lfunc=lfunc + lfunc_new,
             lpar=lpar + lpar_new,
             dparam=dparam,
+            dfields=dfields
         )
         if len(lp)+len(lf) > 0:
             if len(lp) > 0:
@@ -233,6 +261,7 @@ def extract_parameters(dparam, verb=True):
         else:
             keepon = False
 
+    # %% c) if a key is unknown form dfields but exit in model, add it
     if len(lpar_new + lfunc_new) > 0:
         dfail = {}
         for k0 in lpar_new + lfunc_new:
@@ -242,8 +271,7 @@ def extract_parameters(dparam, verb=True):
                 continue
             dparam[key] = dict(_models._DFIELDS[key])
 
-        # -------------------
-        # Raise Exception if any
+        # Error message
         if len(dfail) > 0:
             lstr = [f'\t- {k0}: {v0}' for k0, v0 in dfail.items()]
             msg = (
@@ -252,21 +280,22 @@ def extract_parameters(dparam, verb=True):
             )
             raise Exception(msg)
 
-    # -------------
     # print
     if verb is True:
         msg = (
             "The following fields are identified as parameters :\n"
-            f"\t- param (fixed): {lpar_new}\n"
-            f"\t- param (func.): {lfunc_new}"
+            f"\t- independant : {lpar_new}\n"
+            f"\t- function of other parameters : {lfunc_new}"
         )
         print(msg)
 
     return dparam, lpar_new+lfunc_new
 
 
-def _extract_par_from_func(lfunc=None, lpar=None, dparam=None):
-
+def _extract_par_from_func(lfunc=None, lpar=None, dparam=None, dfields=None):
+    '''
+    Subroutine of extract_parameters using inspection
+    '''
     lpar_add, lfunc_add = [], []
     lkok = ['itself'] + lpar + lfunc
     for k0 in lfunc:
@@ -275,7 +304,7 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None):
         if k0 in dparam.keys():
             kargs = inspect.getfullargspec(dparam[key]['func']).args
         else:
-            kargs = inspect.getfullargspec(_models._DFIELDS[key]['func']).args
+            kargs = inspect.getfullargspec(dfields[key]['func']).args
 
         # check if any parameter is unknown
         for kk in kargs:
@@ -289,6 +318,8 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None):
 
     return lpar_add, lfunc_add
 
+# %% 6) SET ARGS, KARGS, FIND AUXILLIARIES
+
 
 def set_args_auxilliary(dparam, verb=True):
     '''
@@ -297,7 +328,7 @@ def set_args_auxilliary(dparam, verb=True):
     '''
     lfunc = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
 
-    # Put args and kargs
+    # %% a) find args and kargs
     for k0 in lfunc:
         # get the args
         v0 = dparam[k0]
@@ -310,15 +341,15 @@ def set_args_auxilliary(dparam, verb=True):
                 kk for kk in kargs
                 if kk not in lfunc
             ],
-            'param': [
+            'parameter': [
                 kk for kk in kargs
                 if kk in lfunc
-                and dparam[kk]['eqtype'] == 'param'
+                and dparam[kk]['eqtype'] == 'parameter'
             ],
-            'ode': [
+            'differential': [
                 kk for kk in kargs
                 if kk in lfunc
-                and dparam[kk]['eqtype'] == 'ode'
+                and dparam[kk]['eqtype'] == 'differential'
             ],
             'statevar': [
                 kk for kk in kargs
@@ -327,7 +358,7 @@ def set_args_auxilliary(dparam, verb=True):
             ],
         }
 
-    # Source reading
+    # %% b) write source material
     for k0 in lfunc:
         sour = inspect.getsource(dparam[k0]['func']).replace(
             '    ', '').split('\n')[0]
@@ -343,14 +374,14 @@ def set_args_auxilliary(dparam, verb=True):
             dparam[k0]['source_exp'] = exp.strip()
         else:
             kargs = sour[sour.index('(') + 1:sour.index(')')]
-            dparam[k0]['source_name'] = dparam[k0]['func'].__name__
+            dparam[k0]['source_exp'] = dparam[k0]['func'].__name__
 
         # store keyword args and cleaned-up expression separately
         kargs = [kk.strip() for kk in kargs.strip().split(',')]
         kargs = ', '.join(kargs)
-        dparam[k0]['source_kargs'] = kargs
+        # dparam[k0]['source_kargs'] = kargs
 
-    # Find auxilliary
+    # %% c) find auxilliary
     keep = True
     while keep:
         News = []
@@ -374,22 +405,26 @@ def set_args_auxilliary(dparam, verb=True):
         if len(News) == 0:
             keep = False
 
+    # print
     if verb:
         print("The following variables are identified as auxilliary :")
         print(
-            f"\t - ode : {[k for k in lfunc if (not dparam[k]['isneeded'] and dparam[k]['eqtype']=='ode')]}")
+            f"\t - differential : {[k for k in lfunc if (not dparam[k]['isneeded'] and dparam[k]['eqtype']=='differential')]}")
         print(
-            f"\t - statevar : {[k for k in lfunc if (not dparam[k]['isneeded'] and dparam[k]['eqtype']!='ode')]}")
+            f"\t - statevar : {[k for k in lfunc if (not dparam[k]['isneeded'] and dparam[k]['eqtype']!='differential')]}")
     return dparam
+
+# %% 7) FIND FUNC ORDER
 
 
 def set_func_order(dparam, verb=False):
     '''
     Find equation resolution order
     '''
+    # %% a) subroutine for each group
     dfunc_order = {
         k0: _suggest_funct_order_by_group(eqtype=k0, dparam=dparam)
-        for k0 in ['param', 'statevar', 'ode']
+        for k0 in ['parameter', 'statevar', 'differential']
     }
 
     if verb is True:
@@ -434,35 +469,39 @@ def _suggest_funct_order_by_group(eqtype=None, dparam=None):
                 raise Exception(msg)
 
     except Exception as err:
-        if eqtype == 'ode':
+        if eqtype == 'differential':
             # function order not necessary => pick any order
             lfsort = [
                 kk for kk, vv in dparam.items()
                 if vv.get('eqtype') == eqtype
             ]
         else:
-            # For 'statevar' and 'param' a function order is necessary => raise
+            # For 'statevar' and 'parameter' a function order is necessary => raise
             raise err
 
     return lfsort
+
+# %% 8) GET DARCS
 
 
 def get_dargs_by_reference(dparam, dfunc_order):
     '''
     Big dictionnary of pointers
     '''
+    # %% a) create the dictionnary of pointers
     dargs = {
         k0: {
             k1: dparam[k1]['value']
             for k1 in (
-                dparam[k0]['args']['ode']
+                dparam[k0]['args']['differential']
                 + dparam[k0]['args']['statevar']
             )
             if k1 != 'lambda'
         }
-        for k0 in dfunc_order['statevar'] + dfunc_order['ode']
+        for k0 in dfunc_order['statevar'] + dfunc_order['differential']
     }
 
+    # %% lambda exception
     # Handle the lambda exception here to avoid test at every time step
     # if lambda exists and is a function
     c0 = (
@@ -473,18 +512,22 @@ def get_dargs_by_reference(dparam, dfunc_order):
     for k0, v0 in dargs.items():
         if c0 and 'lambda' in dparam[k0]['kargs']:
             dargs[k0]['lamb'] = dparam['lambda']['value']
+    return dargs
+
+# %% 8) INITIALISE SHAPE
 
 
 def set_shapes_values(dparam, dfunc_order, verb=True):
-    # run all param func to set their values
-    for k0 in dfunc_order['param']:
+
+    # run all parameters func to set their values
+    for k0 in dfunc_order['parameter']:
         dargs = {
             k1: dparam[k1]['value']
             for k1 in dparam[k0]['args'][None]
         }
         dargs.update({
             k1: dparam[k1]['value']
-            for k1 in dparam[k0]['args']['param']
+            for k1 in dparam[k0]['args']['parameter']
         })
         dparam[k0]['value'] = dparam[k0]['func'](**dargs)
 
@@ -501,9 +544,19 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
 
     # -------------------------------------------
     # Create variables for all varying quantities
-    shape = tuple(np.r_[dparam['nt']['value'], 1])
+
     for k0 in lfunc:
-        if dparam[k0]['eqtype'] not in ['param']:
+        shape = tuple(np.r_[dparam['nt']['value'],  # Time dimension
+                            dparam['nx']['value'],  # Parrallel
+                            dparam['nr']['value'],  # Regions
+                            ])
+        if dparam[k0]['multisect'] != '':
+            shape = tuple(np.r_[dparam['nt']['value'],  # Time dimension
+                                dparam['nx']['value'],  # Parrallel
+                                dparam['nr']['value'],  # Regions
+                                dparam[dparam[k0]['multisect']]['value']
+                                ])
+        if dparam[k0]['eqtype'] not in ['parameter']:
             dparam[k0]['value'] = np.full(shape, np.nan)
     return dparam
 
@@ -531,11 +584,9 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None):
 
     # For each function (ode and statevar)
     for k0 in lfunc:
-        # get defaults
-        kargs = dparam[k0]['source_kargs'].split(', ')
+        kargs = dparam[k0]['kargs']
         defaults = len(kargs)*[0]
 
-        print(k0, dparam[k0]['args'])
         # update using fixed param (eqtype = None)
         for k1 in dparam[k0]['args'][None]:
             key = 'lambda' if k1 == 'lamb' else k1
@@ -544,15 +595,13 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None):
             ind = [ii for ii, vv in enumerate(
                 kargs) if k1 == vv.split('=')[0]]
 
-            print(k1, defaults, kargs, ind)
-
             if len(ind) != 1:
                 msg = f"Inconsistency in (fixed) kargs for {k0}, {k1}"
                 raise Exception(msg)
             kargs[ind[0]] = "{}={}".format(key, dparam[key]['value'])  # test
 
         # update using param
-        for k1 in dparam[k0]['args']['param']:
+        for k1 in dparam[k0]['args']['parameter']:
             key = 'lamb' if k1 == 'lambda' else k1
             defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
             ind = [ii for ii, vv in enumerate(kargs) if key in vv]

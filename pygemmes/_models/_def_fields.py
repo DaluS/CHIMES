@@ -27,7 +27,7 @@ This file contains :
 """
 import numpy as np
 
-from ..__config import __DOTHECHECK, __FILLDEFAULTVALUES, __DEFAULTFIELDS
+from ..__config import __DEFAULTFIELDS
 
 
 # #############################################################################
@@ -58,12 +58,17 @@ _LIBRARY = {
             'units': '',
             'definition': 'Number of timestep',
             'com': 'Constant dt',
-            'eqtype': 'param',
+            'eqtype': 'parameter',
         },
         'nx': {
             'value': 1,
             'units': 'y',
             'definition': 'Number of system in parrallel',
+        },
+        'nr': {
+            'value': 1,
+            'units': 'y',
+            'definition': 'Number of regions interconnected',
         },
         'time': {
             'initial': 0.,
@@ -71,11 +76,8 @@ _LIBRARY = {
             'definition': 'Time vector',
             'com': 'dt/dt=1, time as ODE',
             'units': 'y',
-            'eqtype': 'ode',
+            'eqtype': 'differential',
         },
-        # 't': {
-        #    'value': 0,
-        #    'definition': 'time inside equations'}
     },
 
 
@@ -374,14 +376,14 @@ _LIBRARY = {
             'definition': 'Parameter1 for diverving squared',
             'com': '',
             'units': '',
-            'eqtype': 'param',
+            'eqtype': 'parameter',
         },
         'phi1': {
             'func': lambda phinull=0: phinull**3 / (1 - phinull**2),
             'definition': 'Parameter1 for diverving squared',
             'com': '',
             'units': '',
-            'eqtype': 'param',
+            'eqtype': 'parameter',
         },
 
         # Linear Phillips (from Coping article)
@@ -962,48 +964,35 @@ _LIBRARY = {
 # #############################################################################
 #                   FIELDS OF FIELDS AND EXPECTED VALUES
 # #############################################################################
-# dict of default value in fields
-
-
-# --------------------
-# Make sure the default is allowed
-for k0, v0 in __DEFAULTFIELDS.items():
-    if v0.get('allowed') is not None:
-        __DEFAULTFIELDS[k0]['allowed'].append(v0['default'])
-
 
 # ------------------------------------
 # Derive new _DFIELDS from _LIBRARY
-
 __LKLIB = [dict.fromkeys(v0.keys(), k0) for k0, v0 in _LIBRARY.items()]
 for ii, dd in enumerate(__LKLIB[1:]):
     __LKLIB[0].update(dd)
-
 _DFIELDS = {
     k0: dict(_LIBRARY[v0][k0]) for k0, v0 in __LKLIB[0].items()
 }
-
 for k0, v0 in __LKLIB[0].items():
     _DFIELDS[k0]['group'] = v0
-
-
-# #############################################################################
-# #############################################################################
-#               Conformity checks (for safety, to detect typos...)
-# #############################################################################
 
 
 def _complete_DFIELDS(
     dfields=_DFIELDS,
     default_fields=__DEFAULTFIELDS,
-    complete=__FILLDEFAULTVALUES,
-    check=__DOTHECHECK,
+    complete=True,
+    check=True,
 ):
     """ Complete dfields from default"""
 
+    # --------------------
+    # Make sure the default is allowed
+    for k0, v0 in default_fields.items():
+        if v0.get('allowed') is not None:
+            default_fields[k0]['allowed'].append(v0['default'])
+
     # --------------
     # run loop
-
     dfail = {}
     for k0, v0 in dfields.items():
         for k1, v1 in default_fields.items():
@@ -1020,7 +1009,6 @@ def _complete_DFIELDS(
             # ---------
             # check
             if check and v0.get(k1) is not None:
-
                 # check type
                 if not isinstance(v0[k1], default_fields[k1]['type']):
                     dfail[k0] = (
@@ -1030,7 +1018,6 @@ def _complete_DFIELDS(
 
                 # check allowed values
                 elif default_fields[k1].get('allowed') is not None:
-
                     # treat units spearately
                     if k1 == 'units':
                         unit = v0[k1].split('.') if '.' in v0[k1] else [v0[k1]]

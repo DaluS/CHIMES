@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt     # DB
 from . import _utils
 from . import _class_checks
 
+from ..__config import _SOLVER
 
 _SCIPY_URL_BASE = 'https://docs.scipy.org/doc/scipy/reference/generated/'
 _SCIPY_URL = (
@@ -59,9 +60,6 @@ _DSOLVERS = {
         'source': _SCIPY_URL,
     },
 }
-
-
-_SOLVER = 'eRK4-homemade'
 
 
 # #############################################################################
@@ -170,12 +168,11 @@ def solve(
 
     # -----------
     # check input
-
     solver = _check_solver(solver)
 
     # -----------
     # Define the function that takes/returns all functions
-    y0, dydt_func, lode_solve, dargs_temp, vectorized = get_func_dydt(
+    y0, dydt_func, lode_solve, dargs_temp = get_func_dydt(
         dparam=dparam,
         dargs=dargs,
         lode=lode,
@@ -225,7 +222,6 @@ def solve(
             solver=solver,
             dverb=dverb,
             dmulti=dmulti,
-            vectorized=vectorized,
         )
 
     # ----------------------
@@ -253,19 +249,8 @@ def get_func_dydt(
     dmulti=None,
 ):
 
-    # for implicit solver => vectorize
-    vectorized = False
-    if 'scipy' in solver:
-        if not solver.startswith('e'):
-            vectorized = True
-
     # ---------------
     # Get list of ode except time
-
-    if 'scipy' in solver and vectorized is True:
-        msg = "Vectorized version for implicit solvers not implemented yet"
-        raise NotImplementedError(msg)
-
     if 'scipy' in solver:
         lode_solve = [k0 for k0 in lode if k0 != 'time']
         shapey = (len(lode_solve),)
@@ -354,7 +339,7 @@ def get_func_dydt(
                     dydt[ii, ...] = dparam[k0]['func'](**dargs_temp[k0])
             return np.copy(dydt)
 
-    return y0, func, lode_solve, dargs_temp, vectorized
+    return y0, func, lode_solve, dargs_temp
 
 
 # #############################################################################
@@ -509,12 +494,13 @@ def _solver_scipy(
     if atol is None:
         atol = 1.e-6
     if max_time_step is None:
-        max_time_step = dparam['dt']['value'] *10.
+        max_time_step = dparam['dt']['value'] * 10.
 
     # -----------------
     # define t_span, t_eval
 
-    t_span = [dparam['time']['initial'],dparam['time']['initial']+ dparam['Tmax']['value']]
+    t_span = [dparam['time']['initial'], dparam['time']
+              ['initial'] + dparam['Tmax']['value']]
     t_eval = np.linspace(t_span[0], t_span[1], dparam['nt']['value'])
 
     # -----------------

@@ -60,7 +60,12 @@ class Hub():
     ):
 
         # Initialize the hub main dictionnaries ###############################
-        self.__dmisc = {}  # Contains miscellaneous, practical informations
+        # Contains miscellaneous, practical informations
+        self.__dmisc = {'run': False,
+                        'dmulti': {},
+                        'cycles': False,
+                        'derivative': False,
+                        }
 
         # Load model files ####################################################
         (
@@ -74,6 +79,9 @@ class Hub():
             verb=verb,
         )
 
+        # Actualize the shape
+        self.__dmisc['dmulti']['shape'] = (self.__dparam['nx']['value'],
+                                           self.__dparam['nr']['value'])
         # update from preset if relevant ######################################
         if preset is not None:
             self.set_preset(preset=preset, dpresets=dpresets, verb=verb)
@@ -157,7 +165,6 @@ class Hub():
                 verb=verb,
             )
         else:
-
             # Check input: dparam xor (key, value)
             lc = [
                 dparam is not None,
@@ -186,7 +193,6 @@ class Hub():
             # set dparam or update desired key
 
             if preset is not None:
-
                 if key is not None:
                     _class_checks._set_key_value(
                         dparam=self.__dparam,
@@ -358,12 +364,25 @@ class Hub():
         """
 
         # reset ode variables
-        for k0 in self.get_dparam(eqtype=['ode', 'statevar'], returnas=list):
+        for k0 in self.get_dparam(eqtype=['differential', 'statevar'], returnas=list):
             self.__dparam[k0]['value'][...] = np.nan
 
         # Reset initial for ode
-        for k0 in self.get_dparam(eqtype=['ode'], returnas=list):
+        for k0 in self.get_dparam(eqtype=['differential'], returnas=list):
             self.__dparam[k0]['value'][0, ...] = self.__dparam[k0]['initial']
+
+        # recompute initial value for function-parameters
+        pstate = self.__dmisc['dfunc_order']['parameter']
+        for k0 in pstate:
+            dargs = {
+                k1: self.__dparam[k1]['value']
+                for k1 in self.__dparam[k0]['args'][None]
+            }
+            dargs.update({
+                k1: self.__dparam[k1]['value']
+                for k1 in self.__dparam[k0]['args']['parameter']
+            })
+            self.__dparam[k0]['value'] = self.__dparam[k0]['func'](**dargs)
 
         # recompute inital value for statevar
         lstate = self.__dmisc['dfunc_order']['statevar']
@@ -397,7 +416,7 @@ class Hub():
 
         P = self.__dparam
         t = P['time']['value']
-        for k in self.__dmisc['dfunc_order']['statevar']+self.__dmisc['dfunc_order']['ode']:
+        for k in self.__dmisc['dfunc_order']['statevar']+self.__dmisc['dfunc_order']['differential']:
             v = P[k]['value']
 
             newval = np.zeros([N]+list(self.__dmisc['dmulti']['shape']))
@@ -421,7 +440,7 @@ class Hub():
             'model',
             'preset',
             'param (fix + func)',
-            'ode',
+            'differential',
             'statevar',
             'run',
             'source',
@@ -432,9 +451,9 @@ class Hub():
             self.__dmodel['preset'],
             '{} + {}'.format(
                 len(self.get_dparam(returnas=list, eqtype=None))-1,
-                len(self.get_dparam(returnas=list, eqtype='param'))-1,
+                len(self.get_dparam(returnas=list, eqtype='parameter'))-1,
             ),
-            len(self.get_dparam(returnas=list, eqtype='ode'))-1,
+            len(self.get_dparam(returnas=list, eqtype='differential'))-1,
             len(self.get_dparam(returnas=list, eqtype='statevar')),
             self.__dmisc['run'],
             self.__dmodel['file'],
@@ -449,7 +468,7 @@ class Hub():
         else:
             return col0, ar0
 
-    def get_summary(self, idx=None):
+    def get_summary(self, idx=(0, 0, 0)):
         """
         INTROSPECTION TOOL :
         Print a str summary of the model, with
@@ -464,16 +483,19 @@ class Hub():
         * idx = index of the model you want the value to be shown when there are multiple models in parrallel
         """
 
+        print(100*'#'+'#####################')
         print(self.dmodel['description'])
 
+        print(50*'#', 'Indexes :', idx, 50*'#')
         # ----------
         # check inputs
-
+        '''
         idx = _class_checks._check_idx(
             idx=idx,
             nt=self.__dparam.get('nt', {'value': np.nan})['value'],
             dmulti=self.__dmisc['dmulti'],
         )
+        '''
         # ----------
         # starting with headr from __repr__
         col0, ar0 = self.__repr__(verb=False)
@@ -489,7 +511,7 @@ class Hub():
         # ----------
         # functions ODE
         col3, ar3 = _class_utility._get_summary_functions(
-            self, idx=idx, eqtype=['ode'], isneeded=True)
+            self, idx=idx, eqtype=['differential'], isneeded=True)
 
         # ----------
         # functions Statevar
@@ -499,7 +521,7 @@ class Hub():
         # ----------
         # functions ODE
         col5, ar5 = _class_utility._get_summary_functions(
-            self, idx=idx, eqtype=['ode'], isneeded=False)
+            self, idx=idx, eqtype=['differential'], isneeded=False)
 
         # ----------
         # functions Statevar
@@ -523,7 +545,7 @@ class Hub():
         '''
 
         print('############# DIFFERENTIAL EQUATIONS ###########')
-        for key in self.__dmisc['dfunc_order']['ode']:
+        for key in self.__dmisc['dfunc_order']['differential']:
             v = self.dparam[key]
             print('### ', key, ' ###########')
             print('Units        :', v['units'])
@@ -607,7 +629,7 @@ class Hub():
 
         # ------------
         # temporary dict of input
-        lode = self.__dmisc['dfunc_order']['ode']
+        lode = self.__dmisc['dfunc_order']['differential']
         lstate = self.__dmisc['dfunc_order']['statevar']
         # laux = []
 
@@ -659,7 +681,7 @@ class Hub():
         R = self.__dparam
 
         varlist = self.dmisc['dfunc_order']['statevar'] + \
-            self.dmisc['dfunc_order']['ode']
+            self.dmisc['dfunc_order']['differential']
 
         varlist.remove('time')
 
@@ -668,12 +690,12 @@ class Hub():
                 R[k]['value'], axis=0)/R['dt']['value']
             R[k]['time_log_derivate'] = R[k]['time_derivate']/R[k]['value']
 
-            if R[k]['eqtype'] == 'ode':
+            if R[k]['eqtype'] == 'differential':
                 R[k]['time_dderivate'] = np.gradient(
                     R[k]['time_derivate'], axis=0)/R['dt']['value']
             # SENSITIVITY CALCULATION
             func = R[k]['func']
-            args = R[k]['args']['ode']+R[k]['args']['statevar']
+            args = R[k]['args']['differential']+R[k]['args']['statevar']
             if 'itself' in R[k]['kargs']:
                 args += k
 
@@ -706,6 +728,7 @@ class Hub():
             R[k]['partial_contribution'] = {k2: R[k]['partial_derivatives'][k2]
                                             * R[k2]['time_derivate']
                                             for k2 in R[k]['partial_derivatives'].keys()}
+        self.__dmisc['derivative'] = True
 
     def calculate_Cycles(self, ref=None, n=10):
         '''
@@ -718,7 +741,7 @@ class Hub():
         n : int, number of harmonics calculated in fourier decomposition
         '''
 
-        leq = ['ode', 'statevar']
+        leq = ['differential', 'statevar']
         fields = ['reference',
                   'period_indexes',
                   'period_T_intervals',
@@ -745,6 +768,7 @@ class Hub():
                     self._FillCycles(var, ref, idx, n=n)
 
         self.reverse_cycles_dic()
+        self.__dmisc['cycles'] = True
 
     def _FillCycles(self, var, ref='lambda', id=0, n=10):
         '''
@@ -844,7 +868,7 @@ class Hub():
         dic1['reference'] = refval
 
     def reverse_cycles_dic(self):
-        leq = ['ode', 'statevar']
+        leq = ['differential', 'statevar']
         for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
             c = dic1['cycles']
             newcycles = {k: [] for k in c[0].keys()}
@@ -866,7 +890,8 @@ class Hub():
         Do not use with grid=True
         '''
         R = self.__dparam
-        keys = [k for k in R.keys() if R[k].get('eqtype', 'param') != 'param']
+        keys = [k for k in R.keys() if R[k].get(
+            'eqtype', 'parameter') != 'parameter']
 
         for ke in keys:
             R[ke]['sensitivity'] = {}

@@ -10,21 +10,33 @@ ALL THE BASIC FIELDS THAT ONE MIGHT NEED
 import numpy as np
 import os
 
-
-# WHERE TO LOOK AT IN YOUR MODEL
+# ################## MODELS FILES LOCATION AND NAME ###########################
+# FLAG FOR MODEL LOCATION : False if in the library, true in documents
 _FROM_USER = False
+
+# NAME OF MODEL FILES
+_MODEL_NAME_CONVENTION = '_model_'
 
 # ADDRESSES
 _PATH_HERE = os.path.dirname(__file__)
 _PATH_USER_HOME = os.path.expanduser('~')
-_PATH_PRIVATE_MODELS = os.path.join(_PATH_USER_HOME, '.pygemmes', '_models')
+_PATH_PRIVATE_MODELS = os.path.join(
+    _PATH_USER_HOME, '.pygemmes', '_models')
 _PATH_MODELS = os.path.join(_PATH_HERE, '_models')
 
-_MODEL_NAME_CONVENTION = '_model_'
 
+# ####################### SOLVER BY DEFAULT ###################################
+_SOLVER = 'eRK4-homemade'
+
+
+# ################# MODELS FILE CONTENT #######################################
 # FROM CHECKS
+
+# ELEMENTS IN A MODEL
 _LMODEL_ATTR = ['_LOGICS',
                 'presets']
+
+# FIELDS THAT MUST BE OBTAINED WHEM LOADING A MODEL
 _DMODEL_KEYS = {
     'logics': dict,
     'presets': dict,
@@ -32,40 +44,36 @@ _DMODEL_KEYS = {
     'description': str,
     'name': str,
 }
+
 _LTYPES = [int,
            float,
            np.int_,
            np.float_]
+
 _LTYPES_ARRAY = [list,
                  tuple,
                  np.ndarray]
 
-_LEQTYPES = ['ode',
-             'pde',
+_LEQTYPES = ['differential',  # all differentials
              'statevar',
-             'param',
-             'undeclared']
+             'parameter',
+             'size'
+             ]
 
-
+# ######################### DPARAM CONTENT ####################################
+# POSSIBLE KEYS IN DPARAM
 _LEXTRAKEYS = [
-    'func',
-    'kargs',
-    'args',
-    'initial',
-    'grid',
-    'multi_ind',
-    'source_kargs',
-    'source_exp',
-    'source_name',
-    'isneeded',
-    'cycles',
-    'cycles_bykey'
+    'func',     # The function animating it
+    'kargs',    # List of all the dependencies
+    'args',     # dictionnary of all dependencies
+    'initial',  # initial value if differential
+    'source_exp',  # Explaining the expression
+    'isneeded',  # Auxilliary or not
+    'analysis',  # Contains all analysys (time derivative, cycles...)
+    'multisect'  # Name of the dimension in the multisectoriality
 ]
 
-
-# FROM _def_fields
-__DOTHECHECK = True
-__FILLDEFAULTVALUES = True
+# ############################ DEF_FIELDS #####################################
 __DEFAULTFIELDS = {
     'value': {
         'default': None,
@@ -82,11 +90,11 @@ __DEFAULTFIELDS = {
         'type': str,
         'allowed': None,
     },
-    'dimension': {
-        'default': 'undefined',
-        'type': str,
-        'allowed': None,
-    },
+    # 'dimension': {
+    #    'default': 'undefined',
+    #    'type': str,
+    #    'allowed': None,
+    # },
     'units': {
         'default': 'undefined',
         'type': str,
@@ -122,4 +130,9 @@ __DEFAULTFIELDS = {
         'type': str,
         'allowed': None,
     },
+    'multisect': {
+        'default': '',
+        'type': str,
+        'allowed': None,
+    }
 }

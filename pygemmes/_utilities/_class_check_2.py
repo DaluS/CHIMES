@@ -402,43 +402,13 @@ def functions(dparam=None, verb=None):
 
     # ----------------------
     # check time dependence
-    time_dependence(lfunc=lfunc, dparam=dparam)
+    # time_dependence(dparam=dparam)
 
     # -------------------------------
     # Store the source for later use (doc, saving...)
     check_source(lfunc=lfunc, dparam=dparam)
 
-    # --------------------------------
-    # run all param func to set their values
-    for k0 in dfunc_order['param']:
-        dargs = {
-            k1: dparam[k1]['value']
-            for k1 in dparam[k0]['args'][None]
-        }
-        dargs.update({
-            k1: dparam[k1]['value']
-            for k1 in dparam[k0]['args']['param']
-        })
-        dparam[k0]['value'] = dparam[k0]['func'](**dargs)
-
-    # ------------------
-    # copy func to avoid passing by reference
-    for k0 in lfunc:
-        dparam[k0]['func'] = copy_func(dparam[k0]['func'])
-
-    # --------------------------------
-    # set default values of parameters to their real values
-    # this way we don't have to feed the parameters value inside the loop
-    _update_func_default_kwdargs(lfunc=lfunc, dparam=dparam, dmulti=dmulti)
-
-    # -------------------------------------------
-    # Create variables for all varying quantities
-    shape = tuple(np.r_[dparam['nt']['value'], dmulti['shape']])
-    for k0 in lfunc:
-        if dparam[k0]['eqtype'] not in ['param']:
-            dparam[k0]['value'] = np.full(shape, np.nan)
-
-    return dparam, dfunc_order
+    return dparam
 
 
 def check_source(lfunc=None, dparam=None):
