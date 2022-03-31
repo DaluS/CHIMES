@@ -13,9 +13,7 @@ import numpy as np
 # Library-specific
 from . import _utils
 
-from ..__config import _LEQTYPES
-
-_LTYPES = [int, float, np.int_, np.float_]
+from ..__config import _LEQTYPES, _LTYPES
 
 
 # #############################################################################

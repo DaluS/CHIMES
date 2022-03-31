@@ -17,6 +17,8 @@ import types
 # library specific
 from . import _class_check_2
 from .. import _models
+
+# default values
 from ..__config import _LMODEL_ATTR
 from ..__config import _LTYPES
 from ..__config import _LTYPES_ARRAY
@@ -24,12 +26,22 @@ from ..__config import _LEQTYPES
 from ..__config import _LEXTRAKEYS
 from ..__config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS
 from ..__config import _MODEL_NAME_CONVENTION
+from ..__config import _MULTISECT_DEFAULT
+
+
+def pr(dic, previous=''):
+    if previous == '':
+        print('###############')
+    for k, v in dic.items():
+        # print('hello')
+        if type(v) == dict:
+            pr(v, previous=previous+'   '+k)
+        else:
+            print(previous, ':', k, v)
 
 ###############################################################################
 #############                  MAIN FUNCTION                      #############
 ###############################################################################
-
-# %% MAIN FUNCTION : LOAD MODEL
 
 
 def load_model(model=None, verb=None, from_user=None):
@@ -45,11 +57,13 @@ def load_model(model=None, verb=None, from_user=None):
     # LOAD THE FILE AND THE LIBRARY ###########################################
     _class_check_2.model_name(model, from_user, verb=verb)
     dmodel = load_dmodel(model, from_user=None)
-    dfields = load_complete_DFIELDS(dmodel, verb=verb)
     _class_check_2.dmodel(dmodel)
 
     # CREATE DPARAM ###########################################################
+    dparam = dmodel_completion_to_dparam(dmodel)
+
     dparam = logics_into_dparam(dmodel)
+    dfields = load_complete_DFIELDS(dmodel, verb=verb)
     dparam = add_numerical_group_default_fields(dparam, dfields)
 
     """ Extract fixed-value parameters"""
@@ -77,28 +91,26 @@ def load_model(model=None, verb=None, from_user=None):
 # ###########                 SUB FUNCTION                        #############
 # #############################################################################
 
-# %% 1) LOAD_DMODEL
-
 
 def load_dmodel(model, from_user=False):
     """
     Load the model from its file
     """
 
-    # %% a) choose the folder
+    # a) choose the folder
     if from_user is True and _PATH_PRIVATE_MODELS is not None:
         path_models = _PATH_PRIVATE_MODELS
     else:
         path_models = _PATH_MODELS
 
-    # %% b) load python file
+    # b) load python file
     file_address = _MODEL_NAME_CONVENTION + model + '.py'
     pfe = os.path.join(path_models, file_address)
     spec = importlib.util.spec_from_file_location(file_address, pfe)
     foo = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(foo)
 
-    # %% c) write it as a dict
+    # c) write it as a dict
     dmodel = {
         'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
         'file': foo.__file__,
@@ -109,37 +121,104 @@ def load_dmodel(model, from_user=False):
         'name': model,
     }
 
-    # %% d) convert 'ode' into 'differential'
+    return dmodel
+
+
+def dmodel_formalism(dmodel):
+    '''
+    Will check all the content of dmodel, 
+    if it is not written as it should (with depreciaiton warnings)
+    '''
+
+    # a) convert 'ode' into 'differential'
+    if 'ode' in dmodel['logics'].keys():
+        print('''WARNING :''Rename "ode" section into "differential" as
+ the system will now handle PDE and multisec dynamics !
+ The system will reject ode section in 1.0 (should be in July)''')
     if ('differential' in dmodel['logics'].keys() and 'ode' in dmodel['logics'].keys()):
         raise Exception(
             'Model use both ode and differential formalism ! Use one only')
-    if 'differential' not in dmodel.keys():
+    if 'differential' not in dmodel['logics'].keys():
         dmodel['logics']['differential'] = copy.deepcopy(
             dmodel['logics'].get('ode', {}))
+    if 'ode' in dmodel['logics'].keys():
         del dmodel['logics']['ode']
 
-    # %% e) convert 'param' into 'parameter'
+    # b) convert 'param' into 'parameter'
+    if 'param' in dmodel['logics'].keys():
+        print('''WARNING :Rename "param" section into "parameter !
+ The system will reject param "section in 1.0 (should be in July)''')
     if ('parameter' in dmodel['logics'].keys() and 'param' in dmodel['logics'].keys()):
         raise Exception(
-            'Model use both ode and differential formalism ! Use one only')
-    if 'parameter' not in dmodel.keys():
+            'Model use both param and parameters formalism ! Use one only')
+    if 'parameter' not in dmodel['logics'].keys():
         dmodel['logics']['parameter'] = copy.deepcopy(
             dmodel['logics'].get('param', {}))
+    if 'param' in dmodel['logics'].keys():
         del dmodel['logics']['param']
+
+    # c) warning on lambda as a field
+    if 'lambda' in list(dmodel['logics']['differential'].keys())+list(dmodel['logics']['statevar'].keys()):
+        print('''WARNING :Rename "lambda" into lambd or employement !
+ The system will reject lambda as a field in 1.0 (should be in July)''')
 
     return dmodel
 
-# %% 2) LOAD AND COMPLETE DFIELDS
+
+# ##################################################################################################
+# ################                  DPARAM                  ########################################
+# ##################################################################################################
+
+def dmodel_completion_to_dparam(dmodel):
+    '''
+    Add default_size and eqtype whenever needed
+    '''
+
+    # a) If not defined : put the default size label
+    for categorie, v1 in dmodel['logics'].items():
+        for field, v2 in v1.items():
+            if 'size' not in v2.keys():
+                v2['size'] = _MULTISECT_DEFAULT
+
+    # b) Complete the "size" section of logic
+    for ddim in dmodel['logics'].get('size', []):
+        v3 = dmodel['logics']['size'][ddim]
+        # Check if there are both lise and value
+        if ('list' in v3 and 'value' in v3.keys()):
+            if len(v3['list']) != v3['value']:
+                raise Exception(
+                    f"{ddim} has inconsistent lengths (value and list)")
+
+        # create the numerical value and access dict
+        if 'list' in v3.keys():
+            v3['dict'] = {l: ii for ii, l in enumerate(v3['list'])}
+            v3['value'] = len(v3['list'])
+
+    # c) convert logics formalism into dparam formalism
+    lk = [dict.fromkeys(v0.keys(), k0) for k0, v0 in dmodel['logics'].items()]
+    for ii, dd in enumerate(lk[1:]):
+        lk[0].update(dd)
+
+    dparam = {
+        k0: dict(dmodel['logics'][v0][k0]) for k0, v0 in lk[0].items()
+    }
+
+    # d) Add eqtype
+    for k0 in dparam.keys():
+        if lk[0][k0] not in ['parameter', 'size']:
+            dparam[k0]['eqtype'] = lk[0][k0]
+
+    return dparam
 
 
 def load_complete_DFIELDS(dmodel, verb=False):
     '''
     Identify fields not existing in library, and add them to it, then complete
     '''
-    # %% a) get access to dfields
+    # a) get access to dfields
     DFIELDS = copy.deepcopy(_models._DFIELDS)
 
-    # %% b) find what needs to be added
+    # b) find what needs to be added
     dkout = {
         k0: [k1 for k1 in v0.keys() if k1 not in DFIELDS]
         for k0, v0 in dmodel['logics'].items()
@@ -150,7 +229,7 @@ def load_complete_DFIELDS(dmodel, verb=False):
         print(
             f"The following fields are defined in the model but not it the library : \n    - {lstr} ")
 
-    # %% c) add them
+    # c) add them
     for k0, v0 in dkout.items():
         for k1 in v0:
             DFIELDS[k1] = dict(dmodel['logics'][k0][k1])
@@ -158,7 +237,7 @@ def load_complete_DFIELDS(dmodel, verb=False):
             # _models._DFIELDS[k1]['args'] = {key:[] for key in _LEQTYPES }
             # _models._DFIELDS[k1]['kargs']= []
 
-    # %% d) use dfields autocompletion
+    # d) use dfields autocompletion
     DFIELDS = _models._complete_DFIELDS(
         dfields=DFIELDS,
         complete=True,
@@ -167,36 +246,11 @@ def load_complete_DFIELDS(dmodel, verb=False):
     return DFIELDS
 
 
-# %% 3) LOGICS INTO DPARAM
-
-def logics_into_dparam(dmodel):
-    """
-    Takes dmodel and translate the logics
-    """
-
-    # %% a) convert logics formalism into dparam formalism
-    lk = [dict.fromkeys(v0.keys(), k0) for k0, v0 in dmodel['logics'].items()]
-    for ii, dd in enumerate(lk[1:]):
-        lk[0].update(dd)
-
-    dparam = {
-        k0: dict(dmodel['logics'][v0][k0]) for k0, v0 in lk[0].items()
-    }
-
-    # %% b) Add eqtype
-    for k0 in dparam.keys():
-        if lk[0][k0] not in ['parameter']:
-            dparam[k0]['eqtype'] = lk[0][k0]
-    return dparam
-
-
-# %% 4) ADD NUMERICAL GROUP AND DEFAULT FIELDS
-
 def add_numerical_group_default_fields(dparam, dfields):
     """
     complete dparam with numerical parameters
     """
-    # %% a) add numerical parameters if not included
+    # a) add numerical parameters if not included
 
     lknum = [
         k0 for k0, v0 in dfields.items()
@@ -209,7 +263,7 @@ def add_numerical_group_default_fields(dparam, dfields):
     if 'time' not in dparam.keys():
         dparam['time'] = dict(dfields['time'])
 
-    # %% b) add default fields
+    # b) add default fields
     for k0, v0 in dparam.items():
 
         # if value directly provided => put into dict
@@ -228,8 +282,6 @@ def add_numerical_group_default_fields(dparam, dfields):
                 v0['initial'] = dfields[k0]['value']
     return dparam
 
-# %% 5) EXTRACT PARAMETERS
-
 
 def extract_parameters(dparam, dfields, verb=True):
     """ Extract fixed-value parameters
@@ -238,13 +290,13 @@ def extract_parameters(dparam, dfields, verb=True):
         the func kwdargs
     """
 
-    # %% a) Identify what is a parameter or not from start
+    # a) Identify what is a parameter or not from start
     lpar = [k0 for k0, v0 in dparam.items() if v0.get('func') is None]
     lfunc = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
     lpar_new = []
     lfunc_new = []
 
-    # %% b) try to check if their inputs corresponds and add them if necessary
+    # b) try to check if their inputs corresponds and add them if necessary
     keepon = True
     while keepon:
         lp, lf = _extract_par_from_func(
@@ -261,7 +313,7 @@ def extract_parameters(dparam, dfields, verb=True):
         else:
             keepon = False
 
-    # %% c) if a key is unknown form dfields but exit in model, add it
+    # c) if a key is unknown form dfields but exit in model, add it
     if len(lpar_new + lfunc_new) > 0:
         dfail = {}
         for k0 in lpar_new + lfunc_new:
@@ -318,8 +370,6 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None, dfields=None):
 
     return lpar_add, lfunc_add
 
-# %% 6) SET ARGS, KARGS, FIND AUXILLIARIES
-
 
 def set_args_auxilliary(dparam, verb=True):
     '''
@@ -328,7 +378,7 @@ def set_args_auxilliary(dparam, verb=True):
     '''
     lfunc = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
 
-    # %% a) find args and kargs
+    # a) find args and kargs
     for k0 in lfunc:
         # get the args
         v0 = dparam[k0]
@@ -358,7 +408,7 @@ def set_args_auxilliary(dparam, verb=True):
             ],
         }
 
-    # %% b) write source material
+    # b) write source material
     for k0 in lfunc:
         sour = inspect.getsource(dparam[k0]['func']).replace(
             '    ', '').split('\n')[0]
@@ -381,7 +431,7 @@ def set_args_auxilliary(dparam, verb=True):
         kargs = ', '.join(kargs)
         # dparam[k0]['source_kargs'] = kargs
 
-    # %% c) find auxilliary
+    # c) find auxilliary
     keep = True
     while keep:
         News = []
@@ -414,14 +464,12 @@ def set_args_auxilliary(dparam, verb=True):
             f"\t - statevar : {[k for k in lfunc if (not dparam[k]['isneeded'] and dparam[k]['eqtype']!='differential')]}")
     return dparam
 
-# %% 7) FIND FUNC ORDER
-
 
 def set_func_order(dparam, verb=False):
     '''
     Find equation resolution order
     '''
-    # %% a) subroutine for each group
+    # a) subroutine for each group
     dfunc_order = {
         k0: _suggest_funct_order_by_group(eqtype=k0, dparam=dparam)
         for k0 in ['parameter', 'statevar', 'differential']
@@ -481,14 +529,12 @@ def _suggest_funct_order_by_group(eqtype=None, dparam=None):
 
     return lfsort
 
-# %% 8) GET DARCS
-
 
 def get_dargs_by_reference(dparam, dfunc_order):
     '''
     Big dictionnary of pointers
     '''
-    # %% a) create the dictionnary of pointers
+    # a) create the dictionnary of pointers
     dargs = {
         k0: {
             k1: dparam[k1]['value']
@@ -501,7 +547,7 @@ def get_dargs_by_reference(dparam, dfunc_order):
         for k0 in dfunc_order['statevar'] + dfunc_order['differential']
     }
 
-    # %% lambda exception
+    # lambda exception
     # Handle the lambda exception here to avoid test at every time step
     # if lambda exists and is a function
     c0 = (
@@ -513,8 +559,6 @@ def get_dargs_by_reference(dparam, dfunc_order):
         if c0 and 'lambda' in dparam[k0]['kargs']:
             dargs[k0]['lamb'] = dparam['lambda']['value']
     return dargs
-
-# %% 8) INITIALISE SHAPE
 
 
 def set_shapes_values(dparam, dfunc_order, verb=True):
@@ -546,15 +590,23 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
     # Create variables for all varying quantities
 
     for k0 in lfunc:
-        shape = tuple(np.r_[dparam['nt']['value'],  # Time dimension
-                            dparam['nx']['value'],  # Parrallel
-                            dparam['nr']['value'],  # Regions
-                            ])
-        if dparam[k0]['multisect'] != '':
+        if type(dparam[k0]['size']) is int:
             shape = tuple(np.r_[dparam['nt']['value'],  # Time dimension
                                 dparam['nx']['value'],  # Parrallel
                                 dparam['nr']['value'],  # Regions
-                                dparam[dparam[k0]['multisect']]['value']
+                                dparam[k0]['size']
+                                ])
+        elif dparam[k0]['size'] != _MULTISECT_DEFAULT:
+            shape = tuple(np.r_[dparam['nt']['value'],  # Time dimension
+                                dparam['nx']['value'],  # Parrallel
+                                dparam['nr']['value'],  # Regions
+                                dparam[dparam[k0]['size']]['value']
+                                ])
+        else:
+            shape = tuple(np.r_[dparam['nt']['value'],  # Time dimension
+                                dparam['nx']['value'],  # Parrallel
+                                dparam['nr']['value'],  # Regions
+                                1
                                 ])
         if dparam[k0]['eqtype'] not in ['parameter']:
             dparam[k0]['value'] = np.full(shape, np.nan)

@@ -82,6 +82,7 @@ class Hub():
         # Actualize the shape
         self.__dmisc['dmulti']['shape'] = (self.__dparam['nx']['value'],
                                            self.__dparam['nr']['value'])
+
         # update from preset if relevant ######################################
         if preset is not None:
             self.set_preset(preset=preset, dpresets=dpresets, verb=verb)

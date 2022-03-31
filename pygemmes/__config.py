@@ -30,7 +30,6 @@ _SOLVER = 'eRK4-homemade'
 
 
 # ################# MODELS FILE CONTENT #######################################
-# FROM CHECKS
 
 # ELEMENTS IN A MODEL
 _LMODEL_ATTR = ['_LOGICS',
@@ -60,6 +59,8 @@ _LEQTYPES = ['differential',  # all differentials
              'size'
              ]
 
+_MULTISECT_DEFAULT = '__one'
+
 # ######################### DPARAM CONTENT ####################################
 # POSSIBLE KEYS IN DPARAM
 _LEXTRAKEYS = [
@@ -70,7 +71,9 @@ _LEXTRAKEYS = [
     'source_exp',  # Explaining the expression
     'isneeded',  # Auxilliary or not
     'analysis',  # Contains all analysys (time derivative, cycles...)
-    'multisect'  # Name of the dimension in the multisectoriality
+    'size',  # Name of the dimension in the multisectoriality
+    'list',  # labels of sectors
+    'dict',  # relation label - index
 ]
 
 # ############################ DEF_FIELDS #####################################
@@ -90,11 +93,6 @@ __DEFAULTFIELDS = {
         'type': str,
         'allowed': None,
     },
-    # 'dimension': {
-    #    'default': 'undefined',
-    #    'type': str,
-    #    'allowed': None,
-    # },
     'units': {
         'default': 'undefined',
         'type': str,
@@ -111,15 +109,6 @@ __DEFAULTFIELDS = {
             '',        # Dimensionless
         ],
     },
-    'type': {
-        'default': 'undefined',
-        'type': str,
-        'allowed': [
-            'intensive',
-            'extensive',
-            'dimensionless',
-        ],
-    },
     'symbol': {
         'default': '',
         'type': str,
@@ -130,9 +119,9 @@ __DEFAULTFIELDS = {
         'type': str,
         'allowed': None,
     },
-    'multisect': {
-        'default': '',
-        'type': str,
+    'size': {
+        'default': 1,
+        'type': int,
         'allowed': None,
     }
 }
