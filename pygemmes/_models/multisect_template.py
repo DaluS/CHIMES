@@ -28,15 +28,6 @@ _LOGICS = {
             'size': ['Nprod', 'Nprod']
         },
     },
-    'size': {
-        'Nprod': {
-            'value': ['mine',
-                      'energy',
-                      'machines',
-                      'products'],
-            'definition': 'Productive sectors',
-        },
-    },
 },
 
 _PRESETS = {
@@ -46,8 +37,5 @@ _PRESETS = {
         'plots': {},
     },
 },
-
-
 # Check size consistent in operations
 # If only one dimension, transform string into list
-# If sizes are defined as list, creating a dictionnary

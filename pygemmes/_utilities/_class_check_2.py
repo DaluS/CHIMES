@@ -92,12 +92,14 @@ def dmodel(dmodel=None,
         )
     ]
     if len(lkout) > 0:
-        lstr = [f'- {kk}' for kk in lkout]
-        raise Exception(f"""The following keys in _LOGIC are not supported: 
-{lkout} \n valid list is :\n {_LEQTYPES}""")
+        lstr = [f'\t- {kk}' for kk in lkout]
+        raise Exception(
+            "The following keys in _LOGIC are not supported:\n"
+            + "\n".join(lstr) + '\n, valid list is'.join(_LEQTYPES)
+        )
 
     # check ode ############
-    if 'differential' in dmodel['logics'].keys():
+    if 'ode' in dmodel['logics'].keys():
         # list non-conform keys (must have a 'func' function)
         _check_are_functions(indict=dmodel['logics']['ode'])
 

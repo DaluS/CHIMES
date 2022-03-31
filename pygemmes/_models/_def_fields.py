@@ -38,7 +38,6 @@ from ..__config import __DEFAULTFIELDS
 
 _LIBRARY = {
     'Numerical': {
-        # TIME MANAGEMENT
         'Tmax': {
             'value': 100,
             'units': 'y',
@@ -61,28 +60,6 @@ _LIBRARY = {
             'com': 'Constant dt',
             'eqtype': 'parameter',
         },
-        'time': {
-            'initial': 0.,
-            'func': lambda dt=0: 1.,
-            'definition': 'Time vector',
-            'com': 'dt/dt=1, time as ODE',
-            'units': 'y',
-            'eqtype': 'differential',
-        },
-
-        # DIMENSIONS MANAGEMENT
-        # time, parrallel , regions, multisect
-        '__one': {
-            'value': 1,
-            'definition': 'number of sector for monosectorial',
-            'comment': 'there for numerical formalism',
-            'units': '', },
-        'n_prod': {
-            'value': 1,
-            'definition': 'number of sector for production',
-            'units': '', },
-
-        # NON-MULTISECTORIAL SIZES
         'nx': {
             'value': 1,
             'units': 'y',
@@ -92,6 +69,14 @@ _LIBRARY = {
             'value': 1,
             'units': 'y',
             'definition': 'Number of regions interconnected',
+        },
+        'time': {
+            'initial': 0.,
+            'func': lambda dt=0: 1.,
+            'definition': 'Time vector',
+            'com': 'dt/dt=1, time as ODE',
+            'units': 'y',
+            'eqtype': 'differential',
         },
     },
 
