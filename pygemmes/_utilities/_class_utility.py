@@ -409,7 +409,7 @@ def param_minmax2str(
 # #############################################################################
 
 
-def _get_summary_numerical(hub):
+def _get_summary_group(hub,group):
 
     # ----------------
     # get sub-dict of interest
@@ -417,13 +417,13 @@ def _get_summary_numerical(hub):
     dparam_sub = hub.get_dparam(
         returnas=dict,
         eqtype=[None, 'param'],
-        group='Numerical',
+        group=group,
     )
 
     # ------------------
     # get column headers
 
-    col1 = ['Numerical param.', 'value', 'units', 'definition']
+    col1 = [group+' param.', 'value', 'units', 'definition']
 
     # ------------------
     # get values
@@ -437,11 +437,13 @@ def _get_summary_numerical(hub):
         ]
         for k0, v0 in dparam_sub.items()
     ]
-    ar1.append(['run', str(hub.dmisc['run']), '', ''])
-
-    # add solver if has run
-    if hub.dmisc['run'] is True:
-        ar1.append(['solver', hub.dmisc['solver'], '', ''])
+    
+    if group=='Numerical':
+        ar1.append(['run', str(hub.dmisc['run']), '', ''])
+    
+        # add solver if has run
+        if hub.dmisc['run'] is True:
+            ar1.append(['solver', hub.dmisc['solver'], '', ''])
 
     return col1, ar1
 

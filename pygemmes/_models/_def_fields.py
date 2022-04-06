@@ -53,6 +53,21 @@ _LIBRARY = {
             'units': 'y',
             'definition': 'time between two steps',
         },
+
+        'time': {
+            'initial': 0.,
+            'func': lambda dt=0: 1.,
+            'definition': 'Time vector',
+            'com': 'dt/dt=1, time as ODE',
+            'units': 'y',
+            'eqtype': 'differential',
+        },
+        '__one__': {
+            'value' : 1,
+            'definition': 'index for monosectorial',
+            'eqtype': 'size',
+            'units': ''
+            },
         'nt': {
             'func': lambda Tmax=0, dt=1: int(Tmax / dt),
             'units': '',
@@ -64,22 +79,22 @@ _LIBRARY = {
             'value': 1,
             'units': 'y',
             'definition': 'Number of system in parrallel',
+    
+            'eqtype': 'size',
         },
         'nr': {
             'value': 1,
             'units': 'y',
             'definition': 'Number of regions interconnected',
+            'eqtype': 'size',
         },
-        'time': {
-            'initial': 0.,
-            'func': lambda dt=0: 1.,
-            'definition': 'Time vector',
-            'com': 'dt/dt=1, time as ODE',
-            'units': 'y',
-            'eqtype': 'differential',
-        },
+        'n_prod': {
+            'value' : 1,
+            'definition' : 'number of productive sectors',
+            'eqtype': 'size',
+            'units': ''
+            },
     },
-
 
     'Ressources': {
         'K_R': {
@@ -985,6 +1000,8 @@ def _complete_DFIELDS(
 ):
     """ Complete dfields from default"""
 
+
+
     # --------------------
     # Make sure the default is allowed
     for k0, v0 in default_fields.items():
@@ -1069,7 +1086,7 @@ def _complete_DFIELDS(
             + "\n".join(lstr)
         )
         raise Exception(msg)
-    return _DFIELDS
+    return dfields
 
 
 _DFIELDS = _complete_DFIELDS(_DFIELDS)

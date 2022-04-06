@@ -217,7 +217,7 @@ def dparam_pre(dparam):
         raise Exception(msg)
 
 
-def dparam(dparam=None):
+def dparam(dparam=None,dfields=None):
     """ Check basic properties of dparam
 
     It must be a dict
@@ -238,11 +238,11 @@ def dparam(dparam=None):
             f"You provided: {type(dparam)}"
         ))
 
+
     # ------------
     # check values
     dfail = {}
     for k0, v0 in dparam.items():
-
         # if function directly provided => put inot dict
         if hasattr(v0, '__call__'):
             dfail[k0] = "Function must be in a dict {'func': func, 'eqtype':}"
@@ -255,8 +255,9 @@ def dparam(dparam=None):
             lk = [
                 kk for kk in dparam[k0].keys()
                 if kk != 'eqtype'
-                and kk not in _LEXTRAKEYS + list(_models._DFIELDS[k0].keys())
+                and kk not in _LEXTRAKEYS + list(dfields.keys())
             ]
+            
             if len(lk) > 0:
                 dfail[k0] = f"Invalid keys: {lk}"
                 continue

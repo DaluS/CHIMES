@@ -33,7 +33,7 @@ _LOGICS = {
             'initial': 0,
             'definition': 'Simplified rate of convection',
             'com': 'Reduced equation from article',
-            'unit': '',
+            'units': '',
             'symbol': r'$\mathcal{x}$'
         },
         'Lorenz_y': {

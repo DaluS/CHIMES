@@ -65,6 +65,7 @@ class Hub():
                         'dmulti': {},
                         'cycles': False,
                         'derivative': False,
+                        'preset': False,
                         }
 
         # Load model files ####################################################
@@ -72,16 +73,22 @@ class Hub():
             self.__dmodel,  # Contains the model informations
             self.__dparam,  # Contains all the fields and their relative properties
             self.__dmisc['dfunc_order'],
-            self.__dargs,  # Pointer for each field and function values
+            #self.__dargs,  # Pointer for each field and function values
         ) = _class_set.load_model(
             model,
             from_user=from_user,
             verb=verb,
         )
 
+        self.reset()
+
         # Actualize the shape
         self.__dmisc['dmulti']['shape'] = (self.__dparam['nx']['value'],
                                            self.__dparam['nr']['value'])
+        self.__dmisc['dmulti']['Multisect'] = _class_set.dict_multisect(self.__dparam)
+        # Initialize shapes
+
+
         # update from preset if relevant ######################################
         if preset is not None:
             self.set_preset(preset=preset, dpresets=dpresets, verb=verb)
@@ -97,13 +104,22 @@ class Hub():
         Simpler version of set_dparam with just preset
         """
 
+        if dpresets != None :
+            self.__dmodel['presets']=dpresets
+
+
+        # ### CHANGE THE PRESET
+        self.__dmisc['preset']=preset
+        if verb :
+            print(f"loaded preset : {preset}")
+            print(f"description   : {self.__dmodel['presets'][preset]['com']}")
+
+
         (self.__dparam,
          self.__dmisc['dmulti'],
-         self.__dargs) = _class_checks.update_from_preset(
-            dparam=self.__dparam,
-            dmodel=self.__dmodel,
-            preset=preset,
-            dpresets=dpresets,
+         self.__dargs) = self.set_dparam(
+            self,
+            **self.__dmodel['presets'][preset]['fields'],
             verb=verb,
         )
 
@@ -137,95 +153,69 @@ class Hub():
 
         Typical usage
         -------------
-            >>> dparam = {'alpha': 0, 'beta': 1}
-            >>> hub.set_dparam(dparam=dparam)
+        dparam = {'alpha': 0, 'beta': 1}
+        hub.set_dparam(dparam=dparam)
 
-            >>> hub = pgm.Hub('GK-Reduced')
-            >>> hub.set_dparam(preset='default')
+        hub = pgm.Hub('GK-Reduced')
+        hub.set_dparam(preset='default')
 
             # The following 2 syntaxes are equivalent to set a single parameter
-            >>> hub.set_dparam(key='alpha', value=0)    # syntax 1
-            >>> hub.set_dparam(alpha=0.1)                 # syntax 2
+        hub.set_dparam(key='alpha', value=0)    # syntax 1
+        hub.set_dparam(alpha=0.1)                 # syntax 2
 
             # The following syntax allows to change several existing parameters
-            >>> dparam_changes = {'alpha': 0., 'delta': 0.}
-            >>> hub.set_dparam(**dparam_changes)
+        dparam_changes = {'alpha': 0., 'delta': 0.}
+        hub.set_dparam(**dparam_changes)
         """
 
         if preset != None:
-            print('WARNING : USE set_dpreset() this will be removed later')
-            (self.__dparam,
-             self.__dmisc['dfunc_order'],
-             self.__dargs,
-             ) = _class_checks.update_from_preset(
-                dparam=self.__dparam,
-                dmodel=self.__dmodel,
-                preset=preset,
-                dpresets=dpresets,
-                verb=verb,
-            )
-        else:
-            # Check input: dparam xor (key, value)
-            lc = [
-                dparam is not None,
-                preset is not None,
-                key is not None and value is not None,
-                len(kwdargs) > 0,
-            ]
-            if np.sum(lc) != 1:
-                lstr = [
-                    '\t- {}: {}'.format(kk, vv)
-                    for kk, vv in [
-                        ('dparam', dparam),
-                        ('preset', preset),
-                        ('key', key), ('value', value),
-                        ('kwdargs', kwdargs),
-                    ]
+            raise Exception('USE set_dpreset() instead')
+
+        # Check input: dparam xor (key, value)
+        lc = [
+            dparam is not None,
+            key is not None and value is not None,
+            len(kwdargs) > 0,
+        ]
+        if np.sum(lc) != 1:
+            lstr = [
+                '\t- {}: {}'.format(kk, vv)
+                for kk, vv in [
+                    ('dparam', dparam),
+                    ('preset', preset),
+                    ('key', key), ('value', value),
+                    ('kwdargs', kwdargs),
                 ]
-                msg = (
-                    "Provide dparam xor preset xor (key, value) xor kwdargs!\n"
-                    "You provided:\n"
-                    + "\n".join(lstr)
+            ]
+            msg = (
+                "Provide dparam xor preset xor (key, value) xor kwdargs!\n"
+                "You provided:\n"
+                + "\n".join(lstr)
+            )
+            raise Exception(msg)
+
+        # ----------------
+        # set dparam or update desired key
+        if key is not None:
+            _class_checks._set_key_value(
+                dparam=self.__dparam,
+                key=key,
+                value=value,
+            )
+            dparam = self.__dparam
+
+        elif len(kwdargs) > 0:
+            for kk, vv in kwdargs.items():
+                if not isinstance(vv, dict):
+                    vv = {'value': vv, 'grid': False}
+                _class_checks._set_key_value(
+                    dparam=self.__dparam,
+                    key=kk,
+                    value=vv['value'],
                 )
-                raise Exception(msg)
+            dparam = self.__dparam
 
-            # ----------------
-            # set dparam or update desired key
-
-            if preset is not None:
-                if key is not None:
-                    _class_checks._set_key_value(
-                        dparam=self.__dparam,
-                        key=key,
-                        value=value,
-                    )
-                    dparam = self.__dparam
-
-                elif len(kwdargs) > 0:
-                    for kk, vv in kwdargs.items():
-                        if not isinstance(vv, dict):
-                            vv = {'value': vv, 'grid': False}
-                        _class_checks._set_key_value(
-                            dparam=self.__dparam,
-                            key=kk,
-                            value=vv['value'],
-                        )
-                    dparam = self.__dparam
-
-                # ----------------
-                # Update to check consistency
-
-                (
-                    self.__dparam,
-                    self.__dmisc['dmulti'],
-                    self.__dmisc['dfunc_order'],
-                    self.__dargs,
-                ) = _class_checks.check_dparam(
-                    dparam=dparam,
-                    verb=verb,
-                )
-
-            # reset all variables (keep only the first time step)
+        # reset all variables (keep only the first time step)
         self.reset()
 
     def get_dparam(self, condition=None, verb=None, returnas=dict, **kwdargs):
@@ -362,13 +352,19 @@ class Hub():
         Only the first time step (initial values) is preserved
         All other time steps are set to nan
         """
+        # ## RECREATING THE SHAPES
+
+        self.__dargs = _class_set.get_dargs_by_reference(self.__dparam, dfunc_order=self.__dmisc['dfunc_order'])
 
         # reset ode variables
-        for k0 in self.get_dparam(eqtype=['differential', 'statevar'], returnas=list):
+        for k0 in self.get_dparam(eqtype=['differential',
+                                          'statevar'],
+                                  returnas=list):
             self.__dparam[k0]['value'][...] = np.nan
 
         # Reset initial for ode
-        for k0 in self.get_dparam(eqtype=['differential'], returnas=list):
+        for k0 in self.get_dparam(eqtype=['differential'],
+                                  returnas=list):
             self.__dparam[k0]['value'][0, ...] = self.__dparam[k0]['initial']
 
         # recompute initial value for function-parameters
@@ -410,7 +406,7 @@ class Hub():
 
         Parameters
         ----------
-        Npoints : TYPE, optional
+        N : TYPE, optional
             DESCRIPTION. The default is 100.
         """
 
@@ -502,16 +498,16 @@ class Hub():
 
         # ----------
         # Numerical parameters
-        col1, ar1 = _class_utility._get_summary_numerical(self)
+        col1, ar1 = _class_utility._get_summary_group(self,"Numerical")
 
         # ----------
         # parameters
-        col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx)
+        col2, ar2 = [],[] # _class_utility._get_summary_parameters(self, idx=idx)
 
         # ----------
         # functions ODE
-        col3, ar3 = _class_utility._get_summary_functions(
-            self, idx=idx, eqtype=['differential'], isneeded=True)
+        col3, ar3 =  [],[] # _class_utility._get_summary_functions(
+            #self, idx=idx, eqtype=['differential'], isneeded=True)
 
         # ----------
         # functions Statevar
@@ -520,13 +516,13 @@ class Hub():
 
         # ----------
         # functions ODE
-        col5, ar5 = _class_utility._get_summary_functions(
-            self, idx=idx, eqtype=['differential'], isneeded=False)
+        col5, ar5 = [],[] #_class_utility._get_summary_functions(
+            #self, idx=idx, eqtype=['differential'], isneeded=False)
 
         # ----------
         # functions Statevar
-        col6, ar6 = _class_utility._get_summary_functions(
-            self, idx=idx, eqtype=['statevar'], isneeded=False)
+        col6, ar6 =  [],[]# _class_utility._get_summary_functions(
+           # self, idx=idx, eqtype=['statevar'], isneeded=False)
 
         # ----------
         # format output

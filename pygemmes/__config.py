@@ -61,19 +61,10 @@ _LEQTYPES = ['differential',  # all differentials
              ]
 
 # ######################### DPARAM CONTENT ####################################
-# POSSIBLE KEYS IN DPARAM
-_LEXTRAKEYS = [
-    'func',     # The function animating it
-    'kargs',    # List of all the dependencies
-    'args',     # dictionnary of all dependencies
-    'initial',  # initial value if differential
-    'source_exp',  # Explaining the expression
-    'isneeded',  # Auxilliary or not
-    'analysis',  # Contains all analysys (time derivative, cycles...)
-    'multisect'  # Name of the dimension in the multisectoriality
-]
+# Automatically filled fields
 
-# ############################ DEF_FIELDS #####################################
+__DEFAULTSIZE = '__one__'
+
 __DEFAULTFIELDS = {
     'value': {
         'default': None,
@@ -90,11 +81,6 @@ __DEFAULTFIELDS = {
         'type': str,
         'allowed': None,
     },
-    # 'dimension': {
-    #    'default': 'undefined',
-    #    'type': str,
-    #    'allowed': None,
-    # },
     'units': {
         'default': 'undefined',
         'type': str,
@@ -111,15 +97,6 @@ __DEFAULTFIELDS = {
             '',        # Dimensionless
         ],
     },
-    'type': {
-        'default': 'undefined',
-        'type': str,
-        'allowed': [
-            'intensive',
-            'extensive',
-            'dimensionless',
-        ],
-    },
     'symbol': {
         'default': '',
         'type': str,
@@ -130,9 +107,24 @@ __DEFAULTFIELDS = {
         'type': str,
         'allowed': None,
     },
-    'multisect': {
-        'default': '',
+    'size': {
+        'default': __DEFAULTSIZE,
         'type': str,
-        'allowed': None,
-    }
+        'allowed': None,}
 }
+
+
+# POSSIBLE KEYS IN DPARAM
+_LEXTRAKEYS = [
+    'func',     # The function animating it
+    'kargs',    # List of all the dependencies
+    'args',     # dictionnary of all dependencies
+    'initial',  # initial value if differential
+    'source_exp',  # Explaining the expression
+    'isneeded',  # Auxilliary or not
+    'analysis',  # Contains all analysys (time derivative, cycles...)
+    #'multisect', # Name of the dimension in the multisectoriality
+    'list',      # Only for dimensions of multisectoriality
+]
+_LEXTRAKEYS+=list(__DEFAULTFIELDS.keys())
+

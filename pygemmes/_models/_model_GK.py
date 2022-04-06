@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 DESCRIPTION : This is a Goodwin model with possibility to get loans at the bank, and have a price dynamics.
-TYPICAL BEHAVIOR : Convergence toward solow point ( good equilibrium) or debt crisis
+TYPICAL BEHAVIOR : Convergence toward Solow point ( good equilibrium) or debt crisis
 LINKTOARTICLE:
 
 @author: Paul Valcke
@@ -17,6 +17,7 @@ from pygemmes._models import Funcs
 from pygemmes._models._model_G import _LOGICS as _LOGICS0
 from copy import deepcopy
 _LOGICS = deepcopy(_LOGICS0)
+
 
 
 # We write the fields we want to add/modify

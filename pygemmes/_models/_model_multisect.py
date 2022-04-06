@@ -6,36 +6,48 @@ DESCRIPTION :
 
 """
 
-import numpy as np
-from pygemmes._model import Funcs
+#import numpy as np
+#from pygemmes._model import Funcs
 
 _LOGICS = {
     'differential': {
         'a': {
             'func': lambda a, b: a*b,
-            'size': ['Nprod', ],
+            'size': 'n_prod',
         },
     },
     'statevar': {
         'c': {
             'func': lambda a, b: a*b,
-            'size': ['Nprod', ],
+            'size': 'n_prod',
         },
     },
     'parameter': {
         'b': {
             'value': 0,
-            'size': ['Nprod', 'Nprod']
+            'size': ['n_prod', 'n_prod']
         },
     },
-},
+    'size': {
+        'n_prod': {
+            'list': ['mine',
+                     'energy',
+                     'machines',
+                     'products'],
+            'definition': 'Productive sectors',
+        },
+    },
+}
 
 _PRESETS = {
     'default': {
         'fields': {},
-        'com': (),
+        'com': "",
         'plots': {},
     },
-},
+}
+
+
 # Check size consistent in operations
 # If only one dimension, transform string into list
+# If sizes are defined as list, creating a dictionnary
