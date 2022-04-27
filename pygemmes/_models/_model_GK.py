@@ -18,21 +18,40 @@ from pygemmes._models._model_G import _LOGICS as _LOGICS0
 from copy import deepcopy
 _LOGICS = deepcopy(_LOGICS0)
 
+import MatterClass as MC
 
+def runMATTER(a,b,c):
+    # LOAD VALUES IF NECESSARY
+    MatterClass.wefwegweg = a
+    MatterClass.wefwegdfb = b
+    MatterClass.wefwe = c
+
+
+    MatterClass.compute[...]
+
+    return MatterClass.value
+
+import MatterClass as MC
+funcMatterStock(TUStockInUse):
+    MC.TUStockInUse= TUStockInUse
+    return MC.TUFlow - TUFlowEoL
 
 # We write the fields we want to add/modify
 _GK_LOGICS = {
     'ode': {
+        'TUStockInUse': {
+            'func': funcMatterStock(TUStockInUse),
+        },
         # Stock-flow consistency
         'D': {
-            'func': lambda I, Pi: I - Pi,
+            'func': lambda I, Pi: I - MC.valueofparameter,
             'com': 'Debt as Investment-Profit difference', },
 
         # Price Dynamics
         'w': Funcs.Phillips.salaryfromPhillips,
         'p': Funcs.Inflation.pricefrominflation,
 
-
+        'y':
 
     },
 
@@ -69,7 +88,8 @@ for category, dic in _GK_LOGICS.items():
 _PRESETS = {
     'default': {
         'fields': {
-            'dt': 0.01,
+            'dt': MatterClass.dtvalue,
+            'Nsector': MatterClass.Nsector,
             'a': 1,
             'N': 1,
             'K': 2.9,

@@ -51,3 +51,6 @@ _PRESETS = {
 # Check size consistent in operations
 # If only one dimension, transform string into list
 # If sizes are defined as list, creating a dictionnary
+
+for k1,k2 in listStockFlow.items():
+    MC.k1[i]=MC.k1[i-1]+MC.k2[i-1]*dt

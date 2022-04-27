@@ -125,6 +125,41 @@ class Hub():
 
         self.reset()
 
+    def set_dparam2(
+        self,
+        verb=False,
+        **kwdargs):
+        """
+        dparam =
+        hub.set_dparam(**{'alpha': 0, 'beta': 1})
+        hub.set_dparam(alpha=0.1)                 # syntax 2
+
+        hub.set_dparam(alpha=[['sector1','sector2'], value])
+        """
+
+        ### CHECK THAT THE KEYS EXIST IN THE SYSTEM
+
+        ### CHECK THE CONSISTENCY OF INPUT SIZES
+        # For each key
+            # get its supposed shape
+
+            # compare to input
+
+            # deduce the type of entry it will be
+
+        if len(kwdargs) > 1:
+
+
+            for kk, vv in kwdargs.items():
+                if not isinstance(vv, dict):
+                    vv = {'value': vv, 'grid': False}
+                _class_checks._set_key_value(
+                    dparam=self.__dparam,
+                    key=kk,
+                    value=vv['value'],
+                )
+
+
     def set_dparam(
         self,
         dparam=None,
