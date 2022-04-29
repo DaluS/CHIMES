@@ -24,6 +24,7 @@ from ..__config import _LEQTYPES
 from ..__config import _LEXTRAKEYS
 from ..__config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS
 from ..__config import _MODEL_NAME_CONVENTION
+from ..__config import _DEFAULTSIZE
 
 ###############################################################################
 #############                  MAIN FUNCTION                      #############
@@ -58,7 +59,7 @@ def load_model(model=None, verb=None, from_user=None):
     dfunc_order = set_func_order(dparam, verb=verb)
     dfunc_order['parameters'] = lparam
 
-    _class_check_2.dparam(dparam)
+    #_class_check_2.dparam(dparam)
 
     '''Get all dependencies for each equations, find who can not be usefull
     Set args and kargs'''
@@ -132,7 +133,7 @@ def load_dmodel(model, from_user=False):
         if 'value' not in v.keys():
             v['value']= len(v['list'])
         elif 'list' not in v.keys():
-            v['list']= [i for i in range(v['value'])
+            v['list']= [i for i in range(v['value'])]
         else :
             if len(v['list'])!=v['value']:
                 raise Exception(f'{k} has inconsistent size and list !')
@@ -170,13 +171,15 @@ def load_complete_DFIELDS(dmodel, verb=False):
             # _models._DFIELDS[k1]['args'] = {key:[] for key in _LEQTYPES }
             # _models._DFIELDS[k1]['kargs']= []
 
+
     # %% d) use dfields autocompletion
-    DFIELDS = _models._complete_DFIELDS(
+    DFIELDS2 = _models._complete_DFIELDS(
         dfields=DFIELDS,
         complete=True,
         check=True,
     )
-    return DFIELDS
+
+    return DFIELDS2
 
 
 # %% 3) LOGICS INTO DPARAM
@@ -551,6 +554,7 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
     # ------------------
     # copy func to avoid passing by reference
     lfunc = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
+    lpar = [k0 for k0, v0 in dparam.items() if v0.get('func') is None]
     for k0 in lfunc:
         dparam[k0]['func'] = copy_func(dparam[k0]['func'])
 
@@ -567,14 +571,42 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
                             dparam['nx']['value'],  # Parrallel
                             dparam['nr']['value'],  # Regions
                             ])
-        if dparam[k0]['multisect'] != '':
+
+        if dparam[k0].get('multi',_DEFAULTSIZE) not in [ _DEFAULTSIZE,[_DEFAULTSIZE]]:
+            sizelist = dparam[k0]['multi']
+            #print(k0,sizelist,sizelist[0],dparam[sizelist[0]])
+            if len(sizelist)==1 :
+                sizes = dparam[sizelist[0]]['value']
+            else:
+                sizes = [ dparam[f]['value'] for f in sizelist]
+
             shape = tuple(np.r_[dparam['nt']['value'],  # Time dimension
                                 dparam['nx']['value'],  # Parrallel
                                 dparam['nr']['value'],  # Regions
-                                dparam[dparam[k0]['multisect']]['value']
+                                sizes
                                 ])
         if dparam[k0]['eqtype'] not in ['parameter']:
             dparam[k0]['value'] = np.full(shape, np.nan)
+
+    for k0 in lpar:
+        shape = tuple(np.r_[dparam['nx']['value'],  # Parrallel
+                            dparam['nr']['value'],  # Regions
+                            ])
+
+        if dparam[k0].get('multi',_DEFAULTSIZE) not in [ _DEFAULTSIZE,[_DEFAULTSIZE]]:
+            sizelist = dparam[k0]['multi']
+            #print(k0,sizelist,sizelist[0],dparam[sizelist[0]])
+            if len(sizelist)==1 :
+                sizes = dparam[sizelist[0]]['value']
+            else:
+                print([f for f in sizelist])
+                sizes = [ dparam[f]['value'] for f in sizelist]
+
+            shape = tuple(np.r_[dparam['nx']['value'],  # Parrallel
+                                dparam['nr']['value'],  # Regions
+                                sizes
+                                ])
+            dparam[k0]['value'] = np.full(shape, dparam[k0]['value'])
     return dparam
 
 

@@ -1075,7 +1075,7 @@ def _complete_DFIELDS(
             + "\n".join(lstr)
         )
         raise Exception(msg)
-    return _DFIELDS
+    return dfields
 
 
 _DFIELDS = _complete_DFIELDS(_DFIELDS)

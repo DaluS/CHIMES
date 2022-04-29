@@ -99,6 +99,9 @@ class Hub():
             self.dmisc['multisectoral'] = True
         else:
             self.dmisc['multisectoral'] = False
+
+
+
         # update from preset if relevant ######################################
         if preset is not None:
             self.set_preset(preset=preset, dpresets=dpresets, verb=verb)
