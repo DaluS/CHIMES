@@ -7,28 +7,39 @@ DESCRIPTION :
 """
 
 import numpy as np
-from pygemmes._model import Funcs
+#from pygemmes._model import Funcs
 
 _LOGICS = {
     'differential': {
         'a': {
             'func': lambda c: c,
-            'size': ['Nprod', ],
+            'multi': ['Nprod', ],
         },
     },
     'statevar': {
         'c': {
-            'func': lambda a, b: np.matmul(a,b),
-            'size': ['Nprod', ],
+            'func': lambda a, b: a*b,
+            'multi': ['Nprod', ],
         },
     },
     'parameter': {
         'b': {
             'value': 0,
-            'size': ['Nprod', 'Nprod']
+            'multi': ['Nprod', 'Nprod'],
+        },
+        'zouplala': {
+            'value': 0,
+            'multi': ['Nprod', 'Nprod'],
         },
     },
-},
+    'size': {
+        'Nprod': {
+            'list': ['Energy', 'Mine', 'Consumption', 'Capital'],
+            'definition': 'Productive sectors',
+
+        },
+    },
+}
 
 _PRESETS = {
     'default': {
@@ -36,6 +47,6 @@ _PRESETS = {
         'com': (''),
         'plots': {},
     },
-},
+}
 # Check size consistent in operations
 # If only one dimension, transform string into list

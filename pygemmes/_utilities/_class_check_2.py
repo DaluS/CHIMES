@@ -250,7 +250,6 @@ def dparam(dparam=None):
 
         # if dict => investigate
         if isinstance(dparam[k0], dict):
-
             # identify invalid keys
             lk = [
                 kk for kk in dparam[k0].keys()

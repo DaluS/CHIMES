@@ -12,6 +12,8 @@ import numpy as np
 
 # Library-specific
 from .__config import _FROM_USER
+from .__config import _DEFAULTSIZE
+from .__config import _VERB
 from ._utilities import _utils, _class_checks, _class_utility, _cn
 from ._utilities import _class_set
 from ._utilities import _Network
@@ -56,7 +58,7 @@ class Hub():
         from_user=_FROM_USER,
         preset=None,
         dpresets=None,
-        verb=False,
+        verb=_VERB,
     ):
 
         # Initialize the hub main dictionnaries ###############################
@@ -80,8 +82,23 @@ class Hub():
         )
 
         # Actualize the shape
-        self.__dmisc['dmulti']['shape'] = (self.__dparam['nx']['value'],
+        self.__dmisc['dmulti']['NxNr'] = (self.__dparam['nx']['value'],
                                            self.__dparam['nr']['value'])
+        self.__dmisc['dmulti']['scalar']= []
+        self.__dmisc['dmulti']['vector'] = []
+        self.__dmisc['dmulti']['matrix'] = []
+        for k,v in self.dparam.items():
+            size = v.get('size',[_DEFAULTSIZE])
+            if size[0]== _DEFAULTSIZE:
+                self.__dmisc['dmulti']['scalar'].append(k)
+            elif len(size)==1:
+                self.__dmisc['dmulti']['vector'].append(k)
+            else:
+                self.__dmisc['dmulti']['matrix'].append(k)
+        if len(self.__dmisc['dmulti']['vector']+self.__dmisc['dmulti']['matrix']):
+            self.dmisc['multisectoral'] = True
+        else:
+            self.dmisc['multisectoral'] = False
         # update from preset if relevant ######################################
         if preset is not None:
             self.set_preset(preset=preset, dpresets=dpresets, verb=verb)
@@ -483,22 +500,25 @@ class Hub():
         * idx = index of the model you want the value to be shown when there are multiple models in parrallel
         """
 
-        print(100*'#'+'#####################')
-        print(self.dmodel['description'])
+        _FLAGS = ['run', 'cycles', 'derivative']
+        _ORDERS = ['statevar', 'differential', 'parameters']
 
-        print(50*'#', 'Indexes :', idx, 50*'#')
-        # ----------
-        # check inputs
-        '''
-        idx = _class_checks._check_idx(
-            idx=idx,
-            nt=self.__dparam.get('nt', {'value': np.nan})['value'],
-            dmulti=self.__dmisc['dmulti'],
-        )
-        '''
-        # ----------
-        # starting with headr from __repr__
-        col0, ar0 = self.__repr__(verb=False)
+        print(50 * '#', 'SUMMARY', 50 * '#')
+        print('Model       :', self.dmodel['name'])
+        print('Description :', self.dmodel['description'])
+        print('File        :', self.dmodel['file'])
+        print(20 * '#', 'Fields', 20 * '#')
+        for o in _ORDERS:
+            print(o.ljust(15), str(len(self.dmisc['dfunc_order'][o])).zfill(3), self.dmisc['dfunc_order'][o])
+        print(20 * '#', 'Presets', 20 * '#')
+        for k, v in self.dmodel['presets'].items():
+            print('    ', k.ljust(20), v['com'])
+        print(20 * '#', 'Flags', 20 * '#')
+        for f in _FLAGS:
+            print(f.ljust(15) + ':', self.dmisc[f])
+        print('\n')
+
+        print(30*'#', 'Indexes :', idx, 30*'#')
 
         # ----------
         # Numerical parameters

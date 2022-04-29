@@ -14,6 +14,8 @@ import os
 # FLAG FOR MODEL LOCATION : False if in the library, true in documents
 _FROM_USER = False
 
+_VERB = True
+
 # NAME OF MODEL FILES
 _MODEL_NAME_CONVENTION = '_model_'
 
@@ -60,6 +62,7 @@ _LEQTYPES = ['differential',  # all differentials
              'size'
              ]
 
+_DEFAULTSIZE = '__ONE__'
 # ######################### DPARAM CONTENT ####################################
 # POSSIBLE KEYS IN DPARAM
 _LEXTRAKEYS = [
@@ -70,7 +73,7 @@ _LEXTRAKEYS = [
     'source_exp',  # Explaining the expression
     'isneeded',  # Auxilliary or not
     'analysis',  # Contains all analysys (time derivative, cycles...)
-    'multisect'  # Name of the dimension in the multisectoriality
+    'size'       # Name of the dimension in the multisectoriality
 ]
 
 # ############################ DEF_FIELDS #####################################

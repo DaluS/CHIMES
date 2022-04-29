@@ -54,7 +54,7 @@ def load_model(model=None, verb=None, from_user=None):
 
     """ Extract fixed-value parameters"""
     dparam, lparam = extract_parameters(dparam, dfields, verb=verb)
-    dparam = set_args_auxilliary(dparam)
+    dparam = set_args_auxilliary(dparam,verb=verb)
     dfunc_order = set_func_order(dparam, verb=verb)
     dfunc_order['parameters'] = lparam
 
@@ -113,7 +113,7 @@ def load_dmodel(model, from_user=False):
     if ('differential' in dmodel['logics'].keys() and 'ode' in dmodel['logics'].keys()):
         raise Exception(
             'Model use both ode and differential formalism ! Use one only')
-    if 'differential' not in dmodel.keys():
+    if 'differential' not in dmodel['logics'].keys():
         dmodel['logics']['differential'] = copy.deepcopy(
             dmodel['logics'].get('ode', {}))
         del dmodel['logics']['ode']
@@ -122,10 +122,20 @@ def load_dmodel(model, from_user=False):
     if ('parameter' in dmodel['logics'].keys() and 'param' in dmodel['logics'].keys()):
         raise Exception(
             'Model use both ode and differential formalism ! Use one only')
-    if 'parameter' not in dmodel.keys():
+    if 'parameter' not in dmodel['logics'].keys():
         dmodel['logics']['parameter'] = copy.deepcopy(
             dmodel['logics'].get('param', {}))
         del dmodel['logics']['param']
+
+    # %% Fill size
+    for k,v in dmodel['logics'].get('size',{}).items():
+        if 'value' not in v.keys():
+            v['value']= len(v['list'])
+        elif 'list' not in v.keys():
+            v['list']= [i for i in range(v['value'])
+        else :
+            if len(v['list'])!=v['value']:
+                raise Exception(f'{k} has inconsistent size and list !')
 
     return dmodel
 
@@ -148,7 +158,9 @@ def load_complete_DFIELDS(dmodel, verb=False):
     if verb is True:
         lstr = [f'\t- {k0}: {v0}' for k0, v0 in dkout.items()]
         print(
-            f"The following fields are defined in the model but not it the library : \n    - {lstr} ")
+            f"The following fields are defined in the model but not it the library :")
+        for k0, v0 in dkout.items():
+            print(f'\t- {k0}: {v0}')
 
     # %% c) add them
     for k0, v0 in dkout.items():
@@ -179,6 +191,8 @@ def logics_into_dparam(dmodel):
     for ii, dd in enumerate(lk[1:]):
         lk[0].update(dd)
 
+    print(lk)
+
     dparam = {
         k0: dict(dmodel['logics'][v0][k0]) for k0, v0 in lk[0].items()
     }
@@ -187,6 +201,7 @@ def logics_into_dparam(dmodel):
     for k0 in dparam.keys():
         if lk[0][k0] not in ['parameter']:
             dparam[k0]['eqtype'] = lk[0][k0]
+
     return dparam
 
 
@@ -208,6 +223,8 @@ def add_numerical_group_default_fields(dparam, dfields):
 
     if 'time' not in dparam.keys():
         dparam['time'] = dict(dfields['time'])
+
+
 
     # %% b) add default fields
     for k0, v0 in dparam.items():
@@ -321,7 +338,7 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None, dfields=None):
 # %% 6) SET ARGS, KARGS, FIND AUXILLIARIES
 
 
-def set_args_auxilliary(dparam, verb=True):
+def set_args_auxilliary(dparam, verb=False):
     '''
     Get all dependencies for each equations, find who can not be usefull
     Set args and kargs

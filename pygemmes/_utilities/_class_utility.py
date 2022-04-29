@@ -330,10 +330,11 @@ def paramfunc2str(
     dmisc=None,
     idx=None,
 ):
-
+    print(key,dmisc['dmulti']['scalar'])
+    print(key,dparam[key]['value'])
     eqtype = dparam[key].get('eqtype')
     if eqtype is None:
-        if large and key in dmisc['dmulti']['keys']:
+        if key not in dmisc['dmulti']['scalar']:
             msg = str(dparam[key]['value'].shape)
         else:
             if not hasattr(dparam[key]['value'], '__iter__'):
@@ -431,7 +432,7 @@ def _get_summary_numerical(hub):
     ar1 = [
         [
             k0,
-            paramfunc2str(dparam=dparam_sub, key=k0),
+            paramfunc2str(dparam=dparam_sub,dmisc=hub.dmisc, key=k0),
             v0['units'],
             v0['definition'],
         ]
@@ -450,13 +451,6 @@ def _get_summary_parameters(hub, idx=None):
 
     # ----------------
     # preliminary criterion
-
-    large = (
-        idx is None
-        and hub.dmisc['dmulti'] is not None
-        and np.any(np.array(hub.dmisc['dmulti']['shape']) > 3)
-    )
-
     # ----------------
     # get sub-dict of interest
 
@@ -468,71 +462,29 @@ def _get_summary_parameters(hub, idx=None):
 
     # ------------------
     # get column headers
-
-    if large:
-        col2 = [
-            'Model param.', 'value', 'min', 'max',
-            'units', 'group', 'definition',
-        ]
-    else:
-        col2 = [
-            'Model param.', 'value',
-            'units', 'group', 'definition',
-        ]
+    col2 = [
+        'Model param.', 'value',
+        'units', 'group', 'definition',
+    ]
 
     # ------------------
     # get values
-
-    if large:
-        # if many systems => don't show all, just shape, min, max
-
-        ar2 = [
-            [
-                k0,
-                paramfunc2str(
-                    dparam=dparam_sub,
-                    key=k0,
-                    large=large,
-                    dmisc=hub.dmisc,
-                ),
-                param_minmax2str(
-                    dparam=dparam_sub,
-                    key=k0,
-                    large=large,
-                    dmisc=hub.dmisc,
-                    which='min',
-                ),
-                param_minmax2str(
-                    dparam=dparam_sub,
-                    key=k0,
-                    large=large,
-                    dmisc=hub.dmisc,
-                    which='max',
-                ),
-                str(v0['units']),
-                v0['group'],
-                v0['definition'],
-            ]
-            for k0, v0 in dparam_sub.items()
+    ar2 = [
+        [
+            k0,
+            paramfunc2str(
+                dparam=dparam_sub,
+                key=k0,
+                large=False,
+                dmisc=hub.dmisc,
+                idx=idx,
+            ),
+            str(v0['units']),
+            v0['group'],
+            v0['definition'],
         ]
-
-    else:
-        ar2 = [
-            [
-                k0,
-                paramfunc2str(
-                    dparam=dparam_sub,
-                    key=k0,
-                    large=large,
-                    dmisc=hub.dmisc,
-                    idx=idx,
-                ),
-                str(v0['units']),
-                v0['group'],
-                v0['definition'],
-            ]
-            for k0, v0 in dparam_sub.items()
-        ]
+        for k0, v0 in dparam_sub.items()
+    ]
 
     return col2, ar2
 

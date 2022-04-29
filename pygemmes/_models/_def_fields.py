@@ -78,6 +78,12 @@ _LIBRARY = {
             'units': 'y',
             'eqtype': 'differential',
         },
+        '__ONE__': {
+            'size': [''],
+            'value': 1,
+            'definition': 'value by default for monosectorial field',
+            'eqtype': 'size',
+        },
     },
 
 

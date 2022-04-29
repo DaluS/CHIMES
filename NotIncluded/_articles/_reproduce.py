@@ -7,7 +7,7 @@ import warnings
 import numpy as np
 
 
-from .. import _core
+from GEMMES.pygemmes import _core
 
 
 _PATH_HERE = os.path.dirname(__file__)
@@ -209,7 +209,7 @@ def reproduce_article(
         raise Exception(msg)
 
     if save_path is None:
-        save_path = os.path.abspath('./')
+        save_path = os.path.abspath('/')
     if save is True and not os.path.isdir(save_path):
         msg = (
             "Arg save_path must be a valid path for saving!\n"
