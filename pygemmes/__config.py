@@ -137,5 +137,11 @@ __DEFAULTFIELDS = {
         'default': '',
         'type': str,
         'allowed': None,
+    }  ,
+    'size':{
+        'default': [_DEFAULTSIZE] ,
+        'type': list,
+        'allowed': None
+    }
     }
 }

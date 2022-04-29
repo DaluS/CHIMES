@@ -330,8 +330,6 @@ def paramfunc2str(
     dmisc=None,
     idx=None,
 ):
-    print(key,dmisc['dmulti']['scalar'])
-    print(key,dparam[key]['value'])
     eqtype = dparam[key].get('eqtype')
     if eqtype is None:
         if key not in dmisc['dmulti']['scalar']:

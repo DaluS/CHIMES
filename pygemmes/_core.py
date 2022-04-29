@@ -554,8 +554,8 @@ class Hub():
         # ----------
         # format output
         return _utils._get_summary(
-            lar=[ar0, ar1, ar2, ar3, ar4, ar5, ar6],
-            lcol=[col0, col1, col2, col3, col4, col5, col6],
+            lar=[ar1, ar2, ar3, ar4, ar5, ar6],
+            lcol=[col1, col2, col3, col4, col5, col6],
             verb=True,
             returnas=False,
         )
