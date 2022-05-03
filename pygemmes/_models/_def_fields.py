@@ -39,7 +39,7 @@ from ..__config import __DEFAULTFIELDS
 _LIBRARY = {
     'Numerical': {
         'Tmax': {
-            'value': 100,
+            'value': 5,
             'units': 'y',
             'definition': 'Total simulated time',
         },
@@ -163,7 +163,7 @@ _LIBRARY = {
             'units': 'Humans',
         },
         'a': {
-            'value': 1,
+            'value': 1.00,
             'units': 'Units.Humans^{-1}.y^{-1}',
             'definition': 'Productivity',
         },

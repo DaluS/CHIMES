@@ -224,12 +224,14 @@ def plot_variation_rate(hub, varlist, title='', idx=0):
     plt.show()
 
 
-def plotbyunits(hub, title='', lw=1, idx=0, color='k', sharex=True):
+def plotbyunits(hub, title='', lw=1, idx=0,Region=0, color='k'):
     '''
     generate one subfigure per set of units existing
     '''
     groupsoffields = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['ode', 'statevar'])
     Nax = len(groupsoffields)
+
+    print(groupsoffields)
 
     Ncol = 2
     Nlin = Nax // Ncol + Nax % Ncol
@@ -238,7 +240,7 @@ def plotbyunits(hub, title='', lw=1, idx=0, color='k', sharex=True):
     R = hub.get_dparam(keys=[allvars], returnas=dict)
     vy = {}
 
-    vx = R['time']['value'][:, idx]
+    vx = R['time']['value'][:, idx,Region]
     units = r'$  '+R['time']['units'].replace('$', '\$')+'  $'
 
     fig = plt.figure()
@@ -251,9 +253,9 @@ def plotbyunits(hub, title='', lw=1, idx=0, color='k', sharex=True):
 
         ax = dax[key]
 
-        vy[key] = {yyy: R[yyy]['value'][:, idx] for yyy in vvar}
-        ymin = np.amin([np.amin(v) for v in vy[key].values()])
-        ymax = np.amax([np.amax(v) for v in vy[key].values()])
+        vy[key] = {yyy: R[yyy]['value'][:, idx,Region] for yyy in vvar}
+        #ymin = np.amin([np.amin(v) for v in vy[key].values()])
+        #ymax = np.amax([np.amax(v) for v in vy[key].values()])
 
         units = r'$\  '+key.replace('$', '\$')+'  \ $'
         ylabel = units

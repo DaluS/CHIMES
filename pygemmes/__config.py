@@ -114,15 +114,6 @@ __DEFAULTFIELDS = {
             '',        # Dimensionless
         ],
     },
-    'type': {
-        'default': 'undefined',
-        'type': str,
-        'allowed': [
-            'intensive',
-            'extensive',
-            'dimensionless',
-        ],
-    },
     'symbol': {
         'default': '',
         'type': str,
@@ -142,6 +133,5 @@ __DEFAULTFIELDS = {
         'default': [_DEFAULTSIZE] ,
         'type': list,
         'allowed': None
-    }
     }
 }

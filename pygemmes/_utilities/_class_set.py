@@ -126,7 +126,8 @@ def load_dmodel(model, from_user=False):
     if 'parameter' not in dmodel['logics'].keys():
         dmodel['logics']['parameter'] = copy.deepcopy(
             dmodel['logics'].get('param', {}))
-        del dmodel['logics']['param']
+        if 'param' in dmodel['logics'].keys():
+            del dmodel['logics']['param']
 
     # %% Fill size
     for k,v in dmodel['logics'].get('size',{}).items():

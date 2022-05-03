@@ -249,6 +249,9 @@ def get_func_dydt(
     dmulti=None,
 ):
 
+    print(dmulti)
+    print(lode)
+
     # ---------------
     # Get list of ode except time
     if 'scipy' in solver:
@@ -257,12 +260,14 @@ def get_func_dydt(
         shapebuf = (1,)
     else:
         lode_solve = lode
-        shapey = tuple(np.r_[len(lode_solve), dmulti['shape']])
-        shapebuf = tuple(dmulti['shape'])
+        shapey = tuple(np.r_[len(lode_solve), dmulti['NxNr']])
+        shapebuf = tuple(dmulti['NxNr'])
 
     # ---------------------
     # initialize y
     y0 = np.array([dparam[k0]['value'][0, ...] for k0 in lode_solve])
+
+    print(np.shape(y0))
 
     # ---------------------
     # prepare array to be used as buffer
