@@ -84,6 +84,8 @@ def dmodel(dmodel=None,
         print(f"WARNING :The following presets are non-valid:\n {lkout}")
 
     #  list non-conform keys in LOGICS #############
+    #print([k0 for k0, v0 in dmodel['logics'].items()])
+    #print("LEQ",_LEQTYPES)
     lkout = [
         k0 for k0, v0 in dmodel['logics'].items()
         if not (

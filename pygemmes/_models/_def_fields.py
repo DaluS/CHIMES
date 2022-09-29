@@ -38,20 +38,46 @@ from ..__config import __DEFAULTFIELDS
 
 _LIBRARY = {
     'Numerical': {
+        # TIME GESTION ##############################################
         'Tmax': {
-            'value': 5,
+            'value': 100,
             'units': 'y',
             'definition': 'Total simulated time',
         },
         'Tini': {
             'value': 2015,
-            'definition': 'Initial time',
+            'definition': 'Initial time for simulations',
             'units': 'y',
         },
         'dt': {
             'value': 0.01,
             'units': 'y',
-            'definition': 'time between two steps',
+            'definition': 'solver timestep',
+        },
+
+        # You should not modify this here, use preset or setdparam ##
+        'nx': {
+            'value': 3,
+            'units': '',
+            'definition': 'Number of system in parrallel',
+        },
+        'nr': {
+            'value': 2,
+            'units': '',
+            'definition': 'Number of regions interconnected',
+        },
+
+        # DANGER ZONE DO NOT MODIFY IF YOU ARE NOT SURE ############
+        '__ONE__': {
+            'value': 1,
+            'definition': 'value by default for monosectorial field',
+        },
+        'time': {
+            'initial': 0.,
+            'func': lambda dt=0: 1.,
+            'definition': 'Time vector',
+            'com': 'dt/dt=1, time as ODE',
+            'units': 'y',
         },
         'nt': {
             'func': lambda Tmax=0, dt=1: int(Tmax / dt),
@@ -60,101 +86,14 @@ _LIBRARY = {
             'com': 'Constant dt',
             'eqtype': 'parameter',
         },
-        'nx': {
-            'value': 1,
-            'units': 'y',
-            'definition': 'Number of system in parrallel',
-        },
-        'nr': {
-            'value': 1,
-            'units': 'y',
-            'definition': 'Number of regions interconnected',
-        },
-        'time': {
-            'initial': 0.,
-            'func': lambda dt=0: 1.,
-            'definition': 'Time vector',
-            'com': 'dt/dt=1, time as ODE',
-            'units': 'y',
-            'eqtype': 'differential',
-        },
-        '__ONE__': {
-            'size': [''],
-            'value': 1,
-            'definition': 'value by default for monosectorial field',
-            'eqtype': 'size',
-        },
-    },
-
-
-    'Ressources': {
-        'K_R': {
-            'value': 1.,
-            'definition': 'Kapital for ressource extraction',
-            'units': 'Units',
-        },
-        'D_R': {
-            'value': 1.,
-            'definition': 'Debt of ressource sector',
-            'units': '$',
-        },
-        'p_R': {
-            'value': 1.,
-            'definition': 'price of ressources',
-            'units': '$.Units^{-1}',
-        },
-        'kappa_R': {
-            'value': 1.,
-            'definition': 'Investment func for ressource sector',
-            'units': '',
-        },
-        'pi_R': {
-            'value': 1.,
-            'definition': 'relative profit of ressource sector',
-            'units': '',
-        },
-        'Pi_R': {
-            'value': 1.,
-            'definition': 'Absolute profit for ressource sector',
-            'units': '$.Units^{-1}',
-        },
-        'R': {
-            'value': 1.,
-            'definition': 'Available ressources',
-            'units': 'Units',
-        },
-        'Y_R': {
-            'value': 1.,
-            'definition': 'Flux of extracted ressources',
-            'units': 'Units.y^{-1}',
-        },
-        'I_R': {
-            'value': 1.,
-            'definition': 'Investment (real) for ressources',
-            'units': 'Units.y^{-1}',
-        },
-        'Kstar': {
-            'value': 1.,
-            'definition': "Equivalent capital for services",
-            'units': 'Units',
-        },
-        'd_R': {
-            'value': 1.,
-            'definition': 'debt ratio ressources',
-            'units': 'y',
-        },
-        'inflation_R': {
-            'value': 1.,
-            'definition': 'inflation for ressources',
-            'units': 'y^{-1}',
-        },
+        # END OF DANGER ZONE #######################################
     },
 
     'Household': {
         # VARIABLES
         'N': {
             'value': 1.,
-            'definition': 'Population',
+            'definition': 'Population of people able to work',
             'units': 'Humans',
         },
         'L': {
@@ -177,9 +116,9 @@ _LIBRARY = {
             'definition': 'Individual purchasing power',
             'units': 'Units.y^{-1}.Humans^{-1}',
             'symbol': r'$\Omega$', },
-        'lambda': {
+        'employment': {
             'value': .97,
-            'definition': 'employement rate',
+            'definition': 'employment rate',
             'units': '',
             'symbol': r'$\lambda$',
         },
@@ -246,6 +185,8 @@ _LIBRARY = {
             'definition': 'part of capital in prod intensity',
             'units': '',
         },
+
+        ### CES PROPERTIES
         'CESexp': {
             'value': 100,
             'definition': 'exponent in CES function',
@@ -279,6 +220,8 @@ _LIBRARY = {
             'units': '',
             'eqtype': 'param',
         },
+        #############
+
         # VARIABLES
         'K': {
             'value': 2.7,
@@ -469,7 +412,6 @@ _LIBRARY = {
             'definition': 'Shareholding dividends',
             'units': '$.y^{-1}',
         },
-
         # Dividend fit from copingwithcollapse
         'divlinSlope': {
             'value': 0.473,
@@ -965,6 +907,73 @@ _LIBRARY = {
     },
 
 }
+
+# ############## UNUSED DEPRECIATED ############################
+"""
+    'Ressources': {
+        'K_R': {
+            'value': 1.,
+            'definition': 'Kapital for ressource extraction',
+            'units': 'Units',
+        },
+        'D_R': {
+            'value': 1.,
+            'definition': 'Debt of ressource sector',
+            'units': '$',
+        },
+        'p_R': {
+            'value': 1.,
+            'definition': 'price of ressources',
+            'units': '$.Units^{-1}',
+        },
+        'kappa_R': {
+            'value': 1.,
+            'definition': 'Investment func for ressource sector',
+            'units': '',
+        },
+        'pi_R': {
+            'value': 1.,
+            'definition': 'relative profit of ressource sector',
+            'units': '',
+        },
+        'Pi_R': {
+            'value': 1.,
+            'definition': 'Absolute profit for ressource sector',
+            'units': '$.Units^{-1}',
+        },
+        'R': {
+            'value': 1.,
+            'definition': 'Available ressources',
+            'units': 'Units',
+        },
+        'Y_R': {
+            'value': 1.,
+            'definition': 'Flux of extracted ressources',
+            'units': 'Units.y^{-1}',
+        },
+        'I_R': {
+            'value': 1.,
+            'definition': 'Investment (real) for ressources',
+            'units': 'Units.y^{-1}',
+        },
+        'Kstar': {
+            'value': 1.,
+            'definition': "Equivalent capital for services",
+            'units': 'Units',
+        },
+        'd_R': {
+            'value': 1.,
+            'definition': 'debt ratio ressources',
+            'units': 'y',
+        },
+        'inflation_R': {
+            'value': 1.,
+            'definition': 'inflation for ressources',
+            'units': 'y^{-1}',
+        },
+    },
+"""
+
 
 # #############################################################################
 # #############################################################################

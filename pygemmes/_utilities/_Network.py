@@ -14,10 +14,12 @@ def find_auxiliary(hub):
     R = hub.get_dparam()
     kargs = {k: [j.replace('itself', k)
                  for j in R[k]['kargs']
-                 if j not in hub.dmisc['parameters']]
+                 if j not in hub.dmisc['dfunc_order']['parameters']]
              for k in R.keys() if
              ('kargs' in R[k].keys()
-              and k not in hub.dmisc['dfunc_order']['param'])}
+              and k not in hub.dmisc['dfunc_order']['parameter'])}
+
+
 
     # SEE WHAT VARIABLE IMPACT WHAT
     impact = {k: [] for k in kargs.keys()}
@@ -35,7 +37,6 @@ def filter_kargs(hub, filters):
     remove
     '''
     kargs, impact = find_auxiliary(hub)
-
     # Reverse filters if it is a list
     if type(filters) is not tuple:
         filters=tuple(set([k for k in kargs.keys()])-set(filters))
@@ -91,12 +92,13 @@ def Network_pyvis(hub,
     kargs,filters = filter_kargs(hub, filters)
 
 
-    ODENodes = deepcopy(hub.dfunc_order['ode'])
+    ODENodes = deepcopy(hub.dfunc_order['differential'])
     ODENodes.remove('time')
 
     StatevarNodes = deepcopy(hub.dfunc_order['statevar'])
-    Parameters = deepcopy(hub.dmisc['parameters'])+deepcopy(hub.dmisc['dfunc_order']['param'])
+    Parameters = deepcopy(hub.dmisc['dfunc_order']['parameters'])+deepcopy(hub.dmisc['dfunc_order']['parameter'])
     Parameters.remove('nt')
+
 
     # REMOVE ALL UNNECESSARY ELEMENTS
     if not auxilliary:
@@ -121,29 +123,31 @@ def Network_pyvis(hub,
         R[k]['kargs']=kargs[k]
 
 
+
     net = Network(directed=True, height=screensize, width=screensize,
                   heading=hub.dmodel['name']+f' Logical network, hidden:{filters}')
 
-    for key in ODENodes:
-        v = R[key]
-        Title = f"""
-Units        :{v['units']}<br>
-Equation     :+d{key}/dt={v['source_exp'].replace('itself', key).replace('lamb','lambda')}<br>
-definition   :' + v['definition']+'<br>
-Comment      :' + v['com']+'<br>
-Dependencies :'+'<br>
-"""
-        for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
-            v1 = hub.dparam[key2]
-            Title += '    '+key2 + (8-len(key2))*' ' + \
-                v1['units']+(8-len(v1['units']))*' '+v1['definition']+'<br>'
 
-        net.add_node(key,
-                     label=key,  # R[key]['symbol'],
+    if plot_params:
+        for key in Parameters:
+            v = R[key]
+            Title = ''
+            Title += 'Units        :' + v['units']+'<br>'
+            Title += 'definition   :' + v['definition']+'<br>'
+            net.add_node(key,
+                         label=key,  # R[key]['symbol'],
+                         color=['#3da831'],
+                         title=Title.replace(' ', '&nbsp;'),
+                         group='Parameters',
+                         level=2,
+                         shape='ellipse')
+    else :
+        net.add_node('',
+                     label='',
                      color=['#3da831'],
-                     title=Title.replace(' ', '&nbsp;'),
-                     group='ODE',
-                     level=1,
+                     title='',
+                     group='Parameters',
+                     level=2,
                      shape='ellipse')
 
     for key in StatevarNodes:
@@ -159,7 +163,7 @@ Dependencies :'+'<br>
         for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
             v1 = hub.dparam[key2]
             Title += '    '+key2 + (8-len(key2))*' ' + \
-                v1['units']+(8-len(v1['units']))*' '+v1['definition']+'<br>'
+                v1['units']+(10-len(v1['units']))*' '+v1['definition']+'<br>'
 
         net.add_node(key,
                      label=key,  # R[key]['symbol'],
@@ -169,19 +173,28 @@ Dependencies :'+'<br>
                      level=2,
                      shape='ellipse')
 
-    if plot_params:
-        for key in Parameters:
-            v = R[key]
-            Title = ''
-            Title += 'Units        :' + v['units']+'<br>'
-            Title += 'definition   :' + v['definition']+'<br>'
-            net.add_node(key,
-                         label=key,  # R[key]['symbol'],
-                         color=['#1dc831'],
-                         title=Title.replace(' ', '&nbsp;'),
-                         group='Parameters',
-                         level=2,
-                         shape='ellipse')
+    for key in ODENodes:
+        v = R[key]
+        Title = f"""
+Units        :{v['units']}<br>
+Equation     :d{key}/dt={v['source_exp'].replace('itself', key).replace('lamb','lambda')}<br>
+definition   :{v['definition']}<br>
+Comment      :{v['com']}<br>
+Dependencies :<br>
+"""
+        for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
+            v1 = hub.dparam[key2]
+            Title += '    '+key2 + (8-len(key2))*' ' + \
+                v1['units']+(10-len(v1['units']))*' '+v1['definition']+'<br>'
+
+        net.add_node(key,
+                     label=key,  # R[key]['symbol'],
+                     color=['#1dc831'],
+                     title=Title.replace(' ', '&nbsp;'),
+                     group='ODE',
+                     level=2,
+                     shape='ellipse')
+
 
     listconnect = ODENodes+StatevarNodes
 
@@ -194,7 +207,7 @@ Dependencies :'+'<br>
         if 'itself' in v['kargs']:
             net.add_edge(k, k)
         if plot_params:
-            for typ in [None,'param']:
+            for typ in [None,'parameter']:
                 for k2 in v['args'][typ]:
                     if k2 not in filters:
                         net.add_edge(k2,k)

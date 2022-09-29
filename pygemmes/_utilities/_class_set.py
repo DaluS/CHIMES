@@ -43,6 +43,7 @@ def load_model(model=None, verb=None, from_user=None):
         - the absolute path to an abitrary model file
     """
 
+
     # LOAD THE FILE AND THE LIBRARY ###########################################
     _class_check_2.model_name(model, from_user, verb=verb)
     dmodel = load_dmodel(model, from_user=None)
@@ -100,15 +101,18 @@ def load_dmodel(model, from_user=False):
     spec.loader.exec_module(foo)
 
     # %% c) write it as a dict
-    dmodel = {
-        'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
-        'file': foo.__file__,
-        'description': foo.__doc__,
-        'presets': {k0: dict(v0) for k0, v0 in foo._PRESETS.items()},
-        # Name of the chosen preset
-        'preset': None,
-        'name': model,
-    }
+    try :
+        dmodel = {
+            'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
+            'file': foo.__file__,
+            'description': foo.__doc__,
+            'presets': {k0: dict(v0) for k0, v0 in foo._PRESETS.items()},
+            # Name of the chosen preset
+            'preset': None,
+            'name': model,
+        }
+    except BaseException:
+        raise Exception("File cannot be read, you might have a commma ',' at the end of your dictionnaries")
 
     # %% d) convert 'ode' into 'differential'
     if ('differential' in dmodel['logics'].keys() and 'ode' in dmodel['logics'].keys()):
@@ -167,6 +171,8 @@ def load_complete_DFIELDS(dmodel, verb=False):
     # %% c) add them
     for k0, v0 in dkout.items():
         for k1 in v0:
+            #print(k0,v0,k1)
+            #print(dmodel['logics'][k0])
             DFIELDS[k1] = dict(dmodel['logics'][k0][k1])
             # _models._DFIELDS[k1]['eqtype'] = k0
             # _models._DFIELDS[k1]['args'] = {key:[] for key in _LEQTYPES }
@@ -194,8 +200,6 @@ def logics_into_dparam(dmodel):
     lk = [dict.fromkeys(v0.keys(), k0) for k0, v0 in dmodel['logics'].items()]
     for ii, dd in enumerate(lk[1:]):
         lk[0].update(dd)
-
-    print(lk)
 
     dparam = {
         k0: dict(dmodel['logics'][v0][k0]) for k0, v0 in lk[0].items()
@@ -327,6 +331,7 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None, dfields=None):
         else:
             kargs = inspect.getfullargspec(dfields[key]['func']).args
 
+
         # check if any parameter is unknown
         for kk in kargs:
             key = 'lambda' if kk == 'lamb' else kk
@@ -355,6 +360,7 @@ def set_args_auxilliary(dparam, verb=False):
         v0 = dparam[k0]
         kargs = inspect.getfullargspec(v0['func']).args
         dparam[k0]['kargs'] = kargs
+
     for k0 in lfunc:
         kargs = [kk for kk in dparam[k0]['kargs'] if kk != 'itself']
         dparam[k0]['args'] = {
@@ -400,7 +406,9 @@ def set_args_auxilliary(dparam, verb=False):
         # store keyword args and cleaned-up expression separately
         kargs = [kk.strip() for kk in kargs.strip().split(',')]
         kargs = ', '.join(kargs)
+        #
         # dparam[k0]['source_kargs'] = kargs
+
 
     # %% c) find auxilliary
     keep = True
@@ -426,17 +434,20 @@ def set_args_auxilliary(dparam, verb=False):
         if len(News) == 0:
             keep = False
 
+
+
+    # ITS UGLY BUT IT HELPS
+    dparam['time']['eqtype']='differential'
+
     # print
     if verb:
         print("The following variables are identified as auxilliary :")
         print(
-            f"\t - differential : {[k for k in lfunc if (not dparam[k]['isneeded'] and dparam[k]['eqtype']=='differential')]}")
+            f"\t - differential : {[k for k in lfunc if (not dparam[k].get('isneeded',False) and dparam[k]['eqtype']=='differential')]}")
         print(
-            f"\t - statevar : {[k for k in lfunc if (not dparam[k]['isneeded'] and dparam[k]['eqtype']!='differential')]}")
+            f"\t - state variable : {[k for k in lfunc if (not dparam[k].get('isneeded',False) and dparam[k]['eqtype']=='statevar')]}")
+
     return dparam
-
-# %% 7) FIND FUNC ORDER
-
 
 def set_func_order(dparam, verb=False):
     '''
@@ -510,12 +521,16 @@ def get_dargs_by_reference(dparam, dfunc_order):
     Big dictionnary of pointers
     '''
     # %% a) create the dictionnary of pointers
+    for k0 in dfunc_order['statevar'] + dfunc_order['differential']:
+        print(k0,dparam[k0]['args'].keys())
+
     dargs = {
         k0: {
             k1: dparam[k1]['value']
             for k1 in (
                 dparam[k0]['args']['differential']
                 + dparam[k0]['args']['statevar']
+                + dparam[k0]['args'][None]
             )
             if k1 != 'lambda'
         }
@@ -559,6 +574,8 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
     for k0 in lfunc:
         dparam[k0]['func'] = copy_func(dparam[k0]['func'])
 
+
+
     # --------------------------------
     # set default values of parameters to their real values
     # this way we don't have to feed the parameters value inside the loop
@@ -573,8 +590,8 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
                             dparam['nr']['value'],  # Regions
                             ])
 
-        if dparam[k0].get('multi',_DEFAULTSIZE) not in [ _DEFAULTSIZE,[_DEFAULTSIZE]]:
-            sizelist = dparam[k0]['multi']
+        if dparam[k0].get('size',_DEFAULTSIZE) not in [ _DEFAULTSIZE,[_DEFAULTSIZE]]:
+            sizelist = dparam[k0]['size']
             #print(k0,sizelist,sizelist[0],dparam[sizelist[0]])
             if len(sizelist)==1 :
                 sizes = dparam[sizelist[0]]['value']
@@ -586,6 +603,7 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
                                 dparam['nr']['value'],  # Regions
                                 sizes
                                 ])
+
         if dparam[k0]['eqtype'] not in ['parameter']:
             dparam[k0]['value'] = np.full(shape, np.nan)
 
@@ -594,13 +612,13 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
                             dparam['nr']['value'],  # Regions
                             ])
 
-        if dparam[k0].get('multi',_DEFAULTSIZE) not in [ _DEFAULTSIZE,[_DEFAULTSIZE]]:
-            sizelist = dparam[k0]['multi']
+        if dparam[k0].get('size',_DEFAULTSIZE) not in [ _DEFAULTSIZE,[_DEFAULTSIZE]]:
+            sizelist = dparam[k0]['size']
             #print(k0,sizelist,sizelist[0],dparam[sizelist[0]])
             if len(sizelist)==1 :
                 sizes = dparam[sizelist[0]]['value']
             else:
-                print([f for f in sizelist])
+                #print([f for f in sizelist])
                 sizes = [ dparam[f]['value'] for f in sizelist]
 
             shape = tuple(np.r_[dparam['nx']['value'],  # Parrallel
@@ -608,6 +626,7 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
                                 sizes
                                 ])
             dparam[k0]['value'] = np.full(shape, dparam[k0]['value'])
+
     return dparam
 
 
@@ -632,12 +651,15 @@ def copy_func(func):
 def _update_func_default_kwdargs(lfunc=None, dparam=None):
     """ Here we update the default valuee of all functions """
 
+
+
     # For each function (ode and statevar)
     for k0 in lfunc:
         kargs = dparam[k0]['kargs']
         defaults = len(kargs)*[0]
 
         # update using fixed param (eqtype = None)
+
         for k1 in dparam[k0]['args'][None]:
             key = 'lambda' if k1 == 'lamb' else k1
             defaults[dparam[k0]['kargs'].index(k1)] = dparam[key]['value']
@@ -648,9 +670,12 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None):
             if len(ind) != 1:
                 msg = f"Inconsistency in (fixed) kargs for {k0}, {k1}"
                 raise Exception(msg)
-            kargs[ind[0]] = "{}={}".format(key, dparam[key]['value'])  # test
+
+            #kargs[ind[0]] = "{}={}".format(key, dparam[key]['value'])  # test
 
         # update using param
+
+
         for k1 in dparam[k0]['args']['parameter']:
             key = 'lamb' if k1 == 'lambda' else k1
             defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
@@ -658,7 +683,9 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None):
             if len(ind) != 1:
                 msg = f"Inconsistency in (func) kargs for {k0}, {k1}"
                 raise Exception(msg)
-            kargs[ind[0]] = "{}={}".format(key, dparam[k1]['value'])
+            #kargs[ind[0]] = "{}={}".format(key, dparam[k1]['value'])
+
+
 
         # update
         dparam[k0]['func'].__defaults__ = tuple(defaults)

@@ -26,22 +26,22 @@ class Funcs:
     class Phillips:
         """
 The Phillips function is linking the relative wage share increase rate to the
-employement.
+employment.
 The phenomena behind is a class struggle
         """
         # DEFINTIIONS OF phillips
         exp = {
-            'func': lambda lamb, phiexp0, phiexp1, phiexp2: phiexp0 + phiexp1 * np.exp(phiexp2 * lamb),
+            'func': lambda employment, phiexp0, phiexp1, phiexp2: phiexp0 + phiexp1 * np.exp(phiexp2 * employment),
             'com': 'Exponential param curve'
         }
 
         div = {
-            'func': lambda lamb, phi0, phi1: -phi0 + phi1 / (1 - lamb)**2,
+            'func': lambda employment, phi0, phi1: -phi0 + phi1 / (1 - employment)**2,
             'com': 'diverging (force omega \leq 1)'
         }
 
         lin = {
-            'func': lambda lamb, philinConst, philinSlope: philinConst + philinSlope * lamb,
+            'func': lambda employment, philinConst, philinSlope: philinConst + philinSlope * employment,
             'com': 'linear param curve'
         }
 
@@ -63,7 +63,7 @@ The phenomena behind is a class struggle
 
         # Relaxation on lambda
         lambdarelax = {
-            'func': lambda lamb0, lamb, taulamb: (lamb0-lamb)/taulamb,
+            'func': lambda lamb0, employment, taulamb: (lamb0-employment)/taulamb,
             'com': 'Percieved salary in negociation'
         }
 
@@ -161,11 +161,11 @@ Case in which the amount of workers is the optimal one for profit optimisation
             '''
             Yfnu = {
                 'func': lambda K, nu: K/nu,
-                'com': 'Assume full employement, nu formalism'
+                'com': 'Assume full employment, nu formalism'
             }
             Y = {
                 'func': lambda K, A, b: 2*b*A*K,
-                'com': 'Assume full employement'
+                'com': 'Assume full employment'
             }
             L = {
                 'func': lambda b, a, K, nu: K*b/((1-b)*(a*nu)),
@@ -202,7 +202,7 @@ $$l = \left( \omega_c^{-\frac{\eta}{(1+\eta)}} -1 \right)^{\frac{1}{\eta}}$$
             '''
             l = {
                 'func': lambda omegacarac, CESexp: (omegacarac**(-CESexp/(1+CESexp)) - 1)**(1/CESexp),
-                'com': 'impact of elasticity on real employement'}
+                'com': 'impact of elasticity on real employment'}
 
             Y = {
                 'func': lambda K, omegacarac, l, b, CESexp, A: K*((1 - omegacarac*l) / b)**(1./CESexp) * A,
@@ -305,7 +305,7 @@ the consequence of inflations processes : it is a social construct.
         '''
 Classic intermediary variables that might be needed
         '''
-        lamb = {
+        employment = {
             'func': lambda L, N: L / N,
             'com': 'its definition',
         }

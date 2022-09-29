@@ -1,19 +1,14 @@
 # -*- coding: utf-8 -*-
 """
 DESCRIPTION :
-
-    This is a Goodwin model written with `Functions` library.
     It is a two-sector model ( Household and Firm ), with salary negociation.
-    There is no "money" explicitely (money and real units are equivalent), and there is no debt mechanism possible.
-    There is no consumption behavior : it is a Say's law behind
+    There is no "money" explicitely (money and real units are equivalent), and there is no debt mechanism possible :
+every sector is spending what they recieve
 
     The interesting things :
         * growth is an emergent propertie
         * Economic cycles (on employement and wage share) are an emergent propertie
-        * The cycles are metastable : trajectories are closed
-
-    It is the basis of many different models !
-
+        * trajectories are closed in the phasespace (lambda, omega) employement - wageshare
 
 LINKTOARTICLE:
 
@@ -32,7 +27,7 @@ from pygemmes._models import Funcs
 
 
 _LOGICS = {
-    'ode': {
+    'differential': {
         # Exogenous entries in the model
         'a': Funcs.Productivity.exogenous,
         'N': Funcs.Population.exp,
@@ -42,7 +37,7 @@ _LOGICS = {
 
         # Price Dynamics
         'w': {
-            'func': lambda phillips, w: w * phillips,
+            'func': lambda phillips, w,pi : w * phillips*pi,
             'com': 'Phillips impact (no negociation)'
         }
     },
@@ -60,7 +55,7 @@ _LOGICS = {
         'Ir': Funcs.Kappa.irfromI,
         # Intermediary variables with their definitions
         'pi': Funcs.Definitions.pi,
-        'lambda': Funcs.Definitions.lamb,
+        'employment': Funcs.Definitions.employment,
         'omega': Funcs.Definitions.omega,
         'GDP': Funcs.Definitions.GDPmonosec,
 
@@ -76,7 +71,11 @@ _LOGICS = {
             'func': lambda I, K, delta: (I - K * delta)/K,
             'com': 'relative growth rate'},
     },
-    'param': {
+    'parameter': {
+        'test': {
+            'value': 2,
+            'definition': 'I am a test'
+        },
     },
 }
 
@@ -141,7 +140,7 @@ _PRESETS = {
         },
         'com': (
             'Shows many trajectories'),
-        's': {
+        'plots': {
             'timetrace': [{'keys': ['lambda', 'omega']}],
             'nyaxis': [],
             'phasespace': [{'x': 'lambda',

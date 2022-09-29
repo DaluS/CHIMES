@@ -21,11 +21,15 @@ __all__ = [
     'get_available_output',
     'generate_preset_from_model_preset',
     'generate_dic_distribution'
+    # lot_one_run_all_solvers
+    # comparesolver_Lorenz
+    # testConvergence_DampOsc
 ]
 
 
 
 def get_available_plots():
+    # Check 09/27/22
     '''
     Print all the plots routines with their docstring and dependencies
     '''
@@ -37,14 +41,15 @@ def get_available_plots():
         print(i[1].__doc__)
 
 
-def get_available_fields(returnas=False,showModels=False):
+def get_available_fields(returnas=False,exploreModels=False,showModels=False):
+    # Check 09/27/22
     '''
     Will load the library of fields, then all available models,
     and will print the ensemble of fields with their properties and the models they are in.
 
-    returnas can be used on "list,dict"
-
-    showModels will show you the list of models that use this field
+    * returnas can be used on "list,dict"
+    * Exploremodels will read all models to check the variables defined inside
+    * showModels will show you the list of models that use this field
 
     if a field has no group, then it is only defined in model files
     '''
@@ -53,18 +58,20 @@ def get_available_fields(returnas=False,showModels=False):
         dparam_sub[key]['inmodel'] = []
     models = get_available_models(returnas=list)
 
+
     fieldsnotinDfields = []
-    for model in models:
-        print(model)
-        hub = Hub(model, verb=False)
-        params = hub.get_dparam(returnas=dict)
-        for key in params.keys():
-            if key in dparam_sub:
-                if 'inmodel' not in dparam_sub[key].keys():
-                    dparam_sub[key]['inmodel'] = []
-                dparam_sub[key]['inmodel'].append(model)
-            else:
-                fieldsnotinDfields.append([key+(20-len(key)*' '), model])
+    if exploreModels:
+        for model in models:
+            print(model)
+            hub = Hub(model, verb=False)
+            params = hub.get_dparam(returnas=dict)
+            for key in params.keys():
+                if key in dparam_sub:
+                    if 'inmodel' not in dparam_sub[key].keys():
+                        dparam_sub[key]['inmodel'] = []
+                    dparam_sub[key]['inmodel'].append(model)
+                else:
+                    fieldsnotinDfields.append([key+(20-len(key)*' '), model])
 
     print(f'{len(dparam_sub)} fields in the library \n')
 
@@ -169,175 +176,6 @@ def generate_preset_from_model_preset(targetmodel,
         return _DPRESETS
 
 
-def plot_one_run_all_solvers(_MODEL, preset=False, _DPRESET=False):
-    '''
-    Will compare up to seven solver that exist in pygemmes, using the model and preset you provide
-    * if no preset, nor dictionary of preset the system takes default values
-    * if preset and not dictionary preset, preset must be the name of one of the model preset
-    * if preset and _dpreset, the system will load the preset in _dpreset
-
-    Parameters
-    ----------
-    _MODEL : TYPE
-        Name of the model for test
-    preset : TYPE, optional
-        Name of the preset. if none default value
-    _DPRESET : TYPE, optional
-        preset dictionary. if none/false, presets from the model
-
-    Returns
-    -------
-    Print of all solvers super-imposed
-    '''
-
-    colors = ['y', 'k', 'm', 'r', 'g', 'b', 'c']
-    dsolvers = get_available_solvers(returnas=dict, verb=False,)
-
-    # key is solver name, value is hub
-    dhub = {}
-    for ii, solver in enumerate(dsolvers):
-        print('Solver :', solver)
-
-        # LOADING OF THE MODEL WITH THE CORRESPONDING PRESET
-        # IF PRESET AND PRESET FILE GIVEN
-        if preset and _DPRESET:
-            dhub[solver] = Hub(_MODEL, preset=preset,
-                               dpresets=_DPRESET, verb=False)
-
-        # ELIF PRESET NAME GIVEN
-        elif preset:
-            dhub[solver] = Hub(_MODEL, preset=preset, verb=False)
-
-        # ELSE USE OF BASIC VALUES
-        else:
-            dhub[solver] = Hub(_MODEL, verb=False)
-
-        # RUN
-        dhub[solver].run(verb=1.1, solver=solver)
-
-        # PRINT
-        # If first solver, creation of dax
-        if ii == 0:
-            dax = dhub[solver].plot(
-                label=solver, color=colors[ii],
-                wintit='Solver comparison on model'+_MODEL,
-                tit='Solver comparison on model'+_MODEL)
-        # Else use of dax
-        else:
-            dax = dhub[solver].plot(label=solver,
-                                    color=colors[ii], dax=dax)
-
-
-def comparesolver_Lorenz(dt=0.01, Npoints=False):
-    '''
-    for a given timestep (default dt=0.01), compute a Lorenz attractor with
-    each solver to compare them
-    '''
-    Coor = {}
-    _MODEL = 'LorenzSystem'
-    dmodels = get_available_models(returnas=dict, details=False, verb=False,)
-    for solver in get_available_solvers(returnas=dict, verb=False,).keys():
-        for preset in dmodels[_MODEL]['presets']:
-            hub = Hub(_MODEL, preset=preset, verb=False)
-            hub.set_dparam(key='dt', value=dt, verb=False)
-            hub.run(verb=0, solver=solver)
-            if Npoints:
-                hub.reinterpolate_dparam(Npoints)
-            R = hub.get_dparam(returnas=dict)
-            Coor[solver] = {'x': R['x']['value'],
-                            'y': R['y']['value'],
-                            'z': R['z']['value'], }
-
-    fig = plt.figure('', figsize=(10, 10))
-    ax = plt.axes(projection='3d')
-    for solver in get_available_solvers(returnas=dict, verb=False,).keys():
-        ax.plot(Coor[solver]['x'][:, 0],
-                Coor[solver]['y'][:, 0],
-                Coor[solver]['z'][:, 0], label=solver, lw=0.5)
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
-    plt.tight_layout()
-    plt.legend()
-    plt.show()
-
-
-def testConvergence_DampOsc(vecdt, solver, returnas='plot', getsummary=True):
-    '''
-    This test compute for multiple timestep the difference between the
-    computed solution and the theoretical one on a damped oscillator.
-    The output is either a plot (mean error in function of timestep) or
-    a dictionnary associating each values
-    '''
-
-    import numpy as np
-    Error = {}
-
-    for dt in vecdt:
-        print("dt:", dt)
-        _DPRESETS = {'Convergence test':
-                     {'fields': {'Tmax': 20,
-                                 'dt': dt,
-                                 'gamma': 1,
-                                 'Omega': 10,
-                                 'Final': 0,
-                                 'theta': 00,
-                                 'thetap': 1,
-                                 },
-                      },
-                     }
-        # Load and preset
-        hub = Hub('DampOscillator', preset='Convergence test',
-                  dpresets=_DPRESETS, verb=False)
-        hub.run(verb=0, solver=solver)
-
-        # Get the informations right
-        R = hub.get_dparam(returnas=dict)
-        gamma = R['gamma']['value']
-        Omega = R['Omega']['value']
-        Final = R['Final']['value']
-        theta0 = R['theta']['value'][0]
-        thetap0 = R['thetap']['value'][0]
-        t = R['time']['value']
-        thetanum = R['theta']['value']
-
-        # Comparing strategies
-        thetaTheo = (1/Omega)*np.real(thetap0*np.exp(-gamma*(t)) *
-                                      np.sin(np.sqrt(Omega**2-gamma**2)*(t)))
-        Error[dt] = np.mean(np.sqrt((thetanum-thetaTheo)**2))
-
-    ################################
-    if getsummary:
-        hub.get_summary()
-
-    dtlist = Error.keys()
-    errorlist = [Error[k] for k in Error.keys()]
-
-    Z = sorted(zip(dtlist, errorlist))
-
-    dtlist = [x for x, y in Z]
-    errorlist = [y for x, y in Z]
-
-    if returnas == 'plot':
-        plt.figure('Convergence')
-        plt.subplot(211)
-        plt.loglog(dtlist, errorlist, '-*')
-        plt.axis('scaled')
-        plt.ylabel('mean error')
-        plt.xlabel('dt')
-        plt.suptitle('Convergence test for'+solver)
-        plt.subplot(212)
-        ax2 = plt.gca()
-        ax22 = plt.twinx(ax2)
-        plt.plot(t, thetaTheo, label='Theory')
-        plt.plot(t, thetanum, label='Numerical')
-        ax22.plot(t, (thetanum-thetaTheo), ls='--', c='r')
-        plt.legend()
-        plt.show()
-    else:
-        return Error
-
-
 def _GenerateIndividualSensitivity(key, mu, sigma, disttype='normal', dictpreset={}, N=10):
     '''
     Generate a preset taking random values in one distribution.
@@ -418,3 +256,173 @@ def generate_dic_distribution(InputDic, dictpreset={}, N=10, grid=False):
         for key, val in dictpreset.items():
             dictpreset[key] = {'value': val, 'grid': True}
     return dictpreset
+
+
+################ DEPRECIATED
+
+def plot_one_run_all_solvers(_MODEL, preset=False, _DPRESET=False):
+    '''
+    Will compare up to seven solver that exist in pygemmes, using the model and preset you provide
+    * if no preset, nor dictionary of preset the system takes default values
+    * if preset and not dictionary preset, preset must be the name of one of the model preset
+    * if preset and _dpreset, the system will load the preset in _dpreset
+
+    Parameters
+    ----------
+    _MODEL : TYPE
+        Name of the model for test
+    preset : TYPE, optional
+        Name of the preset. if none default value
+    _DPRESET : TYPE, optional
+        preset dictionary. if none/false, presets from the model
+
+    Returns
+    -------
+    Print of all solvers super-imposed
+    '''
+
+    colors = ['y', 'k', 'm', 'r', 'g', 'b', 'c']
+    dsolvers = get_available_solvers(returnas=dict, verb=False,)
+
+    # key is solver name, value is hub
+    dhub = {}
+    for ii, solver in enumerate(dsolvers):
+        print('Solver :', solver)
+
+        # LOADING OF THE MODEL WITH THE CORRESPONDING PRESET
+        # IF PRESET AND PRESET FILE GIVEN
+        if preset and _DPRESET:
+            dhub[solver] = Hub(_MODEL, preset=preset,
+                               dpresets=_DPRESET, verb=False)
+
+        # ELIF PRESET NAME GIVEN
+        elif preset:
+            dhub[solver] = Hub(_MODEL, preset=preset, verb=False)
+
+        # ELSE USE OF BASIC VALUES
+        else:
+            dhub[solver] = Hub(_MODEL, verb=False)
+
+        # RUN
+        dhub[solver].run(verb=1.1, solver=solver)
+
+        # PRINT
+        # If first solver, creation of dax
+        if ii == 0:
+            dax = dhub[solver].plot(
+                label=solver, color=colors[ii],
+                wintit='Solver comparison on model'+_MODEL,
+                tit='Solver comparison on model'+_MODEL)
+        # Else use of dax
+        else:
+            dax = dhub[solver].plot(label=solver,
+                                    color=colors[ii], dax=dax)
+
+def comparesolver_Lorenz(dt=0.01, Npoints=False):
+    '''
+    for a given timestep (default dt=0.01), compute a Lorenz attractor with
+    each solver to compare them
+    '''
+    Coor = {}
+    _MODEL = 'LorenzSystem'
+    dmodels = get_available_models(returnas=dict, details=False, verb=False,)
+    for solver in get_available_solvers(returnas=dict, verb=False,).keys():
+        for preset in dmodels[_MODEL]['presets']:
+            hub = Hub(_MODEL, preset=preset, verb=False)
+            hub.set_dparam(key='dt', value=dt, verb=False)
+            hub.run(verb=0, solver=solver)
+            if Npoints:
+                hub.reinterpolate_dparam(Npoints)
+            R = hub.get_dparam(returnas=dict)
+            Coor[solver] = {'x': R['x']['value'],
+                            'y': R['y']['value'],
+                            'z': R['z']['value'], }
+
+    fig = plt.figure('', figsize=(10, 10))
+    ax = plt.axes(projection='3d')
+    for solver in get_available_solvers(returnas=dict, verb=False,).keys():
+        ax.plot(Coor[solver]['x'][:, 0],
+                Coor[solver]['y'][:, 0],
+                Coor[solver]['z'][:, 0], label=solver, lw=0.5)
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    plt.tight_layout()
+    plt.legend()
+    plt.show()
+
+def testConvergence_DampOsc(vecdt, solver, returnas='plot', getsummary=True):
+    '''
+    This test compute for multiple timestep the difference between the
+    computed solution and the theoretical one on a damped oscillator.
+    The output is either a plot (mean error in function of timestep) or
+    a dictionnary associating each values
+    '''
+
+    import numpy as np
+    Error = {}
+
+    for dt in vecdt:
+        print("dt:", dt)
+        _DPRESETS = {'Convergence test':
+                     {'fields': {'Tmax': 20,
+                                 'dt': dt,
+                                 'gamma': 1,
+                                 'Omega': 10,
+                                 'Final': 0,
+                                 'theta': 00,
+                                 'thetap': 1,
+                                 },
+                      },
+                     }
+        # Load and preset
+        hub = Hub('DampOscillator', preset='Convergence test',
+                  dpresets=_DPRESETS, verb=False)
+        hub.run(verb=0, solver=solver)
+
+        # Get the informations right
+        R = hub.get_dparam(returnas=dict)
+        gamma = R['gamma']['value']
+        Omega = R['Omega']['value']
+        Final = R['Final']['value']
+        theta0 = R['theta']['value'][0]
+        thetap0 = R['thetap']['value'][0]
+        t = R['time']['value']
+        thetanum = R['theta']['value']
+
+        # Comparing strategies
+        thetaTheo = (1/Omega)*np.real(thetap0*np.exp(-gamma*(t)) *
+                                      np.sin(np.sqrt(Omega**2-gamma**2)*(t)))
+        Error[dt] = np.mean(np.sqrt((thetanum-thetaTheo)**2))
+
+    ################################
+    if getsummary:
+        hub.get_summary()
+
+    dtlist = Error.keys()
+    errorlist = [Error[k] for k in Error.keys()]
+
+    Z = sorted(zip(dtlist, errorlist))
+
+    dtlist = [x for x, y in Z]
+    errorlist = [y for x, y in Z]
+
+    if returnas == 'plot':
+        plt.figure('Convergence')
+        plt.subplot(211)
+        plt.loglog(dtlist, errorlist, '-*')
+        plt.axis('scaled')
+        plt.ylabel('mean error')
+        plt.xlabel('dt')
+        plt.suptitle('Convergence test for'+solver)
+        plt.subplot(212)
+        ax2 = plt.gca()
+        ax22 = plt.twinx(ax2)
+        plt.plot(t, thetaTheo, label='Theory')
+        plt.plot(t, thetanum, label='Numerical')
+        ax22.plot(t, (thetanum-thetaTheo), ls='--', c='r')
+        plt.legend()
+        plt.show()
+    else:
+        return Error
+

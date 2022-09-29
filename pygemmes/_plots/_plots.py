@@ -231,7 +231,7 @@ def plotbyunits(hub, title='', lw=1, idx=0,Region=0, color='k'):
     groupsoffields = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['ode', 'statevar'])
     Nax = len(groupsoffields)
 
-    print(groupsoffields)
+    #print(groupsoffields)
 
     Ncol = 2
     Nlin = Nax // Ncol + Nax % Ncol
@@ -292,7 +292,7 @@ def plotbyunits(hub, title='', lw=1, idx=0,Region=0, color='k'):
     plt.show()
 
 
-def plotnyaxis(hub, x='time', y=[[]], idx=0, title='', lw=2):
+def plotnyaxis(hub, x='time', y=[[]], idx=0,Region=0, title='', lw=2):
     '''
     x must be a variable name (x axis organisation)
     y must be a list of list of variables names (each list is a shared axis)
@@ -317,7 +317,7 @@ def plotnyaxis(hub, x='time', y=[[]], idx=0, title='', lw=2):
     p = {}  # dictionnary of curves
 
     # Prepare x axis
-    vx = R[x]['value'][:, idx]
+    vx = R[x]['value'][:, idx,Region]
     units = r'$(  '+R[x]['units']+'  )$'
     ax.set_xlabel(R[x]['symbol']+units)
     ax.set_xlim(vx[0], vx[-1])
@@ -332,7 +332,7 @@ def plotnyaxis(hub, x='time', y=[[]], idx=0, title='', lw=2):
     vy = {}
     for ii, vlist in enumerate(y):
         yy = y[ii]
-        vy[ii] = {yyy: R[yyy]['value'][:, idx] for yyy in yy}
+        vy[ii] = {yyy: R[yyy]['value'][:, idx,Region] for yyy in yy}
 
         # y axis
         ymin = np.amin([np.amin(v) for v in vy[ii].values()])
@@ -362,7 +362,7 @@ def plotnyaxis(hub, x='time', y=[[]], idx=0, title='', lw=2):
     plt.show()
 
 
-def phasespace(hub, x='omega', y='lambda', color='time', idx=0):
+def phasespace(hub, x='omega', y='lambda', color='time', idx=0,Region=0):
     '''
     Plot of the trajectory of the system in a 2dimensional phase-space
 
@@ -379,9 +379,9 @@ def phasespace(hub, x='omega', y='lambda', color='time', idx=0):
 
     '''
     allvars = hub.get_dparam(returnas=dict)
-    yval = allvars[y]['value'][:, idx]
-    xval = allvars[x]['value'][:, idx]
-    t = allvars[color]['value'][:, idx]
+    yval = allvars[y]['value'][:, idx,Region]
+    xval = allvars[x]['value'][:, idx,Region]
+    t = allvars[color]['value'][:, idx,Region]
 
     points = np.array([xval, yval]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
@@ -407,7 +407,7 @@ def phasespace(hub, x='omega', y='lambda', color='time', idx=0):
     plt.show()
 
 
-def plot3D(hub, x, y, z, cinf, cmap='jet', index=0, title=''):
+def plot3D(hub, x, y, z, cinf, cmap='jet', index=0,Region=0, title=''):
     '''
     Plot a 3D curve, with a fourth information on the colour of the curve
 
@@ -416,10 +416,10 @@ def plot3D(hub, x, y, z, cinf, cmap='jet', index=0, title=''):
     title is your graph title
     '''
     R = hub.get_dparam(key=[x, y, z, cinf], returnas=dict)
-    vx = R[x]['value'][:, index]
-    vy = R[y]['value'][:, index]
-    vz = R[z]['value'][:, index]
-    vc = R[cinf]['value'][:, index]
+    vx = R[x]['value'][:, index,Region]
+    vy = R[y]['value'][:, index,Region]
+    vz = R[z]['value'][:, index,Region]
+    vc = R[cinf]['value'][:, index,Region]
 
     points = np.array([vx, vy, vz]).T.reshape(-1, 1, 3)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
@@ -448,7 +448,7 @@ def plot3D(hub, x, y, z, cinf, cmap='jet', index=0, title=''):
     plt.show()
 
 
-def Var(hub, key, idx=0, cycles=False, log=False):
+def Var(hub, key, idx=0,Region=0, cycles=False, log=False):
     '''
     Parameters
     ----------
@@ -471,8 +471,8 @@ def Var(hub, key, idx=0, cycles=False, log=False):
 
     # PLOT OF THE BASE
     allvars = hub.get_dparam(returnas=dict)
-    y = allvars[key]['value'][:, idx]
-    t = allvars['time']['value'][idx]
+    y = allvars[key]['value'][:, idx,Region]
+    t = allvars['time']['value'][:,idx,Region]
 
     plt.plot(t, y, lw=2, ls='-', c='k')
 
@@ -516,7 +516,7 @@ def Var(hub, key, idx=0, cycles=False, log=False):
     plt.show()
 
 
-def cycles_characteristics(hub, xaxis='omega', yaxis='lambda', ref='lambda'):
+def cycles_characteristics(hub, xaxis='omega', yaxis='lambda', ref='lambda',idx=0,Region=0):
     '''
     Plot frequency and harmonicity for each cycle found in the system
     '''

@@ -153,7 +153,6 @@ def _check_solver(solver):
 
 
 def solve(
-    solver=None,
     dparam=None,
     dmulti=None,
     lode=None,
@@ -167,8 +166,6 @@ def solve(
 ):
 
     # -----------
-    # check input
-    solver = _check_solver(solver)
 
     # -----------
     # Define the function that takes/returns all functions

@@ -10,26 +10,31 @@ ALL THE BASIC FIELDS THAT ONE MIGHT NEED
 import numpy as np
 import os
 
+
+
+# ################# LOGS AND PRINTS IN THE SYSTEM ###################
+_VERB = True         # Print by default when actions are done
+__PRINTLOGO = False  # Print the logo
+__PRINTINTRO = False # Print tutorial text
+
+
 # ################## MODELS FILES LOCATION AND NAME ###########################
 # FLAG FOR MODEL LOCATION : False if in the library, true in documents
-_FROM_USER = False
-
-_VERB = True
-
-# NAME OF MODEL FILES
-_MODEL_NAME_CONVENTION = '_model_'
+_FROM_USER = False                 # Location of nodel files (NOT CHECKED)
+_MODEL_NAME_CONVENTION = '_model_' # The convention for pygemmes to know where models are
+_MODEL_FOLDER = '_models'          # Files in the local library
 
 # ADDRESSES
 _PATH_HERE = os.path.dirname(__file__)
 _PATH_USER_HOME = os.path.expanduser('~')
 _PATH_PRIVATE_MODELS = os.path.join(
-    _PATH_USER_HOME, '.pygemmes', '_models')
-_PATH_MODELS = os.path.join(_PATH_HERE, '_models')
+    _PATH_USER_HOME, '.pygemmes', _MODEL_FOLDER)
+_PATH_MODELS = os.path.join(_PATH_HERE, _MODEL_FOLDER)
 
 
 # ####################### SOLVER BY DEFAULT ###################################
 _SOLVER = 'eRK4-homemade'
-
+_OPTIMIZE_EINSUM = True
 
 # ################# MODELS FILE CONTENT #######################################
 # FROM CHECKS
@@ -62,21 +67,21 @@ _LEQTYPES = ['differential',  # all differentials
              'size'
              ]
 
-_DEFAULTSIZE = '__ONE__'
 # ######################### DPARAM CONTENT ####################################
 # POSSIBLE KEYS IN DPARAM
 _LEXTRAKEYS = [
-    'func',     # The function animating it
-    'kargs',    # List of all the dependencies
-    'args',     # dictionnary of all dependencies
-    'initial',  # initial value if differential
-    'source_exp',  # Explaining the expression
+    'func',      # The function animating it
+    'kargs',     # List of all the dependencies
+    'args',      # dictionnary of all dependencies
+    'initial',   # initial value if differential
+    'source_exp',# Explaining the expression
     'isneeded',  # Auxilliary or not
     'analysis',  # Contains all analysys (time derivative, cycles...)
     'size'       # Name of the dimension in the multisectoriality
 ]
 
 # ############################ DEF_FIELDS #####################################
+_DEFAULTSIZE = '__ONE__'
 __DEFAULTFIELDS = {
     'value': {
         'default': None,
@@ -84,7 +89,7 @@ __DEFAULTFIELDS = {
         'allowed': None,
     },
     'definition': {
-        'default': '',
+        'default': 'No definition',
         'type': str,
         'allowed': None,
     },
@@ -93,11 +98,6 @@ __DEFAULTFIELDS = {
         'type': str,
         'allowed': None,
     },
-    # 'dimension': {
-    #    'default': 'undefined',
-    #    'type': str,
-    #    'allowed': None,
-    # },
     'units': {
         'default': 'undefined',
         'type': str,

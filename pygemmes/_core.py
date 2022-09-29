@@ -58,22 +58,22 @@ class Hub():
         from_user=_FROM_USER,
         preset=None,
         dpresets=None,
-        verb=_VERB,
+        verb=None,
     ):
 
         # Initialize the hub main dictionnaries ###############################
         # Contains miscellaneous, practical informations
-        self.__dmisc = {'run': False,
-                        'dmulti': {},
-                        'cycles': False,
-                        'derivative': False,
+        self.__dmisc = {'run': False,        # Has a run been done
+                        'dmulti': {},        # Which variables has been imposed as multiple, and what size
+                        'cycles': False,     # Has an analysis of cycles been done
+                        'derivative': False, # Has an analysis of derivatives been done
                         }
 
         # Load model files ####################################################
         (
             self.__dmodel,  # Contains the model informations
             self.__dparam,  # Contains all the fields and their relative properties
-            self.__dmisc['dfunc_order'],
+            self.__dmisc['dfunc_order'], # Order of resolution
             self.__dargs,  # Pointer for each field and function values
         ) = _class_set.load_model(
             model,
@@ -83,7 +83,7 @@ class Hub():
 
         # Actualize the shape
         self.__dmisc['dmulti']['NxNr'] = (self.__dparam['nx']['value'],
-                                           self.__dparam['nr']['value'])
+                                          self.__dparam['nr']['value'])
         self.__dmisc['dmulti']['scalar']= []
         self.__dmisc['dmulti']['vector'] = []
         self.__dmisc['dmulti']['matrix'] = []
@@ -100,19 +100,19 @@ class Hub():
         else:
             self.dmisc['multisectoral'] = False
 
-
-
         # update from preset if relevant ######################################
         if preset is not None:
             self.set_preset(preset=preset, dpresets=dpresets, verb=verb)
         else:
             self.reset()
 
+
+
     # ##############################
     # %% Setting / getting parameters
     # ##############################
 
-    def set_preset(self, preset, dpresets=None, verb=False):
+    def set_preset(self, preset, dpresets=None, verb=_VERB):
         """
         Simpler version of set_dparam with just preset
         """
@@ -136,7 +136,7 @@ class Hub():
         dpresets=None,
         key=None,
         value=None,
-        verb=False,
+        verb=_VERB,
         **kwdargs,
     ):
         """ Set the dict of input parameters (dparam) or a single param
@@ -248,7 +248,7 @@ class Hub():
             # reset all variables (keep only the first time step)
         self.reset()
 
-    def get_dparam(self, condition=None, verb=None, returnas=dict, **kwdargs):
+    def get_dparam(self, condition=None, verb=_VERB, returnas=dict, **kwdargs):
         """ Return a copy of the input parameters dict that you can filter
 
         Return as:
@@ -404,14 +404,18 @@ class Hub():
             })
             self.__dparam[k0]['value'] = self.__dparam[k0]['func'](**dargs)
 
+
+
         # recompute inital value for statevar
         lstate = self.__dmisc['dfunc_order']['statevar']
+
+
         for k0 in lstate:
-            # prepare dict of args
             kwdargs = {
-                k1: v1[0, ...]
+                k1: v1[0, ...] if k1 in self.__dmisc['dfunc_order']['statevar'] + self.__dmisc['dfunc_order']['differential'] else v1
                 for k1, v1 in self.__dargs[k0].items()
             }
+
             # run function
             self.__dparam[k0]['value'][0, ...] = (
                 self.__dparam[k0]['func'](**kwdargs)
@@ -551,6 +555,7 @@ class Hub():
         col6, ar6 = _class_utility._get_summary_functions(
             self, idx=idx, eqtype=['statevar'], isneeded=False)
 
+
         # ----------
         # format output
         return _utils._get_summary(
@@ -619,12 +624,7 @@ class Hub():
 
     def run(
         self,
-        compute_auxiliary=None,
-        solver=None,
-        verb=None,
-        rtol=None,
-        atol=None,
-        max_time_step=None,
+        verb=1.1,
     ):
         """ Run the simulation, with any of the solver existing in :
             - pgm.get_available_solvers(returnas=list)
@@ -654,23 +654,21 @@ class Hub():
         # temporary dict of input
         lode = self.__dmisc['dfunc_order']['differential']
         lstate = self.__dmisc['dfunc_order']['statevar']
-        # laux = []
+
+        print('Core655, list of variables')
+        print('lode',lode)
+        print('lstate',lstate)
 
         # ------------
         # start time loop
-
         try:
             solver = _solvers.solve(
-                solver=solver,
                 dparam=self.__dparam,
                 dmulti=self.__dmisc['dmulti'],
                 lode=lode,
                 lstate=lstate,
                 dargs=self.__dargs,
                 nt=nt,
-                rtol=rtol,
-                atol=atol,
-                max_time_step=max_time_step,
                 dverb=dverb,
             )
             self.__dmisc['run'] = True
