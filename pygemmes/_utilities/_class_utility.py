@@ -407,9 +407,7 @@ def param_minmax2str(
 #           get_summary parts
 # #############################################################################
 
-
 def _get_summary_numerical(hub):
-
     # ----------------
     # get sub-dict of interest
 

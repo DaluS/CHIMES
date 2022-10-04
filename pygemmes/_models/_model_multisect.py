@@ -33,7 +33,7 @@ _LOGICS = {
     },
     'statevar': {
         'c': {
-            'func': lambda a, b: Matop(b,a),
+            'func': lambda a, b: np.matmul(b,a),
             'size': ['Nprod', ],
         },
     },
@@ -45,7 +45,8 @@ _LOGICS = {
     },
     'size': {
         'Nprod': {
-            'value': 4,
+            #'value': 4,
+            'list': ['energy','mine','capital','consumption'],
         },
     },
 }

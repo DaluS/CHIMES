@@ -78,6 +78,7 @@ _LIBRARY = {
             'definition': 'Time vector',
             'com': 'dt/dt=1, time as ODE',
             'units': 'y',
+            'eqtype': 'differential',
         },
         'nt': {
             'func': lambda Tmax=0, dt=1: int(Tmax / dt),

@@ -58,7 +58,7 @@ class Hub():
         from_user=_FROM_USER,
         preset=None,
         dpresets=None,
-        verb=None,
+        verb=_VERB,
     ):
 
         # Initialize the hub main dictionnaries ###############################
@@ -88,10 +88,10 @@ class Hub():
         self.__dmisc['dmulti']['vector'] = []
         self.__dmisc['dmulti']['matrix'] = []
         for k,v in self.dparam.items():
-            size = v.get('size',[_DEFAULTSIZE])
-            if size[0]== _DEFAULTSIZE:
+            size = v.get('size',[_DEFAULTSIZE,_DEFAULTSIZE])
+            if size== [_DEFAULTSIZE,_DEFAULTSIZE]:
                 self.__dmisc['dmulti']['scalar'].append(k)
-            elif len(size)==1:
+            elif size[1]==_DEFAULTSIZE:
                 self.__dmisc['dmulti']['vector'].append(k)
             else:
                 self.__dmisc['dmulti']['matrix'].append(k)
@@ -99,6 +99,7 @@ class Hub():
             self.dmisc['multisectoral'] = True
         else:
             self.dmisc['multisectoral'] = False
+
 
         # update from preset if relevant ######################################
         if preset is not None:
@@ -112,7 +113,7 @@ class Hub():
     # %% Setting / getting parameters
     # ##############################
 
-    def set_preset(self, preset, dpresets=None, verb=_VERB):
+    def set_preset(self, preset, dpresets=None, verb=None):
         """
         Simpler version of set_dparam with just preset
         """
@@ -136,7 +137,7 @@ class Hub():
         dpresets=None,
         key=None,
         value=None,
-        verb=_VERB,
+        verb=None,
         **kwdargs,
     ):
         """ Set the dict of input parameters (dparam) or a single param
@@ -248,7 +249,7 @@ class Hub():
             # reset all variables (keep only the first time step)
         self.reset()
 
-    def get_dparam(self, condition=None, verb=_VERB, returnas=dict, **kwdargs):
+    def get_dparam(self, condition=None, verb=None, returnas=dict, **kwdargs):
         """ Return a copy of the input parameters dict that you can filter
 
         Return as:
@@ -382,7 +383,6 @@ class Hub():
         Only the first time step (initial values) is preserved
         All other time steps are set to nan
         """
-
         # reset ode variables
         for k0 in self.get_dparam(eqtype=['differential', 'statevar'], returnas=list):
             self.__dparam[k0]['value'][...] = np.nan
@@ -577,13 +577,12 @@ class Hub():
             v = self.dparam[key]
             print('### ', key, ' ###########')
             print('Units        :', v['units'])
-            print('Equation     :', f'd{key}/dt=', v['source_exp'].replace(
-                'itself', key).replace('lamb', 'lambda'))
+            print('Equation     :', f'd{key}/dt=', v['source_exp'])
             print('definition   :', v['definition'])
             print('units        :', v['units'])
             print('Comment      :', v['com'])
             print('Dependencies :')
-            for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
+            for key2 in v['kargs'] :
                 v1 = self.dparam[key2]
                 print('    ', key2, (8-len(key2))*' ',
                       v1['units'], (8-len(v1['units']))*' ', v1['definition'])
@@ -593,12 +592,11 @@ class Hub():
             v = self.dparam[key]
             print('### ', key, ' ###########')
             print('Units        :', v['units'])
-            print('Equation     :', f'{key}=', v['source_exp'].replace(
-                'itself', key).replace('lamb', 'lambda'))
+            print('Equation     :', f'{key}=', v['source_exp'])
             print('definition   :', v['definition'])
             print('Comment      :', v['com'])
             print('Dependencies :')
-            for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
+            for key2 in v['kargs'] :
                 v1 = self.dparam[key2]
                 print('    ', key2, (8-len(key2))*' ',
                       v1['units'], (8-len(v1['units']))*' ', v1['definition'])
@@ -624,7 +622,7 @@ class Hub():
 
     def run(
         self,
-        verb=1.1,
+        verb=None,
     ):
         """ Run the simulation, with any of the solver existing in :
             - pgm.get_available_solvers(returnas=list)
@@ -639,6 +637,8 @@ class Hub():
             - intermediary functions in specified func_order
 
         """
+        if (_VERB==True and verb is None):
+            verb=1.1
         # ------------
         # check inputs
         dverb = _class_checks._run_verb_check(verb=verb)
@@ -655,16 +655,14 @@ class Hub():
         lode = self.__dmisc['dfunc_order']['differential']
         lstate = self.__dmisc['dfunc_order']['statevar']
 
-        print('Core655, list of variables')
-        print('lode',lode)
-        print('lstate',lstate)
+
 
         # ------------
         # start time loop
         try:
             solver = _solvers.solve(
                 dparam=self.__dparam,
-                dmulti=self.__dmisc['dmulti'],
+                dmisc=self.__dmisc,
                 lode=lode,
                 lstate=lstate,
                 dargs=self.__dargs,
@@ -722,11 +720,6 @@ class Hub():
 
             argsV = {k2: R[k2]['value'] for k2 in args}
 
-            if 'lambda' in args:
-                argsV['lamb'] = argsV['lambda']
-                del argsV['lambda']
-                args += ['lamb']
-                args.remove('lambda')
             if k in args:
                 argsV['itself'] = argsV[k]
                 del argsV[k]
@@ -737,10 +730,6 @@ class Hub():
             for k2 in args:
                 argTemp = copy.deepcopy(argsV)
                 argTemp[k2] += epsilon
-                if k2 == 'lamb':
-                    k2 = 'lambda'
-                if k2 == 'itself':
-                    k2 = k
                 R[k]['partial_derivatives'][k2] = (
                     func(**argTemp)-func(**argsV))/epsilon
 

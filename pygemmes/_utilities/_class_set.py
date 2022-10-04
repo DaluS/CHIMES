@@ -114,6 +114,7 @@ def load_dmodel(model, from_user=False):
     except BaseException:
         raise Exception("File cannot be read, you might have a commma ',' at the end of your dictionnaries")
 
+    '''
     # %% d) convert 'ode' into 'differential'
     if ('differential' in dmodel['logics'].keys() and 'ode' in dmodel['logics'].keys()):
         raise Exception(
@@ -132,8 +133,9 @@ def load_dmodel(model, from_user=False):
             dmodel['logics'].get('param', {}))
         if 'param' in dmodel['logics'].keys():
             del dmodel['logics']['param']
+    '''
 
-    # %% Fill size
+    # %% Complete size vector
     for k,v in dmodel['logics'].get('size',{}).items():
         if 'value' not in v.keys():
             v['value']= len(v['list'])
@@ -143,9 +145,9 @@ def load_dmodel(model, from_user=False):
             if len(v['list'])!=v['value']:
                 raise Exception(f'{k} has inconsistent size and list !')
 
+
     return dmodel
 
-# %% 2) LOAD AND COMPLETE DFIELDS
 
 
 def load_complete_DFIELDS(dmodel, verb=False):
@@ -179,6 +181,7 @@ def load_complete_DFIELDS(dmodel, verb=False):
             # _models._DFIELDS[k1]['kargs']= []
 
 
+
     # %% d) use dfields autocompletion
     DFIELDS2 = _models._complete_DFIELDS(
         dfields=DFIELDS,
@@ -205,11 +208,18 @@ def logics_into_dparam(dmodel):
         k0: dict(dmodel['logics'][v0][k0]) for k0, v0 in lk[0].items()
     }
 
+
+
     # %% b) Add eqtype
     for k0 in dparam.keys():
         if lk[0][k0] not in ['parameter']:
             dparam[k0]['eqtype'] = lk[0][k0]
 
+    # %% c) Add correct size
+    for k0 in dparam.keys():
+        if len(dparam[k0].get('size',[_DEFAULTSIZE]))<2 :
+            dparam[k0]['size']=[dparam[k0].get('size',[_DEFAULTSIZE])[0],
+                                _DEFAULTSIZE ]
     return dparam
 
 
@@ -290,7 +300,7 @@ def extract_parameters(dparam, dfields, verb=True):
     if len(lpar_new + lfunc_new) > 0:
         dfail = {}
         for k0 in lpar_new + lfunc_new:
-            key = 'lambda' if k0 == 'lamb' else k0
+            key =  k0
             if key not in _models._DFIELDS.keys():
                 dfail[k0] = "Unknown parameter"
                 continue
@@ -324,7 +334,7 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None, dfields=None):
     lpar_add, lfunc_add = [], []
     lkok = ['itself'] + lpar + lfunc
     for k0 in lfunc:
-        key = 'lambda' if k0 == 'lamb' else k0
+        key =  k0
 
         if k0 in dparam.keys():
             kargs = inspect.getfullargspec(dparam[key]['func']).args
@@ -334,7 +344,7 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None, dfields=None):
 
         # check if any parameter is unknown
         for kk in kargs:
-            key = 'lambda' if kk == 'lamb' else kk
+            key = kk
             if key not in lkok:
                 if _models._DFIELDS[key].get('func') is None:
                     if key not in lpar_add:
@@ -421,10 +431,6 @@ def set_args_auxilliary(dparam, verb=False):
             c0 = (
                 not any([k0 in dparam[k1]['kargs'] for k1 in lfunc2])
             )
-            if k0 == 'lambda':
-                c0 = (
-                    not any(['lamb' in dparam[k1]['kargs'] for k1 in lfunc2])
-                )
             if c0:
                 dparam[k0]['isneeded'] = False
                 News += k0
@@ -435,9 +441,6 @@ def set_args_auxilliary(dparam, verb=False):
             keep = False
 
 
-
-    # ITS UGLY BUT IT HELPS
-    dparam['time']['eqtype']='differential'
 
     # print
     if verb:
@@ -521,8 +524,8 @@ def get_dargs_by_reference(dparam, dfunc_order):
     Big dictionnary of pointers
     '''
     # %% a) create the dictionnary of pointers
-    for k0 in dfunc_order['statevar'] + dfunc_order['differential']:
-        print(k0,dparam[k0]['args'].keys())
+    #for k0 in dfunc_order['statevar'] + dfunc_order['differential']:
+    #    print(k0,dparam[k0]['args'].keys())
 
     dargs = {
         k0: {
@@ -532,22 +535,10 @@ def get_dargs_by_reference(dparam, dfunc_order):
                 + dparam[k0]['args']['statevar']
                 + dparam[k0]['args'][None]
             )
-            if k1 != 'lambda'
         }
         for k0 in dfunc_order['statevar'] + dfunc_order['differential']
     }
 
-    # %% lambda exception
-    # Handle the lambda exception here to avoid test at every time step
-    # if lambda exists and is a function
-    c0 = (
-        'lambda' in dparam.keys()
-        and dparam['lambda'].get('func') is not None
-    )
-    # then handle the exception
-    for k0, v0 in dargs.items():
-        if c0 and 'lambda' in dparam[k0]['kargs']:
-            dargs[k0]['lamb'] = dparam['lambda']['value']
     return dargs
 
 # %% 8) INITIALISE SHAPE
@@ -569,13 +560,10 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
 
     # ------------------
     # copy func to avoid passing by reference
-    lfunc = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
-    lpar = [k0 for k0, v0 in dparam.items() if v0.get('func') is None]
-    for k0 in lfunc:
-        dparam[k0]['func'] = copy_func(dparam[k0]['func'])
-
-
-
+    lfunc = [k0 for k0, v0 in dparam.items() if (v0.get('func') is not None)]
+    lpar = [k0 for k0, v0 in dparam.items() if (v0.get('func') is None
+                                                and not (v0.get('eqtype') == 'size'
+                                                or v0.get('group') == 'Numerical')) ]
     # --------------------------------
     # set default values of parameters to their real values
     # this way we don't have to feed the parameters value inside the loop
@@ -585,47 +573,25 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
     # Create variables for all varying quantities
 
     for k0 in lfunc:
+        sizes = [ dparam[f]['value'] for f in dparam[k0]['size']]
+
         shape = tuple(np.r_[dparam['nt']['value'],  # Time dimension
                             dparam['nx']['value'],  # Parrallel
                             dparam['nr']['value'],  # Regions
+                            sizes
                             ])
-
-        if dparam[k0].get('size',_DEFAULTSIZE) not in [ _DEFAULTSIZE,[_DEFAULTSIZE]]:
-            sizelist = dparam[k0]['size']
-            #print(k0,sizelist,sizelist[0],dparam[sizelist[0]])
-            if len(sizelist)==1 :
-                sizes = dparam[sizelist[0]]['value']
-            else:
-                sizes = [ dparam[f]['value'] for f in sizelist]
-
-            shape = tuple(np.r_[dparam['nt']['value'],  # Time dimension
-                                dparam['nx']['value'],  # Parrallel
-                                dparam['nr']['value'],  # Regions
-                                sizes
-                                ])
 
         if dparam[k0]['eqtype'] not in ['parameter']:
             dparam[k0]['value'] = np.full(shape, np.nan)
 
     for k0 in lpar:
+        sizes = [ dparam[f]['value'] for f in  dparam[k0]['size']]
         shape = tuple(np.r_[dparam['nx']['value'],  # Parrallel
                             dparam['nr']['value'],  # Regions
+                            sizes
                             ])
 
-        if dparam[k0].get('size',_DEFAULTSIZE) not in [ _DEFAULTSIZE,[_DEFAULTSIZE]]:
-            sizelist = dparam[k0]['size']
-            #print(k0,sizelist,sizelist[0],dparam[sizelist[0]])
-            if len(sizelist)==1 :
-                sizes = dparam[sizelist[0]]['value']
-            else:
-                #print([f for f in sizelist])
-                sizes = [ dparam[f]['value'] for f in sizelist]
-
-            shape = tuple(np.r_[dparam['nx']['value'],  # Parrallel
-                                dparam['nr']['value'],  # Regions
-                                sizes
-                                ])
-            dparam[k0]['value'] = np.full(shape, dparam[k0]['value'])
+        dparam[k0]['value'] = np.full(shape, dparam[k0]['value'])
 
     return dparam
 
@@ -661,7 +627,7 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None):
         # update using fixed param (eqtype = None)
 
         for k1 in dparam[k0]['args'][None]:
-            key = 'lambda' if k1 == 'lamb' else k1
+            key = k1
             defaults[dparam[k0]['kargs'].index(k1)] = dparam[key]['value']
 
             ind = [ii for ii, vv in enumerate(
@@ -677,7 +643,7 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None):
 
 
         for k1 in dparam[k0]['args']['parameter']:
-            key = 'lamb' if k1 == 'lambda' else k1
+            key =  k1
             defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
             ind = [ii for ii, vv in enumerate(kargs) if key in vv]
             if len(ind) != 1:

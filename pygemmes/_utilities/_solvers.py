@@ -154,81 +154,45 @@ def _check_solver(solver):
 
 def solve(
     dparam=None,
-    dmulti=None,
+    dmisc=None,
     lode=None,
     lstate=None,
     dargs=None,
     nt=None,
-    rtol=None,
-    atol=None,
-    max_time_step=None,
+    #rtol=None,
+    #atol=None,
+    #max_time_step=None,
     dverb=None,
 ):
 
-    # -----------
-
-    # -----------
     # Define the function that takes/returns all functions
     y0, dydt_func, lode_solve, dargs_temp = get_func_dydt(
         dparam=dparam,
         dargs=dargs,
         lode=lode,
         lstate=lstate,
-        solver=solver,
-        dmulti=dmulti,
+        dmisc=dmisc,
     )
 
-    # -------------
     # dispatch to relevant solver to solve ode using dydt_func
+    _eRK4_homemade(
+        y0=y0,
+        dydt_func=dydt_func,
+        dparam=dparam,
+        lode=lode_solve,
+        lstate=lstate,
+        nt=nt,
+        dverb=dverb,
+    )
 
-    if solver == 'eRK4-homemade':
-        _eRK4_homemade(
-            y0=y0,
-            dydt_func=dydt_func,
-            dparam=dparam,
-            lode=lode_solve,
-            lstate=lstate,
-            nt=nt,
-            dverb=dverb,
-        )
-
-    elif solver == 'eRK1-homemade':
-        _eRK1_homemade(
-            y0=y0,
-            dydt_func=dydt_func,
-            dparam=dparam,
-            lode=lode_solve,
-            lstate=lstate,
-            nt=nt,
-            dverb=dverb,
-        )
-
-    else:
-        # scipy takes one-dimensional y only
-
-        _solver_scipy(
-            y0=y0,
-            dydt_func=dydt_func,
-            dparam=dparam,
-            dargs_temp=dargs_temp,
-            lode=lode_solve,
-            lstate=lstate,
-            atol=atol,
-            rtol=rtol,
-            max_time_step=max_time_step,
-            solver=solver,
-            dverb=dverb,
-            dmulti=dmulti,
-        )
 
     # ----------------------
     # Post-treatment
-
     # compute statevar functions, in good order
     for k0 in lstate:
         dparam[k0]['value'][...] = dparam[k0]['func'](**dargs[k0])
 
-    return solver
+
 
 
 # #############################################################################
@@ -242,106 +206,108 @@ def get_func_dydt(
     dargs=None,
     lode=None,
     lstate=None,
-    solver=None,
-    dmulti=None,
+    #solver=None,
+    dmisc=None,
 ):
-
-    print(dmulti)
-    print(lode)
-
-    # ---------------
-    # Get list of ode except time
-    if 'scipy' in solver:
-        lode_solve = [k0 for k0 in lode if k0 != 'time']
-        shapey = (len(lode_solve),)
-        shapebuf = (1,)
-    else:
-        lode_solve = lode
-        shapey = tuple(np.r_[len(lode_solve), dmulti['NxNr']])
-        shapebuf = tuple(dmulti['NxNr'])
+    # PREPARE ALL VARIABLES SIZE AND PROPERTIES #####
+    shapebuf = list(dmisc['dmulti']['NxNr'])                                             # Common size Nx and Nr
+    shapes = { l : [dparam[k]['value'] for k in dparam[l]['size']] for l in lode }       # Specific shape of each system
+    Ny =np.sum([np.prod([dparam[k]['value'] for k in dparam[l]['size']]) for l in lode]) # Number of "scalar" equations
+    shapey = tuple(np.r_[Ny, dmisc['dmulti']['NxNr']])                                   # Shape of the Y vector
+    paramindex = {}                                                                  # Associate to
+    idxy = 0
+    for k,v in shapes.items():
+        paramindex[k]=[idxy+0,idxy+np.prod(v)]
+        idxy+=np.prod(v)
+    print(paramindex.items())
 
     # ---------------------
     # initialize y
-    y0 = np.array([dparam[k0]['value'][0, ...] for k0 in lode_solve])
-
-    print(np.shape(y0))
+    y0 = np.zeros((shapey))
+    for k0 in lode :
+        print(paramindex[k0])
+        print(y0[paramindex[k0],...])
+        #y0[paramindex[k0],...]=dparam[k0]['value'][0, ...]
+    #0 = np.array([dparam[k0]['value'][0, ...] for k0 in lode])
 
     # ---------------------
     # prepare array to be used as buffer
     # (to avoid a new array creation everytime the function is called)
-
     # array of dydt
     dydt = np.full(shapey, np.nan)
 
     # dict of values
     dbuffer = {
         k0: np.full(shapebuf, np.nan)
-        for k0 in lode_solve + lstate
+        for k0 in lode + lstate
     }
 
     # dict of args, takes values in dbuffer by reference
-    dargs_temp = {
-        k0: {
-            k1: dbuffer['lambda' if k1 == 'lamb' else k1]
+    print('solver 238: dargs',dargs.keys())
+    print('solver 238: dbuffer',dbuffer.keys())
+    dargs_temp = {}
+    for k0 in dargs.keys():
+        #print(k0)
+        #print(dargs[k0].keys())
+        dargs_temp[k0]= {
+            k1: dbuffer[k1]
             for k1 in dargs[k0].keys() if k1 != 'time'
         }
-        for k0 in dargs.keys()
-    }
 
     # -----------------
     # get func
 
-    if 'scipy' in solver and False:
-        pass
+    #if 'scipy' in solver and False:
+    #    pass
 
-    else:
-        def func(
-            t,
-            y,
-            dargs_temp=dargs_temp,
-            dydt=dydt,
-            dparam=dparam,
-            lode_solve=lode_solve,
-            lstate=lstate,
-            dbuffer=dbuffer,
-        ):
-            """ dydt = f(t, y)
+    #else:
+    def func(
+        t,
+        y,
+        dargs_temp=dargs_temp,
+        dydt=dydt,
+        dparam=dparam,
+        lode_solve=lode,
+        lstate=lstate,
+        dbuffer=dbuffer,
+    ):
+        """ dydt = f(t, y)
 
-            Where y is a (n,) array
-            y[0] = fisrt ode
-            y[1] = second ode
-            ...
-            y[n] = last ode
+        Where y is a (n,) array
+        y[0] = fisrt ode
+        y[1] = second ode
+        ...
+        y[n] = last ode
 
-            All intermediate values ae stored in dparam[k0]['value'][-1, 0]
+        All intermediate values ae stored in dparam[k0]['value'][-1, 0]
 
-            """
+        """
 
-            # ------------
-            # update cache => also updates dargs and dargs_temp by reference
-            # used by dargs_temp (by reference)
-            for ii, k0 in enumerate(lode_solve):
-                dbuffer[k0][...] = y[ii, ...]
+        # ------------
+        # update cache => also updates dargs and dargs_temp by reference
+        # used by dargs_temp (by reference)
+        for ii, k0 in enumerate(lode_solve):
+            dbuffer[k0][...] = y[ii, ...]
 
-            # ------------
-            # First update intermediary functions based on provided y
-            # The last time step is used as temporary buffer
-            # used by dargs_temp (by reference)
-            for ii, k0 in enumerate(lstate):
-                dbuffer[k0][...] = dparam[k0]['func'](**dargs_temp[k0])
+        # ------------
+        # First update intermediary functions based on provided y
+        # The last time step is used as temporary buffer
+        # used by dargs_temp (by reference)
+        for ii, k0 in enumerate(lstate):
+            dbuffer[k0][...] = dparam[k0]['func'](**dargs_temp[k0])
 
-            # ------------
-            # Then compute derivative dydt (ode)
-            for ii, k0 in enumerate(lode_solve):
-                if 'itself' in dparam[k0]['kargs']:
-                    dydt[ii, ...] = dparam[k0]['func'](
-                        itself=y[ii, ...], **dargs_temp[k0],
-                    )
-                else:
-                    dydt[ii, ...] = dparam[k0]['func'](**dargs_temp[k0])
-            return np.copy(dydt)
+        # ------------
+        # Then compute derivative dydt (ode)
+        for ii, k0 in enumerate(lode_solve):
+            if 'itself' in dparam[k0]['kargs']:
+                dydt[ii, ...] = dparam[k0]['func'](
+                    itself=y[ii, ...], **dargs_temp[k0],
+                )
+            else:
+                dydt[ii, ...] = dparam[k0]['func'](**dargs_temp[k0])
+        return np.copy(dydt)
 
-    return y0, func, lode_solve, dargs_temp
+    return y0, func, lode, dargs_temp
 
 
 # #############################################################################

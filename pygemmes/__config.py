@@ -130,7 +130,7 @@ __DEFAULTFIELDS = {
         'allowed': None,
     }  ,
     'size':{
-        'default': [_DEFAULTSIZE] ,
+        'default': [_DEFAULTSIZE,_DEFAULTSIZE] ,
         'type': list,
         'allowed': None
     }
