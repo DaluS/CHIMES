@@ -37,7 +37,7 @@ _LOGICS = {
 
         # Price Dynamics
         'w': {
-            'func': lambda phillips, w,pi : w * phillips*pi,
+            'func': lambda phillips, w,pi : w * phillips,
             'com': 'Phillips impact (no negociation)'
         }
     },

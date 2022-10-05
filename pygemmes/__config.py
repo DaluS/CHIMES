@@ -10,8 +10,6 @@ ALL THE BASIC FIELDS THAT ONE MIGHT NEED
 import numpy as np
 import os
 
-
-
 # ################# LOGS AND PRINTS IN THE SYSTEM ###################
 _VERB = True         # Print by default when actions are done
 __PRINTLOGO = False  # Print the logo
@@ -61,7 +59,7 @@ _LTYPES_ARRAY = [list,
                  tuple,
                  np.ndarray]
 
-_LEQTYPES = ['differential',  # all differentials
+_LEQTYPES = ['differential',
              'statevar',
              'parameter',
              'size'

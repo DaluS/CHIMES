@@ -2,10 +2,10 @@
 
 
 # Here we decide what the user will see
-from ._private_pygemmes import create_private_pygemmes
+#from ._private_pygemmes import create_private_pygemmes
 # run private pygemmes creation, be conservative
 # has to be done before other imports!
-create_private_pygemmes(reset=False, reset_hard=False)
+#create_private_pygemmes(reset=False, reset_hard=False)
 
 
 # Here we decide what the user will see
@@ -16,9 +16,11 @@ from ._utilities._solvers import get_available_solvers
 from ._core import Hub
 from . import _plots as plots
 
-import os
-from .__config import __PRINTLOGO, __PRINTINTRO
 
+
+# MESSAGE LOGO ########################################
+from .__config import __PRINTLOGO, __PRINTINTRO
+import os
 if __PRINTLOGO:
     print("""
 #####################################################################################
@@ -48,5 +50,5 @@ If you want to customize pygemmes (advancer users) like removing this message, e
 Have fun !
 ######################################################################################################
 """   )
-
+# ########################################
 

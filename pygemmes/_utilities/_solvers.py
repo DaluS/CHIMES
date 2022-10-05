@@ -18,12 +18,6 @@ from . import _class_checks
 
 from ..__config import _SOLVER
 
-_SCIPY_URL_BASE = 'https://docs.scipy.org/doc/scipy/reference/generated/'
-_SCIPY_URL = (
-    _SCIPY_URL_BASE
-    + 'scipy.integrate.solve_ivp.html#scipy.integrate.solve_ivp'
-)
-
 
 _DSOLVERS = {
     'eRK4-homemade': {
@@ -31,33 +25,6 @@ _DSOLVERS = {
         'step': 'fixed',
         'com': 'Runge_Kutta order 4',
         'source': __file__,
-    },
-    'eRK1-homemade': {
-        'type': 'explicit',
-        'step': 'fixed',
-        'com': 'Runge_Kutta order 1',
-        'source': __file__,
-    },
-    'eRK2-scipy': {
-        'scipy': 'RK23',
-        'type': 'explicit',
-        'step': 'variable',
-        'com': 'Runge_Kutta order 2',
-        'source': _SCIPY_URL,
-    },
-    'eRK4-scipy': {
-        'scipy': 'RK45',
-        'type': 'explicit',
-        'step': 'variable',
-        'com': 'Runge_Kutta order 4',
-        'source': _SCIPY_URL,
-    },
-    'eRK8-scipy': {
-        'scipy': 'DOP853',
-        'type': 'explicit',
-        'step': 'variable',
-        'com': 'Runge_Kutta order 8',
-        'source': _SCIPY_URL,
     },
 }
 
@@ -69,6 +36,8 @@ _DSOLVERS = {
 
 
 def get_available_solvers(returnas=None, verb=None):
+
+    print('IN THIS VERSION, ONLY THE RK4 HOMEMADE SOLVER IS ACTIVE')
 
     # ----------------
     # check inputs
@@ -153,38 +122,41 @@ def _check_solver(solver):
 
 
 def solve(
-    dparam=None,
-    dmisc=None,
-    lode=None,
-    lstate=None,
-    dargs=None,
-    nt=None,
-    #rtol=None,
-    #atol=None,
-    #max_time_step=None,
-    dverb=None,
+        solver=None,
+        dparam=None,
+        dmisc=None,
+        lode=None,
+        lstate=None,
+        dargs=None,
+        dverb=None,
 ):
+    # -----------
+    # check input
+    solver = _check_solver(solver)
 
+    lode = dmisc['dfunc_order']['differential']
+    lstate = dmisc['dfunc_order']['statevar']
+
+    # -----------
     # Define the function that takes/returns all functions
-    y0, dydt_func, lode_solve, dargs_temp = get_func_dydt(
+    y0, dydt_func, dargs_temp,dictpos = get_func_dydt(
         dparam=dparam,
         dargs=dargs,
-        lode=lode,
-        lstate=lstate,
         dmisc=dmisc,
     )
 
+    # -------------
     # dispatch to relevant solver to solve ode using dydt_func
     _eRK4_homemade(
         y0=y0,
         dydt_func=dydt_func,
         dparam=dparam,
-        lode=lode_solve,
+        lode=lode,
         lstate=lstate,
-        nt=nt,
+        nt=dparam['nt']['value'],
         dverb=dverb,
+        dictpos=dictpos
     )
-
 
     # ----------------------
     # Post-treatment
@@ -192,7 +164,7 @@ def solve(
     for k0 in lstate:
         dparam[k0]['value'][...] = dparam[k0]['func'](**dargs[k0])
 
-
+    return solver
 
 
 # #############################################################################
@@ -204,75 +176,69 @@ def solve(
 def get_func_dydt(
     dparam=None,
     dargs=None,
-    lode=None,
-    lstate=None,
-    #solver=None,
     dmisc=None,
 ):
-    # PREPARE ALL VARIABLES SIZE AND PROPERTIES #####
-    shapebuf = list(dmisc['dmulti']['NxNr'])                                             # Common size Nx and Nr
-    shapes = { l : [dparam[k]['value'] for k in dparam[l]['size']] for l in lode }       # Specific shape of each system
-    Ny =np.sum([np.prod([dparam[k]['value'] for k in dparam[l]['size']]) for l in lode]) # Number of "scalar" equations
-    shapey = tuple(np.r_[Ny, dmisc['dmulti']['NxNr']])                                   # Shape of the Y vector
-    paramindex = {}                                                                  # Associate to
-    idxy = 0
-    for k,v in shapes.items():
-        paramindex[k]=[idxy+0,idxy+np.prod(v)]
-        idxy+=np.prod(v)
-    print(paramindex.items())
+    '''
+    We create the following elements :
+    * y0      : initial values in an array
+    * dydt    : is the calculation of the variation at the instant
+    * dbuffer : dictionnary of values
+    * dargs_temp : dict of args : contains adresses but not the values
+    '''
 
-    # ---------------------
+    lode = dmisc['dfunc_order']['differential']
+    lstate = dmisc['dfunc_order']['statevar']
+    lparam = dmisc['dfunc_order']['parameter']+dmisc['dfunc_order']['parameters']+['dt']
+
+    # FIND ALL THE SIZES OF THE SYSTEM ################
+    nx=dparam['nx']['value']
+    nr=dparam['nr']['value']
+
+    # Calculate the number of scalar ode to solve at once
+    dictpos={}
+    idx=0
+    for k in lode:
+        size=np.shape(dparam[k]['value'])[-2]
+        dictpos[k]=np.arange(idx+0,idx+size)
+        idx+=size
+
     # initialize y
-    y0 = np.zeros((shapey))
-    for k0 in lode :
-        print(paramindex[k0])
-        print(y0[paramindex[k0],...])
-        #y0[paramindex[k0],...]=dparam[k0]['value'][0, ...]
-    #0 = np.array([dparam[k0]['value'][0, ...] for k0 in lode])
+    y0=np.zeros((nx,nr,idx,1))
+    for k,v in dictpos.items():
+        y0[:,:,v,:]=dparam[k]['value'][0, ...]
 
     # ---------------------
     # prepare array to be used as buffer
-    # (to avoid a new array creation everytime the function is called)
     # array of dydt
-    dydt = np.full(shapey, np.nan)
+    dydt = np.full(np.shape(y0), np.nan)
 
     # dict of values
-    dbuffer = {
-        k0: np.full(shapebuf, np.nan)
-        for k0 in lode + lstate
-    }
+    dbuffer = {}
+    for k0 in lode:   dbuffer[k0]= dparam[k0]['value'][0, ...]
+    for k0 in lstate: dbuffer[k0]= dparam[k0]['value'][0, ...]
+    for k0 in lparam: dbuffer[k0]= dparam[k0]['value']
 
     # dict of args, takes values in dbuffer by reference
-    print('solver 238: dargs',dargs.keys())
-    print('solver 238: dbuffer',dbuffer.keys())
-    dargs_temp = {}
-    for k0 in dargs.keys():
-        #print(k0)
-        #print(dargs[k0].keys())
-        dargs_temp[k0]= {
+    dargs_temp = {
+        k0: {
             k1: dbuffer[k1]
-            for k1 in dargs[k0].keys() if k1 != 'time'
+            for k1 in dargs.get(k0,{}).keys() if k1 != 'time'
         }
+        for k0 in list(dargs.keys())+lparam
+    }
 
     # -----------------
     # get func
-
-    #if 'scipy' in solver and False:
-    #    pass
-
-    #else:
     def func(
         t,
         y,
         dargs_temp=dargs_temp,
         dydt=dydt,
         dparam=dparam,
-        lode_solve=lode,
-        lstate=lstate,
         dbuffer=dbuffer,
+        dictpos=dictpos,
     ):
         """ dydt = f(t, y)
-
         Where y is a (n,) array
         y[0] = fisrt ode
         y[1] = second ode
@@ -280,14 +246,14 @@ def get_func_dydt(
         y[n] = last ode
 
         All intermediate values ae stored in dparam[k0]['value'][-1, 0]
-
         """
 
         # ------------
         # update cache => also updates dargs and dargs_temp by reference
         # used by dargs_temp (by reference)
-        for ii, k0 in enumerate(lode_solve):
-            dbuffer[k0][...] = y[ii, ...]
+        for k0 in lode:
+            v=dictpos[k0]
+            dbuffer[k0][...] = y[...,v,:]
 
         # ------------
         # First update intermediary functions based on provided y
@@ -298,16 +264,12 @@ def get_func_dydt(
 
         # ------------
         # Then compute derivative dydt (ode)
-        for ii, k0 in enumerate(lode_solve):
-            if 'itself' in dparam[k0]['kargs']:
-                dydt[ii, ...] = dparam[k0]['func'](
-                    itself=y[ii, ...], **dargs_temp[k0],
-                )
-            else:
-                dydt[ii, ...] = dparam[k0]['func'](**dargs_temp[k0])
+        for k0 in lode:
+            v=dictpos[k0]
+            dydt[...,v,:] = dparam[k0]['func'](**dargs_temp[k0])
         return np.copy(dydt)
 
-    return y0, func, lode, dargs_temp
+    return y0, func, dargs_temp, dictpos
 
 
 # #############################################################################
@@ -324,6 +286,7 @@ def _eRK4_homemade(
     lstate=None,
     nt=None,
     dverb=None,
+    dictpos={},
 ):
     """ Structure of the homemade rk4 solver, with time loop, intermediaries...
     """
@@ -336,8 +299,7 @@ def _eRK4_homemade(
     for ii in range(1, nt):
 
         # print of wait
-        if dverb['verb'] > 0:
-            t0 = _class_checks._print_or_wait(ii=ii, nt=nt, t0=t0, **dverb)
+        if dverb['verb'] > 0: t0 = _class_checks._print_or_wait(ii=ii, nt=nt, t0=t0, **dverb)
 
         # Estimate dt (for future variable time step versions)
         # dt =
@@ -347,13 +309,16 @@ def _eRK4_homemade(
             dydt_func=dydt_func,
             dt=dparam['dt']['value'],
             y=y,
-            t=np.nan,       # no model with explicit time dependence (for now)
+            t=np.nan,
         )
 
         # dispatch to store result of ode
-        for jj, k0 in enumerate(lode):
-            dparam[k0]['value'][ii, ...] = y[jj, ...]
-
+        for k0 in lode:
+            v = dictpos[k0]
+            dparam[k0]['value'][ii, ...] = y[...,v,:]
+    for k0 in lode:
+        v = dictpos[k0]
+        dparam[k0]['value'][0, ...] = y0[...,v,:]
 
 def _rk4(dydt_func=None, dt=None, y=None, t=None):
     """

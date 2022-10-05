@@ -14,7 +14,7 @@ import numpy as np
 from . import _utils
 
 from ..__config import _LEQTYPES
-
+from itertools import chain
 _LTYPES = [int, float, np.int_, np.float_]
 
 
@@ -420,7 +420,10 @@ def _get_summary_numerical(hub):
     # ------------------
     # get column headers
 
-    col1 = ['Numerical param.', 'value', 'units', 'definition']
+    col1 = ['Numerical param.',
+            'value',
+            'units',
+            'definition']
 
     # ------------------
     # get values
@@ -428,7 +431,7 @@ def _get_summary_numerical(hub):
     ar1 = [
         [
             k0,
-            paramfunc2str(dparam=dparam_sub,dmisc=hub.dmisc, key=k0),
+            v0['value'],
             v0['units'],
             v0['definition'],
         ]
@@ -443,7 +446,7 @@ def _get_summary_numerical(hub):
     return col1, ar1
 
 
-def _get_summary_parameters(hub, idx=None):
+def _get_summary_parameters(hub, idx=0,Region=0):
 
     # ----------------
     # preliminary criterion
@@ -468,24 +471,18 @@ def _get_summary_parameters(hub, idx=None):
     ar2 = [
         [
             k0,
-            paramfunc2str(
-                dparam=dparam_sub,
-                key=k0,
-                large=False,
-                dmisc=hub.dmisc,
-                idx=idx,
-            ),
+            v0['value'][idx,Region],
             str(v0['units']),
             v0['group'],
             v0['definition'],
         ]
-        for k0, v0 in dparam_sub.items()
+        for k0, v0 in dparam_sub.items() if k0 in hub.dmisc['dmulti']['scalar']
     ]
 
     return col2, ar2
 
 
-def _get_summary_functions(hub, idx=(0, 0, 0), eqtype=['ode', 'statevar'], isneeded=None):
+def _get_summary_functions(hub, idx=0,Region=0, eqtype=['ode', 'statevar'], isneeded=None):
 
     # ----------------
     # get sub-dict of interest
@@ -539,13 +536,13 @@ def _get_summary_functions(hub, idx=(0, 0, 0), eqtype=['ode', 'statevar'], isnee
                     key=k0,
                     dmisc=hub.dmisc,
                 ),
-                f"{v0.get('value')[tuple(np.r_[0, idx[1:]])]:.3f}",
-                f"{v0.get('value')[tuple(np.r_[-1, idx[1:]])]:.3f}",
+                f"{v0.get('value')[0,idx,Region,0,0]:.3f}",#f"{v0.get('value')[tuple(np.r_[0, idx[1:],0,0])]:.3f}",
+                f"{v0.get('value')[-1,idx,Region,0,0]:.3f}",#f"{v0.get('value')[tuple(np.r_[-1, idx[1:],0,0])]:.3f}",
                 v0['units'],
                 v0['definition'],
                 v0['com'],
             ]
-            for k0, v0 in dparam_sub.items()
+            for k0, v0 in dparam_sub.items() if k0 in hub.dmisc['dmulti']['scalar']
         ]
 
     else:
@@ -557,12 +554,55 @@ def _get_summary_functions(hub, idx=(0, 0, 0), eqtype=['ode', 'statevar'], isnee
                     key=k0,
                     dmisc=hub.dmisc,
                 ),
-                f"{v0.get('value')[tuple(np.r_[0, idx[1:]])]:.3f}",
+                f"{v0.get('value')[0,idx,Region,0,0]:.3f}",#:.3f}",[tuple(np.r_[0, idx[1:],0,0])]
                 v0['units'],
                 v0['definition'],
                 v0['com'],
             ]
-            for k0, v0 in dparam_sub.items()
+            for k0, v0 in dparam_sub.items() if k0 in hub.dmisc['dmulti']['scalar']
         ]
 
     return col3, ar3
+
+
+def _get_summary_functions_vector(hub, idx=0,Region=0, eqtype=['ode', 'statevar']):
+
+    # get sub-dict of interest
+    dparam_sub = hub.get_dparam(
+        returnas=dict,
+        eqtype=eqtype,
+    )
+
+
+
+    col3 = [
+        str('vector '.join(eqtype)),
+        'sector',
+        'source',
+        'initial',
+        'final' if hub.dmisc['run'] else '' ,
+        'units',
+        'definition',
+        'comment',
+        'Auxilliary'
+    ]
+
+    # get content
+    ar3 = [[[
+    k0,
+    ksector,
+    paramfunc2str(dparam=dparam_sub,key=k0,dmisc=hub.dmisc,)if idsectr==0 else '',
+    f"{v0.get('value')[0,idx,Region,idsectr,0]:.3f}",#f"{v0.get('value')[tuple(np.r_[0, idx[1:],0,0])]:.3f}",
+    f"{v0.get('value')[-1,idx,Region,idsectr,0]:.3f}" if hub.dmisc['run'] else '' ,#",#f"{v0.get('value')[tuple(np.r_[-1, idx[1:],0,0])]:.3f}",
+    v0['units'] if idsectr==0 else '',
+    v0['definition'] if idsectr==0 else '',
+    v0['com'] if idsectr==0 else '',
+    not(v0['isneeded']) if idsectr==0 else '' ]
+        for idsectr,ksector in enumerate(hub.dparam[v0['size'][0]].get('list',['scalar']))]
+    for k0, v0 in dparam_sub.items()
+    ]
+
+    if len(ar3):
+        return col3, list(chain.from_iterable(ar3))
+    else :
+        return col3, ar3

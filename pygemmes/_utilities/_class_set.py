@@ -31,8 +31,6 @@ from ..__config import _DEFAULTSIZE
 ###############################################################################
 
 # %% MAIN FUNCTION : LOAD MODEL
-
-
 def load_model(model=None, verb=None, from_user=None):
     """ Load a model from a model file
 
@@ -62,15 +60,10 @@ def load_model(model=None, verb=None, from_user=None):
 
     #_class_check_2.dparam(dparam)
 
-    '''Get all dependencies for each equations, find who can not be usefull
-    Set args and kargs'''
-
-    # _class_check_2.functions(dparam)
-
-    '''Initial values and shapes'''
+    # Initial values and shapes
     dparam = set_shapes_values(dparam, dfunc_order, verb=verb)
 
-    '''Big dictionnary of pointers'''
+    # Big dictionnary of pointers
     dargs = get_dargs_by_reference(dparam, dfunc_order=dfunc_order)
 
     return dmodel, dparam, dfunc_order, dargs
@@ -113,27 +106,6 @@ def load_dmodel(model, from_user=False):
         }
     except BaseException:
         raise Exception("File cannot be read, you might have a commma ',' at the end of your dictionnaries")
-
-    '''
-    # %% d) convert 'ode' into 'differential'
-    if ('differential' in dmodel['logics'].keys() and 'ode' in dmodel['logics'].keys()):
-        raise Exception(
-            'Model use both ode and differential formalism ! Use one only')
-    if 'differential' not in dmodel['logics'].keys():
-        dmodel['logics']['differential'] = copy.deepcopy(
-            dmodel['logics'].get('ode', {}))
-        del dmodel['logics']['ode']
-
-    # %% e) convert 'param' into 'parameter'
-    if ('parameter' in dmodel['logics'].keys() and 'param' in dmodel['logics'].keys()):
-        raise Exception(
-            'Model use both ode and differential formalism ! Use one only')
-    if 'parameter' not in dmodel['logics'].keys():
-        dmodel['logics']['parameter'] = copy.deepcopy(
-            dmodel['logics'].get('param', {}))
-        if 'param' in dmodel['logics'].keys():
-            del dmodel['logics']['param']
-    '''
 
     # %% Complete size vector
     for k,v in dmodel['logics'].get('size',{}).items():
@@ -266,7 +238,7 @@ def add_numerical_group_default_fields(dparam, dfields):
 # %% 5) EXTRACT PARAMETERS
 
 
-def extract_parameters(dparam, dfields, verb=True):
+def extract_parameters(dparam, dfields, verb=None):
     """ Extract fixed-value parameters
 
     If relevant, the list of fixed-value parameters is extracted from
@@ -278,6 +250,7 @@ def extract_parameters(dparam, dfields, verb=True):
     lfunc = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
     lpar_new = []
     lfunc_new = []
+
 
     # %% b) try to check if their inputs corresponds and add them if necessary
     keepon = True
@@ -324,7 +297,8 @@ def extract_parameters(dparam, dfields, verb=True):
         )
         print(msg)
 
-    return dparam, lpar_new+lfunc_new
+
+    return dparam, lpar_new+lfunc_new+lpar
 
 
 def _extract_par_from_func(lfunc=None, lpar=None, dparam=None, dfields=None):

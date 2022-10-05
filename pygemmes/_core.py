@@ -81,7 +81,9 @@ class Hub():
             verb=verb,
         )
 
-        # Actualize the shape
+
+
+        # Actualize the shape ##############################################
         self.__dmisc['dmulti']['NxNr'] = (self.__dparam['nx']['value'],
                                           self.__dparam['nr']['value'])
         self.__dmisc['dmulti']['scalar']= []
@@ -100,7 +102,6 @@ class Hub():
         else:
             self.dmisc['multisectoral'] = False
 
-
         # update from preset if relevant ######################################
         if preset is not None:
             self.set_preset(preset=preset, dpresets=dpresets, verb=verb)
@@ -112,7 +113,6 @@ class Hub():
     # ##############################
     # %% Setting / getting parameters
     # ##############################
-
     def set_preset(self, preset, dpresets=None, verb=None):
         """
         Simpler version of set_dparam with just preset
@@ -347,10 +347,10 @@ class Hub():
         if returnas is dict:
             return dout
 
+
     # ##############################
     # %% Read-only properties
     # ##############################
-
     @property
     def dfunc_order(self):
         """ The ordered list of intermediary function names """
@@ -404,15 +404,13 @@ class Hub():
             })
             self.__dparam[k0]['value'] = self.__dparam[k0]['func'](**dargs)
 
-
-
         # recompute inital value for statevar
         lstate = self.__dmisc['dfunc_order']['statevar']
 
-
         for k0 in lstate:
             kwdargs = {
-                k1: v1[0, ...] if k1 in self.__dmisc['dfunc_order']['statevar'] + self.__dmisc['dfunc_order']['differential'] else v1
+                k1: v1[0, ...] if k1 in self.__dmisc['dfunc_order']['statevar'] +
+                                        self.__dmisc['dfunc_order']['differential'] else v1
                 for k1, v1 in self.__dargs[k0].items()
             }
 
@@ -423,6 +421,51 @@ class Hub():
 
         # set run to False
         self.__dmisc['run'] = False
+
+        # ##############################
+        # run simulation
+        # ##############################
+
+    def run(
+            self,
+            verb=None,
+    ):
+        """ Run the simulation, with any of the solver existing in :
+            - pgm.get_available_solvers(returnas=list)
+            Verb will have the following behavior :
+            - none no print of the step
+            - 1 at every step
+            - any float (like 1.1) the iteration is written at any of these value
+
+        Compute each time step from the previous one using:
+            - parameters
+            - differentials (ode)
+            - intermediary functions in specified func_order
+
+        """
+        if (_VERB == True and verb is None):
+            verb = 1.1
+
+        # check inputs
+        dverb = _class_checks._run_verb_check(verb=verb)
+
+        # reset variables
+        self.reset()
+
+        # start time loop
+        try:
+            solver = _solvers.solve(
+                dparam=self.__dparam,
+                dmisc=self.__dmisc,
+                dargs=self.__dargs,
+                dverb=dverb,
+            )
+            self.__dmisc['run'] = True
+            self.__dmisc['solver'] = solver
+
+        except Exception as err:
+            self.__dmisc['run'] = False
+            raise err
 
     def reinterpolate_dparam(self, N=100):
         """
@@ -492,7 +535,7 @@ class Hub():
         else:
             return col0, ar0
 
-    def get_summary(self, idx=(0, 0, 0)):
+    def get_summary(self, idx=0, Region=0):
         """
         INTROSPECTION TOOL :
         Print a str summary of the model, with
@@ -507,63 +550,55 @@ class Hub():
         * idx = index of the model you want the value to be shown when there are multiple models in parrallel
         """
 
-        _FLAGS = ['run', 'cycles', 'derivative']
+        _FLAGS = ['run', 'cycles', 'derivative','multisectoral','solver']
         _ORDERS = ['statevar', 'differential', 'parameters']
 
-        print(50 * '#', 'SUMMARY', 50 * '#')
+        Vals = self.__dparam
+
+        print(62 * '#')
+        print(20 * '#', 'SUMMARY'.center(18), 20 * '#')
         print('Model       :', self.dmodel['name'])
-        print('Description :', self.dmodel['description'])
+        print(self.dmodel['description'])
         print('File        :', self.dmodel['file'])
-        print(20 * '#', 'Fields', 20 * '#')
+        print(20 * '#', 'Fields'.center(18), 20 * '#')
         for o in _ORDERS:
             print(o.ljust(15), str(len(self.dmisc['dfunc_order'][o])).zfill(3), self.dmisc['dfunc_order'][o])
-        print(20 * '#', 'Presets', 20 * '#')
+        print(20 * '#', 'Presets'.center(18), 20 * '#')
         for k, v in self.dmodel['presets'].items():
-            print('    ', k.ljust(20), v['com'])
-        print(20 * '#', 'Flags', 20 * '#')
+            print('    ', k.center(18),':', v['com'])
+        print(20 * '#', 'Flags'.center(18), 20 * '#')
         for f in _FLAGS:
-            print(f.ljust(15) + ':', self.dmisc[f])
-        print('\n')
+            print(f.ljust(15) + ':', self.dmisc.get(f,''))
 
-        print(30*'#', 'Indexes :', idx, 30*'#')
+        print(20 * '#', 'Time vector'.center(18), 20 * '#')
+        for k,v in Vals.items():
+            if k in ['Tmax','Tini','dt','nt']:
+                print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
+        print(20 * '#', 'Dimensions'.center(18), 20 * '#')
+        sub= self.get_dparam(returnas=dict,eqtype=['size'],)
+        for k in list(sub.keys())+['nx','nr']:
+            v = Vals[k]
+            print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
 
-        # ----------
-        # Numerical parameters
-        col1, ar1 = _class_utility._get_summary_numerical(self)
-
-        # ----------
+        print(20 * '#', 'fields'.center(18), 20 * '#')
         # parameters
         col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx)
-
-        # ----------
-        # functions ODE
-        col3, ar3 = _class_utility._get_summary_functions(
-            self, idx=idx, eqtype=['differential'], isneeded=True)
-
-        # ----------
-        # functions Statevar
-        col4, ar4 = _class_utility._get_summary_functions(
-            self, idx=idx, eqtype=['statevar'], isneeded=True)
-
-        # ----------
-        # functions ODE
-        col5, ar5 = _class_utility._get_summary_functions(
-            self, idx=idx, eqtype=['differential'], isneeded=False)
-
-        # ----------
-        # functions Statevar
-        col6, ar6 = _class_utility._get_summary_functions(
-            self, idx=idx, eqtype=['statevar'], isneeded=False)
-
+        # SCALAR ODE
+        col3, ar3 = _class_utility._get_summary_functions_vector(
+            self, idx=idx,Region=Region, eqtype=['differential'])
+        # SCALAR Statevar
+        col4, ar4 = _class_utility._get_summary_functions_vector(
+            self, idx=idx,Region=Region, eqtype=['statevar'])
 
         # ----------
         # format output
         return _utils._get_summary(
-            lar=[ar1, ar2, ar3, ar4, ar5, ar6],
-            lcol=[col1, col2, col3, col4, col5, col6],
+            lar =[ ar2,  ar3,  ar4 ],
+            lcol=[ col2, col3, col4],
             verb=True,
             returnas=False,
         )
+
 
     def get_equations_description(self):
         '''
@@ -616,65 +651,6 @@ class Hub():
                                custom=custom,
                                plot_params=params)
 
-    # ##############################
-    # run simulation
-    # ##############################
-
-    def run(
-        self,
-        verb=None,
-    ):
-        """ Run the simulation, with any of the solver existing in :
-            - pgm.get_available_solvers(returnas=list)
-            Verb will have the following behavior :
-            - none no print of the step
-            - 1 at every step
-            - any float (like 1.1) the iteration is written at any of these value
-
-        Compute each time step from the previous one using:
-            - parameters
-            - differentials (ode)
-            - intermediary functions in specified func_order
-
-        """
-        if (_VERB==True and verb is None):
-            verb=1.1
-        # ------------
-        # check inputs
-        dverb = _class_checks._run_verb_check(verb=verb)
-
-        # ------------
-        # reset variables
-        self.reset()
-
-        # time vector
-        nt = self.__dparam['nt']['value']
-
-        # ------------
-        # temporary dict of input
-        lode = self.__dmisc['dfunc_order']['differential']
-        lstate = self.__dmisc['dfunc_order']['statevar']
-
-
-
-        # ------------
-        # start time loop
-        try:
-            solver = _solvers.solve(
-                dparam=self.__dparam,
-                dmisc=self.__dmisc,
-                lode=lode,
-                lstate=lstate,
-                dargs=self.__dargs,
-                nt=nt,
-                dverb=dverb,
-            )
-            self.__dmisc['run'] = True
-            self.__dmisc['solver'] = solver
-
-        except Exception as err:
-            self.__dmisc['run'] = False
-            raise err
 
     # ##############################
     #       Deep analysis methods
