@@ -40,7 +40,7 @@ _LIBRARY = {
     'Numerical': {
         # TIME GESTION ##############################################
         'Tmax': {
-            'value': 100,
+            'value': 10,
             'units': 'y',
             'definition': 'Total simulated time',
         },
@@ -57,12 +57,12 @@ _LIBRARY = {
 
         # You should not modify this here, use preset or setdparam ##
         'nx': {
-            'value': 3,
+            'value': 1,
             'units': '',
             'definition': 'Number of system in parrallel',
         },
         'nr': {
-            'value': 2,
+            'value': 1,
             'units': '',
             'definition': 'Number of regions interconnected',
         },

@@ -108,244 +108,106 @@ class Hub():
         else:
             self.reset()
 
-
-
     # ##############################
     # %% Setting / getting parameters
     # ##############################
-    def set_preset(self, preset, dpresets=None, verb=None):
-        """
-        Simpler version of set_dparam with just preset
-        """
-
-        (self.__dparam,
-         self.__dmisc['dmulti'],
-         self.__dargs) = _class_checks.update_from_preset(
-            dparam=self.__dparam,
-            dmodel=self.__dmodel,
-            preset=preset,
-            dpresets=dpresets,
-            verb=verb,
-        )
-
-        self.reset()
-
-    def set_dparam(
-        self,
-        dparam=None,
-        preset=None,
-        dpresets=None,
-        key=None,
-        value=None,
-        verb=None,
-        **kwdargs,
-    ):
-        """ Set the dict of input parameters (dparam) or a single param
-
-        dparam is the large dictionary that contains:
-            - fixed-value parameters
-            - functions of different types (equations)
-
-        You can provide:
-            - dparam as a dict
-                => will re-initialize the parameters
-            - preset as a str refering to an existing preset
-                => will re-initialize the parameters
-            - only a (key, value) pair to change an single existing parameter
-                => will change a single existing parameter value
-            - a dict of existing parameters, provided with the **kwdargs syntax
-                => will change all desired existing parameter values
-
-        Typical usage
-        -------------
-            >>> dparam = {'alpha': 0, 'beta': 1}
-            >>> hub.set_dparam(dparam=dparam)
-
-            >>> hub = pgm.Hub('GK-Reduced')
-            >>> hub.set_dparam(preset='default')
-
-            # The following 2 syntaxes are equivalent to set a single parameter
-            >>> hub.set_dparam(key='alpha', value=0)    # syntax 1
-            >>> hub.set_dparam(alpha=0.1)                 # syntax 2
-
-            # The following syntax allows to change several existing parameters
-            >>> dparam_changes = {'alpha': 0., 'delta': 0.}
-            >>> hub.set_dparam(**dparam_changes)
-        """
-
-        if preset != None:
-            print('WARNING : USE set_dpreset() this will be removed later')
-            (self.__dparam,
-             self.__dmisc['dfunc_order'],
-             self.__dargs,
-             ) = _class_checks.update_from_preset(
-                dparam=self.__dparam,
-                dmodel=self.__dmodel,
-                preset=preset,
-                dpresets=dpresets,
-                verb=verb,
-            )
-        else:
-            # Check input: dparam xor (key, value)
-            lc = [
-                dparam is not None,
-                preset is not None,
-                key is not None and value is not None,
-                len(kwdargs) > 0,
-            ]
-            if np.sum(lc) != 1:
-                lstr = [
-                    '\t- {}: {}'.format(kk, vv)
-                    for kk, vv in [
-                        ('dparam', dparam),
-                        ('preset', preset),
-                        ('key', key), ('value', value),
-                        ('kwdargs', kwdargs),
-                    ]
-                ]
-                msg = (
-                    "Provide dparam xor preset xor (key, value) xor kwdargs!\n"
-                    "You provided:\n"
-                    + "\n".join(lstr)
-                )
-                raise Exception(msg)
-
-            # ----------------
-            # set dparam or update desired key
-
-            if preset is not None:
-                if key is not None:
-                    _class_checks._set_key_value(
-                        dparam=self.__dparam,
-                        key=key,
-                        value=value,
-                    )
-                    dparam = self.__dparam
-
-                elif len(kwdargs) > 0:
-                    for kk, vv in kwdargs.items():
-                        if not isinstance(vv, dict):
-                            vv = {'value': vv, 'grid': False}
-                        _class_checks._set_key_value(
-                            dparam=self.__dparam,
-                            key=kk,
-                            value=vv['value'],
-                        )
-                    dparam = self.__dparam
-
-                # ----------------
-                # Update to check consistency
-
-                (
-                    self.__dparam,
-                    self.__dmisc['dmulti'],
-                    self.__dmisc['dfunc_order'],
-                    self.__dargs,
-                ) = _class_checks.check_dparam(
-                    dparam=dparam,
-                    verb=verb,
-                )
-
-            # reset all variables (keep only the first time step)
-        self.reset()
-
     def get_dparam(self, condition=None, verb=None, returnas=dict, **kwdargs):
-        """ Return a copy of the input parameters dict that you can filter
+       """ Return a copy of the input parameters dict that you can filter
 
-        Return as:
-            - dict: dict
-            - 'DataGFrame': a pandas DataFrame
-            - np.ndarray: a dict of np.ndarrays
-            - False: return nothing (useful of verb=True)
+       Return as:
+           - dict: dict
+           - 'DataGFrame': a pandas DataFrame
+           - np.ndarray: a dict of np.ndarrays
+           - False: return nothing (useful of verb=True)
 
-        verb:
-            - True: pretty-print the chosen parameters
-            - False: print nothing
+       verb:
+           - True: pretty-print the chosen parameters
+           - False: print nothing
 
-        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype','isneeded']
+       lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype','isneeded']
 
-        """
-        lcrit = ['key', 'dimension', 'units',
-                 'type', 'group', 'eqtype', 'isneeded']
-        lprint = [
-            'parameter', 'value', 'units', 'dimension', 'symbol',
-            'type', 'eqtype', 'group', 'comment',
-        ]
+       """
+       lcrit = ['key', 'dimension', 'units',
+                'type', 'group', 'eqtype', 'isneeded']
+       lprint = [
+           'parameter', 'value', 'units', 'dimension', 'symbol',
+           'type', 'eqtype', 'group', 'comment',
+       ]
 
-        return _class_utility._get_dict_subset(
-            indict=self.__dparam,
-            verb=verb,
-            returnas=returnas,
-            lcrit=lcrit,
-            lprint=lprint,
-            condition=condition,
-            **kwdargs,
-        )
+       return _class_utility._get_dict_subset(
+           indict=self.__dparam,
+           verb=verb,
+           returnas=returnas,
+           lcrit=lcrit,
+           lprint=lprint,
+           condition=condition,
+           **kwdargs,
+       )
 
     def get_dparam_as_reverse_dict(
-        self,
-        crit=None,
-        returnas=None,
-        verb=None,
-        **kwdargs,
+       self,
+       crit=None,
+       returnas=None,
+       verb=None,
+       **kwdargs,
     ):
-        """ Return/prints a dict of units/eqtype... with a list of keys
+       """ Return/prints a dict of units/eqtype... with a list of keys
 
-        if crit = 'units', return a dict with:
-            - keys: the unique possible values of field 'units'
-            - values: for each unique unit, the corresponding list of keys
+       if crit = 'units', return a dict with:
+           - keys: the unique possible values of field 'units'
+           - values: for each unique unit, the corresponding list of keys
 
-        lcrit = ['dimension', 'units', 'type', 'group', 'eqtype']
+       lcrit = ['dimension', 'units', 'type', 'group', 'eqtype']
 
-        Restrictions on the selection can be imposed by **kwdargs
-        The selection is done using self.get_dparam() (single-sourced)
-        """
+       Restrictions on the selection can be imposed by **kwdargs
+       The selection is done using self.get_dparam() (single-sourced)
+       """
 
-        # -------------
-        # check input
+       # -------------
+       # check input
 
-        if verb is None:
-            verb = False
-        if returnas is None:
-            returnas = dict if verb is False else False
+       if verb is None:
+           verb = False
+       if returnas is None:
+           returnas = dict if verb is False else False
 
-        lcrit = ['dimension', 'units', 'type', 'group', 'eqtype']
-        if crit not in lcrit:
-            msg = (
-                f"Arg crit must be in: {lcrit}\n"
-                f"Provided: {crit}"
-            )
-            raise Exception(msg)
+       lcrit = ['dimension', 'units', 'type', 'group', 'eqtype']
+       if crit not in lcrit:
+           msg = (
+               f"Arg crit must be in: {lcrit}\n"
+               f"Provided: {crit}"
+           )
+           raise Exception(msg)
 
-        if crit in kwdargs.keys():
-            msg = (
-                "Conflict detected!:\n"
-                f"{crit} is the sorting criterion => not usable for selection!"
-            )
-            raise Exception(msg)
+       if crit in kwdargs.keys():
+           msg = (
+               "Conflict detected!:\n"
+               f"{crit} is the sorting criterion => not usable for selection!"
+           )
+           raise Exception(msg)
 
-        # -------------
-        # create dict
+       # -------------
+       # create dict
 
-        lunique = set([v0.get(crit) for v0 in self.__dparam.values()])
-        dout = {
-            k0: self.get_dparam(returnas=list, **{crit: k0, **kwdargs})
-            for k0 in lunique
-        }
+       lunique = set([v0.get(crit) for v0 in self.__dparam.values()])
+       dout = {
+           k0: self.get_dparam(returnas=list, **{crit: k0, **kwdargs})
+           for k0 in lunique
+       }
 
-        # -------------
-        # print and/or return
+       # -------------
+       # print and/or return
 
-        if verb is True:
-            lstr = [f'\t- {k0}: {v0}' for k0, v0 in dout.items()]
-            msg = (
-                "The following selection has been identified:\n"
-                + "\n".join(lstr)
-            )
-            print(msg)
+       if verb is True:
+           lstr = [f'\t- {k0}: {v0}' for k0, v0 in dout.items()]
+           msg = (
+               "The following selection has been identified:\n"
+               + "\n".join(lstr)
+           )
+           print(msg)
 
-        if returnas is dict:
-            return dout
+       if returnas is dict:
+           return dout
 
 
     # ##############################
@@ -353,251 +215,250 @@ class Hub():
     # ##############################
     @property
     def dfunc_order(self):
-        """ The ordered list of intermediary function names """
-        return self.__dmisc['dfunc_order']
+       """ The ordered list of intermediary function names """
+       return self.__dmisc['dfunc_order']
 
     @property
     def dmodel(self):
-        """ The model identifiers """
-        return self.__dmodel
+       """ The model identifiers """
+       return self.__dmodel
 
     @property
     def dargs(self):
-        return self.__dargs
+       return self.__dargs
 
     @property
     def dparam(self):
-        return self.get_dparam(returnas=dict, verb=False)
+       return self.get_dparam(returnas=dict, verb=False)
 
     @property
     def dmisc(self):
-        return self.__dmisc
+       return self.__dmisc
 
     # ##############################
     # reset
     # ##############################
 
     def reset(self):
-        """ Re-initializes all variables
+       """ Re-initializes all variables
 
-        Only the first time step (initial values) is preserved
-        All other time steps are set to nan
-        """
-        # reset ode variables
-        for k0 in self.get_dparam(eqtype=['differential', 'statevar'], returnas=list):
-            self.__dparam[k0]['value'][...] = np.nan
+       Only the first time step (initial values) is preserved
+       All other time steps are set to nan
+       """
+       # reset ode variables
+       for k0 in self.get_dparam(eqtype=['differential', 'statevar'], returnas=list):
+           self.__dparam[k0]['value'][...] = np.nan
 
-        # Reset initial for ode
-        for k0 in self.get_dparam(eqtype=['differential'], returnas=list):
-            self.__dparam[k0]['value'][0, ...] = self.__dparam[k0]['initial']
+       # Reset initial for ode
+       for k0 in self.get_dparam(eqtype=['differential'], returnas=list):
+           self.__dparam[k0]['value'][0, ...] = self.__dparam[k0]['initial']
 
-        # recompute initial value for function-parameters
-        pstate = self.__dmisc['dfunc_order']['parameter']
-        for k0 in pstate:
-            dargs = {
-                k1: self.__dparam[k1]['value']
-                for k1 in self.__dparam[k0]['args'][None]
-            }
-            dargs.update({
-                k1: self.__dparam[k1]['value']
-                for k1 in self.__dparam[k0]['args']['parameter']
-            })
-            self.__dparam[k0]['value'] = self.__dparam[k0]['func'](**dargs)
+       # recompute initial value for function-parameters
+       pstate = self.__dmisc['dfunc_order']['parameter']
+       for k0 in pstate:
+           dargs = {
+               k1: self.__dparam[k1]['value']
+               for k1 in self.__dparam[k0]['args'][None]
+           }
+           dargs.update({
+               k1: self.__dparam[k1]['value']
+               for k1 in self.__dparam[k0]['args']['parameter']
+           })
+           self.__dparam[k0]['value'] = self.__dparam[k0]['func'](**dargs)
 
-        # recompute inital value for statevar
-        lstate = self.__dmisc['dfunc_order']['statevar']
+       # recompute inital value for statevar
+       lstate = self.__dmisc['dfunc_order']['statevar']
 
-        for k0 in lstate:
-            kwdargs = {
-                k1: v1[0, ...] if k1 in self.__dmisc['dfunc_order']['statevar'] +
-                                        self.__dmisc['dfunc_order']['differential'] else v1
-                for k1, v1 in self.__dargs[k0].items()
-            }
+       for k0 in lstate:
+           kwdargs = {
+               k1: v1[0, ...] if k1 in self.__dmisc['dfunc_order']['statevar'] +
+                                       self.__dmisc['dfunc_order']['differential'] else v1
+               for k1, v1 in self.__dargs[k0].items()
+           }
 
-            # run function
-            self.__dparam[k0]['value'][0, ...] = (
-                self.__dparam[k0]['func'](**kwdargs)
-            )
+           # run function
+           self.__dparam[k0]['value'][0, ...] = (
+               self.__dparam[k0]['func'](**kwdargs)
+           )
 
-        # set run to False
-        self.__dmisc['run'] = False
+       # set run to False
+       self.__dmisc['run'] = False
 
-        # ##############################
-        # run simulation
-        # ##############################
+       # ##############################
+       # run simulation
+       # ##############################
 
     def run(
-            self,
-            verb=None,
+           self,
+           verb=None,
     ):
-        """ Run the simulation, with any of the solver existing in :
-            - pgm.get_available_solvers(returnas=list)
-            Verb will have the following behavior :
-            - none no print of the step
-            - 1 at every step
-            - any float (like 1.1) the iteration is written at any of these value
+       """ Run the simulation, with any of the solver existing in :
+           - pgm.get_available_solvers(returnas=list)
+           Verb will have the following behavior :
+           - none no print of the step
+           - 1 at every step
+           - any float (like 1.1) the iteration is written at any of these value
 
-        Compute each time step from the previous one using:
-            - parameters
-            - differentials (ode)
-            - intermediary functions in specified func_order
+       Compute each time step from the previous one using:
+           - parameters
+           - differentials (ode)
+           - intermediary functions in specified func_order
 
-        """
-        if (_VERB == True and verb is None):
-            verb = 1.1
+       """
+       if (_VERB == True and verb is None):
+           verb = 1.1
 
-        # check inputs
-        dverb = _class_checks._run_verb_check(verb=verb)
+       # check inputs
+       dverb = _class_checks._run_verb_check(verb=verb)
 
-        # reset variables
-        self.reset()
+       # reset variables
+       self.reset()
 
-        # start time loop
-        try:
-            solver = _solvers.solve(
-                dparam=self.__dparam,
-                dmisc=self.__dmisc,
-                dargs=self.__dargs,
-                dverb=dverb,
-            )
-            self.__dmisc['run'] = True
-            self.__dmisc['solver'] = solver
+       # start time loop
+       try:
+           solver = _solvers.solve(
+               dparam=self.__dparam,
+               dmisc=self.__dmisc,
+               dargs=self.__dargs,
+               dverb=dverb,
+           )
+           self.__dmisc['run'] = True
+           self.__dmisc['solver'] = solver
 
-        except Exception as err:
-            self.__dmisc['run'] = False
-            raise err
+       except Exception as err:
+           self.__dmisc['run'] = False
+           raise err
 
     def reinterpolate_dparam(self, N=100):
-        """
-        If the system has run, takes dparam and reinterpolate all values.
-        Typical use is to have lighter plots
+       """
+       If the system has run, takes dparam and reinterpolate all values.
+       Typical use is to have lighter plots
 
-        DO NOT WORK WELL WITH GRID
-        NEED A RESET BEFORE A RUN TO REALLOCATE SPACE
+       DO NOT WORK WELL WITH GRID
+       NEED A RESET BEFORE A RUN TO REALLOCATE SPACE
 
-        Parameters
-        ----------
-        Npoints : TYPE, optional
-            DESCRIPTION. The default is 100.
-        """
+       Parameters
+       ----------
+       Npoints : TYPE, optional
+           DESCRIPTION. The default is 100.
+       """
 
-        P = self.__dparam
-        t = P['time']['value']
-        for k in self.__dmisc['dfunc_order']['statevar']+self.__dmisc['dfunc_order']['differential']:
-            v = P[k]['value']
+       P = self.__dparam
+       t = P['time']['value']
+       for k in self.__dmisc['dfunc_order']['statevar']+self.__dmisc['dfunc_order']['differential']:
+           v = P[k]['value']
 
-            newval = np.zeros([N]+list(self.__dmisc['dmulti']['shape']))
-            newt = np.linspace(t[0], t[-1], N)
+           newval = np.zeros([N]+list(self.__dmisc['dmulti']['shape']))
+           newt = np.linspace(t[0], t[-1], N)
 
-            for i in range(np.shape(newval)[1]):
-                newval[:, i] = np.interp(newt[:, i], t[:, i], v[:, i])
-            self.__dparam[k]['value'] = newval
+           for i in range(np.shape(newval)[1]):
+               newval[:, i] = np.interp(newt[:, i], t[:, i], v[:, i])
+           self.__dparam[k]['value'] = newval
 
     # ##############################
     #  Introspection
     # ##############################
 
     def __repr__(self, verb=None):
-        """ This is automatically called when only the instance is entered """
+       """ This is automatically called when only the instance is entered """
 
-        if verb is None:
-            verb = True
+       if verb is None:
+           verb = True
 
-        col0 = [
-            'model',
-            'preset',
-            'param (fix + func)',
-            'differential',
-            'statevar',
-            'run',
-            'source',
-        ]
+       col0 = [
+           'model',
+           'preset',
+           'param (fix + func)',
+           'differential',
+           'statevar',
+           'run',
+           'source',
+       ]
 
-        ar0 = [
-            self.__dmodel['name'],
-            self.__dmodel['preset'],
-            '{} + {}'.format(
-                len(self.get_dparam(returnas=list, eqtype=None))-1,
-                len(self.get_dparam(returnas=list, eqtype='parameter'))-1,
-            ),
-            len(self.get_dparam(returnas=list, eqtype='differential'))-1,
-            len(self.get_dparam(returnas=list, eqtype='statevar')),
-            self.__dmisc['run'],
-            self.__dmodel['file'],
-        ]
-        if verb is True:
-            return _utils._get_summary(
-                lar=[ar0],
-                lcol=[col0],
-                verb=False,
-                returnas=str,
-            )
-        else:
-            return col0, ar0
+       ar0 = [
+           self.__dmodel['name'],
+           self.__dmodel['preset'],
+           '{} + {}'.format(
+               len(self.get_dparam(returnas=list, eqtype=None))-1,
+               len(self.get_dparam(returnas=list, eqtype='parameter'))-1,
+           ),
+           len(self.get_dparam(returnas=list, eqtype='differential'))-1,
+           len(self.get_dparam(returnas=list, eqtype='statevar')),
+           self.__dmisc['run'],
+           self.__dmodel['file'],
+       ]
+       if verb is True:
+           return _utils._get_summary(
+               lar=[ar0],
+               lcol=[col0],
+               verb=False,
+               returnas=str,
+           )
+       else:
+           return col0, ar0
 
     def get_summary(self, idx=0, Region=0):
-        """
-        INTROSPECTION TOOL :
-        Print a str summary of the model, with
-        * Model description
-        * Parameters, their properties and their values
-        * ODE, their properties and their values
-        * Statevar, their properties and their values
+       """
+       INTROSPECTION TOOL :
+       Print a str summary of the model, with
+       * Model description
+       * Parameters, their properties and their values
+       * ODE, their properties and their values
+       * Statevar, their properties and their values
 
-        For more precise elements, you can do introspection using hub.get_dparam()
+       For more precise elements, you can do introspection using hub.get_dparam()
 
-        INPUT :
-        * idx = index of the model you want the value to be shown when there are multiple models in parrallel
-        """
+       INPUT :
+       * idx = index of the model you want the value to be shown when there are multiple models in parrallel
+       """
 
-        _FLAGS = ['run', 'cycles', 'derivative','multisectoral','solver']
-        _ORDERS = ['statevar', 'differential', 'parameters']
+       _FLAGS = ['run', 'cycles', 'derivative','multisectoral','solver']
+       _ORDERS = ['statevar', 'differential', 'parameters']
 
-        Vals = self.__dparam
+       Vals = self.__dparam
 
-        print(62 * '#')
-        print(20 * '#', 'SUMMARY'.center(18), 20 * '#')
-        print('Model       :', self.dmodel['name'])
-        print(self.dmodel['description'])
-        print('File        :', self.dmodel['file'])
-        print(20 * '#', 'Fields'.center(18), 20 * '#')
-        for o in _ORDERS:
-            print(o.ljust(15), str(len(self.dmisc['dfunc_order'][o])).zfill(3), self.dmisc['dfunc_order'][o])
-        print(20 * '#', 'Presets'.center(18), 20 * '#')
-        for k, v in self.dmodel['presets'].items():
-            print('    ', k.center(18),':', v['com'])
-        print(20 * '#', 'Flags'.center(18), 20 * '#')
-        for f in _FLAGS:
-            print(f.ljust(15) + ':', self.dmisc.get(f,''))
+       print(62 * '#')
+       print(20 * '#', 'SUMMARY'.center(18), 20 * '#')
+       print('Model       :', self.dmodel['name'])
+       print(self.dmodel['description'])
+       print('File        :', self.dmodel['file'])
+       print(20 * '#', 'Fields'.center(18), 20 * '#')
+       for o in _ORDERS:
+           print(o.ljust(15), str(len(self.dmisc['dfunc_order'][o])).zfill(3), self.dmisc['dfunc_order'][o])
+       print(20 * '#', 'Presets'.center(18), 20 * '#')
+       for k, v in self.dmodel['presets'].items():
+           print('    ', k.center(18),':', v['com'])
+       print(20 * '#', 'Flags'.center(18), 20 * '#')
+       for f in _FLAGS:
+           print(f.ljust(15) + ':', self.dmisc.get(f,''))
 
-        print(20 * '#', 'Time vector'.center(18), 20 * '#')
-        for k,v in Vals.items():
-            if k in ['Tmax','Tini','dt','nt']:
-                print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
-        print(20 * '#', 'Dimensions'.center(18), 20 * '#')
-        sub= self.get_dparam(returnas=dict,eqtype=['size'],)
-        for k in list(sub.keys())+['nx','nr']:
-            v = Vals[k]
-            print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
+       print(20 * '#', 'Time vector'.center(18), 20 * '#')
+       for k,v in Vals.items():
+           if k in ['Tmax','Tini','dt','nt']:
+               print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
+       print(20 * '#', 'Dimensions'.center(18), 20 * '#')
+       sub= self.get_dparam(returnas=dict,eqtype=['size'],)
+       for k in list(sub.keys())+['nx','nr']:
+           v = Vals[k]
+           print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
 
-        print(20 * '#', 'fields'.center(18), 20 * '#')
-        # parameters
-        col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx)
-        # SCALAR ODE
-        col3, ar3 = _class_utility._get_summary_functions_vector(
-            self, idx=idx,Region=Region, eqtype=['differential'])
-        # SCALAR Statevar
-        col4, ar4 = _class_utility._get_summary_functions_vector(
-            self, idx=idx,Region=Region, eqtype=['statevar'])
+       print(20 * '#', 'fields'.center(18), 20 * '#')
+       # parameters
+       col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx)
+       # SCALAR ODE
+       col3, ar3 = _class_utility._get_summary_functions_vector(
+           self, idx=idx,Region=Region, eqtype=['differential'])
+       # SCALAR Statevar
+       col4, ar4 = _class_utility._get_summary_functions_vector(
+           self, idx=idx,Region=Region, eqtype=['statevar'])
 
-        # ----------
-        # format output
-        return _utils._get_summary(
-            lar =[ ar2,  ar3,  ar4 ],
-            lcol=[ col2, col3, col4],
-            verb=True,
-            returnas=False,
-        )
+       # ----------
+       # format output
+       return _utils._get_summary(
+           lar =[ ar2,  ar3,  ar4 ],
+           lcol=[ col2, col3, col4],
+           verb=True,
+           returnas=False,)
 
 
     def get_equations_description(self):
@@ -1119,13 +980,11 @@ class Hub():
         atol=None,
         rtol=None,
         verb=None,
-        return_dfail=None,
-    ):
+        return_dfail=None,    ):
         """ Automatically called when testing obj1 == obj2 """
         return _class_utility._equal(
             self, other,
             atol=atol,
             rtol=rtol,
             verb=verb,
-            return_dfail=return_dfail,
-        )
+            return_dfail=return_dfail)
