@@ -111,7 +111,143 @@ class Hub():
     # ##############################
     # %% Setting / getting parameters
     # ##############################
-    
+
+    def set_dpreset(self,input,verb=_VERB):
+        """
+        change the dictionnary of presets
+
+        Check shape of the dictionnary
+        Input must be : a dictionnary with
+         { name : {fields : {} ,
+                   com: '',
+                   plots : {} },
+         }
+        """
+
+        if type(input)!=dict:
+            return 'Type of the input is wrong !'
+        for kk,vv in input.items():
+            if type(vv)!=dict:
+                return 'input must be a dict of dict !'
+            for keys in ['fields','com','plots']:
+                if keys not in vv.keys():
+                    return f'{keys} missing from the preset {kk}'
+            for keys2 in vv.keys():
+                if keys2 in ['fields','com','plots']:
+                    print(f'{keys2} in {kk} is not a field taken into account')
+
+        if verb:
+            print('OVERRIDE presets in dpreset')
+        self.__dmodel['presets']=input
+
+    def set_preset(self,input,verb=_VERB):
+        '''
+        will load the preset in dpreset
+        preset must be a string , with the name existing in dpreset
+        check get_summary to see which are available !
+        '''
+        if input not in self.__dmodel['presets'].keys():
+            return f"{input} is not a valid preset name ! the preset name must be in {self.__dmodel['presets'].keys()}"
+        else :
+            self.set_dparam(self,**self.__dmodel['presets'][input]['fields'])
+
+    def set_dparam(self,verb=_VERB,**kwdargs):
+        """
+        set a dictionnary of input as new param changes.
+
+        It can :
+        * Change all the values ( Nx,Nr,Multisect )
+        * Change only one region all
+
+        ### PARAMETERS/INITIAL COND CHANGES #######
+        when a dimension is not specified, it will fill it.
+        FULL EXAMPLE :
+        set_dparam(**{'alpha':{'nx'   : # NUMBER
+                             'nr'   : # NUMBER
+                             'sect1': # NAME OR NUMBER
+                             'sect2': # NAME OR NUMBER
+                             'value':0.2},
+        if 'value' : has the size of non-precised axis, it will change all the values
+        """
+
+        #### DECOMPOSE INTO SIZE AND VALUES #######
+        listofdimensions = []
+        dimtochange = {}
+        listoffields= []
+        fieldtochange = {}
+        wrongfields = []
+        for kk, vv in kwdargs.items():
+            if kk in listofdimensions:
+                dimtochange[kk]=vv
+            elif listoffields:
+                fieldtochange[kk]=vv
+            else :
+                wrongfields.append(kk)
+
+
+        if verb:
+            print('### Identified Changes ###')
+            print(f'Dimensions : {dimtochange.keys()}')
+            print(f'Fields : {fieldtochange.keys()}')
+            print(f'Ignored :{wrongfields}')
+
+        #### SEND IT TO THE PIPE ###################
+        self._set_dimensions(self, **dimtochange)
+        self._set_fields(self,**fieldtochange)
+
+    def _set_dimensions(self,**kwargs):
+        '''
+        Change the dimensions of the system
+        '''
+
+        # Put the values in the system
+        for kk, vv in kwargs.items():
+            # If its on multisectoral, put the value
+            if kk not in ['dt','nx']:
+                if type(vv) is list:
+                    self.__dparam[kk]['value'] = len(vv)
+                    self.__dparam[kk]['list'] = vv
+                elif type(vv) is int:
+                    self.__dparam[kk]['value'] = vv
+                    self.__dparam[kk]['list'] = [i for i in range(vv['value'])]
+            # Else, we just change values
+            else:
+                self.__dparam[kk]['value'] = vv
+
+        # change the initial or values of fields
+        parametersandifferential = []
+        for kk in parametersandifferential:
+            V={} ###########
+            direct = 'initial' if V['eqtype'] == 'differential' else 'value'
+            value = self.__dparam[kk][direct]#[ADD THE RIGHT DIMENSION]
+            self.__dparam[kk][direct] = []##[]
+
+        ### REACTUALIZE SHAPES
+        self.__dparam=_class_set.set_shapes_values(self.__dparam,
+                                                   self.__dmisc['dfunc_order'])
+        self.__dargs=_class_set.get_dargs_by_reference(self.__dparam,
+                                                       dfunc_order=self.__dmisc['dfunc_order'])
+        self.reset()
+
+    def _set_fields(self, **kwargs):
+
+
+        # New
+        changes = {kk : np.zeros_like(self.__dparam[kk]['initial'
+                if self.__dparam['eqtype']=='differential' else 'value']).fill(np.nan)
+                   for kk in kwargs.keys()}
+
+
+        '''
+        for kk,vv in newvalues.items():
+            V = self.__dparam[kk]
+            direct= 'initial' if V['eqtype']=='differential' else 'value'
+            V[direct][changes[kk]]=vv
+        '''
+        # REINTIIALIZE SHAPES AND DIMENSIONS
+        self.reset()
+
+##############################################################################
 
     def get_dparam(self, condition=None, verb=None, returnas=dict, **kwdargs):
        """ Return a copy of the input parameters dict that you can filter
