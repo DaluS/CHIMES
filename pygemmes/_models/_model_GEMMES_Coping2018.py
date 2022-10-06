@@ -32,7 +32,7 @@ for category, dic in _LOGICSCLIM.items():
         _LOGICS[category][k] = v
 
 # remove unused variables and params
-#del _LOGICS['ode']['t']
+#del _LOGICS['differential']['t']
 del _LOGICS['statevar']['Ir']
 
 # add plenty of stuff
@@ -165,6 +165,7 @@ _LOGICS_COPING2018 = {
             'com': 'Production cost to get good inflation function',
         },
     },
+    'parameter':{},
 }
 
 # add Coping logics
@@ -172,29 +173,32 @@ for category, dic in _LOGICS_COPING2018.items():
     for k, v in dic.items():
         _LOGICS[category][k] = v
 
+for k,v in _LOGICS.items():
+    print(k,v)
+
 # UNITS #######################################################################
-_LOGICS['ode']['a']['units'] = '$.Humans^{-1}.y^{-1}'
-_LOGICS['ode']['N']['units'] = 'Humans'
-_LOGICS['ode']['K']['units'] = '$'
-_LOGICS['ode']['w']['units'] = '$.Humans^{-1}.y^{-1}'
-_LOGICS['ode']['D']['units'] = '$'
-_LOGICS['ode']['p']['units'] = ''
-_LOGICS['ode']['CO2AT']['units'] = 'C'
-_LOGICS['ode']['CO2UP']['units'] = 'C'
-_LOGICS['ode']['CO2LO']['units'] = 'C'
-_LOGICS['ode']['T']['units'] = 'Tc'
-_LOGICS['ode']['T0']['units'] = 'Tc'
-_LOGICS['ode']['pbackstop']['units'] = '$'
-_LOGICS['ode']['pcarbon_pot']['units'] = '$.C^{-1}'
-_LOGICS['ode']['sigmaEm']['units'] = 'C.$^{-1}'
-_LOGICS['ode']['gsigmaEm']['units'] = 'y^{-1}'
-_LOGICS['ode']['Eland']['units'] = 'C.y^{-1}'
+_LOGICS['differential']['a']['units'] = '$.Humans^{-1}.y^{-1}'
+_LOGICS['differential']['N']['units'] = 'Humans'
+_LOGICS['differential']['K']['units'] = '$'
+_LOGICS['differential']['w']['units'] = '$.Humans^{-1}.y^{-1}'
+_LOGICS['differential']['D']['units'] = '$'
+_LOGICS['differential']['p']['units'] = ''
+_LOGICS['differential']['CO2AT']['units'] = 'C'
+_LOGICS['differential']['CO2UP']['units'] = 'C'
+_LOGICS['differential']['CO2LO']['units'] = 'C'
+_LOGICS['differential']['T']['units'] = 'Tc'
+_LOGICS['differential']['T0']['units'] = 'Tc'
+_LOGICS['differential']['pbackstop']['units'] = '$'
+_LOGICS['differential']['pcarbon_pot']['units'] = '$.C^{-1}'
+_LOGICS['differential']['sigmaEm']['units'] = 'C.$^{-1}'
+_LOGICS['differential']['gsigmaEm']['units'] = 'y^{-1}'
+_LOGICS['differential']['Eland']['units'] = 'C.y^{-1}'
 _LOGICS['statevar']['Y']['units'] = '$'
 _LOGICS['statevar']['L']['units'] = 'Humans'
 _LOGICS['statevar']['phillips']['units'] = 'y^{-1}'
 _LOGICS['statevar']['I']['units'] = '$.y^{-1}'
 _LOGICS['statevar']['pi']['units'] = ''
-_LOGICS['statevar']['lambda']['units'] = ''
+_LOGICS['statevar']['employment']['units'] = ''
 _LOGICS['statevar']['omega']['units'] = ''
 _LOGICS['statevar']['GDP']['units'] = '$.y^{-1}'
 _LOGICS['statevar']['c']['units'] = ''
@@ -216,53 +220,54 @@ _LOGICS['statevar']['pcarbon']['units'] = '$.C^{-1}'
 _LOGICS['statevar']['Abattement']['units'] = ''
 _LOGICS['statevar']['carbontax']['units'] = '$.y^{-1}'
 
-_LOGICS['param']['Tini'] = {'units': 'y'}
-_LOGICS['param']['Tmax'] = {'units': 'y'}
-_LOGICS['param']['dt'] = {'units': 'y'}
-_LOGICS['param']['nx'] = {'units': 'y'}
-_LOGICS['param']['alpha'] = {'units': 'y^{-1}'}
-_LOGICS['param']['n'] = {'units': 'y^{-1}'}
-_LOGICS['param']['Nmax'] = {'units': 'Humans'}
-_LOGICS['param']['phi12'] = {'units': 'y^{-1}'}
-_LOGICS['param']['CUP'] = {'units': 'C'}
-_LOGICS['param']['CAT'] = {'units': 'C'}
-_LOGICS['param']['phi23'] = {'units': 'y^{-1}'}
-_LOGICS['param']['CLO'] = {'units': 'C'}
 
 _LOGICS['statevar']['F']['units'] = 'W.L^{-2}'
-_LOGICS['param']['rhoAtmo'] = {'units': 'W L^{-2} Tc^{-1}'}
-_LOGICS['param']['gammaAtmo'] = {'units': 'W L^{-2} Tc^{-1}'}
-_LOGICS['param']['Capacity'] = {'units': 'y W L^{-2} Tc^{-1}'}
-_LOGICS['param']['Capacity0'] = {'units': 'y W L^{-2} Tc^{-1}'}
-_LOGICS['param']['F2CO2'] = {'units': 'W L^{-2}'}
-
-_LOGICS['param']['deltapbackstop'] = {'units': 'y^{-1}'}
-_LOGICS['param']['apc'] = {'units': 'y^{-1}'}
-_LOGICS['param']['bpc'] = {'units': 'y^{-2}'}
-_LOGICS['param']['deltagsigmaEm'] = {'units': 'y^{-1}'}
-_LOGICS['param']['deltaEland'] = {'units': 'y^{-1}'}
-_LOGICS['param']['philinConst'] = {'units': 'y^{-1}'}
-_LOGICS['param']['philinSlope'] = {'units': 'y^{-1}'}
-_LOGICS['param']['r'] = {'units': 'y^{-1}'}
-_LOGICS['param']['kappalinConst'] = {'units': ''}
-_LOGICS['param']['kappalinSlope'] = {'units': ''}
-_LOGICS['param']['kappalinMin'] = {'units': ''}
-_LOGICS['param']['kappalinMax'] = {'units': ''}
-_LOGICS['param']['mu'] = {'units': ''}
-_LOGICS['param']['eta'] = {'units': 'y^{-1}'}
-_LOGICS['param']['divlinSlope'] = {'units': '$.y^{-1}'}
-_LOGICS['param']['divlinconst'] = {'units': '$.y^{-1}'}
-_LOGICS['param']['divlinMin'] = {'units': '$.y^{-1}'}
-_LOGICS['param']['divlinMax'] = {'units': '$.y^{-1}'}
-_LOGICS['param']['pi1'] = {'units': 'Tc^{-1}'}
-_LOGICS['param']['pi2'] = {'units': 'Tc^{-2}'}
-_LOGICS['param']['pi3'] = {'units': 'Tc^{-zeta3}'}
-_LOGICS['param']['zeta3'] = {'units': ''}
-_LOGICS['param']['fk'] = {'units': ''}
-_LOGICS['param']['delta'] = {'units': 'y^{-1}'}
-_LOGICS['param']['nu'] = {'units': 'y'}
-_LOGICS['param']['convexitycost'] = {'units': ''}
-_LOGICS['param']['conv10to15'] = {'units': ''}
+"""
+_LOGICS['parameter']['rhoAtmo'] = {'units': 'W L^{-2} Tc^{-1}'}
+_LOGICS['parameter']['gammaAtmo'] = {'units': 'W L^{-2} Tc^{-1}'}
+_LOGICS['parameter']['Capacity'] = {'units': 'y W L^{-2} Tc^{-1}'}
+_LOGICS['parameter']['Capacity0'] = {'units': 'y W L^{-2} Tc^{-1}'}
+_LOGICS['parameter']['F2CO2'] = {'units': 'W L^{-2}'}
+_LOGICS['parameter']['Tini'] = {'units': 'y'}
+_LOGICS['parameter']['Tmax'] = {'units': 'y'}
+_LOGICS['parameter']['dt'] = {'units': 'y'}
+_LOGICS['parameter']['nx'] = {'units': 'y'}
+_LOGICS['parameter']['alpha'] = {'units': 'y^{-1}'}
+_LOGICS['parameter']['n'] = {'units': 'y^{-1}'}
+_LOGICS['parameter']['Nmax'] = {'units': 'Humans'}
+_LOGICS['parameter']['phi12'] = {'units': 'y^{-1}'}
+_LOGICS['parameter']['CUP'] = {'units': 'C'}
+_LOGICS['parameter']['CAT'] = {'units': 'C'}
+_LOGICS['parameter']['phi23'] = {'units': 'y^{-1}'}
+_LOGICS['parameter']['CLO'] = {'units': 'C'}
+_LOGICS['parameter']['deltapbackstop'] = {'units': 'y^{-1}'}
+_LOGICS['parameter']['apc'] = {'units': 'y^{-1}'}
+_LOGICS['parameter']['bpc'] = {'units': 'y^{-2}'}
+_LOGICS['parameter']['deltagsigmaEm'] = {'units': 'y^{-1}'}
+_LOGICS['parameter']['deltaEland'] = {'units': 'y^{-1}'}
+_LOGICS['parameter']['philinConst'] = {'units': 'y^{-1}'}
+_LOGICS['parameter']['philinSlope'] = {'units': 'y^{-1}'}
+_LOGICS['parameter']['r'] = {'units': 'y^{-1}'}
+_LOGICS['parameter']['kappalinConst'] = {'units': ''}
+_LOGICS['parameter']['kappalinSlope'] = {'units': ''}
+_LOGICS['parameter']['kappalinMin'] = {'units': ''}
+_LOGICS['parameter']['kappalinMax'] = {'units': ''}
+_LOGICS['parameter']['mu'] = {'units': ''}
+_LOGICS['parameter']['eta'] = {'units': 'y^{-1}'}
+_LOGICS['parameter']['divlinSlope'] = {'units': '$.y^{-1}'}
+_LOGICS['parameter']['divlinconst'] = {'units': '$.y^{-1}'}
+_LOGICS['parameter']['divlinMin'] = {'units': '$.y^{-1}'}
+_LOGICS['parameter']['divlinMax'] = {'units': '$.y^{-1}'}
+_LOGICS['parameter']['pi1'] = {'units': 'Tc^{-1}'}
+_LOGICS['parameter']['pi2'] = {'units': 'Tc^{-2}'}
+_LOGICS['parameter']['pi3'] = {'units': 'Tc^{-zeta3}'}
+_LOGICS['parameter']['zeta3'] = {'units': ''}
+_LOGICS['parameter']['fk'] = {'units': ''}
+_LOGICS['parameter']['delta'] = {'units': 'y^{-1}'}
+_LOGICS['parameter']['nu'] = {'units': 'y'}
+_LOGICS['parameter']['convexitycost'] = {'units': ''}
+_LOGICS['parameter']['conv10to15'] = {'units': ''}
+"""
 ###############################################################################
 
 # Dictionnary of fields for preset
@@ -341,7 +346,7 @@ df0 = {
     'Eind': 51.79,
     'emissionreductionrate': 0.03,
     'Y': 59.74,
-    'lambda': 0.675,
+    'employment': 0.675,
     'omega': 0.578,
     'Dy': 0,
     'climate_sens': 3.1,
@@ -355,7 +360,7 @@ df0 = {
 }
 
 # second order initial conditions calculation
-df0['L'] = df0['lambda'] * df['N']
+df0['L'] = df0['employment'] * df['N']
 df0['Abattement'] = 1./(1. + ((1. - df0['emissionreductionrate'])*df0['Y'] *
                               df['convexitycost'])/(0.001*df0['Eind']*df['pbackstop'] *
                                                     df0['emissionreductionrate']**df['convexitycost']*(1. - df0['Dy'])))
@@ -378,7 +383,7 @@ plots = {
     'nyaxis': [
         {
             'x': 'time',
-            'y': [['lambda', 'omega'],
+            'y': [['employment', 'omega'],
                   ['d'],
                   ['g'],
                   ['kappa', 'pi'],
@@ -408,7 +413,7 @@ plots = {
         },
         {
             'x': 'time',
-            'y': [['lambda', 'omega'],
+            'y': [['employment', 'omega'],
                   ['d'],
                   ['g'],
                   ['T'],
@@ -419,7 +424,7 @@ plots = {
         }
     ],
     'phasespace': [],
-    '3D': [{'x': 'lambda',
+    '3D': [{'x': 'employment',
             'y': 'omega',
             'z': 'd',
             'cinf': 'pi',

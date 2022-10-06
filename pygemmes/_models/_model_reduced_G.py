@@ -1,13 +1,9 @@
 """
-DESCRIPTION :
-    It is a two-sector model ( Household and Firm ), with salary negociation.
-    There is no "money" explicitely (money and real units are equivalent), and there is no debt mechanism possible :
-every sector is spending what they recieve
+It is the reduced version of a Goodwin model, with another writing : when the model is established,
+one can rather than calculate (N,a,K,w), calculate the dynamics only on employment and wage share.
+In consequence it is a 2- differential equation model, but with the same dynamics as _model_goodwin.
 
-    The interesting things :
-        * growth is an emergent propertie
-        * Economic cycles (on employement and wage share) are an emergent propertie
-        * trajectories are closed in the phasespace (lambda, omega) employement - wageshare
+The rest of the documentation is in _model_Goodwin
 
 LINKTOARTICLE:
 

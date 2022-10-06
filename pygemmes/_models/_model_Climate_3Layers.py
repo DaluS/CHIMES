@@ -15,29 +15,14 @@ LINKTOARTICLE :
 import numpy as np
 from pygemmes._models import Funcs
 
-# ---------------------------
-# user-defined function order (optional)
-_FUNC_ORDER = None
-
-
-# ---------------------------
-# user-defined model
-# contains parameters and functions of various types
-
-
 _LOGICS = {
-    'ode': {
+    'differential': {
         # ATMOSPHERE ODE
         'CO2AT': Funcs.Atmosphere.Three_Layers.CO2AT,
         'CO2UP': Funcs.Atmosphere.Three_Layers.CO2UP,
         'CO2LO': Funcs.Atmosphere.Three_Layers.CO2LO,
         'T': Funcs.Atmosphere.Three_Layers.T,
         'T0': Funcs.Atmosphere.Three_Layers.T0,
-        # 't': {
-        #    'func': lambda t: 1,
-        #    'com': 'needed for explicit time dependency',
-        #    'initial': 0,
-        # },
     },
     'statevar': {
         'F': Funcs.Atmosphere.F,

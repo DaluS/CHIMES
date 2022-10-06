@@ -58,8 +58,8 @@ def plotbyunits(hub, title='', lw=1, idx=0,Region=0, color='r'):
     '''
     generate one subfigure per set of units existing
     '''
-    grpfield = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['ode', 'statevar'])
-    groupsoffields = {  k:v for k,v in grpfield.items() if len(v)>0}
+    grpfield = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['differential', 'statevar'])
+    groupsoffields = {  k:v for k,v in grpfield.items() if (len(v)>0 and 'time' not in v)}
     Nax = len(groupsoffields.keys())
 
     Ncol = 2
@@ -81,14 +81,10 @@ def plotbyunits(hub, title='', lw=1, idx=0,Region=0, color='r'):
         ax = dax[key]
 
         vy[key] = {yyy: R[yyy]['value'][:, idx,Region,0,0] for yyy in vvar}
-        #ymin = np.amin([np.amin(v) for v in vy[key].values()])
-        #ymax = np.amax([np.amax(v) for v in vy[key].values()])
 
         units = r'$\  '+key.replace('$', '\$')+'  \ $'
         ylabel = units
         dax[key].set_ylabel(ylabel)
-        #dax[key].set_ylim(ymin, ymax)
-        #ax.set_xlabel(R['time']['symbol']+' (years)')
         ax.set_xlim(vx[0], vx[-1])
         ax.axhline(y=0, color='k', lw=0.5)
         if 1 < index < Nax-2:

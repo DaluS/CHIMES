@@ -111,6 +111,8 @@ class Hub():
     # ##############################
     # %% Setting / getting parameters
     # ##############################
+    
+
     def get_dparam(self, condition=None, verb=None, returnas=dict, **kwdargs):
        """ Return a copy of the input parameters dict that you can filter
 
@@ -417,17 +419,22 @@ class Hub():
 
        Vals = self.__dparam
 
-       print(62 * '#')
+       print(60 * '#')
        print(20 * '#', 'SUMMARY'.center(18), 20 * '#')
+       print(60 * '#')
        print('Model       :', self.dmodel['name'])
        print(self.dmodel['description'])
        print('File        :', self.dmodel['file'])
+
        print(20 * '#', 'Fields'.center(18), 20 * '#')
        for o in _ORDERS:
-           print(o.ljust(15), str(len(self.dmisc['dfunc_order'][o])).zfill(3), self.dmisc['dfunc_order'][o])
+           print(o.ljust(15), str(len(self.dmisc['dfunc_order'][o])).zfill(3),
+                 [z for z in self.dmisc['dfunc_order'][o] if z not in ['t','__ONE__','Tmax','Tini','dt','nt','nr','nx']])
+
        print(20 * '#', 'Presets'.center(18), 20 * '#')
        for k, v in self.dmodel['presets'].items():
            print('    ', k.center(18),':', v['com'])
+
        print(20 * '#', 'Flags'.center(18), 20 * '#')
        for f in _FLAGS:
            print(f.ljust(15) + ':', self.dmisc.get(f,''))
@@ -436,12 +443,14 @@ class Hub():
        for k,v in Vals.items():
            if k in ['Tmax','Tini','dt','nt']:
                print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
+
        print(20 * '#', 'Dimensions'.center(18), 20 * '#')
        sub= self.get_dparam(returnas=dict,eqtype=['size'],)
        for k in list(sub.keys())+['nx','nr']:
            v = Vals[k]
            print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
 
+       print(60 * '#')
        print(20 * '#', 'fields'.center(18), 20 * '#')
        # parameters
        col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx)

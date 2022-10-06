@@ -1,31 +1,30 @@
 # -*- coding: utf-8 -*-
 """
-DESCRIPTION :
-    It is a two-sector model ( Household and Firm ), with salary negociation.
-    There is no "money" explicitely (money and real units are equivalent), and there is no debt mechanism possible :
-every sector is spending what they recieve
+This is a basic Goodwin model :
+    * Two sectors
+    * Exogenous technical progress, exogenous population
+    * Capital accumulation through investment of profits
+    * Consumption through salary
+    * Salary-Profit through Philips curve
+    * No money, no inflation
+    * No loan possibility
 
-    The interesting things :
-        * growth is an emergent propertie
-        * Economic cycles (on employement and wage share) are an emergent propertie
-        * trajectories are closed in the phasespace (lambda, omega) employement - wageshare
+The interesting things :
+    * growth is an emergent property
+    * Economic cycles (on employment and wage share) are an emergent property
+    * trajectories are closed in the phasespace (lambda, omega) employment - wageshare
 
-LINKTOARTICLE:
+Link : https://en.wikipedia.org/wiki/Goodwin_model_(economics) (notations differs)
 
-Created on Wed Jul 21 15:11:15 2021
+
 @author: Paul Valcke
 """
 
-
-import numpy as np
 from pygemmes._models import Funcs
-
 
 # ---------------------------
 # user-defined model
 # contains parameters and functions of various types
-
-
 _LOGICS = {
     'differential': {
         # Exogenous entries in the model
@@ -44,7 +43,6 @@ _LOGICS = {
 
     # Intermediary relevant functions
     'statevar': {
-
         # Production function and its employement
         'Y': Funcs.ProductionWorkers.Leontiev_Optimised.Y,
         'L': Funcs.ProductionWorkers.Leontiev_Optimised.L,
@@ -53,12 +51,14 @@ _LOGICS = {
         'phillips': Funcs.Phillips.div,
         'I': Funcs.Kappa.ifromnobank,
         'Ir': Funcs.Kappa.irfromI,
+
         # Intermediary variables with their definitions
         'pi': Funcs.Definitions.pi,
         'employment': Funcs.Definitions.employment,
         'omega': Funcs.Definitions.omega,
         'GDP': Funcs.Definitions.GDPmonosec,
 
+        # Costs per unit produced
         'c': Funcs.Inflation.costonlylabor,
 
         # Stock-Flow consistency
@@ -70,12 +70,6 @@ _LOGICS = {
         'g': {
             'func': lambda I, K, delta: (I - K * delta)/K,
             'com': 'relative growth rate'},
-    },
-    'parameter': {
-        'test': {
-            'value': 2,
-            'definition': 'I am a test'
-        },
     },
 }
 

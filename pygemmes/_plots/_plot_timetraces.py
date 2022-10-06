@@ -212,6 +212,7 @@ def plot_timetraces(
     # for selection of data
     idx=None,
     eqtype=None,
+    Region=0,
     **kwdargs,
 ):
     '''
@@ -293,11 +294,11 @@ def plot_timetraces(
             continue
         # Add by Paul : Statistical indicators on multiple runs
         if mode == 'sensitivity':
-            time = hub.dparam['time']['value'][:, 0]
+            time = hub.dparam['time']['value'][:, idx,Region,0,0]
             V = hub.dparam[k0]['sensitivity']
             # Plot all trajectory
             for i in range(len(hub.dparam['time']['value'][0, :])):
-                dax[k0].plot(time, hub.dparam[k0]['value']
+                dax[k0].plot(time, hub.dparam[k0]['value'][:, idx,Region,0,0]
                              [:, i], c='k', ls='--', lw=0.5)
 
             # Plot mean an median

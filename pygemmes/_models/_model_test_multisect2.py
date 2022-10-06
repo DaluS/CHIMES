@@ -2,7 +2,7 @@
 """
 DESCRIPTION :
 
-    Template for a multisectorial model
+    Template for a multisectorial model. It is meaningless, just for numerical test
 
 """
 

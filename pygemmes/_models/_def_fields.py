@@ -40,7 +40,7 @@ _LIBRARY = {
     'Numerical': {
         # TIME GESTION ##############################################
         'Tmax': {
-            'value': 10,
+            'value': 100,
             'units': 'y',
             'definition': 'Total simulated time',
         },
