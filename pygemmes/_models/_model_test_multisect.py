@@ -9,6 +9,8 @@ DESCRIPTION :
 import numpy as np
 #from pygemmes._models import Funcs
 
+def scalarprod(X,Y):
+    return np.matmul(np.moveaxis(X,-1,-2),Y)
 
 # ######################## OPERATORS ####################################
 
@@ -20,6 +22,10 @@ _LOGICS = {
             'func': lambda OPER,Z: OPER-0.5*Z,
             'size': ['Nprod', ],
             'initial': 1,
+        },
+        'scal': {
+            'func': lambda Z: scalarprod(Z,Z),
+            'initial': 0,
         },
 
     },
@@ -34,14 +40,23 @@ _LOGICS = {
             'value': 0,
             'size': ['Nprod', 'Nprod']
         },
+        'Coupling': {
+            'value': 0,
+            'size': ['nr','nr']
+        }
     },
     'size': {
         'Nprod': {
             #'value': 4,
             'list': ['energy','Capital','Cons'],
         },
+        'nr': {
+            # 'value': 4,
+            'list': ['france', 'china', 'US'],
+        },
     },
 }
+
 
 _PRESETS = {
     'default': {

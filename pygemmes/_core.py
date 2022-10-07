@@ -112,7 +112,10 @@ class Hub():
     # %% Setting / getting parameters
     # ##############################
 
-    def set_dpreset(self,input,verb=_VERB):
+    def set_dpreset(self,
+                    input,
+                    preset_name=None,
+                    verb=_VERB):
         """
         change the dictionnary of presets
 
@@ -122,6 +125,9 @@ class Hub():
                    com: '',
                    plots : {} },
          }
+
+         if preset_name is a name in this dpreset,
+          then it loads the preset
         """
 
         if type(input)!=dict:
@@ -133,25 +139,32 @@ class Hub():
                 if keys not in vv.keys():
                     return f'{keys} missing from the preset {kk}'
             for keys2 in vv.keys():
-                if keys2 in ['fields','com','plots']:
+                if keys2 not in ['fields','com','plots']:
                     print(f'{keys2} in {kk} is not a field taken into account')
 
         if verb:
             print('OVERRIDE presets in dpreset')
         self.__dmodel['presets']=input
 
-    def set_preset(self,input,verb=_VERB):
+        if preset_name:
+            self.set_preset(preset_name)
+
+    def set_preset(self,
+                   input,verb=_VERB):
         '''
         will load the preset in dpreset
         preset must be a string , with the name existing in dpreset
         check get_summary to see which are available !
+
+        input must be the name of an available preset
         '''
         if input not in self.__dmodel['presets'].keys():
-            return f"{input} is not a valid preset name ! the preset name must be in {self.__dmodel['presets'].keys()}"
+            return f"{input} is not a valid preset name ! the preset name must be in {list(self.__dmodel['presets'].keys())}"
         else :
+            self.__dmodel['preset']=input
             self.set_dparam(self,**self.__dmodel['presets'][input]['fields'])
 
-    def set_dparam(self,verb=_VERB,**kwdargs):
+    def set_dparam(self,verb=_VERB,**kwargs):
         """
         set a dictionnary of input as new param changes.
 
@@ -171,56 +184,76 @@ class Hub():
         """
 
         #### DECOMPOSE INTO SIZE AND VALUES #######
-        listofdimensions = []
+
+
+        setofdimensions = set(['nr','nx','dt','Tini','Tmax']+list(self.get_dparam(eqtype=['size'])))
+        diffparam = set(self.get_dparam(eqtype=['differential', None])) - set(['__ONE__','time']) - setofdimensions
+
         dimtochange = {}
-        listoffields= []
         fieldtochange = {}
         wrongfields = []
-        for kk, vv in kwdargs.items():
-            if kk in listofdimensions:
+
+        for kk, vv in kwargs.items():
+            if kk in list(setofdimensions):
                 dimtochange[kk]=vv
-            elif listoffields:
+            elif kk in list(diffparam):
                 fieldtochange[kk]=vv
             else :
                 wrongfields.append(kk)
 
 
         if verb:
-            print('### Identified Changes ###')
-            print(f'Dimensions : {dimtochange.keys()}')
-            print(f'Fields : {fieldtochange.keys()}')
-            print(f'Ignored :{wrongfields}')
+            print('### Identified key to be changed ###')
+            print(f'   Dimensions : {list(dimtochange.keys())}')
+            print(f'   Fields : {list(fieldtochange.keys())}')
+            print(f'   Ignored :{wrongfields}')
 
         #### SEND IT TO THE PIPE ###################
-        self._set_dimensions(self, **dimtochange)
-        self._set_fields(self,**fieldtochange)
+        self._set_dimensions(verb,**dimtochange)
+        self._set_fields(verb,**fieldtochange)
 
-    def _set_dimensions(self,**kwargs):
+    def _set_dimensions(self,verb=_VERB,**kwargs):
         '''
         Change the dimensions of the system
         '''
 
         # Put the values in the system
         for kk, vv in kwargs.items():
+            if verb:
+                print('CHANGING :',kk)
             # If its on multisectoral, put the value
             if kk not in ['dt','nx']:
                 if type(vv) is list:
                     self.__dparam[kk]['value'] = len(vv)
                     self.__dparam[kk]['list'] = vv
-                elif type(vv) is int:
+                elif type(vv) in [float,int]:
                     self.__dparam[kk]['value'] = vv
-                    self.__dparam[kk]['list'] = [i for i in range(vv['value'])]
+                    self.__dparam[kk]['list'] = list(np.arange(vv))
             # Else, we just change values
             else:
                 self.__dparam[kk]['value'] = vv
 
+
         # change the initial or values of fields
-        parametersandifferential = []
+        setofdimensions = set(['nr','nx','dt','Tini','Tmax']+list(self.get_dparam(eqtype=['size'])))
+        diffparam = set(self.get_dparam(eqtype=['differential', None])) - set(['__ONE__','time']) - setofdimensions
+        parametersandifferential = list(diffparam)
+
+        # we scan all fields that will need to have their values changed
+        ERROR=False
         for kk in parametersandifferential:
-            V={} ###########
-            direct = 'initial' if V['eqtype'] == 'differential' else 'value'
-            value = self.__dparam[kk][direct]#[ADD THE RIGHT DIMENSION]
-            self.__dparam[kk][direct] = []##[]
+            V=self.__dparam[kk]
+            direct = 'initial' if V.get('eqtype','') == 'differential' else 'value'
+
+
+
+            result = np.all(V[direct] == np.ravel(V[direct])[0])
+            if result:
+                self.__dparam[kk][direct]=np.ravel(self.__dparam[kk][direct])[0]
+            else:
+                ERROR=True
+                print(f'{kk} has different values in its array, but is changed dimension')
+                print('THIS WILL BE IMPROVED IN A LATER EDITION')
 
         ### REACTUALIZE SHAPES
         self.__dparam=_class_set.set_shapes_values(self.__dparam,
@@ -229,21 +262,20 @@ class Hub():
                                                        dfunc_order=self.__dmisc['dfunc_order'])
         self.reset()
 
-    def _set_fields(self, **kwargs):
+    def _set_fields(self,verb=_VERB, **kwargs):
 
 
         # New
         changes = {kk : np.zeros_like(self.__dparam[kk]['initial'
-                if self.__dparam['eqtype']=='differential' else 'value']).fill(np.nan)
+                if self.__dparam.get('eqtype',False)=='differential' else 'value']).fill(np.nan)
                    for kk in kwargs.keys()}
-
-
         '''
         for kk,vv in newvalues.items():
             V = self.__dparam[kk]
             direct= 'initial' if V['eqtype']=='differential' else 'value'
             V[direct][changes[kk]]=vv
         '''
+
         # REINTIIALIZE SHAPES AND DIMENSIONS
         self.reset()
 
@@ -536,75 +568,79 @@ class Hub():
            return col0, ar0
 
     def get_summary(self, idx=0, Region=0):
-       """
-       INTROSPECTION TOOL :
-       Print a str summary of the model, with
-       * Model description
-       * Parameters, their properties and their values
-       * ODE, their properties and their values
-       * Statevar, their properties and their values
+        """
+        INTROSPECTION TOOL :
+        Print a str summary of the model, with
+        * Model description
+        * Parameters, their properties and their values
+        * ODE, their properties and their values
+        * Statevar, their properties and their values
 
-       For more precise elements, you can do introspection using hub.get_dparam()
+        For more precise elements, you can do introspection using hub.get_dparam()
 
-       INPUT :
-       * idx = index of the model you want the value to be shown when there are multiple models in parrallel
-       """
+        INPUT :
+        * idx = index of the model you want the value to be shown when there are multiple models in parrallel
+        """
 
-       _FLAGS = ['run', 'cycles', 'derivative','multisectoral','solver']
-       _ORDERS = ['statevar', 'differential', 'parameters']
+        _FLAGS = ['run', 'cycles', 'derivative','multisectoral','solver']
+        _ORDERS = ['statevar', 'differential', 'parameters']
 
-       Vals = self.__dparam
+        Vals = self.__dparam
 
-       print(60 * '#')
-       print(20 * '#', 'SUMMARY'.center(18), 20 * '#')
-       print(60 * '#')
-       print('Model       :', self.dmodel['name'])
-       print(self.dmodel['description'])
-       print('File        :', self.dmodel['file'])
+        print(60 * '#')
+        print(20 * '#', 'SUMMARY'.center(18), 20 * '#')
+        print(60 * '#')
+        print('Model       :', self.dmodel['name'])
+        print(self.dmodel['description'])
+        print('File        :', self.dmodel['file'])
 
-       print(20 * '#', 'Fields'.center(18), 20 * '#')
-       for o in _ORDERS:
+        print(20 * '#', 'Fields'.center(18), 20 * '#')
+        for o in _ORDERS:
            print(o.ljust(15), str(len(self.dmisc['dfunc_order'][o])).zfill(3),
                  [z for z in self.dmisc['dfunc_order'][o] if z not in ['t','__ONE__','Tmax','Tini','dt','nt','nr','nx']])
 
-       print(20 * '#', 'Presets'.center(18), 20 * '#')
-       for k, v in self.dmodel['presets'].items():
+        print(20 * '#', 'Presets'.center(18), 20 * '#')
+        for k, v in self.dmodel['presets'].items():
            print('    ', k.center(18),':', v['com'])
 
-       print(20 * '#', 'Flags'.center(18), 20 * '#')
-       for f in _FLAGS:
+        print(20 * '#', 'Flags'.center(18), 20 * '#')
+        for f in _FLAGS:
            print(f.ljust(15) + ':', self.dmisc.get(f,''))
 
-       print(20 * '#', 'Time vector'.center(18), 20 * '#')
-       for k,v in Vals.items():
+        print(20 * '#', 'Time vector'.center(18), 20 * '#')
+        for k,v in Vals.items():
            if k in ['Tmax','Tini','dt','nt']:
                print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
 
-       print(20 * '#', 'Dimensions'.center(18), 20 * '#')
-       sub= self.get_dparam(returnas=dict,eqtype=['size'],)
-       for k in list(sub.keys())+['nx','nr']:
+        print(20 * '#', 'Dimensions'.center(18), 20 * '#')
+        sub= self.get_dparam(returnas=dict,eqtype=['size'],)
+        for k in list(sub.keys())+['nx','nr']:
            v = Vals[k]
            print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
 
-       print(60 * '#')
-       print(20 * '#', 'fields'.center(18), 20 * '#')
-       # parameters
-       col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx)
-       # SCALAR ODE
-       col3, ar3 = _class_utility._get_summary_functions_vector(
+        print(60 * '#')
+        print(20 * '#', 'fields'.center(18), 20 * '#')
+        # parameters
+        col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx)
+        # SCALAR ODE
+        col3, ar3 = _class_utility._get_summary_functions_vector(
            self, idx=idx,Region=Region, eqtype=['differential'])
-       # SCALAR Statevar
-       col4, ar4 = _class_utility._get_summary_functions_vector(
+        # SCALAR Statevar
+        col4, ar4 = _class_utility._get_summary_functions_vector(
            self, idx=idx,Region=Region, eqtype=['statevar'])
 
-       # ----------
-       # format output
-       return _utils._get_summary(
+        # Print matrices
+
+
+        # ----------
+        # format output
+        _utils._get_summary(
            lar =[ ar2,  ar3,  ar4 ],
            lcol=[ col2, col3, col4],
            verb=True,
            returnas=False,)
 
+        _class_utility._print_matrix(self,idx=idx,Region=Region)
 
     def get_equations_description(self):
         '''

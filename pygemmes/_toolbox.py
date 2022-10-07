@@ -41,7 +41,7 @@ def get_available_plots():
         print(i[1].__doc__)
 
 
-def get_available_fields(returnas=False,exploreModels=False,showModels=False):
+def get_available_fields(returnas=False,exploreModels=True,showModels=False):
     # Check 09/27/22
     '''
     Will load the library of fields, then all available models,
@@ -71,7 +71,7 @@ def get_available_fields(returnas=False,exploreModels=False,showModels=False):
                         dparam_sub[key]['inmodel'] = []
                     dparam_sub[key]['inmodel'].append(model)
                 else:
-                    fieldsnotinDfields.append([key+(20-len(key)*' '), model])
+                    fieldsnotinDfields.append([key.ljust(20), model])
 
     print(f'{len(dparam_sub)} fields in the library \n')
 
@@ -193,7 +193,7 @@ def _GenerateIndividualSensitivity(key, mu, sigma, disttype='normal', dictpreset
         IF THE DISTRIBUTION IS LOG, then mu is the median value
 
     '''
-
+    print(disttype)
     if disttype in ['log', 'lognormal', 'log-normal']:
         dictpreset[key] = np.random.lognormal(np.log(mu), sigma, N)
     elif disttype in ['normal', 'gaussian']:
@@ -213,7 +213,7 @@ def generate_dic_distribution(InputDic, dictpreset={}, N=10, grid=False):
         {
         'alpha': {'mu': .02,
                   'sigma': .2,
-                  'type': 'lin'},
+                  'type': 'normal'},
         'k2': {'mu': 20,
                'sigma': .2,
                'type': 'log'},

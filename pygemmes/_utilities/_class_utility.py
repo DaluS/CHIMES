@@ -564,6 +564,34 @@ def _get_summary_functions(hub, idx=0,Region=0, eqtype=['ode', 'statevar'], isne
 
     return col3, ar3
 
+def _print_matrix(hub,
+                    idx=None,
+                    Region=None):
+    for m in hub.dmisc['dmulti']['matrix']:
+        ## IF IT IS A PARAMETER
+        ax1 = hub.dparam[hub.dparam[m]['size'][0]]['list']
+        ax2 = hub.dparam[hub.dparam[m]['size'][1]]['list']
+        if m in hub.dmisc['dfunc_order']['parameters']:
+            val= hub.dparam[m]['value'][idx,Region,...]
+        else :
+            val = hub.dparam[m]['value'][0,idx, Region, ...]
+
+
+        col1= ['','|']+[str(x) for x in ax2]
+        ar1=[]
+        print('')
+        print(f"name : {m}, units : {hub.dparam[m]['units']}")
+        for ii,x in enumerate(ax2):
+            liste =[x,'|']+[val[ii,jj] for jj in range(len(ax1))]
+            ar1.append(liste)
+
+        _utils._get_summary(
+            lar=[ar1],
+            lcol=[col1],
+            verb=True,
+            returnas=False, )
+
+
 
 def _get_summary_functions_vector(hub, idx=0,Region=0, eqtype=['ode', 'statevar']):
 
@@ -591,14 +619,14 @@ def _get_summary_functions_vector(hub, idx=0,Region=0, eqtype=['ode', 'statevar'
     ar3 = [[[
     k0,
     ksector,
-    paramfunc2str(dparam=dparam_sub,key=k0,dmisc=hub.dmisc,)if idsectr==0 else '',
+    paramfunc2str(dparam=dparam_sub,key=k0,dmisc=hub.dmisc,)if idsectr==0 else '.',
     f"{v0.get('value')[0,idx,Region,idsectr,0]:.3f}",#f"{v0.get('value')[tuple(np.r_[0, idx[1:],0,0])]:.3f}",
     f"{v0.get('value')[-1,idx,Region,idsectr,0]:.3f}" if hub.dmisc['run'] else '' ,#",#f"{v0.get('value')[tuple(np.r_[-1, idx[1:],0,0])]:.3f}",
-    v0['units'] if idsectr==0 else '',
-    v0['definition'] if idsectr==0 else '',
-    v0['com'] if idsectr==0 else '',
-    not(v0['isneeded']) if idsectr==0 else '' ]
-        for idsectr,ksector in enumerate(hub.dparam[v0['size'][0]].get('list',['scalar']))]
+    v0['units'] if idsectr==0 else '.',
+    v0['definition'] if idsectr==0 else '.',
+    v0['com'] if idsectr==0 else '.',
+    not(v0['isneeded']) if idsectr==0 else '.' ]
+        for idsectr,ksector in enumerate(hub.dparam[v0['size'][0]].get('list',['.']))]
     for k0, v0 in dparam_sub.items()
     ]
 

@@ -165,7 +165,8 @@ _LOGICS_COPING2018 = {
             'com': 'Production cost to get good inflation function',
         },
     },
-    'parameter':{},
+    'parameter': {},
+    'size': {},
 }
 
 # add Coping logics
@@ -173,8 +174,6 @@ for category, dic in _LOGICS_COPING2018.items():
     for k, v in dic.items():
         _LOGICS[category][k] = v
 
-for k,v in _LOGICS.items():
-    print(k,v)
 
 # UNITS #######################################################################
 _LOGICS['differential']['a']['units'] = '$.Humans^{-1}.y^{-1}'

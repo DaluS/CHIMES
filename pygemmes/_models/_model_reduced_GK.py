@@ -64,8 +64,8 @@ _LOGICS = {
             'com': 'Markup dynamics',
         },
     },
-    'param': {
-    },
+    'parameter': {},
+    'size': {},
 }
 
 

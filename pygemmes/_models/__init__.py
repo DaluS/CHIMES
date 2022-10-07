@@ -129,10 +129,10 @@ def get_available_models(
                     f"\t-  {k1} :{(10-len(k1))*' '}{_DFIELDS.get(k1,{}).get('definition','')}"
                     for k1 in _DMODEL[k0]['logics']['statevar']])
                 + '\n\n'
-                + f"#### ADDED Parameters #### ({len(_DMODEL[k0]['logics']['parameters'])}):\n"
+                + f"#### ADDED Parameters #### ({len(_DMODEL[k0]['logics'].get('parameter',{}))}):\n"
                 + "\n".join([
                     f"\t-  {k1} :{(10 - len(k1)) * ' '}{_DFIELDS.get(k1, {}).get('definition', 'unread')}"
-                    for k1 in _DMODEL[k0]['logics']['parameters']])
+                    for k1 in _DMODEL[k0]['logics'].get('parameter',{})])
                 + '\n'
                 + "\n####"
                 + f"presets:\n"

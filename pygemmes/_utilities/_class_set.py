@@ -564,7 +564,6 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
                             dparam['nr']['value'],  # Regions
                             sizes
                             ])
-
         dparam[k0]['value'] = np.full(shape, dparam[k0]['value'])
 
     return dparam

@@ -71,6 +71,8 @@ _LOGICS = {
             'func': lambda I, K, delta: (I - K * delta)/K,
             'com': 'relative growth rate'},
     },
+    'parameter': {},
+    'size': {},
 }
 
 

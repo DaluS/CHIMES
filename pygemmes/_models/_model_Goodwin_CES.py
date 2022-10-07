@@ -38,6 +38,8 @@ _CES_LOGICS = {
         'Y': Funcs.ProductionWorkers.CES_Optimised.Y,
         'L': Funcs.ProductionWorkers.CES_Optimised.L,
     },
+    'parameter': {},
+    'size': {},
 }
 
 # We add them explicitely

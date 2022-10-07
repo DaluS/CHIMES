@@ -31,6 +31,8 @@ _LOGICS = {
             'com': 'CO2 Emission rate ',
         },
     },
+    'parameter': {},
+    'size': {},
 }
 
 

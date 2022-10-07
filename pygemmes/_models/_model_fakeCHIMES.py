@@ -82,7 +82,7 @@ _LOGICS = {
             'com': 'Ideal Possession from logistic on salary'},
         'Omega': {
 
-            'func': lambda w, p, lamb, L, r, D: lamb*(w/p + r*D/(p*L)),
+            'func': lambda w, p, employment, L, r, D: employment*(w/p + r*D/(p*L)),
             'com': 'Purchasing power'},
 
         # INTERMEDIARY PRICE AND DIMENSIONLESS VARIABLES ###
@@ -101,7 +101,7 @@ _LOGICS = {
             'func': lambda k0, k1, k2, pi: k0 + k1 * np.exp(k2 * pi),
             'com': 'Relative GDP investment through relative profit'},
         'phillips': {
-            'func': lambda phi0, phi1, lamb: (-phi0 + phi1 / (1 - lamb)**2),
+            'func': lambda phi0, phi1, employment: (-phi0 + phi1 / (1 - employment)**2),
             'com': 'Wage increase rate through employement and profit'},
 
 
@@ -112,9 +112,9 @@ _LOGICS = {
         'Ir': {
             'func': lambda I, Xi, p: I/(Xi*p),
             'com': 'From monetary to real unit'},
-
-
     },
+    'parameter': {},
+    'size': {},
 }
 
 

@@ -229,11 +229,6 @@ _LIBRARY = {
             'units': 'Units',
             'definition': 'Capital',
         },
-        'K_0': {
-            'value': 1,
-            'units': 'Units',
-            'definition': 'Intermediary capital in case of Cobb-Douglas arbitrage with matter',
-        },
         'Y': {
             'value': 1,
             'definition': 'GDP in output quantity',

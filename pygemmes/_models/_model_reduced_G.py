@@ -39,6 +39,7 @@ _LOGICS = {
         'phillips': Funcs.Phillips.div,
     },
     'parameter': {},
+    'size': {},
 }
 
 

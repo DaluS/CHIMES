@@ -42,7 +42,7 @@ _LOGICS = {
         },
 
     },
-    'param': {
+    'parameter': {
         'intensity': {
             'value': 0.8,
             'definition': 'part of output which is material',
@@ -70,6 +70,7 @@ _LOGICS = {
             'value': 7,
             'definition': 'nu at snapshot'}
     },
+    'size': {},
 }
 
 

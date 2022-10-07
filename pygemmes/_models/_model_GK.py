@@ -52,8 +52,8 @@ _GK_LOGICS = {
             'func': lambda Ir, K, delta: (Ir - K * delta)/K,
             'com': 'relative growth rate'},
     },
-    'param': {
-    },
+    'parameter': {},
+    'size': {},
 }
 
 # We add them explicitely
