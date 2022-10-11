@@ -20,6 +20,29 @@ from ._utilities import _Network
 from ._utilities import _solvers, _saveload
 from ._plots._plots import _DPLOT
 
+def comparesubarray(M):
+    '''
+    Take a big array of N dimensions (n1,n2,n3,n4),
+    check if one dimension is juste a stack of a subarray with always same values.
+    Return a list, each axis
+
+
+    :param M:
+    :param V:
+    :return:
+    '''
+    M=np.array(M)
+    Sameaxis=[]
+    dimensions=np.shape(M)
+    for ii,d in enumerate(dimensions):
+
+        Mrshp=M.reshape(-1,dimensions[ii])
+        Dimtocompare = Mrshp.shape[0]
+        Sameaxis.append(np.bool(np.prod([np.array_equal(Mrshp[0,:],
+                                               Mrshp[jj,:])
+                                for jj in range(Dimtocompare)])))
+    return Sameaxis
+
 
 class Hub():
     """
@@ -164,8 +187,11 @@ class Hub():
             self.__dmodel['preset']=input
             self.set_dparam(self,**self.__dmodel['presets'][input]['fields'])
 
-    def set_dparam(self,verb=_VERB,**kwargs):
+    def set_dparam(self,key=None,value=None,verb=_VERB,**kwargs):
         """
+        function to change both the sizes of the system (system in parrallel, regions, sectors, time vector...)
+        Input : a dictionnary of keys, and the value to be installed
+
         set a dictionnary of input as new param changes.
 
         It can :
@@ -183,9 +209,9 @@ class Hub():
         if 'value' : has the size of non-precised axis, it will change all the values
         """
 
+        kwargs[key]=value
+
         #### DECOMPOSE INTO SIZE AND VALUES #######
-
-
         setofdimensions = set(['nr','nx','dt','Tini','Tmax']+list(self.get_dparam(eqtype=['size'])))
         diffparam = set(self.get_dparam(eqtype=['differential', None])) - set(['__ONE__','time']) - setofdimensions
 
@@ -201,9 +227,9 @@ class Hub():
             else :
                 wrongfields.append(kk)
 
-
         if verb:
-            print('### Identified key to be changed ###')
+            print('')
+            print('### Identified keys to be changed ###')
             print(f'   Dimensions : {list(dimtochange.keys())}')
             print(f'   Fields : {list(fieldtochange.keys())}')
             print(f'   Ignored :{wrongfields}')
@@ -212,72 +238,169 @@ class Hub():
         self._set_dimensions(verb,**dimtochange)
         self._set_fields(verb,**fieldtochange)
 
+
     def _set_dimensions(self,verb=_VERB,**kwargs):
         '''
         Change the dimensions of the system
         '''
 
-        # Put the values in the system
+        # we scan all fields that will need to have their values changed
+        # Check if we can change value
+        setofdimensions = set(['nr','nx','dt','Tini','Tmax']+list(self.get_dparam(eqtype=['size'])))
+        diffparam = set(self.get_dparam(eqtype=['differential', None])) - set(['__ONE__','time']) - setofdimensions
+        parametersandifferential = list(diffparam)
+        for kk in parametersandifferential:
+
+            V=self.__dparam[kk]
+            dimname=['nx','nr']+V['size']
+            direct = 'initial' if V.get('eqtype','') == 'differential' else 'value'
+            ValidAxis= comparesubarray(V[direct])
+
+            for ii,axis in enumerate(ValidAxis):
+                dim=dimname[ii]
+                if dim in kwargs.keys() and not axis:
+                    print(f'ISSUE : YOU CHANGE {dim} while {kk} has specific values on it')
+                    break
+
+
+        # Put the values of the axis in the system
         for kk, vv in kwargs.items():
-            if verb:
-                print('CHANGING :',kk)
+
             # If its on multisectoral, put the value
-            if kk not in ['dt','nx']:
+            if kk not in ['dt','nx','Tmax']:
                 if type(vv) is list:
                     self.__dparam[kk]['value'] = len(vv)
                     self.__dparam[kk]['list'] = vv
                 elif type(vv) in [float,int]:
                     self.__dparam[kk]['value'] = vv
                     self.__dparam[kk]['list'] = list(np.arange(vv))
+                if verb:
+                    print(f"Now {kk} has {self.__dparam[kk]['value']} sectors with names {self.__dparam[kk]['list']}")
             # Else, we just change values
             else:
                 self.__dparam[kk]['value'] = vv
 
 
-        # change the initial or values of fields
-        setofdimensions = set(['nr','nx','dt','Tini','Tmax']+list(self.get_dparam(eqtype=['size'])))
-        diffparam = set(self.get_dparam(eqtype=['differential', None])) - set(['__ONE__','time']) - setofdimensions
-        parametersandifferential = list(diffparam)
 
-        # we scan all fields that will need to have their values changed
-        ERROR=False
+    def _set_fields(self,verb=_VERB, **kwargs):
+        # Get list of variables that might need a reshape
+        parametersandifferential =  list(set(self.get_dparam(eqtype=['differential', None]))
+                          - set(['__ONE__', 'time'])
+                          - set(['nr', 'nx', 'dt', 'Tini', 'Tmax'] + list(self.get_dparam(eqtype=['size']))))
+
+        # Get where the value is located
+        direct = {k: 'initial' if self.__dparam[k].get('eqtype', '') == 'differential'
+                                                                   else 'value' for k in parametersandifferential}
+        dimname= {}
         for kk in parametersandifferential:
-            V=self.__dparam[kk]
-            direct = 'initial' if V.get('eqtype','') == 'differential' else 'value'
+            L = ['nx', 'nr'] +self.__dparam[kk]['size']
+            dimname[kk] = [  self.__dparam[k2]['value'] for k2 in L]
+
+        #######################
+        oldvalue = { k: self.__dparam[k][direct[k]] for k in parametersandifferential }
+        newvalue={}
+
+        # Dissecate new value allocation #
+        for kk in parametersandifferential:
+            if kk in kwargs.keys():
+                ### DECOMPOSE THE TYPE OF VARIABLE
+                v= kwargs[kk]
+
+                OLDVAL= np.copy(self.__dparam[kk][direct[kk]])
+                FLATTABLE= comparesubarray(OLDVAL)
+                ### ALL THE SHAPES THAT CAN BE GIVEN TO THE STRUCTURE ###
+                # IF IT IS JUST A VALUE
+                if type(v) in [float,int]:
+                    if verb:print(f'Identified {kk} as a value change on all axes')
+                    newvalue[kk] = kwargs[kk]
+
+
+                # THIS IS A LIST OF VALUE
+                elif type(v) in [np.ndarray]:
+                    if len(np.shape(v))==1:
+                        if verb: print(f'Identified {kk} as value changes on nx (array)')
+                        newv=np.array(v)
+                        while len(np.shape(newv))<4: # Add dimensions like a bandit
+                            newv=newv[:,np.newaxis]+0
+                        newvalue[kk] = newv
+
+                elif type(v) in [list]:
+                    if np.prod([type(vv) in [float,int] for vv in v]):
+                        if verb: print(f'Identified {kk} as value changes on nx (list)')
+                        newv=np.array(v)
+                        while len(np.shape(newv))<4:
+                            newv=newv[:,np.newaxis]+0
+                        newvalue[kk] = newv
+                    else :
+                        # WHERE SHIT HIT THE FAN : WE DO THAT IN ANOTHER FUNCTION
+                        newvalue[kk] = deepconstruction(OLDVAL,FLATTABLE,dimname,v)
 
 
 
-            result = np.all(V[direct] == np.ravel(V[direct])[0])
-            if result:
-                self.__dparam[kk][direct]=np.ravel(self.__dparam[kk][direct])[0]
             else:
-                ERROR=True
-                print(f'{kk} has different values in its array, but is changed dimension')
-                print('THIS WILL BE IMPROVED IN A LATER EDITION')
+                newvalue[kk]=np.ravel(np.array(oldvalue[kk]))[0]
 
-        ### REACTUALIZE SHAPES
+        for kk in parametersandifferential:
+            self.__dparam[kk][direct[kk]]=newvalue[kk]
+
+
+        ### REINTIIALIZE SHAPES AND DIMENSIONS
         self.__dparam=_class_set.set_shapes_values(self.__dparam,
                                                    self.__dmisc['dfunc_order'])
         self.__dargs=_class_set.get_dargs_by_reference(self.__dparam,
                                                        dfunc_order=self.__dmisc['dfunc_order'])
         self.reset()
 
-    def _set_fields(self,verb=_VERB, **kwargs):
-
-
-        # New
-        changes = {kk : np.zeros_like(self.__dparam[kk]['initial'
-                if self.__dparam.get('eqtype',False)=='differential' else 'value']).fill(np.nan)
-                   for kk in kwargs.keys()}
+    def __deep_set_dparam(self, OLDVAL, FLATTABLE, dimname, input):
         '''
-        for kk,vv in newvalues.items():
-            V = self.__dparam[kk]
-            direct= 'initial' if V['eqtype']=='differential' else 'value'
-            V[direct][changes[kk]]=vv
+        If you are here, I am sorry. That will be messy
+
+        This is what happens when we ask a non-trivial construction of variable value
+
+        :param OLDVAL:    What was loaded in the system before you change the value
+        :param FLATTABLE: What dimensions contains nothing and thus can be broadcasted
+        :param dimname:   The names and value of each dimensions
+        :param v:         The new variables that we try to eat !
+        :return:          A vector of the right dimensions, with only the correct values changes
         '''
 
-        # REINTIIALIZE SHAPES AND DIMENSIONS
-        self.reset()
+        print('HAHAHHA WELCOME TO HELL')
+
+        #######################################################
+        ### Complete the needed informations ##################
+        '''
+        # AT THE END WE WANT : 
+        { 'Nr': array of values,
+          'Nx': array of values, 
+          'values' : NP nan construction, with value changes}
+        if personal dimensions exists, then added  
+        '''
+
+        fullinfos = {}
+
+        print(dimname)
+        # if it's a dict, it is easier to translate
+        if type(input) is dict:
+            for k, v in input.dict():
+                fullinfos[k] = v
+
+        if type(input) is list:
+            if len(input) == 2:
+                pass
+            else:
+                pass
+            for l in input[:-1]:
+                fullinfos[l[0]] = np.array(l[1:])
+            fullinfos['value'] = input[-1]
+
+        # Transform region name into numbers
+
+
+        ### Construct the OLDVAL FLATTED-BROACASTABLE
+        print(fullinfos)
+
+        return
+
 
 ##############################################################################
 
