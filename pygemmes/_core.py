@@ -208,8 +208,8 @@ class Hub():
                              'value':0.2},
         if 'value' : has the size of non-precised axis, it will change all the values
         """
-
-        kwargs[key]=value
+        if (key and value):
+            kwargs[key]=value
 
         #### DECOMPOSE INTO SIZE AND VALUES #######
         setofdimensions = set(['nr','nx','dt','Tini','Tmax']+list(self.get_dparam(eqtype=['size'])))
@@ -280,7 +280,10 @@ class Hub():
             else:
                 self.__dparam[kk]['value'] = vv
 
-
+        self.__dparam=_class_set.set_shapes_values(self.__dparam,
+                                                   self.__dmisc['dfunc_order'])
+        self.__dargs=_class_set.get_dargs_by_reference(self.__dparam,
+                                                       dfunc_order=self.__dmisc['dfunc_order'])
 
     def _set_fields(self,verb=_VERB, **kwargs):
         # Get list of variables that might need a reshape
@@ -333,10 +336,7 @@ class Hub():
                         newvalue[kk] = newv
                     else :
                         # WHERE SHIT HIT THE FAN : WE DO THAT IN ANOTHER FUNCTION
-                        newvalue[kk] = deepconstruction(OLDVAL,FLATTABLE,dimname,v)
-
-
-
+                        newvalue[kk] = self.__deep_set_dparam(OLDVAL,FLATTABLE,dimname,v,kk)
             else:
                 newvalue[kk]=np.ravel(np.array(oldvalue[kk]))[0]
 
@@ -351,7 +351,7 @@ class Hub():
                                                        dfunc_order=self.__dmisc['dfunc_order'])
         self.reset()
 
-    def __deep_set_dparam(self, OLDVAL, FLATTABLE, dimname, input):
+    def __deep_set_dparam(self, OLDVAL, FLATTABLE, dimname, inpt,name):
         '''
         If you are here, I am sorry. That will be messy
 
@@ -364,8 +364,6 @@ class Hub():
         :return:          A vector of the right dimensions, with only the correct values changes
         '''
 
-        print('HAHAHHA WELCOME TO HELL')
-
         #######################################################
         ### Complete the needed informations ##################
         '''
@@ -376,32 +374,134 @@ class Hub():
         if personal dimensions exists, then added  
         '''
 
+
         fullinfos = {}
 
-        print(dimname)
+        #################################
         # if it's a dict, it is easier to translate
-        if type(input) is dict:
-            for k, v in input.dict():
+        if type(inpt) is dict:
+            for k, v in inpt.dict():
                 fullinfos[k] = v
+        #################################
+        # if it's a list, we decompose it
+        elif type(inpt) is list:
+            if name in self.dmisc['dmulti']['scalar']:
+                #print(f'field {name} identified as a scalar!')
+                fullinfos= self.__decompose_scalist(fullinfos,inpt)
+            elif name in self.dmisc['dmulti']['vector']:
+                #print(f'field {name} identified as a vector!')
 
-        if type(input) is list:
-            if len(input) == 2:
-                pass
+                # check if the first elements are indexes for sector
+                if type(inpt[0]) is list: # Check if its a list of sector
+                    fullinfos['first']= inpt[0]
+                    fullinfos = self.__decompose_scalist(fullinfos, inpt[1:])
+                elif inpt[0] in self.__dparam[self.__dparam[name]['size']]['list']: # Check if it's a sector name
+                    fullinfos['first'] = [inpt[0]]
+                    fullinfos = self.__decompose_scalist(fullinfos, inpt[1:])
+                else: # If nothing detected, treated as any other axis
+                    fullinfos = self.__decompose_scalist(fullinfos, inpt)
+
+            elif name in self.dmisc['dmulti']['matrix']:
+                # FIRST AXIS
+                Found0,Found1 = False,False
+                if (type(inpt[0]) is list and len(inpt)>1): # Check if its a list of sector
+                    fullinfos['first']= inpt[0]
+                    Found0=True
+                elif inpt[0] in self.__dparam[self.__dparam[name]['size']]['list']: # Check if it's a sector name
+                    fullinfos['first'] = [inpt[0]]
+                    Found0 = True
+                if (Found0 and len(inpt )>2):
+                    if type(inpt[1]) is list: # Check if its a list of sector
+                        fullinfos['second']= inpt[1]
+                        Found1=True
+                    elif inpt[1] in self.__dparam[self.__dparam[name]['size']]['list']: # Check if it's a sector name
+                        fullinfos['second'] = [inpt[1]]
+                        Found1=True
+                if not Found0 : fullinfos = self.__decompose_scalist(fullinfos, inpt[2:])
+                if (Found0 and not Found1) : fullinfos = self.__decompose_scalist(fullinfos, inpt[1:])
+                if Found1 : fullinfos = self.__decompose_scalist(fullinfos, inpt[2:])
+        else :
+            raise Exception(f'We have no idea what category of size {name} is')
+
+
+        # Transform region name into numbers #
+        for k in fullinfos.keys(): # For each axis
+            if k not in ['value','first','second']:
+                for ii,r in enumerate(fullinfos[k]):  # for each element
+                    if type(r) is str :
+                        fullinfos[k][ii]= self.__dparam[k]['list'].index(r)
+            elif k in ['first','second']:
+                for ii,r in enumerate(fullinfos[k]):  # for each element
+                    if type(r) is str :
+                        ax = self.__dparam[name]['size'][0 if k =='first' else 1]
+                        fullinfos[k][ii]= self.__dparam[ax]['list'].index(r)
+
+        newval=np.copy(OLDVAL).astype(np.float)                # WE BEGIN WITH AN EMPTY OBJECT
+        # transform scalar keys into non-scalar if needed
+        lens = [len(v) for k,v in fullinfos.items()]
+        check= [ v!=np.amax(lens) for v in lens if v!=1]
+        if np.sum(check): # If there are multiple sizes
+            raise Exception(f'INCONSISTENCY IN {name} dimensions !')
+        else :
+            lmax = np.amax(lens)
+            for ii in range(lmax):
+                minidict = {k: v[ii] if len(v)!=1 else v[0] for k,v in fullinfos.items()}
+                #rint(minidict)
+
+                # Complete the regions ###############
+                dimx=['nx','nr','first','second']
+                for idx,v in enumerate(np.shape(OLDVAL)):
+                    if dimx[idx] not in minidict.keys():
+                        minidict[dimx[idx]]=np.arange(v)
+
+                # Inject the value ####################
+                print('Coordinates :',minidict['nx'][0],
+                        minidict['nr'],
+                        minidict['first'],
+                        minidict['second'])
+                print('Value :',minidict['value'])
+
+                newval[ minidict['nx'][0],
+                        minidict['nr'],
+                        minidict['first'],
+                        minidict['second']] = minidict['value']
+                print('Result :',
+                        newval[minidict['nx'][0],
+                        minidict['nr'],
+                        minidict['first'],
+                        minidict['second']])
+                print('')
+
+        print(np.shape(newval))
+        print(newval)
+        #newval=np.nan
+        return newval
+
+    def __decompose_scalist(self,fullinfos,inpt):
+        # it is simply the axis of decomposition
+        if len(inpt) == 1 :
+            pass
+        elif len(inpt) == 2:
+            #print('input is size 2')
+            if type(inpt[0]) is str:
+                #print('axis found')
+                fullinfos[inpt[0]] = np.arange(len(inpt[-1]))
             else:
-                pass
-            for l in input[:-1]:
-                fullinfos[l[0]] = np.array(l[1:])
-            fullinfos['value'] = input[-1]
-
-        # Transform region name into numbers
-
-
-        ### Construct the OLDVAL FLATTED-BROACASTABLE
-        print(fullinfos)
-
-        return
-
-
+                #print('coefficients found')
+                fullinfos[inpt[0][0]] = inpt[0][1:]
+        elif len(inpt) > 2:
+            #print('Long list !')
+            for subl in inpt[:-1]:
+                if type(subl) is str:
+                    #print('axis found')
+                    fullinfos[subl] = np.arange(len(inpt[-1]))
+                else:
+                    #print('coefficients found')
+                    fullinfos[subl[0]] = subl[1:]
+        else:
+            print('The system do not understand your input')
+        fullinfos['value'] = inpt[-1]
+        return fullinfos
 ##############################################################################
 
     def get_dparam(self, condition=None, verb=None, returnas=dict, **kwdargs):
