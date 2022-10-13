@@ -27,7 +27,7 @@ This file contains :
 """
 import numpy as np
 
-from ..__config import __DEFAULTFIELDS
+from .._config import __DEFAULTFIELDS
 
 
 # #############################################################################

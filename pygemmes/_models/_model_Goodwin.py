@@ -82,17 +82,17 @@ _LOGICS = {
 _PRESETS = {
     'default': {
         'fields': {
-            'dt': 0.01,
-            'a': 1,
-            'N': 1,
-            'K': 2.9,
-            'D': 0,
-            'w': .5*1.2,
-            'alpha': 0.02,
-            'n': 0.025,
-            'nu': 3,
-            'delta': .005,
-            'phinull': 0.1,
+            'dt': 0.011,
+            'a': 1.01,
+            'N': 1.01,
+            'K': 2.91,
+            'D': 0.01,
+            'w': .5*1.19,
+            'alpha': 0.021,
+            'n': 0.0251,
+            'nu': 31,
+            'delta': .0051,
+            'phinull': 0.11,
         },
         'com': (
             'This is a run that should give simple '

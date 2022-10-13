@@ -7,7 +7,8 @@ Created on Mon Feb  7 09:46:30 2022
 
 from pyvis.network import Network
 from copy import deepcopy
-
+from .._config import _PATH_HERE
+import os
 
 def find_auxiliary(hub):
 
@@ -32,7 +33,7 @@ def find_auxiliary(hub):
 
 
 
-def filter_kargs(hub, filters):
+def filter_kargs(hub, filters,redirect):
     '''
     remove
     '''
@@ -41,15 +42,17 @@ def filter_kargs(hub, filters):
     if type(filters) is not tuple:
         filters=tuple(set([k for k in kargs.keys()])-set(filters))
     # REMOVE THE KEY
-    if type(filters) is tuple:
-        for ii in range(len(filters)):
-            for key in filters:  # For each key in filters
-                klist = impact[key]
-                for k in klist:  # For each impacted field
-                    kargs[k] = kargs[k]+kargs[key]
-                    kargs[k] = list(set([v2 for v2 in kargs[k]]))
-        for k, v in kargs.items():
-            kargs[k] = [k for k in list(set(v)) if k not in filters]
+    if redirect:
+        if type(filters) is tuple:
+            for ii in range(len(filters)):
+                for key in filters:  # For each key in filters
+                    klist = impact[key]
+                    for k in klist:  # For each impacted field
+                        kargs[k] = kargs[k]+kargs[key]
+                        kargs[k] = list(set([v2 for v2 in kargs[k]]))
+            for k, v in kargs.items():
+                kargs[k] = [k for k in list(set(v)) if k not in filters]
+
     return kargs,filters
 
 
@@ -58,6 +61,7 @@ def Network_pyvis(hub,
                   auxilliary=False,
                   screensize=1080,
                   custom=False,
+                  redirect=False,
                   smoothtype='dynamic',
                   plot_params=True):
     '''
@@ -89,7 +93,7 @@ def Network_pyvis(hub,
     # PREPARE THE DATA
     R = hub.get_dparam(returnas=dict)
     kargs, impact = find_auxiliary(hub)
-    kargs,filters = filter_kargs(hub, filters)
+    kargs,filters = filter_kargs(hub, filters,redirect)
 
 
     ODENodes = deepcopy(hub.dfunc_order['differential'])
@@ -130,17 +134,19 @@ def Network_pyvis(hub,
 
     if plot_params:
         for key in Parameters:
+
             v = R[key]
-            Title = ''
-            Title += 'Units        :' + v['units']+'<br>'
-            Title += 'definition   :' + v['definition']+'<br>'
-            net.add_node(key,
-                         label=key,  # R[key]['symbol'],
-                         color=['#3da831'],
-                         title=Title.replace(' ', '&nbsp;'),
-                         group='Parameters',
-                         level=2,
-                         shape='ellipse')
+            if (v['group']!='Numerical' and v.get('eqtype',False) != 'size'):
+                Title = ''
+                Title += 'Units        :' + v['units']+'<br>'
+                Title += 'definition   :' + v['definition']+'<br>'
+                net.add_node(key,
+                             label=key,  # R[key]['symbol'],
+                             color=['#3da831'],
+                             title=Title.replace(' ', '&nbsp;'),
+                             group='Parameters',
+                             level=2,
+                             shape='ellipse')
     else :
         net.add_node('',
                      label='',
@@ -212,6 +218,14 @@ Dependencies :<br>
                     if k2 not in filters:
                         net.add_edge(k2,k)
 
+    ## Add parameters connections
+    if plot_params:
+        for key in list(set(Parameters)):
+            v = R[key]
+            if v.get('eqtype',False) == 'parameter':
+                for k2 in v['kargs']:
+                    net.add_edge(k2,key)
+
     # DYNAMIC APPEARANCE
     net.set_edge_smooth('dynamic')
     net.repulsion(node_distance=100, spring_length=200)
@@ -220,4 +234,6 @@ Dependencies :<br>
 
     # net.prep_notebook()
 
-    net.show(hub.dmodel['name']+'.html')
+    address = os.path.join(_PATH_HERE[:-9],'doc',hub.dmodel['name']+'.html').replace('/','\\')
+    #print(address)
+    net.show(address)

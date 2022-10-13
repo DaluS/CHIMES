@@ -13,7 +13,7 @@ import numpy as np
 # Library-specific
 from . import _utils
 
-from ..__config import _LEQTYPES
+from .._config import _LEQTYPES
 from itertools import chain
 _LTYPES = [int, float, np.int_, np.float_]
 
@@ -462,107 +462,29 @@ def _get_summary_parameters(hub, idx=0,Region=0):
     # ------------------
     # get column headers
     col2 = [
-        'Model param.', 'value',
+        'Model param.', 'sector','value',
         'units', 'group', 'definition',
     ]
 
     # ------------------
     # get values
-    ar2 = [
+    ar2 = [[
         [
             k0,
-            v0['value'][idx,Region],
-            str(v0['units']),
-            v0['group'],
-            v0['definition'],
+            ksector,
+            v0['value'][idx,Region,idsectr],
+            str(v0['units']) ,
+            v0['group'] ,
+            v0['definition'] ,
         ]
-        for k0, v0 in dparam_sub.items() if k0 in hub.dmisc['dmulti']['scalar']
+        for idsectr,ksector in enumerate(hub.dparam[v0['size'][0]].get('list',['.']))]
+    for k0, v0 in dparam_sub.items() if v0['size'][1]=='__ONE__'
     ]
 
-    return col2, ar2
+    return col2, list(chain.from_iterable(ar2))
+    #else:
+    #    return col2, ar2
 
-
-def _get_summary_functions(hub, idx=0,Region=0, eqtype=['ode', 'statevar'], isneeded=None):
-
-    # ----------------
-    # get sub-dict of interest
-
-    if isneeded is not None:
-        dparam_sub = hub.get_dparam(
-            returnas=dict,
-            eqtype=eqtype,
-            isneeded=isneeded
-        )
-    else:
-        dparam_sub = hub.get_dparam(
-            returnas=dict,
-            eqtype=eqtype,
-            isneeded=isneeded
-        )
-
-    # ------------------
-    # get column headers
-    if isneeded is False:
-        eqtype[0] = 'auxilliary ' + eqtype[0]
-
-    if hub.dmisc['run']:
-        col3 = [
-            str(''.join(eqtype)),
-            'source',
-            'initial',
-            'final',
-            'units',
-            'definition',
-            'comment',
-        ]
-    else:
-        col3 = [
-            str(''.join(eqtype)),
-            'source',
-            'initial',
-            'units',
-            'definition',
-            'comment',
-        ]
-
-    # ------------------
-    # get values
-    if hub.dmisc['run']:
-        ar3 = [
-            [
-                k0,
-                paramfunc2str(
-                    dparam=dparam_sub,
-                    key=k0,
-                    dmisc=hub.dmisc,
-                ),
-                f"{v0.get('value')[0,idx,Region,0,0]:.3f}",#f"{v0.get('value')[tuple(np.r_[0, idx[1:],0,0])]:.3f}",
-                f"{v0.get('value')[-1,idx,Region,0,0]:.3f}",#f"{v0.get('value')[tuple(np.r_[-1, idx[1:],0,0])]:.3f}",
-                v0['units'],
-                v0['definition'],
-                v0['com'],
-            ]
-            for k0, v0 in dparam_sub.items() if k0 in hub.dmisc['dmulti']['scalar']
-        ]
-
-    else:
-        ar3 = [
-            [
-                k0,
-                paramfunc2str(
-                    dparam=dparam_sub,
-                    key=k0,
-                    dmisc=hub.dmisc,
-                ),
-                f"{v0.get('value')[0,idx,Region,0,0]:.3f}",#:.3f}",[tuple(np.r_[0, idx[1:],0,0])]
-                v0['units'],
-                v0['definition'],
-                v0['com'],
-            ]
-            for k0, v0 in dparam_sub.items() if k0 in hub.dmisc['dmulti']['scalar']
-        ]
-
-    return col3, ar3
 
 def _print_matrix(hub,
                     idx=None,
@@ -600,8 +522,6 @@ def _get_summary_functions_vector(hub, idx=0,Region=0, eqtype=['ode', 'statevar'
         returnas=dict,
         eqtype=eqtype,
     )
-
-
 
     col3 = [
         str('vector '.join(eqtype)),

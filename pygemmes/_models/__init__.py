@@ -10,7 +10,7 @@ from .._utilities import _utils
 
 import inspect
 
-from ..__config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS,_MODEL_NAME_CONVENTION
+from .._config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS,_MODEL_NAME_CONVENTION,_MODELS_SHOWDETAILS
 
 # ####################################################
 # ####################################################
@@ -57,7 +57,7 @@ def _get_DMODEL(from_user=_FROM_USER):
 
 def get_available_models(
     model=None,
-    details=None,
+    details=_MODELS_SHOWDETAILS,
     returnas=None,
     verb=None,
     from_user=_FROM_USER,
@@ -161,6 +161,8 @@ def get_available_models(
 
         if verb is True:
             print(msg)
+
+
 
     # return
     if returnas is list:

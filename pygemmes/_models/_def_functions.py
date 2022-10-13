@@ -164,7 +164,7 @@ Case in which the amount of workers is the optimal one for profit optimisation
                 'com': 'Assume full employment, nu formalism'
             }
             Y = {
-                'func': lambda K, A, b: 2*b*A*K,
+                'func': lambda K, nu, b: 2*b*K/nu,
                 'com': 'Assume full employment'
             }
             L = {

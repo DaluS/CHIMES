@@ -7,8 +7,8 @@ import inspect
 
 # library specific
 from .. import _models
-from ..__config import _LMODEL_ATTR, _DMODEL_KEYS, _LTYPES, _LTYPES_ARRAY, _LEQTYPES, _LEXTRAKEYS
-from ..__config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS
+from .._config import _LMODEL_ATTR, _DMODEL_KEYS, _LTYPES, _LTYPES_ARRAY, _LEQTYPES, _LEXTRAKEYS
+from .._config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS
 
 # %%###########################################################################
 ####################### MODEL FILE ############################################

@@ -13,6 +13,9 @@ import inspect
 import matplotlib.pyplot as plt
 import numpy as np
 
+from ._config import _FIELDS_EXPLOREMODEL
+from ._config import _FIELDS_SHOWLIST
+
 # #############################################################################
 
 __all__ = [
@@ -41,7 +44,7 @@ def get_available_plots():
         print(i[1].__doc__)
 
 
-def get_available_fields(returnas=False,exploreModels=True,showModels=False):
+def get_available_fields(returnas=False,exploreModels=_FIELDS_EXPLOREMODEL,showModels=_FIELDS_SHOWLIST):
     # Check 09/27/22
     '''
     Will load the library of fields, then all available models,
@@ -53,25 +56,27 @@ def get_available_fields(returnas=False,exploreModels=True,showModels=False):
 
     if a field has no group, then it is only defined in model files
     '''
+
+    # INITIALIZE
     dparam_sub = _DFIELDS
     for key, val in dparam_sub.items():
         dparam_sub[key]['inmodel'] = []
-    models = get_available_models(returnas=list)
+    models = get_available_models(returnas=list,verb=False)
 
-
-    fieldsnotinDfields = []
-    if exploreModels:
-        for model in models:
-            print(model)
-            hub = Hub(model, verb=False)
-            params = hub.get_dparam(returnas=dict)
-            for key in params.keys():
-                if key in dparam_sub:
-                    if 'inmodel' not in dparam_sub[key].keys():
-                        dparam_sub[key]['inmodel'] = []
-                    dparam_sub[key]['inmodel'].append(model)
-                else:
-                    fieldsnotinDfields.append([key.ljust(20), model])
+    if exploreModels+showModels:
+        fieldsnotinDfields = []
+        if exploreModels:
+            for model in models:
+                #print(model)
+                hub = Hub(model, verb=False)
+                params = hub.get_dparam(returnas=dict)
+                for key in params.keys():
+                    if key in dparam_sub:
+                        if 'inmodel' not in dparam_sub[key].keys():
+                            dparam_sub[key]['inmodel'] = []
+                        dparam_sub[key]['inmodel'].append(model)
+                    else:
+                        fieldsnotinDfields.append([key.ljust(20), model])
 
     print(f'{len(dparam_sub)} fields in the library \n')
 
@@ -193,7 +198,6 @@ def _GenerateIndividualSensitivity(key, mu, sigma, disttype='normal', dictpreset
         IF THE DISTRIBUTION IS LOG, then mu is the median value
 
     '''
-    print(disttype)
     if disttype in ['log', 'lognormal', 'log-normal']:
         dictpreset[key] = np.random.lognormal(np.log(mu), sigma, N)
     elif disttype in ['normal', 'gaussian']:

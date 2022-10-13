@@ -11,37 +11,16 @@ import numpy as np
 
 
 # Library-specific
-from .__config import _FROM_USER
-from .__config import _DEFAULTSIZE
-from .__config import _VERB
+from ._config import _FROM_USER
+from ._config import _DEFAULTSIZE
+from ._config import _VERB
 from ._utilities import _utils, _class_checks, _class_utility, _cn
 from ._utilities import _class_set
 from ._utilities import _Network
 from ._utilities import _solvers, _saveload
+from ._utilities import _comparesubarray
 from ._plots._plots import _DPLOT
 
-def comparesubarray(M):
-    '''
-    Take a big array of N dimensions (n1,n2,n3,n4),
-    check if one dimension is juste a stack of a subarray with always same values.
-    Return a list, each axis
-
-
-    :param M:
-    :param V:
-    :return:
-    '''
-    M=np.array(M)
-    Sameaxis=[]
-    dimensions=np.shape(M)
-    for ii,d in enumerate(dimensions):
-
-        Mrshp=M.reshape(-1,dimensions[ii])
-        Dimtocompare = Mrshp.shape[0]
-        Sameaxis.append(np.bool(np.prod([np.array_equal(Mrshp[0,:],
-                                               Mrshp[jj,:])
-                                for jj in range(Dimtocompare)])))
-    return Sameaxis
 
 
 class Hub():
@@ -126,8 +105,10 @@ class Hub():
             self.dmisc['multisectoral'] = False
 
         # update from preset if relevant ######################################
+        if dpresets is not None:
+            self.set_dpreset(dpresets,verb=verb)
         if preset is not None:
-            self.set_preset(preset=preset, dpresets=dpresets, verb=verb)
+            self.set_preset(preset, verb=verb)
         else:
             self.reset()
 
@@ -190,29 +171,59 @@ class Hub():
     def set_dparam(self,key=None,value=None,verb=_VERB,**kwargs):
         """
         function to change both the sizes of the system (system in parrallel, regions, sectors, time vector...)
-        Input : a dictionnary of keys, and the value to be installed
+        Input : many different possibilities :
 
-        set a dictionnary of input as new param changes.
+        set_dparam('a',0.1) will assign the value 0.1 to a
+
 
         It can :
         * Change all the values ( Nx,Nr,Multisect )
-        * Change only one region all
+        * Change only one value
+
 
         ### PARAMETERS/INITIAL COND CHANGES #######
         when a dimension is not specified, it will fill it.
         FULL EXAMPLE :
+
+
+        hub.set_dparam(**{'nx':3,
+                          'a': [0.5,.1,3]})     # Si non explicite, automatiquement sur nx
+        hub.set_dparam(**{'nx':2,
+                          'alpha': [0.5,.1,4]}) # Si non explicite, automatiquement sur nx
+        hub.set_dparam(**{'nr':2,
+                          'alpha': ['nr',[0.5,.1]]})                # need nr=2, change on all nx
+        hub.set_dparam(**{'alpha': [['nr','France'],0.5]})        # change on region 0, nx 1
+        hub.set_dparam(**{'nr'   : ['France','USA'],                # Two named regions
+                        'alpha': [['nr','France'],['nx',1],0.5]}) # Change in region France
+        hub.set_dparam(**{'nr'   : ['France','USA','China'],        # Three regions, change in France and USA
+                        'alpha': [['nr','France','USA'],['nx',1],0.5]})
+        hub.set_dparam(**{'nx':5,
+                        'alpha': [['nr',0],['nx',0,4],[0.5,0.2]]})
+        hub.set_dparam(**{'alpha': [['nr',0],['nx',1],0.5]})
+
+        # FOR VECTOR OR MATRICES, THE SYSTEM WILL AUTOMATICALLY RECOGNIZE THE FIRST ENTRIES
+        hub.set_dparam(**{'Z': [['energy','capital'],['nr',0],[0.5,0.22]]})
+        hub.set_dparam(**{'MATRIX': {'first':['energy','capital'],
+                                     'second':['mine','consumption'],
+                                     'nr':0,
+                                     'value':[0.5,0.22]}})
+        hub.set_dparam(**{'MATRIX': [['energy','capital'],['mine','consumption'],['nr',0],[0.5,0.22]]})
+        hub.set_dparam(**{'MATRIX': [['energy','capital'],['mine','consumption'],[0.5,0.22]]})
+        hub.set_dparam(**{'MATRIX': [['energy','capital'],0.22]})
+
         set_dparam(**{'alpha':{'nx'   : # NUMBER
-                             'nr'   : # NUMBER
-                             'sect1': # NAME OR NUMBER
-                             'sect2': # NAME OR NUMBER
-                             'value':0.2},
+                               'nr'   : # NUMBER
+                               'sect1': # NAME OR NUMBER
+                               'sect2': # NAME OR NUMBER
+                               'value':0.2},
         if 'value' : has the size of non-precised axis, it will change all the values
         """
+        # Take minimal changes
         if (key and value):
             kwargs[key]=value
 
         #### DECOMPOSE INTO SIZE AND VALUES #######
-        setofdimensions = set(['nr','nx','dt','Tini','Tmax']+list(self.get_dparam(eqtype=['size'])))
+        setofdimensions = set(['nr','nx','dt','Tmax']+list(self.get_dparam(eqtype=['size'])))
         diffparam = set(self.get_dparam(eqtype=['differential', None])) - set(['__ONE__','time']) - setofdimensions
 
         dimtochange = {}
@@ -254,7 +265,7 @@ class Hub():
             V=self.__dparam[kk]
             dimname=['nx','nr']+V['size']
             direct = 'initial' if V.get('eqtype','') == 'differential' else 'value'
-            ValidAxis= comparesubarray(V[direct])
+            ValidAxis= _comparesubarray(V[direct])
 
             for ii,axis in enumerate(ValidAxis):
                 dim=dimname[ii]
@@ -293,7 +304,8 @@ class Hub():
 
         # Get where the value is located
         direct = {k: 'initial' if self.__dparam[k].get('eqtype', '') == 'differential'
-                                                                   else 'value' for k in parametersandifferential}
+                else 'value'
+                  for k in parametersandifferential}
         dimname= {}
         for kk in parametersandifferential:
             L = ['nx', 'nr'] +self.__dparam[kk]['size']
@@ -301,31 +313,23 @@ class Hub():
 
         #######################
         oldvalue = { k: self.__dparam[k][direct[k]] for k in parametersandifferential }
-        newvalue={}
+        newvalue= {}
 
-        # Dissecate new value allocation #
+        # Dissecate new value allocation
         for kk in parametersandifferential:
             if kk in kwargs.keys():
                 ### DECOMPOSE THE TYPE OF VARIABLE
                 v= kwargs[kk]
-
                 OLDVAL= np.copy(self.__dparam[kk][direct[kk]])
-                FLATTABLE= comparesubarray(OLDVAL)
-                ### ALL THE SHAPES THAT CAN BE GIVEN TO THE STRUCTURE ###
-                # IF IT IS JUST A VALUE
-                if type(v) in [float,int]:
-                    if verb:print(f'Identified {kk} as a value change on all axes')
-                    newvalue[kk] = kwargs[kk]
-
 
                 # THIS IS A LIST OF VALUE
-                elif type(v) in [np.ndarray]:
-                    if len(np.shape(v))==1:
-                        if verb: print(f'Identified {kk} as value changes on nx (array)')
-                        newv=np.array(v)
-                        while len(np.shape(newv))<4: # Add dimensions like a bandit
-                            newv=newv[:,np.newaxis]+0
-                        newvalue[kk] = newv
+                if type(v) in [np.ndarray]:
+                    #if len(np.shape(v))==1:
+                    if verb: print(f'Identified {kk} as value changes on nx (array)')
+                    newv=np.array(v)
+                    while len(np.shape(newv))<4: # Add dimensions like a bandit
+                        newv=newv[:,np.newaxis]+0
+                    newvalue[kk] = newv
 
                 elif type(v) in [list]:
                     if np.prod([type(vv) in [float,int] for vv in v]):
@@ -336,9 +340,14 @@ class Hub():
                         newvalue[kk] = newv
                     else :
                         # WHERE SHIT HIT THE FAN : WE DO THAT IN ANOTHER FUNCTION
-                        newvalue[kk] = self.__deep_set_dparam(OLDVAL,FLATTABLE,dimname,v,kk)
+                        newvalue[kk] = self.__deep_set_dparam(OLDVAL,[],dimname,v,kk)
+                # IF IT IS JUST A VALUE
+                else :
+                    if verb:print(f'Identified {kk} as a value change on all axes')
+                    newvalue[kk] = kwargs[kk]+0.
             else:
                 newvalue[kk]=np.ravel(np.array(oldvalue[kk]))[0]
+
 
         for kk in parametersandifferential:
             self.__dparam[kk][direct[kk]]=newvalue[kk]
@@ -435,18 +444,22 @@ class Hub():
                     if type(r) is str :
                         ax = self.__dparam[name]['size'][0 if k =='first' else 1]
                         fullinfos[k][ii]= self.__dparam[ax]['list'].index(r)
+        fullinfos['value']=np.array(fullinfos['value'])
 
-        newval=np.copy(OLDVAL).astype(np.float)                # WE BEGIN WITH AN EMPTY OBJECT
+
+        newval=np.copy(OLDVAL).astype(np.float)
         # transform scalar keys into non-scalar if needed
-        lens = [len(v) for k,v in fullinfos.items()]
+        lens = [int(np.prod(np.shape(v))) for k,v in fullinfos.items()]
         check= [ v!=np.amax(lens) for v in lens if v!=1]
         if np.sum(check): # If there are multiple sizes
             raise Exception(f'INCONSISTENCY IN {name} dimensions !')
         else :
             lmax = np.amax(lens)
+            print(lmax,fullinfos)
             for ii in range(lmax):
-                minidict = {k: v[ii] if len(v)!=1 else v[0] for k,v in fullinfos.items()}
-                #rint(minidict)
+                minidict = {k: v[ii] if int(np.prod(np.shape(v)))!=1
+                          else v[0]  for k,v in fullinfos.items()}
+
 
                 # Complete the regions ###############
                 dimx=['nx','nr','first','second']
@@ -454,27 +467,18 @@ class Hub():
                     if dimx[idx] not in minidict.keys():
                         minidict[dimx[idx]]=np.arange(v)
 
+                print(minidict)
+                print(np.shape(newval))
+                print('BEFORE')
+                print(newval)
                 # Inject the value ####################
-                print('Coordinates :',minidict['nx'][0],
-                        minidict['nr'],
-                        minidict['first'],
-                        minidict['second'])
-                print('Value :',minidict['value'])
-
-                newval[ minidict['nx'][0],
+                newval[ minidict['nx'],
                         minidict['nr'],
                         minidict['first'],
                         minidict['second']] = minidict['value']
-                print('Result :',
-                        newval[minidict['nx'][0],
-                        minidict['nr'],
-                        minidict['first'],
-                        minidict['second']])
-                print('')
+                print('AFTER')
+                print(newval)
 
-        print(np.shape(newval))
-        print(newval)
-        #newval=np.nan
         return newval
 
     def __decompose_scalist(self,fullinfos,inpt):
@@ -670,6 +674,7 @@ class Hub():
            }
 
            # run function
+           print(k0)
            self.__dparam[k0]['value'][0, ...] = (
                self.__dparam[k0]['func'](**kwdargs)
            )
@@ -734,14 +739,17 @@ class Hub():
        ----------
        Npoints : TYPE, optional
            DESCRIPTION. The default is 100.
+
+        'reinterpolate_dparam IS DEPRECIATED, WILL BE ADAPTED TO MULTISECTORIALITY SOON'
        """
+       print('reinterpolate_dparam IS DEPRECIATED, WILL BE ADAPTED TO MULTISECTORIALITY SOON')
+       return 'reinterpolate_dparam IS DEPRECIATED, WILL BE ADAPTED TO MULTISECTORIALITY SOON'
 
        P = self.__dparam
        t = P['time']['value']
        for k in self.__dmisc['dfunc_order']['statevar']+self.__dmisc['dfunc_order']['differential']:
            v = P[k]['value']
-
-           newval = np.zeros([N]+list(self.__dmisc['dmulti']['shape']))
+           newval = np.zeros([N]+list(np.shape(v)[1:]))
            newt = np.linspace(t[0], t[-1], N)
 
            for i in range(np.shape(newval)[1]):
@@ -841,8 +849,14 @@ class Hub():
            v = Vals[k]
            print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
 
+        print('\n')
         print(60 * '#')
         print(20 * '#', 'fields'.center(18), 20 * '#')
+        if self.__dparam['nr']['value']!=1:
+            print(20 * '#', str('Region :'+str(self.__dparam['nr']['list'][Region])).center(18), 20 * '#')
+        if self.__dparam['nx']['value'] != 1:
+            print(20 * '#', str('Parr. sys numb:'+str(self.__dparam['nx'].get('list',np.arange(self.__dparam['nx']['value']))[idx])).center(18), 20 * '#')
+        print(60 * '#')
         # parameters
         col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx)
         # SCALAR ODE
@@ -906,16 +920,49 @@ class Hub():
     def get_Network(self,
                     filters=(),
                     auxilliary=False,
+                    redirect=False,
                     screensize=1080,
                     custom=True,
                     params=False):
+        """
+        Create an interative network showing how fields are related as a
+        causality network.
+        filters : select what you want or not to see.
+                    if [] contains only what will be shown
+                    if () contains what will NOT be shown
+        auxilliary : if False, remove variables that are not necessary for a run
+        """
         _Network.Network_pyvis(self,
                                filters=filters,
+                               redirect=False,
                                auxilliary=auxilliary,
                                screensize=screensize,
                                custom=custom,
                                plot_params=params)
 
+    def Extract_preset(self, t=-1):
+        ### Getting time vector
+        T = self.get_dparam(key=['time'])
+        vectime = T['time']['value'][:, 0, 0, 0]
+
+        ### Extracting values
+        if t!= -1:
+            idt = np.argmin(np.abs(vectime - t))-1
+        else:
+            idt = -1
+        R = self.get_dparam(key=('time','__ONE__'))
+
+        presetdict = {}
+        for k, v in R.items():
+            type = v.get('eqtype', None)
+            if type in ['differential']:
+                presetdict[k] = v['value'][idt, :, :, :]
+            elif type in ['parameters',None]:
+                presetdict[k] =  v['value']
+            elif type in ['size']:
+                presetdict[k] = v.get('list', v['value'])
+
+        return presetdict
 
     # ##############################
     #       Deep analysis methods
@@ -1240,13 +1287,13 @@ class Hub():
 
         # -------------
         # check inputs
-
+        '''
         idx = _class_checks._check_idx(
             idx=idx,
             nt=self.__dparam['nt']['value'],
             dmulti=self.__dmisc.get('dmulti'),
         )
-
+        '''
         return _DPLOT['timetrace'](
             self,
             mode=mode,

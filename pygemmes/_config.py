@@ -10,11 +10,16 @@ ALL THE BASIC FIELDS THAT ONE MIGHT NEED
 import numpy as np
 import os
 
-# ################# LOGS AND PRINTS IN THE SYSTEM ###################
+# ################# LOGS AND PRINTS IN THE SYSTEM #############################
 _VERB = True         # Print by default when actions are done
-__PRINTLOGO = False  # Print the logo
-__PRINTINTRO = False # Print tutorial text
+__PRINTLOGO = True  # Print the logo
+__PRINTINTRO = True # Print tutorial text
 
+# pgm.get_...
+_FIELDS_EXPLOREMODEL = False # get_available_fields will check existing models
+_FIELDS_SHOWLIST = False     # get_available_fields will show in which model it is used
+
+_MODELS_SHOWDETAILS = False
 
 # ################## MODELS FILES LOCATION AND NAME ###########################
 # FLAG FOR MODEL LOCATION : False if in the library, true in documents
@@ -22,24 +27,13 @@ _FROM_USER = False                 # Location of nodel files (NOT CHECKED)
 _MODEL_NAME_CONVENTION = '_model_' # The convention for pygemmes to know where models are
 _MODEL_FOLDER = '_models'          # Files in the local library
 
-# ADDRESSES
-_PATH_HERE = os.path.dirname(__file__)
-_PATH_USER_HOME = os.path.expanduser('~')
-_PATH_PRIVATE_MODELS = os.path.join(
-    _PATH_USER_HOME, '.pygemmes', _MODEL_FOLDER)
-_PATH_MODELS = os.path.join(_PATH_HERE, _MODEL_FOLDER)
-
-
 # ####################### SOLVER BY DEFAULT ###################################
 _SOLVER = 'eRK4-homemade'
-_OPTIMIZE_EINSUM = True
 
 # ################# MODELS FILE CONTENT #######################################
-# FROM CHECKS
-
 # ELEMENTS IN A MODEL
-_LMODEL_ATTR = ['_LOGICS',
-                'presets']
+_LMODEL_ATTR = ['_LOGICS', # Contains all the fields
+                'presets'] # Contains specific values and plot to try
 
 # FIELDS THAT MUST BE OBTAINED WHEM LOADING A MODEL
 _DMODEL_KEYS = {
@@ -59,10 +53,10 @@ _LTYPES_ARRAY = [list,
                  tuple,
                  np.ndarray]
 
-_LEQTYPES = ['differential',
-             'statevar',
-             'parameter',
-             'size'
+_LEQTYPES = ['differential',  # Every differentially defined variables (PDE, ODE...)
+             'statevar',      # State variables (deduced from everything else)
+             'parameter',     # Fixed-value
+             'size'           # Size of tensors, special type parrameter
              ]
 
 # ######################### DPARAM CONTENT ####################################
@@ -133,3 +127,11 @@ __DEFAULTFIELDS = {
         'allowed': None
     }
 }
+
+################################## LOCAL CHANGES #####################
+# ADDRESSES
+_PATH_HERE = os.path.dirname(__file__)
+_PATH_USER_HOME = os.path.expanduser('~')
+_PATH_PRIVATE_MODELS = os.path.join(
+    _PATH_USER_HOME, '.pygemmes', _MODEL_FOLDER)
+_PATH_MODELS = os.path.join(_PATH_HERE, _MODEL_FOLDER)

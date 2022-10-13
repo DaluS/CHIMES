@@ -17,14 +17,14 @@ import types
 # library specific
 from . import _class_check_2
 from .. import _models
-from ..__config import _LMODEL_ATTR
-from ..__config import _LTYPES
-from ..__config import _LTYPES_ARRAY
-from ..__config import _LEQTYPES
-from ..__config import _LEXTRAKEYS
-from ..__config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS
-from ..__config import _MODEL_NAME_CONVENTION
-from ..__config import _DEFAULTSIZE
+from .._config import _LMODEL_ATTR
+from .._config import _LTYPES
+from .._config import _LTYPES_ARRAY
+from .._config import _LEQTYPES
+from .._config import _LEXTRAKEYS
+from .._config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS
+from .._config import _MODEL_NAME_CONVENTION
+from .._config import _DEFAULTSIZE
 
 ###############################################################################
 #############                  MAIN FUNCTION                      #############

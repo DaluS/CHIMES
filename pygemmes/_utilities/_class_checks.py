@@ -15,8 +15,8 @@ import importlib
 # common
 import numpy as np
 
-from ..__config import _LTYPES_ARRAY
-from ..__config import _LTYPES
+from .._config import _LTYPES_ARRAY
+from .._config import _LTYPES
 # library specific
 from .. import _models
 

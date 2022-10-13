@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt     # DB
 from . import _utils
 from . import _class_checks
 
-from ..__config import _SOLVER
+from .._config import _SOLVER
 
 
 _DSOLVERS = {

@@ -1,5 +1,34 @@
 # -*- coding: utf-8 -*-
+"""
 
+#####################################################################################
+ _______            ______  ________  ____    ____  ____    ____  ________   ______
+|_   __ \         .' ___  ||_   __  ||_   \  /   _||_   \  /   _||_   __  |.' ____ \
+  | |__) |_   __ / .'   \_|  | |_ \_|  |   \/   |    |   \/   |    | |_ \_|| (___ \_|
+  |  ___/[ \ [  ]| |   ____  |  _| _   | |\  /| |    | |\  /| |    |  _| _  _.____`.
+ _| |_    \ '/ / \ `.___]  |_| |__/ | _| |_\/_| |_  _| |_\/_| |_  _| |__/ || \____) |
+|_____| [\_:  /   `._____.'|________||_____||_____||_____||_____||________| \______.'
+         \__.'
+#####################################################################################
+
+Welcome in Pygemmes, a modular library to prototype and study dynamical systems !
+This library is oriented toward generation of macroeconomic complexity models
+You can find the files on https://github.com/DaluS/GEMMES
+This library has been coded mostly by Didier Vezinet and Paul Valcke,
+at the environmental justice program https://environmentaljustice.georgetown.edu/#
+You can contact me at pv229@georgetown.edu
+If you find bugs, want some new extensions, or help us improve the library, please create a new issue on github
+If this is the first time you open this library, please look at the tutorial file in doc/tutorial.py and execute it line by line.
+
+TO EXPLORE :
+pgm.get_available_ then tab to see what is available
+    examples :
+    * pgm.get_available_fields()
+    * pgm.get_available_models(details=False)
+    * pgm.get_available_solvers()
+    * pgm.get_available_functions()
+pgm.Hub() to load a model
+"""
 
 # Here we decide what the user will see
 #from ._private_pygemmes import create_private_pygemmes
@@ -19,7 +48,7 @@ from . import _plots as plots
 
 
 # MESSAGE LOGO ########################################
-from .__config import __PRINTLOGO, __PRINTINTRO
+from ._config import __PRINTLOGO, __PRINTINTRO
 import os
 if __PRINTLOGO:
     print("""
@@ -35,7 +64,7 @@ if __PRINTLOGO:
 """)
 if __PRINTINTRO:
     Add= os.path.dirname(os.path.realpath(__file__))+r'doc\tutorial.py'
-    Add2 = os.path.dirname(os.path.realpath(__file__))+"__config.py"
+    Add2 = os.path.dirname(os.path.realpath(__file__))+"\_config.py"
     print(
 f"""Welcome in Pygemmes, a modular library to prototype and study dynamical systems !
 This library is oriented toward generation of macroeconomic complexity models 
