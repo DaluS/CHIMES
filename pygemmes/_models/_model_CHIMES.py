@@ -30,7 +30,7 @@ def Debtvariation(r,D,w,L,z,p,Y,C,Ir,Gamma,Xi):
 _LOGICS = {
     'size': {
         'Nprod': {
-            'list': ['energy', 'mine', 'capital', 'consumption'],
+            'list': ['energy'],
         },
     },
     'differential': {

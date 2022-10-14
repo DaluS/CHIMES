@@ -564,6 +564,20 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
                             dparam['nr']['value'],  # Regions
                             sizes
                             ])
+
+        #### THIS PART SHOULD BE REMOVED, BAD PATCH
+        if len(shape)==len(np.shape(dparam[k0]['value'])):
+            shp = np.shape(dparam[k0]['value'])
+            change=False
+            for ii,k in enumerate(shape):
+                if (shp[ii]!=k and shp[ii]!=1):
+                    print(f'WARNING : projection of {k0} on first scalar value')
+                    change=True
+                    break
+            if change:
+                dparam[k0]['value']= dparam[k0]['value'][0,0,0,0]
+
+
         dparam[k0]['value'] = np.full(shape, dparam[k0]['value'])
 
     return dparam

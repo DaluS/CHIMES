@@ -276,7 +276,6 @@ class Hub():
 
         # Put the values of the axis in the system
         for kk, vv in kwargs.items():
-
             # If its on multisectoral, put the value
             if kk not in ['dt','nx','Tmax']:
                 if type(vv) is list:
@@ -444,6 +443,9 @@ class Hub():
                     if type(r) is str :
                         ax = self.__dparam[name]['size'][0 if k =='first' else 1]
                         fullinfos[k][ii]= self.__dparam[ax]['list'].index(r)
+
+        if not bool(np.shape(fullinfos['value'])):
+            fullinfos['value']=[fullinfos['value']]
         fullinfos['value']=np.array(fullinfos['value'])
 
 
@@ -455,29 +457,28 @@ class Hub():
             raise Exception(f'INCONSISTENCY IN {name} dimensions !')
         else :
             lmax = np.amax(lens)
-            print(lmax,fullinfos)
             for ii in range(lmax):
-                minidict = {k: v[ii] if int(np.prod(np.shape(v)))!=1
-                          else v[0]  for k,v in fullinfos.items()}
+
+                minidict = {k: v[min(ii,len(v)-1)] if int(np.prod(np.shape(v)))>=1
+                      else v  for k,v in fullinfos.items()}
 
 
                 # Complete the regions ###############
-                dimx=['nx','nr','first','second']
-                for idx,v in enumerate(np.shape(OLDVAL)):
-                    if dimx[idx] not in minidict.keys():
-                        minidict[dimx[idx]]=np.arange(v)
+                dimx=['nx','nr']
+                for idx in dimx:
+                    if idx not in minidict.keys():
+                        minidict[idx]=np.arange(self.__dparam[idx]['value'])
+                dimx=['first', 'second']
+                for ii,idx in enumerate(dimx):
+                    if idx not in minidict.keys():
+                        minidict[idx]=np.arange(self.__dparam[self.__dparam[name]['size'][ii]]['value'])[:]
 
-                print(minidict)
-                print(np.shape(newval))
-                print('BEFORE')
-                print(newval)
                 # Inject the value ####################
                 newval[ minidict['nx'],
                         minidict['nr'],
                         minidict['first'],
                         minidict['second']] = minidict['value']
-                print('AFTER')
-                print(newval)
+
 
         return newval
 
@@ -674,7 +675,6 @@ class Hub():
            }
 
            # run function
-           print(k0)
            self.__dparam[k0]['value'][0, ...] = (
                self.__dparam[k0]['func'](**kwdargs)
            )
