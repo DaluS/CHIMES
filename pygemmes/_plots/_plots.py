@@ -56,44 +56,71 @@ __all__ = [
 # ############################################################################
 # ############## IMPORTANT PLOTS #############################################
 
-def plotbyunits_multi(hub,filters=(), title='', lw=1, idx=0,Region=0):
+def plotbyunits_multi(hub,filters_key=(),
+                      filters_units=(),
+                      filters_sector=('',),
+                      separate_variables={},
+                      title='', lw=1, idx=0,Region=0):
     '''
     generate one subfigure per set of units existing
     '''
-    print(filters)
-    grpfield = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['differential', 'statevar'])
-    if type(filters)==tuple():
-        groupsoffields = {  k:[vv for vv in v if v not in filters] for k,v in grpfield.items() if (len(v)>0 and 'time' not in v)}
-    else :
-        groupsoffields = {  k:[vv for vv in v if v in filters] for k,v in grpfield.items() if (len(v)>0 and 'time' not in v)}
 
-    print(groupsoffields)
+    ### FILTERING THE KEYS
+    grpfield = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['differential', 'statevar'])
+    ### Key filters
+    if type(filters_key)==tuple:
+        groupsoffields = {  k:[vv for vv in v if vv not in filters_key] for k,v in grpfield.items() if (len(v)>0 and 'time' not in v)}
+    else :
+        groupsoffields = {  k:[vv for vv in v if vv in filters_key] for k,v in grpfield.items() if (len(v)>0 and 'time' not in v)}
+    ### units filters
+    if type(filters_key)==tuple:
+        groupsoffields = {k: v for k, v in groupsoffields.items() if k not in filters_units}
+    else :
+        groupsoffields = {k: v for k, v in groupsoffields.items() if k in filters_units}
+    separated = {}
+    for k,v in separate_variables.items():
+        separated[k]=[v2 for v2 in groupsoffields[k] if v2 in v]
+        groupsoffields[k]=[v2 for v2 in groupsoffields[k] if v2 not in v]
+        groupsoffields[k+' ']=separated[k]
+    groupsoffields = {k : v for k,v in groupsoffields.items() if len(v)}
+
+
+    # PREPARING THE AXES
     Nax = len(groupsoffields.keys())
     Ncol = 2
     Nlin = Nax // Ncol + Nax % Ncol
     allvars = [item for sublist in groupsoffields.values() for item in sublist]
-
-    R = hub.get_dparam(keys=[allvars], returnas=dict)
-
-    vx = R['time']['value'][:, idx,Region,0,0]
-    vy = {}
-
     fig = plt.figure()
     fig.set_size_inches(10*Ncol, 3*Nlin)
     dax = {key: plt.subplot(Nlin, Ncol, i+1)
            for i, key in enumerate(groupsoffields.keys())}
+
+    # GETTING THE DATA
+    R = hub.get_dparam(keys=[allvars], returnas=dict)
+    vx = R['time']['value'][:, idx,Region,0,0]
+    vy = {}
+    sectorname={}
     index = 0
     for key, vvar in groupsoffields.items():
         ## GET ALL VALUES
         ismulti = [v in hub.dmisc['dmulti']['vector'] for v in vvar  ]
         vy[key]= {}
+        sectorname[key]={}
         for ii,yyy in enumerate(vvar):
             if not ismulti[ii]:
-                vy[key][yyy]=R[yyy]['value'][:, idx,Region,0,0]
+                if (''not in filters_sector and type(filters_sector)==tuple or
+                    '' in filters_sector and type(filters_sector)==list):
+                    vy[key][yyy]=R[yyy]['value'][:, idx,Region,0,0]
             else:
                 sectors = R[R[yyy]['size'][0]]['list']
-                for jj,s in enumerate(sectors):
+                if type(filters_sector)==tuple:
+                    sectors=[ (jj,x) for jj,x in enumerate(sectors) if x not in filters_sector]
+                else:
+                    sectors=[ (jj,x) for jj,x in enumerate(sectors) if x in filters_sector]
+
+                for jj,s in sectors:
                     vy[key][yyy+'_'+s]=R[yyy]['value'][:, idx,Region,jj,0]
+                    sectorname[key][jj]=s
 
         ## AXIS MAKEUP BEAUTY
         ax = dax[key]
@@ -117,8 +144,8 @@ def plotbyunits_multi(hub,filters=(), title='', lw=1, idx=0,Region=0):
         color[:,-1] *= 0.8
 
         ### ADD EFFECTIVELY THE PLOTS
+        j=0
         for j, key2 in enumerate(vy[key].keys()):
-
             symb= R[key2.split('_')[0]]['symbol'][:-1] + '_{'+key2.split('_')[1]+'}$' if '_' in key2 else R[key2]['symbol']
             dax[key].plot(vx,
                           vy[key][key2],
@@ -126,7 +153,8 @@ def plotbyunits_multi(hub,filters=(), title='', lw=1, idx=0,Region=0):
                           label=symb ,
                           #ls=_LS[j % (len(_LS)-1)],
                           lw=lw)
-        dax[key].legend(ncol=1+j//4)
+        if j:
+            dax[key].legend(ncol=1+j//4)
         index += 1
     #plt.suptitle(title)
     fig.tight_layout()
