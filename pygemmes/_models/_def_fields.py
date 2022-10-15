@@ -1013,7 +1013,7 @@ def _complete_DFIELDS(
             if complete and v0.get(k1) is None:
                 # set symbol to key if not defined
                 if k1 == 'symbol':
-                    dfields[k0][k1] = k0
+                    dfields[k0][k1] = str('$'+k0+'$') if '$' not in k0 else k0
                 else:
                     dfields[k0][k1] = default_fields[k1]['default']
 

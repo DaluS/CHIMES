@@ -295,6 +295,7 @@ class Hub():
         self.__dargs=_class_set.get_dargs_by_reference(self.__dparam,
                                                        dfunc_order=self.__dmisc['dfunc_order'])
 
+
     def _set_fields(self,verb=_VERB, **kwargs):
         # Get list of variables that might need a reshape
         parametersandifferential =  list(set(self.get_dparam(eqtype=['differential', None]))
@@ -320,23 +321,19 @@ class Hub():
                 ### DECOMPOSE THE TYPE OF VARIABLE
                 v= kwargs[kk]
                 OLDVAL= np.copy(self.__dparam[kk][direct[kk]])
-
+                print(kk,v)
                 # THIS IS A LIST OF VALUE
                 if type(v) in [np.ndarray]:
+                    #print('nd')
                     #if len(np.shape(v))==1:
-                    if verb: print(f'Identified {kk} as value changes on nx (array)')
-                    newv=np.array(v)
-                    while len(np.shape(newv))<4: # Add dimensions like a bandit
-                        newv=newv[:,np.newaxis]+0
-                    newvalue[kk] = newv
-
+                    newvalue[kk]=self._change_line(kk,v)
                 elif type(v) in [list]:
+                    #print('list')
+                    #print(v)
                     if np.prod([type(vv) in [float,int] for vv in v]):
-                        if verb: print(f'Identified {kk} as value changes on nx (list)')
-                        newv=np.array(v)
-                        while len(np.shape(newv))<4:
-                            newv=newv[:,np.newaxis]+0
-                        newvalue[kk] = newv
+                        newvalue[kk]=self._change_line(kk, v)
+                    elif np.shape(v)==np.shape(self.__dparam[kk]['value'][0,0,:,:]):
+                        newvalue[kk] = self._change_line(kk, v)
                     else :
                         # WHERE SHIT HIT THE FAN : WE DO THAT IN ANOTHER FUNCTION
                         newvalue[kk] = self.__deep_set_dparam(OLDVAL,[],dimname,v,kk)
@@ -346,7 +343,6 @@ class Hub():
                     newvalue[kk] = kwargs[kk]+0.
             else:
                 newvalue[kk]=np.ravel(np.array(oldvalue[kk]))[0]
-
 
         for kk in parametersandifferential:
             self.__dparam[kk][direct[kk]]=newvalue[kk]
@@ -358,6 +354,23 @@ class Hub():
         self.__dargs=_class_set.get_dargs_by_reference(self.__dparam,
                                                        dfunc_order=self.__dmisc['dfunc_order'])
         self.reset()
+
+    def _change_line(self,kk,v):
+        if self.__dparam[kk]['size'][0] == '__ONE__':
+            print(f'Identified {kk} as value changes on nx (list)')
+            newv = np.array(v)
+            while len(np.shape(newv)) < 4:
+                newv = newv[:, np.newaxis] + 0
+        elif self.__dparam[kk]['size'][1] == '__ONE__':
+            print(f'Identified {kk} as value changes on first vector dimension')
+            newv=np.array(v)
+            newv=newv[np.newaxis,np.newaxis,:,np.newaxis]+0
+        else:
+            print(f'Identified {kk} as value changes on the matrix')
+            newv=np.array(v)
+            print(newv,np.shape(newv))
+            newv=newv[np.newaxis,np.newaxis,:,:]+0
+        return newv
 
     def __deep_set_dparam(self, OLDVAL, FLATTABLE, dimname, inpt,name):
         '''

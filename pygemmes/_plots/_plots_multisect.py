@@ -35,6 +35,8 @@ _LS = [
     (0, (5, 5))
 ]
 
+_color= ['black','gray','red','peru','orange','olivedrab','forestgreen']
+
 matplotlib.rc('xtick', labelsize=15)
 matplotlib.rc('ytick', labelsize=15)
 plt.rcParams.update({'font.size': 15})
@@ -47,7 +49,6 @@ __all__ = [
     'plotnyaxis',
     'phasespace',
     'plot3D',
-    'plotbyunits',
     'plotbyunits_multi',
     'Var',
     'cycles_characteristics'
@@ -55,88 +56,7 @@ __all__ = [
 
 # ############################################################################
 # ############## IMPORTANT PLOTS #############################################
-
-def plotbyunits_multi(hub,filters=(), title='', lw=1, idx=0,Region=0):
-    '''
-    generate one subfigure per set of units existing
-    '''
-    print(filters)
-    grpfield = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['differential', 'statevar'])
-    if type(filters)==tuple():
-        groupsoffields = {  k:[vv for vv in v if v not in filters] for k,v in grpfield.items() if (len(v)>0 and 'time' not in v)}
-    else :
-        groupsoffields = {  k:[vv for vv in v if v in filters] for k,v in grpfield.items() if (len(v)>0 and 'time' not in v)}
-
-    print(groupsoffields)
-    Nax = len(groupsoffields.keys())
-    Ncol = 2
-    Nlin = Nax // Ncol + Nax % Ncol
-    allvars = [item for sublist in groupsoffields.values() for item in sublist]
-
-    R = hub.get_dparam(keys=[allvars], returnas=dict)
-
-    vx = R['time']['value'][:, idx,Region,0,0]
-    vy = {}
-
-    fig = plt.figure()
-    fig.set_size_inches(10*Ncol, 3*Nlin)
-    dax = {key: plt.subplot(Nlin, Ncol, i+1)
-           for i, key in enumerate(groupsoffields.keys())}
-    index = 0
-    for key, vvar in groupsoffields.items():
-        ## GET ALL VALUES
-        ismulti = [v in hub.dmisc['dmulti']['vector'] for v in vvar  ]
-        vy[key]= {}
-        for ii,yyy in enumerate(vvar):
-            if not ismulti[ii]:
-                vy[key][yyy]=R[yyy]['value'][:, idx,Region,0,0]
-            else:
-                sectors = R[R[yyy]['size'][0]]['list']
-                for jj,s in enumerate(sectors):
-                    vy[key][yyy+'_'+s]=R[yyy]['value'][:, idx,Region,jj,0]
-
-        ## AXIS MAKEUP BEAUTY
-        ax = dax[key]
-        units = r'$\  '+key.replace('$', '\$')+'  \ $'
-        ylabel = units
-        dax[key].set_ylabel(ylabel)
-        ax.set_xlim(vx[0], vx[-1])
-        ax.axhline(y=0, color='k', lw=0.5)
-        if 1 < index < Nax-2:
-            ax.set_xticklabels([])
-        else:
-            ax.set_xlabel(r'$time (y)$')
-        if index < 2:
-            ax.xaxis.tick_top()
-            # ax.xaxix.label_top()
-        ax.grid(axis='x')
-        if index % 2 == 1:
-            ax.yaxis.set_label_position("right")
-            ax.yaxis.tick_right()
-        color = np.array(plt.cm.jet(np.linspace(0,1,len(vy[key])+2)))
-        color[:,-1] *= 0.8
-
-        ### ADD EFFECTIVELY THE PLOTS
-        for j, key2 in enumerate(vy[key].keys()):
-
-            symb= R[key2.split('_')[0]]['symbol'][:-1] + '_{'+key2.split('_')[1]+'}$' if '_' in key2 else R[key2]['symbol']
-            dax[key].plot(vx,
-                          vy[key][key2],
-                          c=color[j,:],
-                          label=symb ,
-                          #ls=_LS[j % (len(_LS)-1)],
-                          lw=lw)
-        dax[key].legend(ncol=1+j//4)
-        index += 1
-    #plt.suptitle(title)
-    fig.tight_layout()
-
-    plt.subplots_adjust(wspace=0.01, hspace=0)
-    plt.show()
-
-
-
-def plotbyunits(hub, title='', lw=1, idx=0,Region=0, color='r'):
+def plotbyunits_multi(hub, title='', lw=1, idx=0,Region=0, color='r',multisect=True):
     '''
     generate one subfigure per set of units existing
     '''
@@ -162,7 +82,7 @@ def plotbyunits(hub, title='', lw=1, idx=0,Region=0, color='r'):
 
         ax = dax[key]
 
-        vy[key] = {yyy: R[yyy]['value'][:, idx,Region,0,0] for yyy in vvar}
+        vy[key] = {yyy+'_'+R[yyy]['size'][ii]: R[yyy]['value'][:, idx,Region,ii,0] for ii,yyy in enumerate(vvar)}
 
         units = r'$\  '+key.replace('$', '\$')+'  \ $'
         ylabel = units
@@ -180,13 +100,16 @@ def plotbyunits(hub, title='', lw=1, idx=0,Region=0, color='r'):
         if index % 2 == 1:
             ax.yaxis.set_label_position("right")
             ax.yaxis.tick_right()
-        for j, key2 in enumerate(vvar):
+        vvar2 = [yyy + '_' + R[yyy]['size'][ii] for ii, yyy in enumerate(vvar)]
+
+
+        for j, key2 in enumerate(vvar2):
             if key2 != 'time':
                 dax[key].plot(vx,
                               vy[key][key2],
-                              color=color,
+                              color=color[j],
                               label=R[key2]['symbol'],
-                              ls=_LS[j % (len(_LS)-1)],
+                              #ls=_LS[j % (len(_LS)-1)],
                               lw=lw)
         dax[key].legend()
         index += 1
@@ -644,7 +567,6 @@ _DPLOT = {
     'nyaxis': plotnyaxis,
     'phasespace': phasespace,
     '3D': plot3D,
-    'byunits': plotbyunits,
-
+    'byunits': plotbyunits_multi,
     'Onevariable': Var,
     'cycles_characteristics': cycles_characteristics}
