@@ -56,34 +56,59 @@ __all__ = [
 # ############################################################################
 # ############## IMPORTANT PLOTS #############################################
 
-def plotbyunits_multi(hub,filters_key=(),
+def plotbyunits_multi(hub,
+                      filters_key=(),
                       filters_units=(),
-                      filters_sector=('',),
+                      filters_sector=(),
                       separate_variables={},
-                      title='', lw=1, idx=0,Region=0):
+                      lw=1,
+                      idx=0,
+                      Region=0):
     '''
-    generate one subfigure per set of units existing
+    generate one subfigure per set of units existing.
+
+    There are three layers of filters, each of them has the same logic :
+    if the filter is a tuple () it exclude the elements inside,
+    if the filter is a list [] it includes the elements inside.
+
+    Filters are the following :
+    filters_units      : select the units you want
+    filters_sector     : select the sector you want  ( '' is all monosetorial variables)
+    filters_sector     : you can put sector names if you want them or not. '' corespond to all monosectoral variables
+    separate_variables : key is a unit (y , y^{-1}... and value are keys from that units that will be shown on another graph,
+
+    Region             : is, if there a multiple regions, the one you want to plot
+    idx                : is the same for parrallel systems
+
+
+
+    separate_variable : is a dictionnary, which will create a new plot with variables fron the unit selected
+    (exemple: you have pi, epsilon and x which share the same units 'y', if you do separate_variables={'y':'x'}
+    another figure will be added with x only on it, and pi and epsilon on the other one)
+
     '''
 
     ### FILTERING THE KEYS
     grpfield = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['differential', 'statevar'])
     ### Key filters
-    if type(filters_key)==tuple:
+    if type(filters_key)==list:
+        groupsoffields = {k: [vv for vv in v if vv in filters_key] for k, v in grpfield.items() if
+                          (len(v) > 0 and 'time' not in v)}
+    else:
         groupsoffields = {  k:[vv for vv in v if vv not in filters_key] for k,v in grpfield.items() if (len(v)>0 and 'time' not in v)}
-    else :
-        groupsoffields = {  k:[vv for vv in v if vv in filters_key] for k,v in grpfield.items() if (len(v)>0 and 'time' not in v)}
-    ### units filters
-    if type(filters_key)==tuple:
-        groupsoffields = {k: v for k, v in groupsoffields.items() if k not in filters_units}
-    else :
+            ### units filters
+    if type(filters_units)==list:
         groupsoffields = {k: v for k, v in groupsoffields.items() if k in filters_units}
+    else:
+        groupsoffields = {k: v for k, v in groupsoffields.items() if k not in filters_units}
+
+    ### Separate some variables from the same axis
     separated = {}
     for k,v in separate_variables.items():
-        separated[k]=[v2 for v2 in groupsoffields[k] if v2 in v]
-        groupsoffields[k]=[v2 for v2 in groupsoffields[k] if v2 not in v]
+        separated[k]=[v2 for v2 in groupsoffields.get(k,[]) if v2 in v]
+        groupsoffields[k]=[v2 for v2 in groupsoffields.get(k,[]) if v2 not in v]
         groupsoffields[k+' ']=separated[k]
     groupsoffields = {k : v for k,v in groupsoffields.items() if len(v)}
-
 
     # PREPARING THE AXES
     Nax = len(groupsoffields.keys())
@@ -108,9 +133,11 @@ def plotbyunits_multi(hub,filters_key=(),
         sectorname[key]={}
         for ii,yyy in enumerate(vvar):
             if not ismulti[ii]:
-                if (''not in filters_sector and type(filters_sector)==tuple or
+                if ('' not in filters_sector and type(filters_sector)==tuple or
                     '' in filters_sector and type(filters_sector)==list):
                     vy[key][yyy]=R[yyy]['value'][:, idx,Region,0,0]
+                else :
+                    vy[key][yyy] = R[yyy]['value'][:, idx, Region, 0, 0]
             else:
                 sectors = R[R[yyy]['size'][0]]['list']
                 if type(filters_sector)==tuple:
@@ -144,16 +171,16 @@ def plotbyunits_multi(hub,filters_key=(),
         color[:,-1] *= 0.8
 
         ### ADD EFFECTIVELY THE PLOTS
-        j=0
+        j=-1
         for j, key2 in enumerate(vy[key].keys()):
             symb= R[key2.split('_')[0]]['symbol'][:-1] + '_{'+key2.split('_')[1]+'}$' if '_' in key2 else R[key2]['symbol']
             dax[key].plot(vx,
                           vy[key][key2],
                           c=color[j,:],
                           label=symb ,
-                          #ls=_LS[j % (len(_LS)-1)],
+                          ls=_LS[j % (len(_LS)-1)],
                           lw=lw)
-        if j:
+        if j >= 0:
             dax[key].legend(ncol=1+j//4)
         index += 1
     #plt.suptitle(title)

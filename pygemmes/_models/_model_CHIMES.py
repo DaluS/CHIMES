@@ -26,15 +26,8 @@ def Debtvariation(r,D,w,L,z,p,Y,C,Ir,Gamma,Xi):
         -matmul((Gamma-transpose(Gamma)),p*Y)
     return debt
 
-"""
-        'H': {
-            'func': lambda H,deltah,rho,C: C-deltah*H-matmul(rho,H),
-            'com': 'explicit stock-flow',
-            'definition': 'Possessions',
-            'units': 'units',
-            'size': ['Nprod']
-        },
-"""
+
+
 _LOGICS = {
     'size': {
         'Nprod': {
@@ -65,8 +58,8 @@ _LOGICS = {
             'symbol':r'$D_{household}$'
         },
         'u': {
-            'func': lambda u: 0,
-            #'func': lambda u,sigma,V,dotV: -sigma*(1-u)*dotV/V,
+            #'func': lambda u: 0,
+            'func': lambda u,sigma,V,dotV: -sigma*(1-u)*dotV/V,
             'com': 'hardcapped at 1',
             'definition': 'use of productive capital',
             'units': '',
@@ -86,6 +79,14 @@ _LOGICS = {
             'units': 'units',
             'symbol': '$V$'
         },
+        'H': {
+            'func': lambda H, deltah, rho, C: C - deltah * H - matmul(rho, H),
+            'com': 'explicit stock-flow',
+            'definition': 'Possessions',
+            'units': 'units',
+            'size': ['Nprod']
+        },
+
         'w': {'func': lambda philips, w,gammai, ibasket : w*(philips+gammai*ibasket),
               'com': 'exogenous',
              },
@@ -106,13 +107,13 @@ _LOGICS = {
             'symbol': 'i'
         },
         'pi': {
-            'func': lambda c,p,r,d : 1 - c/p -r*d,
+            'func': lambda omega,gamma,xi,rd : 1 - omega - gamma - xi - rd,
             'com': 'explicit form',
             'size': ['Nprod'],
             'units':'',
         },
         'c': {
-            'func': lambda omega,epsilon,xi,p : p*(omega + epsilon+xi),
+            'func': lambda omega,gamma,xi,p : p*( omega + gamma + xi),
             'com':'explicit form',
             'size': ['Nprod'],
             'units': '$.Units^{-1}',
@@ -168,8 +169,8 @@ _LOGICS = {
         'employment': {
             'func': lambda L,N: ssum(L)/N,
             'com': 'Calculation with L',
-            'units': 'y^{-1}',
-            'symbol': r'$\lambda$'
+            'units': '',
+            'symbol': r'$\Lambda$'
         },
         'philips':  {
             'func': lambda employment, phi0, phi1: -phi0 + phi1 / (1 - employment)**2,
@@ -205,7 +206,7 @@ _LOGICS = {
             'func': lambda Y,Gamma,Ir,C,Xi: Y-matmul(transpose(Gamma),Y)-C-matmul(transpose(Xi),Ir),
             'com': 'stock-flow',
             'definition': 'temporal variation of inventory',
-            'units': 'y^{-1}',
+            'units': 'Units.y^{-1}',
             'size': ['Nprod'],
             'symbol': r'$\dot{V}$'
         },
@@ -218,11 +219,33 @@ _LOGICS = {
             'units': '$.y^{-1}',
             'size': ['Nprod'],
         },
-        'd': {
-            'func': lambda D,p,Y: D/(p*Y),
+        'TransactI' : {
+            'func': lambda p, Ir, Xi : matmul((Xi   -transpose(Xi)   ),p*Ir),
+            'definition': 'Net money flux from investment',
+            'com': 'component of dotD',
+            'units': '$.y^{-1}',
+            'size': ['Nprod'],
+        },
+        'TransactInter': {
+            'func': lambda p, Y, Gamma: matmul((Gamma-transpose(Gamma)),p*Y),
+            'definition': 'Net money flux from intermediary consumption',
+            'com': 'component of dotD',
+            'units': '$.y^{-1}',
+            'size': ['Nprod'],
+        },
+        'Consumption': {
+            'func': lambda p,C: p*C,
+            'definition': 'Consumption in monetary value',
+            'com': 'Just to check',
+            'units': '$.y^{-1}',
+            'size': ['Nprod'],
+        },
+
+        'rd': {
+            'func': lambda r,D,p,Y: r*D/(p*Y),
             'com': 'deduced from D',
             'definition': 'relative weight debt',
-            'units': 'y^{-1}',
+            'units': '',
             'size': ['Nprod'],
         },
         'kappa': {
@@ -233,11 +256,12 @@ _LOGICS = {
         },
 
         ### AUXILLIARY VECT STATEVAR
-        'epsilon': {
+        'gamma': {
             'func': lambda Gamma,p: matmul(Gamma,p)/p,
             'definition': 'share of intermediary consumption',
             'com': 'raw definition',
             'units': '',
+            'symbol': r'$\gamma$',
             'size': ['Nprod'],
         },
         'omega': {
@@ -246,14 +270,22 @@ _LOGICS = {
             'units': '',
             'size': ['Nprod'],
         },
-        'employment_local': {
+        'employmentlocal': {
             'func': lambda L,N : L/N,
             'com': 'raw def',
             'definition': 'part of population working in sector',
             'size': ['Nprod'],
+            'symbol': '$\lambda$',
             'units': '',
         },
-
+        'growthK': {
+            'func': lambda  Ir,delta,u,K: Ir/K-u*delta,
+            'definition': 'growth rate of capital',
+            'com': 'no u variation',
+            'units': 'y^{-1}',
+            'size': ['Nprod'],
+            'symbol': '$g^K$'
+        }
 
         ### AUXILLIARY STATEVAR
         #'GDP_nominal': 0,
@@ -328,16 +360,17 @@ _LOGICS = {
         ### MATRICES
         'Gamma': {
             'value': 0.01,
-            'size': ['Nprod', 'Nprod']
+            'size': ['Nprod', 'Nprod'],
+            'units':'',
         },
         'Xi': {
             'value': 0.01,
             'size': ['Nprod', 'Nprod']
         },
-        #'rho': {
-        #    'value': 0.01,
-        #    'size': ['Nprod', 'Nprod']
-        #},
+        'rho': {
+            'value': 0.01,
+            'size': ['Nprod', 'Nprod']
+        },
     },
 }
 
