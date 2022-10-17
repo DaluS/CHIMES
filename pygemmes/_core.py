@@ -1063,25 +1063,23 @@ class Hub():
                   'stdval',
                   'minval',
                   'maxval']
-        Nsys = self.dmisc['dmulti']['shape'][0]
+
 
         for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
+            tempval = np.reshape(dic1['value'],(np.shape(dic1['value'])[0],-1))
             self.__dparam[var]['cycles'] = [{k: []
-                                             for k in fields} for i in range(Nsys)]
-
-        for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
-            for idx in range(Nsys):
+                                             for k in fields} for i in range(np.shape(tempval)[1])]
+            for idx in range(np.shape(tempval)[1]):
                 if ref is None:
                     self.__dparam[var]['cycles'][idx]['reference'] = var
-                    self._FillCycles(var, var, idx, n=n)
+                    self._FillCycles(var,tempval[:,idx], var, idx, n=n)
                 else:
                     self.__dparam[var]['cycles'][idx]['reference'] = ref
-                    self._FillCycles(var, ref, idx, n=n)
-
+                    self._FillCycles(var,tempval[:,idx], ref, idx, n=n)
         self.reverse_cycles_dic()
         self.__dmisc['cycles'] = True
 
-    def _FillCycles(self, var, ref='lambda', id=0, n=10):
+    def _FillCycles(self, var,tempval, ref='employment', id=0, n=10):
         '''
         it calculates the cycles properties
         ref is the reference variable on which the time of cycles is determined
@@ -1100,20 +1098,20 @@ class Hub():
         ready = False
         if 'cycles' in self.__dparam[ref].keys():
             dic2 = self.__dparam[ref]['cycles'][id]
-            if (dic2['reference'] == ref and 'period_indexes' in dic2):
+            if (dic2['reference'] == ref and len(dic2.get('period_indexes',[]))>=1):
                 # We can take the reference as the base
                 ready = True
         # If there is no good reference
         # We calculate it and put
         if not ready:
-            self._findCycles(ref, id)
+            self._findCycles(ref, tempval,id)
             dic2 = self.__dparam[ref]['cycles'][id]
 
         for key in ['period_indexes', 'period_T_intervals',
                     't_mean_cycle', 'period_T']:
             dic1[key] = copy.deepcopy(dic2[key])
 
-        tim = self.__dparam['time']['value']
+        tim = self.__dparam['time']['value'][:,0,0,0]
         dic1['period_T_intervals'] = [[tim[idx[0], 0], tim[idx[1], 0]]
                                       for idx in dic1['period_indexes']]
         dic1['t_mean_cycle'] = [
@@ -1124,7 +1122,7 @@ class Hub():
             1/(t[1] - t[0]) for t in dic1['period_T_intervals']]
 
         # Fill for each the characteristics
-        values = dic['value'][:, id]
+        values = tempval
         # print(var, dic1)
         dic1['meanval'] = [np.mean(values[idx[0]:idx[1]])
                            for idx in dic1['period_indexes']]
@@ -1146,7 +1144,7 @@ class Hub():
         dic1['Harmonicity'] = [np.sum(Coeffs[i][1:]**2)/np.sum(Coeffs[i]**2)
                                for i in range(len(Coeffs))]
 
-    def _findCycles(self, refval, idx=0):
+    def _findCycles(self, refval,tempval, idx=0):
         '''
         Detect all positions of local maximums and the time that is linked
         '''
@@ -1155,13 +1153,14 @@ class Hub():
         id1 = 1
 
         dic1 = self.__dparam[refval]['cycles'][idx]
-        val = self.__dparam[refval]['value'][:, idx]
+        val = tempval
 
         # identification loop
         while id1 < len(val) - 2:
             if (val[id1] > val[id1 - 1] and
                     val[id1] > val[id1 + 1]):
-                periods.append(1 * id1)
+                if np.abs(val[id1]-val[id1-1])>0.0000001:
+                    periods.append(1 * id1)
             id1 += 1
 
         # Fill the formalism

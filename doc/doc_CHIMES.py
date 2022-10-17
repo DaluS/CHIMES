@@ -4,7 +4,7 @@ hub=pgm.Hub('CHIMES')
 
 dict={
 ### MONOSECTORAL
-'Tmax':10,
+'Tmax':40,
 'Nprod': ['Consumption','Capital'],
 'alpha':0.02,
 'n':0.025,
@@ -16,7 +16,7 @@ dict={
 'Dh':0,
 'w':0.8,
 
-'sigma':[10,10],
+'sigma':[0,0],
 'K': [2.2,0.6],
 'D':[0,0],
 'u':[.9,.9],
@@ -133,7 +133,8 @@ dict3={
 hub.set_dparam(**dict)
 hub.get_summary()
 hub.run()
-hub.reinterpolate_dparam(N=100)
+hub.calculate_Cycles()
+#hub.reinterpolate_dparam(N=100)
 pgm.plots.plotbyunits_multi(hub,
                             filters_key=('kappa','a','w','basket'),
                             filters_units=['$.y^{-1}','$.units^{-1}','','y^{-1}'],
