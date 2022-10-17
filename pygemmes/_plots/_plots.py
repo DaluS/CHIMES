@@ -146,7 +146,7 @@ def plotbyunits_multi(hub,
                     sectors=[ (jj,x) for jj,x in enumerate(sectors) if x in filters_sector]
 
                 for jj,s in sectors:
-                    vy[key][yyy+'_'+s]=R[yyy]['value'][:, idx,Region,jj,0]
+                    vy[key][yyy+'_'+str(s)]=R[yyy]['value'][:, idx,Region,jj,0]
                     sectorname[key][jj]=s
 
         ## AXIS MAKEUP BEAUTY

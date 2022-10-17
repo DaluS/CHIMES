@@ -97,7 +97,7 @@ dict3={
 
 # PRODUCTION-MATERIAL FLUXES #######
 'K'    : 2.7/3,
-'Gamma': np.eye(10),
+'Gamma': np.eye(10)*0.1,
 'Xi'   : np.eye(10)*3,
 'nu'   : 1,
 'delta': 0.05,
@@ -130,9 +130,10 @@ dict3={
 }
 
 
-hub.set_dparam(**dict3)
+hub.set_dparam(**dict)
 hub.get_summary()
 hub.run()
+hub.reinterpolate_dparam(N=100)
 pgm.plots.plotbyunits_multi(hub,
                             filters_key=('kappa','a','w','basket'),
                             filters_units=['$.y^{-1}','$.units^{-1}','','y^{-1}'],

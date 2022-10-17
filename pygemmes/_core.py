@@ -755,19 +755,19 @@ class Hub():
 
         'reinterpolate_dparam IS DEPRECIATED, WILL BE ADAPTED TO MULTISECTORIALITY SOON'
        """
-       print('reinterpolate_dparam IS DEPRECIATED, WILL BE ADAPTED TO MULTISECTORIALITY SOON')
-       return 'reinterpolate_dparam IS DEPRECIATED, WILL BE ADAPTED TO MULTISECTORIALITY SOON'
-
        P = self.__dparam
        t = P['time']['value']
        for k in self.__dmisc['dfunc_order']['statevar']+self.__dmisc['dfunc_order']['differential']:
            v = P[k]['value']
-           newval = np.zeros([N]+list(np.shape(v)[1:]))
-           newt = np.linspace(t[0], t[-1], N)
-
+           prevshape= np.shape(v)
+           v2 =v.reshape(P['nt']['value'],-1)
+           #print(np.shape(v2))
+           newval = np.zeros([N,np.shape(v2)[1]])
+           newt = np.linspace(t[0,0,0,0], t[-1,0,0,0], N)
            for i in range(np.shape(newval)[1]):
-               newval[:, i] = np.interp(newt[:, i], t[:, i], v[:, i])
-           self.__dparam[k]['value'] = newval
+               newval[:, i] = np.interp(newt[:,0], t[:, 0,0,0,0], v2[:, i])
+           newshape =[N]+list(prevshape[1:])
+           self.__dparam[k]['value'] = newval.reshape(newshape)
 
     # ##############################
     #  Introspection
