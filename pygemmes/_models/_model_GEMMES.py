@@ -113,6 +113,8 @@ _COUPLINGLOGICS = {
             'com': 'damage on production',
         },
     },
+    'parameter': {},
+    'size': {},
 }
 
 # We add the coupling

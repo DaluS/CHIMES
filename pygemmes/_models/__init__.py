@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+# Check 9/27/22
 
 import os
 import importlib
@@ -10,43 +10,29 @@ from .._utilities import _utils
 
 import inspect
 
-_PATH_HERE = os.path.dirname(__file__)
-_PATH_USER_HOME = os.path.expanduser('~')
-_PATH_PRIVATE_MODELS = os.path.join(_PATH_USER_HOME, '.pygemmes', '_models')
-_PATH_MODELS = _PATH_HERE
-
-_FROM_USER = False
-
-# if private pygemmes exists => load models from there
-if not os.path.isdir(_PATH_PRIVATE_MODELS):
-    _PATH_PRIVATE_MODELS = None
-
+from .._config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS,_MODEL_NAME_CONVENTION,_MODELS_SHOWDETAILS
 
 # ####################################################
 # ####################################################
 #       Automatically load all available models
 # ####################################################
-
-
 def _get_DMODEL(from_user=_FROM_USER):
+    # check 09/27/2022 OK
 
-    if from_user is None:
-        from_user = True
-
-    # ------------
-    # path_model
-
+    # FIND THE PATH TO MODELS
     if from_user is True and _PATH_PRIVATE_MODELS is not None:
         path_models = _PATH_PRIVATE_MODELS
     else:
         path_models = _PATH_MODELS
 
+    # FIND ALL FILES CORRESPONDING
     _df = {
-        ff[:-3]: ff[len('_model_'):ff.index('.py')]
+        ff[:-3]: ff[len(_MODEL_NAME_CONVENTION):ff.index('.py')]
         for ff in os.listdir(path_models)
-        if ff.startswith('_model_') and ff.endswith('.py')
+        if ff.startswith(_MODEL_NAME_CONVENTION) and ff.endswith('.py')
     }
 
+    # CREATE A DICTIONNARY CONTAINING EVERYTHING THEY HAVE
     _DMODEL = {}
     for k0, v0 in _df.items():
         pfe = os.path.join(path_models, k0 + '.py')
@@ -55,12 +41,12 @@ def _get_DMODEL(from_user=_FROM_USER):
         spec.loader.exec_module(foo)
         _DMODEL[v0] = {
             'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
-            # 'func_order': foo._FUNC_ORDER,
             'file': foo.__file__,
             'description': foo.__doc__,
             'presets': {k0: dict(v0) for k0, v0 in foo._PRESETS.items()},
             'name': v0,
         }
+
     return path_models, _DMODEL
 
 
@@ -71,7 +57,7 @@ def _get_DMODEL(from_user=_FROM_USER):
 
 def get_available_models(
     model=None,
-    details=None,
+    details=_MODELS_SHOWDETAILS,
     returnas=None,
     verb=None,
     from_user=_FROM_USER,
@@ -79,7 +65,6 @@ def get_available_models(
     '''
     Check all models available in pygemmes, and gives back the information that are asked.
     With no arguments, it prints everything it can
-
 
     Parameters
     ----------
@@ -89,11 +74,14 @@ def get_available_models(
     verb : print or not !
     from_user : TYPE, optional
     '''
+    # Check 9/27/22
     # -----------------
     # check inputs
 
+    # Load the "models dictionnary"
     path_models, _DMODEL = _get_DMODEL(from_user=from_user)
 
+    # Tranform input into machine-friendly
     if model is None:
         model = sorted(_DMODEL.keys())
     if isinstance(model, str):
@@ -102,9 +90,8 @@ def get_available_models(
         returnas = False
     if verb is None:
         verb = returnas is False
-    # -----------------
-    # get available models
 
+    # Filter the dictionnary
     dmod = {
         k0: {
             'file': str(_DMODEL[k0]['file']),
@@ -119,9 +106,7 @@ def get_available_models(
     if details is None:
         details = len(dmod) == 1
 
-    # -----------------
-    # print
-
+    # THE BIG PRINT
     if verb is True or returnas is str:
 
         if details is True:
@@ -133,10 +118,10 @@ def get_available_models(
                 + v0['description']
                 + "\n\n"
                 + f"####Variables ####:\n"
-                + f"# Ordinary differential equations ({len(_DMODEL[k0]['logics']['ode'])}):\n"
+                + f"#differential variables ({len(_DMODEL[k0]['logics']['differential'])}):\n"
                 + "\n".join([
                     f"\t-  {k1} :{(10-len(k1))*' '}{_DFIELDS.get(k1,{}).get('definition','')}"
-                    for k1 in _DMODEL[k0]['logics']['ode']])
+                    for k1 in _DMODEL[k0]['logics']['differential']])
                 + '\n'
 
                 + f"# State Variables ({len(_DMODEL[k0]['logics']['statevar'])}):\n"
@@ -144,6 +129,11 @@ def get_available_models(
                     f"\t-  {k1} :{(10-len(k1))*' '}{_DFIELDS.get(k1,{}).get('definition','')}"
                     for k1 in _DMODEL[k0]['logics']['statevar']])
                 + '\n\n'
+                + f"#### ADDED Parameters #### ({len(_DMODEL[k0]['logics'].get('parameter',{}))}):\n"
+                + "\n".join([
+                    f"\t-  {k1} :{(10 - len(k1)) * ' '}{_DFIELDS.get(k1, {}).get('definition', 'unread')}"
+                    for k1 in _DMODEL[k0]['logics'].get('parameter',{})])
+                + '\n'
                 + "\n####"
                 + f"presets:\n"
                 + "\n".join([
@@ -172,9 +162,9 @@ def get_available_models(
         if verb is True:
             print(msg)
 
-    # -----------------
-    # return
 
+
+    # return
     if returnas is list:
         return model
     elif returnas is dict:
@@ -184,7 +174,7 @@ def get_available_models(
 
 
 def _printsubgroupe(sub, it):
-
+    # Check 9/27/22
     print(f"{3*it*' '}---- {it*'Sub'}group : {sub[0]} {60*'-'}")
     print(str(sub[1].__doc__.replace('\n        ', '')))
 
@@ -213,6 +203,7 @@ def get_available_functions():
     '''
     Print the content of the `def_function` file
     '''
+    # Check 9/27/22
     Subgroups = [f for f in inspect.getmembers(Funcs) if '_' not in f[0]]
 
     print(f'found {len(Subgroups)} groups of functions :')

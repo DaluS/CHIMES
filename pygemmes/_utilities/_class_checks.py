@@ -15,7 +15,8 @@ import importlib
 # common
 import numpy as np
 
-
+from .._config import _LTYPES_ARRAY
+from .._config import _LTYPES
 # library specific
 from .. import _models
 
@@ -23,29 +24,6 @@ from .. import _models
 _PATH_HERE = os.path.dirname(__file__)
 _PATH_USER_HOME = os.path.expanduser('~')
 _PATH_PRIVATE_MODELS = os.path.join(_PATH_USER_HOME, '.pygemmes', '_models')
-
-
-_LMODEL_ATTR = ['_LOGICS', 'presets']
-_DMODEL_KEYS = {
-    'logics': dict,
-    'presets': dict,
-    'file': str,
-    'description': str,
-    'name': str,
-}
-_LTYPES = [int, float, np.int_, np.float_]
-_LTYPES_ARRAY = [list, tuple, np.ndarray]
-_LEQTYPES = ['ode', 'pde', 'statevar', 'param', 'undeclared']
-
-
-_LEXTRAKEYS = [
-    'func', 'kargs', 'args', 'initial', 'grid', 'multi_ind',
-    'source_kargs', 'source_exp', 'source_name', 'isneeded',
-    'cycles', 'cycles_bykey'
-]
-
-
-_GRID = False
 
 
 # ##############################
@@ -103,158 +81,6 @@ def copy_func(func):
 
 # #############################################################################
 # #############################################################################
-#                       Load library
-# #############################################################################
-
-
-def load_model(model=None, dmulti=None, verb=None, from_user=None):
-    """ Load a model from a model file
-
-    model can be:
-        - a model name:
-            - from_user = False => loaded from the library
-            - from_user = True => loaded the user's personal .pygemmes folder
-        - the absolute path to an abitrary model file
-
-    """
-
-    # -------------
-    # check inputs
-
-    dmodels = _models._get_DMODEL(from_user=from_user)[1]
-
-    if model in dmodels.keys():
-        # Get from known models
-        model_file = dmodels[model]['file']
-        dmodel = dict(dmodels[model])
-
-    elif os.path.isfile(model) and model.endswith('.py'):
-        # get from arbitrary model file
-        model_file = str(model)
-
-        # trying to derive model name from file name
-        model = os.path.split(model_file)[-1]
-        if model.startswith('_model_') and model.count('_') == 2:
-            model = model[model.index('_model_') + len('_model_'):-3]
-        else:
-            msg = (
-                "model file has non-standard name:\n"
-                f"\t- model file: {model_file}\n"
-                "  => setting model name to 'custom'"
-            )
-            warnings.warn(msg)
-            model = 'custom'
-
-        # load model file
-        spec = importlib.util.spec_from_file_location(k0, model_file)
-        foo = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(foo)
-
-        # checking attributes
-        lattr = [att for att in _LMODEL_ATTR if not hasattr(foo, att)]
-        if len(lattr) > 0:
-            lstr = [f'\t- {att}' for att in lattr]
-            msg = (
-                "The provided model file should have at least attributes:\n"
-                + "\n".join(lstr)
-            )
-            raise Exception(msg)
-
-        # loading attributes
-        dmodel = {
-            'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
-            'presets': {k0: v0 for k0, v0 in foo._PRESETS.items()},
-            'description': foo.__doc__,
-            'file': model_file,
-            'name': model,
-        }
-
-    else:
-        msg = (
-            "Arg model must be either:\n"
-            "\t- the absolute path to valid .py file\n"
-            f"\t- the name of an existing model (see get_available_models())\n"
-            f"You provided:\n{model}"
-        )
-        raise Exception(msg)
-
-    # -------------
-    # check conformity of dmodel (has 'file', 'name', 'logics', ...)
-    _check_dmodel_preset(dmodel)
-    dmodel['preset'] = None
-
-    # --------------
-    # check conformity of logics (has 'ode', 'pde', 'statevar'...)
-    _check_logics(dmodel, verb=verb)
-
-    # convert logics (new formalism) to dparam
-    dparam = get_dparam_from_logics(dmodel)
-    del dmodel['logics']
-
-    # --------------------
-    # re-check dparam + Identify functions order + get dargs
-    dparam, dmulti, dfunc_order, dargs = check_dparam(
-        dparam=dparam, dmulti=dmulti, verb=verb,
-    )
-
-    return dmodel, dparam, dmulti, dfunc_order, dargs
-
-
-# #############################################################################
-# #############################################################################
-#                       check dmodel
-# #############################################################################
-
-
-def _check_dmodel_preset(dmodel=None):
-    """ Check dmodel is a dict with proper keys """
-
-    # ----------
-    # check dmodel
-    if not isinstance(dmodel, dict):
-        msg = f"Arg dmodel must be a dict\nProvided: {type(dmodel)}"
-        raise Exception(msg)
-
-    dkout = {
-        k0: type(dmodel.get(k0))
-        for k0, v0 in _DMODEL_KEYS.items()
-        if not isinstance(dmodel.get(k0), v0)
-    }
-    if len(dkout) > 0:
-        lstr = [
-            f'\t- {k0}: {_DMODEL_KEYS[k0]} vs {v0}'
-            for k0, v0 in dkout.items()
-        ]
-        msg = (
-            "dmodel must be a dict with keys:\n"
-            + "\n".join(lstr)
-        )
-        raise Exception(msg)
-
-    # ----------
-    # check presets
-
-    lkout = [
-        k0 for k0, v0 in dmodel['presets'].items()
-        if not (
-            isinstance(v0, dict)
-            and all([ss in ['fields', 'com', 'plots'] for ss in v0.keys()])
-            and isinstance(v0['com'], str)
-            and isinstance(v0['fields'], dict)
-        )
-    ]
-
-    if len(lkout) > 0:
-        lstr = ["\t- {k0}" for k0 in lkout]
-        msg = (
-            "The following presets are non-valid:\n"
-            + "\n".join(lstr)
-        )
-        #raise Exception(msg)
-
-
-# #############################################################################
-# #############################################################################
 #                       check logics
 # #############################################################################
 
@@ -283,105 +109,6 @@ def _check_are_functions(indict=None):
         raise Exception(msg)
 
 
-def _check_logics(dmodel=None, verb=None):
-    """ Check conformity of the 'logics' sub-dict
-
-    In particulart, checks:
-        - ode
-        - pde
-        - statevar
-
-    If necessary, add initial values
-    Checks all keys are known to _models._DFIELDS
-    """
-
-    if verb is None:
-        verb = True
-
-    if verb is True:
-        msg = (
-            "#" * 20
-            + f"\nLoading model {dmodel['name']} from {dmodel['file']}"
-        )
-        print(msg)
-
-    # ---------------
-    # list non-conform keys
-
-    lkout = [
-        k0 for k0, v0 in dmodel['logics'].items()
-        if not (
-            k0 in _LEQTYPES
-            and isinstance(v0, dict)
-        )
-    ]
-    if len(lkout) > 0:
-        lstr = [f'\t- {kk}' for kk in lkout]
-        msg = (
-            "The following keys in _LOGIC are not supported:\n"
-            + "\n".join(lstr)
-        )
-        raise Exception(msg)
-
-    # --------------------
-    # List all keys in all dict that are not known to _DFIELDS
-
-    dkout = {
-        k0: [k1 for k1 in v0.keys() if k1 not in _models._DFIELDS]
-        for k0, v0 in dmodel['logics'].items()
-        if any([k1 for k1 in v0.keys() if k1 not in _models._DFIELDS])
-    }
-    if len(dkout) > 0:
-
-        if verb is True:
-            lstr = [f'\t- {k0}: {v0}' for k0, v0 in dkout.items()]
-            msg = (
-                "\nThe following keys are unknown to _LIBRARY, "
-                "adding from model:\n"
-                + "\n".join(lstr)
-            )
-            print(msg)
-
-        # adding to local _models._DFIELDS
-        for k0, v0 in dkout.items():
-            for k1 in v0:
-                _models._DFIELDS[k1] = dict(dmodel['logics'][k0][k1])
-                # _models._DFIELDS[k1]['eqtype'] = k0
-                # _models._DFIELDS[k1]['args'] = {key:[] for key in _LEQTYPES }
-                # _models._DFIELDS[k1]['kargs']= []
-
-        # Make sure all fields are set
-        _models._complete_DFIELDS(
-            dfields=_models._DFIELDS,
-            complete=True,
-            check=True,
-        )
-
-    # -----------------------
-    # check ode
-
-    if 'ode' in dmodel['logics'].keys():
-
-        # list non-conform keys (must have a 'func' function)
-        _check_are_functions(indict=dmodel['logics']['ode'])
-
-        # if initial not defined, get from _LIBRARY
-        for k1, v1 in dmodel['logics']['ode'].items():
-            if v1.get('initial') is None:
-                dmodel['logics']['ode'][k1]['initial'] \
-                    = _models._DFIELDS[k1]['value']
-
-    # -----------------------
-    # check pde
-
-    # -----------------------
-    # check statevar
-    if 'statevar' in dmodel['logics'].keys():
-
-        # list non-conform keys (must have a 'func' function)
-        _check_are_functions(indict=dmodel['logics']['statevar'])
-
-
 # #############################################################################
 # #############################################################################
 #                       convert logic to dparam
@@ -390,7 +117,6 @@ def _check_logics(dmodel=None, verb=None):
 
 def get_dparam_from_logics(dmodel=None):
     """ Convert logic (from dmodel) to dparam (used in instance)
-
     """
 
     lk = [dict.fromkeys(v0.keys(), k0) for k0, v0 in dmodel['logics'].items()]
@@ -401,7 +127,6 @@ def get_dparam_from_logics(dmodel=None):
         k0: dict(dmodel['logics'][v0][k0]) for k0, v0 in lk[0].items()
     }
 
-    # ---------------
     # Add eqtype
     for k0 in dparam.keys():
         if lk[0][k0] not in ['param']:
@@ -416,163 +141,6 @@ def get_dparam_from_logics(dmodel=None):
 # #############################################################################
 
 
-def _check_dparam(dparam=None):
-    """ Check basic properties of dparam
-
-    It must be a dict
-    with only str as keys
-    with only some fields allowed for each key
-    with values that can be scalars or functions
-
-    <Missing fields are filled in from defaults values in _models._DFIELDS
-
-    """
-
-    # -----------------
-    # check type is dict
-
-    if not isinstance(dparam, dict):
-        msg = (
-            "dparam must be a dict!\n"
-            f"You provided: {type(dparam)}"
-        )
-        raise Exception(msg)
-
-    # ---------------
-    # check keys are known to _models._DFIELDS
-
-    lk0 = [
-        k0 for k0 in dparam.keys() if k0 not in _models._DFIELDS.keys()
-    ]
-    if len(lk0) > 0:
-        msg = (
-            "dparam must have keys identified in _models._DFIELDS!\n"
-            f"You provided: {lk0}"
-        )
-        raise Exception(msg)
-
-    # ---------------------------------------
-    # add numerical parameters if not included
-
-    lknum = [
-        k0 for k0, v0 in _models._DFIELDS.items()
-        if v0['group'] == 'Numerical'
-    ]
-    for k0 in lknum:
-        if k0 not in dparam.keys():
-            dparam[k0] = _models._DFIELDS[k0]
-
-    # --------------------------
-    # Add time vector if missing
-
-    if 'time' not in dparam.keys():
-        dparam['time'] = dict(_models._DFIELDS['time'])
-
-    # ------------
-    # check values
-
-    dfail = {}
-    for k0, v0 in dparam.items():
-
-        # if value directly provided => put into dict
-        if v0 is None or type(v0) in _LTYPES + _LTYPES_ARRAY + [str, bool]:
-            dparam[k0] = {'value': v0}
-
-        # if function directly provided => put inot dict
-        if hasattr(v0, '__call__'):
-            dfail[k0] = "Function must be in a dict {'func': func, 'eqtype':}"
-            continue
-
-        # if dict => investigate
-        if isinstance(dparam[k0], dict):
-
-            # set missing field to default
-            for ss in _models._DFIELDS[k0].keys():
-                if dparam[k0].get(ss) is None:
-                    dparam[k0][ss] = _models._DFIELDS[k0][ss]
-
-            # identify invalid keys
-            lk = [
-                kk for kk in dparam[k0].keys()
-                if kk != 'eqtype'
-                and kk not in _LEXTRAKEYS + list(_models._DFIELDS[k0].keys())
-            ]
-            if len(lk) > 0:
-                dfail[k0] = f"Invalid keys: {lk}"
-                continue
-
-            # check at least value xor func is present
-            c0 = (
-                'value' not in dparam[k0].keys()
-                and 'func' not in v0.keys()
-            )
-            if c0:
-                dfail[k0] = "dict must have key 'value' or 'func' (or both)"
-                continue
-
-            # check function or value
-            c0 = (
-                dparam[k0].get('func') is not None
-                and hasattr(dparam[k0]['func'], '__call__')
-            )
-            c1 = (
-                not c0
-                and type(dparam[k0]['value']) in _LTYPES + _LTYPES_ARRAY + [
-                    str, bool,
-                ]
-            )
-
-            if c0:
-                # func
-                if 'eqtype' not in dparam[k0].keys():
-                    dparam[k0]['eqtype'] = 'param'
-                    # dfail[k0] = "For a func, 'eqtype' must be provided"
-                    # continue
-                if dparam[k0]['eqtype'] not in _LEQTYPES:
-                    dfail[k0] = (
-                        f"Invalid eqtype ({v0['eqtype']}), "
-                        f"allowed: {_LEQTYPES}"
-                    )
-                    continue
-
-            elif not c1:
-                # fixed valkue
-                dfail[k0] = f"Invalid value type ({type(v0['value'])})"
-
-            # set grid
-            c0 = (
-                dparam[k0].get('eqtype') is None
-                and isinstance(dparam[k0]['value'], tuple(_LTYPES_ARRAY))
-            )
-            if c0 and dparam[k0].get('grid') is None:
-                dparam[k0]['grid'] = _GRID
-            c0 = (
-                dparam[k0].get('eqtype') == 'ode'
-                and isinstance(dparam[k0]['initial'], tuple(_LTYPES_ARRAY))
-            )
-            if c0 and dparam[k0].get('grid') is None:
-                dparam[k0]['grid'] = _GRID
-
-    # ----------------
-    # Raise Exception if any failure
-    if len(dfail) > 0:
-        lstr = [f'\t- {kk}: {vv}' for kk, vv in dfail.items()]
-        msg = (
-            "Arg dparam must be of the form:\n"
-            "{key0: {'value': v0}, key1: {'func': lambda ...: ...}, ...}\n\n"
-            "Where value can be:\n"
-            "\t- scalar: int or float\n"
-            "\t- array: for benchmarks\n"
-            "And where func is and callable "
-            "(and will be associated to a variable in 'value')\n\n"
-            "The following non-conformities have been found:\n"
-            + "\n".join(lstr)
-        )
-        raise Exception(msg)
-
-    return copy.deepcopy(dparam)
-
-
 def _set_key_value(dparam=None, key=None, value=None, grid=None):
     if key not in dparam.keys():
         msg = (
@@ -581,7 +149,8 @@ def _set_key_value(dparam=None, key=None, value=None, grid=None):
         )
         raise Exception(msg)
 
-    tochange = 'initial' if dparam[key].get('eqtype', None) == 'ode' else 'value'
+    tochange = 'initial' if dparam[key].get(
+        'eqtype', None) == 'ode' else 'value'
 
     if hasattr(value, '__iter__'):
         dparam[key][tochange] = np.atleast_1d(value).ravel()
@@ -590,13 +159,12 @@ def _set_key_value(dparam=None, key=None, value=None, grid=None):
 
     if hasattr(value, '__iter__'):
         if grid is None:
-            grid = _GRID
+            grid = False
         dparam[key]['grid'] = bool(grid)
 
 
 def _get_multiple_systems(dparam, dmulti=None):
     """
-
     A mix of grid=False and grid=True is possible only if all grid=False are
     together
     """
@@ -680,55 +248,41 @@ def _get_multiple_systems(dparam, dmulti=None):
             size = dparam[k0][kval].size
 
             if k0 not in lkeys:
-                if dparam[k0]['grid'] is True:
-                    shape.append(size)
-                    shape_keys.append([k0])
-                    lkeys.append(k0)
-                elif dparam[k0]['grid'] is False:
-                    if hasFalse:
-                        if size != shape[0]:
-                            msg = f"Inconsistent shape for dparam['{k0}']"
-                            raise Exception(msg)
-                        else:
-                            shape_keys[0].append(k0)
-                            lkeys.insert(0, k0)
+                if hasFalse:
+                    if size != shape[0]:
+                        msg = f"Inconsistent shape for dparam['{k0}']"
+                        raise Exception(msg)
                     else:
-                        shape.insert(0, size)
-                        shape_keys.insert(0, [k0])
+                        shape_keys[0].append(k0)
                         lkeys.insert(0, k0)
-                        hasFalse = True
                 else:
-                    msg = f"Inconsistent shape for dparam['{k0}']"
-                    raise Exception(msg)
+                    shape.insert(0, size)
+                    shape_keys.insert(0, [k0])
+                    lkeys.insert(0, k0)
+                    hasFalse = True
 
         # -----------
         # double-check all
 
-        if hasFalse is not any([dparam[k0]['grid'] is False for k0 in lk0]):
-            msg = "Inconsistent hasFalse"
-            raise Exception(msg)
+        # if hasFalse is not any([dparam[k0]['grid'] is False for k0 in lk0]):
+        #    msg = "Inconsistent hasFalse"
+        #    raise Exception(msg)
 
         for k0 in lk0:
 
             kval = 'value' if dparam[k0].get('eqtype') is None else 'initial'
 
-            if dparam[k0]['grid'] is False:
-                indi = 0
-            else:
-                indi = [ii for ii, lk in enumerate(shape_keys) if k0 in lk]
-                if len(indi) != 1:
-                    msg = f"Inconsistent index for dparam['{k0}']"
-                    raise Exception(msg)
-                indi = indi[0]
+            indi = [ii for ii, lk in enumerate(shape_keys) if k0 in lk]
+            if len(indi) != 1:
+                msg = f"Inconsistent index for dparam['{k0}']"
+                raise Exception(msg)
+            indi = indi[0]
 
             # double-check the size vs the common shape
             if dparam[k0][kval].size != shape[indi]:
                 msg = f"Inconsistent size for dparam['{k0}']"
                 raise Exception(msg)
-            if dparam[k0]['grid'] is True and shape_keys[indi] != [k0]:
-                msg = ""
-                raise Exception(msg)
-            elif dparam[k0]['grid'] is False and k0 not in shape_keys[indi]:
+            elif k0 not in shape_keys[indi]:
                 msg = ""
                 raise Exception(msg)
 
@@ -768,6 +322,7 @@ def _get_multiple_systems_functions(dparam=None, dmulti=None):
 
     dmulti['dparfunc'] = {k0: [] for k0 in dmulti['keys']}
 
+    # print(dmulti)
     if dmulti['multi']:
 
         # A unique dimension for variation
@@ -870,149 +425,8 @@ def get_dargs_by_reference(dparam, dfunc_order=None):
 
 # #############################################################################
 # #############################################################################
-#                       dparam checks - high-level
-# #############################################################################
-
-
-def check_dparam(dparam=None, dmulti=None, verb=None):
-    """ Check user-provided dparam
-
-    dparam can be:
-        - a dict of parameters / functions
-        - a str: the name of a predefined model (loaded from file)
-
-    After loading (if necessary):
-        - the dict basic conformity is checked
-        - All functions are checked, as well as the func_order
-
-    """
-
-    # --------------------
-    # check conformity
-    dparam = _check_dparam(dparam)
-
-    # -------------------
-    # if any unidentified parameter => load them and re-check conformity
-    _extract_parameters(dparam, verb=verb)
-    dparam = _check_dparam(dparam)
-
-    # -------------------
-    # Identify multiple systems
-    dmulti = _get_multiple_systems(dparam, dmulti=dmulti)
-
-    # ----------------
-    # Identify functions
-    dparam, dfunc_order = _check_func(dparam, dmulti=dmulti, verb=verb)
-
-    # -------------------
-    # Identify params that are not multi but functions of multi
-    _get_multiple_systems_functions(dparam=dparam, dmulti=dmulti)
-
-    # ----------------
-    # Make sure to copy to avoid passing by reference
-    dparam = {
-        k0: dict(v0) for k0, v0 in dparam.items()
-    }
-
-    # ---------------
-    # dargs (to be used in solver, faster to define it here)
-    dargs = get_dargs_by_reference(dparam, dfunc_order=dfunc_order)
-
-    return dparam, dmulti, dfunc_order, dargs
-
-
-# #############################################################################
-# #############################################################################
 #                       functions checks - low-level basis
 # #############################################################################
-
-
-def _extract_par_from_func(lfunc=None, lpar=None, dparam=None):
-
-    lpar_add, lfunc_add = [], []
-    lkok = ['itself'] + lpar + lfunc
-    for k0 in lfunc:
-        key = 'lambda' if k0 == 'lamb' else k0
-
-        if k0 in dparam.keys():
-            kargs = inspect.getfullargspec(dparam[key]['func']).args
-        else:
-            kargs = inspect.getfullargspec(_models._DFIELDS[key]['func']).args
-
-        # check if any parameter is unknown
-        for kk in kargs:
-            key = 'lambda' if kk == 'lamb' else kk
-            if key not in lkok:
-                if _models._DFIELDS[key].get('func') is None:
-                    if key not in lpar_add:
-                        lpar_add.append(key)
-                elif key not in lfunc_add:
-                    lfunc_add.append(key)
-
-    return lpar_add, lfunc_add
-
-
-def _extract_parameters(dparam, verb=None):
-    """ Extract fixed-value parameters
-
-    If relevant, the list of fixed-value parameters is extracted from
-        the func kwdargs
-    """
-
-    if verb is None:
-        verb = True
-
-    lpar = [k0 for k0, v0 in dparam.items() if v0.get('func') is None]
-    lfunc = [k0 for k0, v0 in dparam.items() if v0.get('func') is not None]
-    lpar_new = []
-    lfunc_new = []
-
-    # ---------------------------------------
-    # extract input args and check conformity
-    keepon = True
-    while keepon:
-        lp, lf = _extract_par_from_func(
-            lfunc=lfunc + lfunc_new,
-            lpar=lpar + lpar_new,
-            dparam=dparam,
-        )
-        if len(lp) > 0:
-            lpar_new += lp
-        if len(lf) > 0:
-            lfunc_new += lf
-        else:
-            keepon = False
-
-    # ----------------------------------------
-    # check parameters
-    if len(lpar_new + lfunc_new) > 0:
-        dfail = {}
-        for k0 in lpar_new + lfunc_new:
-            key = 'lambda' if k0 == 'lamb' else k0
-            if key not in _models._DFIELDS.keys():
-                dfail[k0] = "Unknown parameter"
-                continue
-            dparam[key] = dict(_models._DFIELDS[key])
-
-        # -------------------
-        # Raise Exception if any
-        if len(dfail) > 0:
-            lstr = [f'\t- {k0}: {v0}' for k0, v0 in dfail.items()]
-            msg = (
-                "The following unknown parameters have been identified:\n"
-                + "\n".join(lstr)
-            )
-            raise Exception(msg)
-
-    # -------------
-    # print
-    if verb is True:
-        msg = (
-            "\nThe following fields are identified as parameters :\n"
-            f"\t- param (fixed): {lpar_new}\n"
-            f"\t- param (func.): {lfunc_new}"
-        )
-        print(msg)
 
 
 def _check_func_time_dependence(lfunc=None, dparam=None):
@@ -1030,6 +444,7 @@ def _check_func_time_dependence(lfunc=None, dparam=None):
 
     # first functions that explicitly depend on time
     lft = [kk for kk in lfunc if 'time' in dparam[kk]['kargs']]
+    print(lft)
 
     # then ode
     for kk in lfunc:
@@ -1081,8 +496,6 @@ def _check_func_get_source(lfunc=None, dparam=None):
             assert dparam[k0].get('source_exp') is None
 
             # extract source and check if lambda
-            # print(k0, inspect.getsource(dparam[k0]['func']).replace(
-            #    '    ', '').split('] =')[-1].split('com')[0])
             sour = inspect.getsource(dparam[k0]['func']).replace(
                 '    ', '').split('\n')[0]
             c0 = (
@@ -1123,19 +536,13 @@ def _check_func_get_source(lfunc=None, dparam=None):
                 dparam[k0]['source_name'] = dparam[k0]['func'].__name__
 
             kargs = [kk.strip() for kk in kargs.strip().split(',')]
-            if not all(['=' in kk for kk in kargs]):
-                msg = (
-                    'Only keyword args can be used for lambda functions!\n'
-                    f'Provided:\n{sour}'
-                )
-                raise Exception(msg)
 
             # store keyword args and cleaned-up expression separately
             kargs = ', '.join(kargs)
             dparam[k0]['source_kargs'] = kargs
 
 
-def _check_func(dparam=None, dmulti=None, verb=None):
+def _check_func(dparam=None, verb=None):
     """ Check basic conformity of functions
 
     They must:
@@ -1168,6 +575,8 @@ def _check_func(dparam=None, dmulti=None, verb=None):
         v0 = dparam[k0]
         kargs = inspect.getfullargspec(v0['func']).args
 
+        #print(k0, kargs,)
+
         # Replace lamb by lambda
         if 'lamb' in kargs:
             kargs[kargs.index('lamb')] = 'lambda'
@@ -1191,19 +600,6 @@ def _check_func(dparam=None, dmulti=None, verb=None):
         )
         if c0:
             dfail[k0] = "ode equation needs a 'initial' value"
-            continue
-
-        # Check is there is a circular dependency
-        if k0 in kargs:
-            dfail[k0] = "circular dependency!"
-            continue
-
-        # check the function is working
-        try:
-            out = v0['func']()
-            assert not np.any(np.isnan(out))
-        except Exception as err:
-            dfail[k0] = f"Function doesn't work with default values ({err})"
             continue
 
         # store keyword args
@@ -1414,192 +810,6 @@ def _suggest_funct_order(
 
 # #############################################################################
 # #############################################################################
-#               DEPRECATED for Back-up
-# #############################################################################
-
-
-# DEPRECATED
-def _suggest_funct_order_DEPRECATED(
-    dparam=None,
-    func_order=None,
-    lfunc=None,
-    method=None,
-):
-    """ Propose a logical order for computing the functions
-
-    Strategy:
-        1) Determine if a natural order exists (i.e. no cyclical dependency)
-        2) if no => identify functions that, if updated from the previous time
-        step, allow to compute the maximum number of other functions without
-        having to rely on the previous time step for them
-
-        Auxiliary functions are not considered
-    """
-
-    # -------------
-    # check inputs
-    if method is None:
-        method = 'other'
-
-    included = ['statevar']
-    lfunc_state = [
-        kk for kk in lfunc if dparam[kk]['eqtype'] in included
-    ]
-
-    # ---------------------------
-    # func_order is user-provided
-    if func_order is not None:
-        if len(set(func_order)) != len(lfunc_state):
-            msg = (
-                "Provided order of functions is incomplete / too large!\n"
-                + f"\t- functions: {lfunc_state}\n"
-                + f"\t- provided order: {func_order}"
-            )
-            raise Exception(msg)
-        return func_order
-
-    # ---------------------------
-    # func_order is determined automatically
-
-    if method == 'brute force':
-        # try orders until one works
-        # Dummy y just for calls, start with nans (see if they propagate)
-        y = {
-            k0: np.nan for k0, v0 in dparam.items()
-            if v0.get('eqtype') == 'intermediary'
-        }
-        # The list of variable still to find
-        var_still_in_list = [kk for kk in lfunc_state]
-
-        # Initialize and loop
-        func_order = []
-        for ii in range(len(lfunc_state)):
-            for jj in range(len(var_still_in_list)):
-
-                # add to a temporary list
-                templist = func_order + [var_still_in_list[jj]]
-
-                # try and if work => break and go to the next i
-                try:
-                    for k0 in templist:
-                        # get dict of input args for func k0, from y
-                        kwdargs = {
-                            k1: y[k1]
-                            for k1 in dparam[k0]['args']['intermediary']
-                        }
-
-                        # if lambda => substitute by lamb
-                        if 'lambda' in dparam[k0]['args']['intermediary']:
-                            kwdargs['lamb'] = kwdargs['lambda']
-                            del kwdargs['lambda']
-
-                        # try calling k0
-                        y[k0] = dparam[k0]['func'](**kwdargs)
-
-                        # raise Exception if any nan
-                        if np.any(np.isnan(y[k0])):
-                            raise ValueError('wrong order')
-
-                    func_order = templist.copy()
-                    _ = var_still_in_list.pop(jj)
-                    break
-
-                except ValueError:
-                    # didn't work => reinitialise y to avoid keeping error
-                    y = {
-                        k0: np.nan for k0, v0 in dparam.items()
-                        if v0.get('eqtype') == 'intermediary'
-                    }
-
-                except Exception as err:
-                    # didn't work => reinitialise y to avoid keeping error
-                    y = {
-                        k0: np.nan for k0, v0 in dparam.items()
-                        if v0.get('eqtype') == 'intermediary'
-                    }
-                    warnings.warn(str(err))
-
-        """
-        2 possible issues with brute force:
-            - a non-expected error can happen => division by zero
-            - final list may be incomplete (division by 0 => always error)
-        """
-
-    elif method == 'other':
-
-        # count the number of args in each category, for each function
-        nbargs = np.array([
-            (
-                len(dparam[k0]['args']['param']),
-                len(dparam[k0]['args']['statevar']),
-                # len(dparam[k0]['args']['ode']),           # not considered
-            )
-            for k0 in lfunc_state
-        ])
-
-        if np.all(np.sum(nbargs[:, 1:], axis=1) > 0):
-            msg = "No sorting order of functions can be identified!"
-            raise Exception(msg)
-
-        # first: functions that only depend on parameters (and self if ode)
-        isort = (np.sum(nbargs[:, 1:], axis=1) == 0).nonzero()[0]
-        isort = isort[np.argsort(nbargs[isort, 0])]
-        func_order = [lfunc_state[ii] for ii in isort]
-
-        # ---------------------------
-        # try to identify a natural sorting order
-        # i.e.: functions that only depend on the previously sorted functions
-        while isort.size < len(lfunc_state):
-
-            # list of conditions (True, False) for each function
-            lc = [
-                (
-                    ii not in isort,                       # not sorted yet
-                    np.sum(nbargs[ii, 1:]) <= isort.size,  # not too many args
-                    all([                                  # only sorted args
-                        ss in func_order
-                        for ss in (
-                            dparam[lfunc_state[ii]]['args']['statevar']
-                            # + dparam[lfunc[ii]]['args']['ode']
-                        )
-                    ])
-                )
-                for ii in range(len(lfunc_state))
-            ]
-
-            # indices of functions matching all conditions
-            indi = [ii for ii in range(len(lfunc_state)) if all(lc[ii])]
-
-            # If none => no easy solution
-            if len(indi) == 0:
-                msg = "No natural sorting order of functions "
-                raise Exception(msg)
-
-            # Concantenate with already sorted indices
-            isort = np.concatenate((isort, indi))
-            func_order += [lfunc_state[ii] for ii in indi]
-
-    # safety checks
-    if len(set(lfunc_state)) != len(func_order):
-        msg = (
-            "Suggested func_order does not seem to include all functions!\n"
-            + f"\t- suggested: {func_order}\n"
-            + f"\t- available: {lfunc_state}\n"
-        )
-        raise Exception(msg)
-
-    # print suggested order
-    msg = (
-        'Suggested order for statevar functions (func_order):\n'
-        f'{func_order}'
-    )
-    print(msg)
-
-    return func_order
-
-
-# #############################################################################
-# #############################################################################
 #               func: update default values of keyword args
 # #############################################################################
 
@@ -1614,15 +824,16 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None, dmulti=None):
             continue
 
         # get defaults
-        defaults = list(dparam[k0]['func'].__defaults__)
+        #defaults = list(dparam[k0]['func'].__defaults__)
         kargs = dparam[k0]['source_kargs'].split(', ')
-        # print(k0, dparam[k0]['source_kargs'])
+        defaults = len(kargs)*[0]
         # update using fixed param (eqtype = None)
         for k1 in dparam[k0]['args'][None]:
             key = 'lamb' if k1 == 'lambda' else k1
 
             defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
-            ind = [ii for ii, vv in enumerate(kargs) if key == vv.split('=')[0]]
+            ind = [ii for ii, vv in enumerate(
+                kargs) if key == vv.split('=')[0]]
 
             if len(ind) != 1:
                 msg = f"Inconsistency in (fixed) kargs for {k0}, {k1}"

@@ -16,7 +16,7 @@ from pygemmes._models import Funcs
 
 __r0 = 1000
 _LOGICS = {
-    'differential': {
+    'ode': {
         # COUPLING ODE
         'R': {
             'func': lambda Y, intensity: -Y*intensity,
@@ -42,7 +42,7 @@ _LOGICS = {
         },
 
     },
-    'parameter': {
+    'param': {
         'intensity': {
             'value': 0.8,
             'definition': 'part of output which is material',
@@ -70,7 +70,6 @@ _LOGICS = {
             'value': 7,
             'definition': 'nu at snapshot'}
     },
-    'size': {},
 }
 
 

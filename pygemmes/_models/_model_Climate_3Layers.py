@@ -15,37 +15,24 @@ LINKTOARTICLE :
 import numpy as np
 from pygemmes._models import Funcs
 
-# ---------------------------
-# user-defined function order (optional)
-_FUNC_ORDER = None
-
-
-# ---------------------------
-# user-defined model
-# contains parameters and functions of various types
-
-
 _LOGICS = {
-    'ode': {
+    'differential': {
         # ATMOSPHERE ODE
         'CO2AT': Funcs.Atmosphere.Three_Layers.CO2AT,
         'CO2UP': Funcs.Atmosphere.Three_Layers.CO2UP,
         'CO2LO': Funcs.Atmosphere.Three_Layers.CO2LO,
         'T': Funcs.Atmosphere.Three_Layers.T,
         'T0': Funcs.Atmosphere.Three_Layers.T0,
-        'pseudot': {
-            'func': lambda itself=0: 1,
-            'com': 'needed for explicit time dependency',
-            'initial': 0,
-        },
     },
     'statevar': {
         'F': Funcs.Atmosphere.F,
         'Emission': {
-            'func': lambda Emission0=0, deltaEmission=0, pseudot=0: Emission0*np.exp(-pseudot*deltaEmission),
+            'func': lambda Emission0, deltaEmission, time: Emission0*np.exp(-time*deltaEmission),
             'com': 'CO2 Emission rate ',
         },
     },
+    'parameter': {},
+    'size': {},
 }
 
 
@@ -74,5 +61,5 @@ _PRESETS = {'default': {
     },
     'com': ' Default run',
     'plots': {},
-    },
+},
 }

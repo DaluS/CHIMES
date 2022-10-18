@@ -27,9 +27,7 @@ This file contains :
 """
 import numpy as np
 
-
-__DOTHECHECK = True
-__FILLDEFAULTVALUES = True
+from .._config import __DEFAULTFIELDS
 
 
 # #############################################################################
@@ -40,6 +38,7 @@ __FILLDEFAULTVALUES = True
 
 _LIBRARY = {
     'Numerical': {
+        # TIME GESTION ##############################################
         'Tmax': {
             'value': 100,
             'units': 'y',
@@ -47,25 +46,31 @@ _LIBRARY = {
         },
         'Tini': {
             'value': 2015,
-            'definition': 'Initial time',
+            'definition': 'Initial time for simulations',
             'units': 'y',
         },
         'dt': {
             'value': 0.01,
             'units': 'y',
-            'definition': 'time between two steps',
+            'definition': 'solver timestep',
         },
-        'nt': {
-            'func': lambda Tmax=0, dt=1: int(Tmax / dt),
-            'units': '',
-            'definition': 'Number of timestep',
-            'com': 'Constant dt',
-            'eqtype': 'param',
-        },
+
+        # You should not modify this here, use preset or setdparam ##
         'nx': {
             'value': 1,
-            'units': 'y',
+            'units': '',
             'definition': 'Number of system in parrallel',
+        },
+        'nr': {
+            'value': 1,
+            'units': '',
+            'definition': 'Number of regions interconnected',
+        },
+
+        # DANGER ZONE DO NOT MODIFY IF YOU ARE NOT SURE ############
+        '__ONE__': {
+            'value': 1,
+            'definition': 'value by default for monosectorial field',
         },
         'time': {
             'initial': 0.,
@@ -73,82 +78,23 @@ _LIBRARY = {
             'definition': 'Time vector',
             'com': 'dt/dt=1, time as ODE',
             'units': 'y',
-            'eqtype': 'ode',
+            'eqtype': 'differential',
         },
-        # 't': {
-        #    'value': 0,
-        #    'definition': 'time inside equations'}
-    },
-
-
-    'Ressources': {
-        'K_R': {
-            'value': 1.,
-            'definition': 'Kapital for ressource extraction',
-            'units': 'Units',
-        },
-        'D_R': {
-            'value': 1.,
-            'definition': 'Debt of ressource sector',
-            'units': '$',
-        },
-        'p_R': {
-            'value': 1.,
-            'definition': 'price of ressources',
-            'units': '$.Units^{-1}',
-        },
-        'kappa_R': {
-            'value': 1.,
-            'definition': 'Investment func for ressource sector',
+        'nt': {
+            'func': lambda Tmax=0, dt=1: int(Tmax / dt),
             'units': '',
+            'definition': 'Number of timestep',
+            'com': 'Constant dt',
+            'eqtype': 'parameter',
         },
-        'pi_R': {
-            'value': 1.,
-            'definition': 'relative profit of ressource sector',
-            'units': '',
-        },
-        'Pi_R': {
-            'value': 1.,
-            'definition': 'Absolute profit for ressource sector',
-            'units': '$.Units^{-1}',
-        },
-        'R': {
-            'value': 1.,
-            'definition': 'Available ressources',
-            'units': 'Units',
-        },
-        'Y_R': {
-            'value': 1.,
-            'definition': 'Flux of extracted ressources',
-            'units': 'Units.y^{-1}',
-        },
-        'I_R': {
-            'value': 1.,
-            'definition': 'Investment (real) for ressources',
-            'units': 'Units.y^{-1}',
-        },
-        'Kstar': {
-            'value': 1.,
-            'definition': "Equivalent capital for services",
-            'units': 'Units',
-        },
-        'd_R': {
-            'value': 1.,
-            'definition': 'debt ratio ressources',
-            'units': 'y',
-        },
-        'inflation_R': {
-            'value': 1.,
-            'definition': 'inflation for ressources',
-            'units': 'y^{-1}',
-        },
+        # END OF DANGER ZONE #######################################
     },
 
     'Household': {
         # VARIABLES
         'N': {
             'value': 1.,
-            'definition': 'Population',
+            'definition': 'Population of people able to work',
             'units': 'Humans',
         },
         'L': {
@@ -157,7 +103,7 @@ _LIBRARY = {
             'units': 'Humans',
         },
         'a': {
-            'value': 1,
+            'value': 1.00,
             'units': 'Units.Humans^{-1}.y^{-1}',
             'definition': 'Productivity',
         },
@@ -171,9 +117,9 @@ _LIBRARY = {
             'definition': 'Individual purchasing power',
             'units': 'Units.y^{-1}.Humans^{-1}',
             'symbol': r'$\Omega$', },
-        'lambda': {
+        'employment': {
             'value': .97,
-            'definition': 'employement rate',
+            'definition': 'employment rate',
             'units': '',
             'symbol': r'$\lambda$',
         },
@@ -240,6 +186,8 @@ _LIBRARY = {
             'definition': 'part of capital in prod intensity',
             'units': '',
         },
+
+        ### CES PROPERTIES
         'CESexp': {
             'value': 100,
             'definition': 'exponent in CES function',
@@ -273,16 +221,13 @@ _LIBRARY = {
             'units': '',
             'eqtype': 'param',
         },
+        #############
+
         # VARIABLES
         'K': {
             'value': 2.7,
             'units': 'Units',
             'definition': 'Capital',
-        },
-        'K_0': {
-            'value': 1,
-            'units': 'Units',
-            'definition': 'Intermediary capital in case of Cobb-Douglas arbitrage with matter',
         },
         'Y': {
             'value': 1,
@@ -376,14 +321,14 @@ _LIBRARY = {
             'definition': 'Parameter1 for diverving squared',
             'com': '',
             'units': '',
-            'eqtype': 'param',
+            'eqtype': 'parameter',
         },
         'phi1': {
             'func': lambda phinull=0: phinull**3 / (1 - phinull**2),
             'definition': 'Parameter1 for diverving squared',
             'com': '',
             'units': '',
-            'eqtype': 'param',
+            'eqtype': 'parameter',
         },
 
         # Linear Phillips (from Coping article)
@@ -463,7 +408,6 @@ _LIBRARY = {
             'definition': 'Shareholding dividends',
             'units': '$.y^{-1}',
         },
-
         # Dividend fit from copingwithcollapse
         'divlinSlope': {
             'value': 0.473,
@@ -960,110 +904,106 @@ _LIBRARY = {
 
 }
 
+# ############## UNUSED DEPRECIATED ############################
+"""
+    'Ressources': {
+        'K_R': {
+            'value': 1.,
+            'definition': 'Kapital for ressource extraction',
+            'units': 'Units',
+        },
+        'D_R': {
+            'value': 1.,
+            'definition': 'Debt of ressource sector',
+            'units': '$',
+        },
+        'p_R': {
+            'value': 1.,
+            'definition': 'price of ressources',
+            'units': '$.Units^{-1}',
+        },
+        'kappa_R': {
+            'value': 1.,
+            'definition': 'Investment func for ressource sector',
+            'units': '',
+        },
+        'pi_R': {
+            'value': 1.,
+            'definition': 'relative profit of ressource sector',
+            'units': '',
+        },
+        'Pi_R': {
+            'value': 1.,
+            'definition': 'Absolute profit for ressource sector',
+            'units': '$.Units^{-1}',
+        },
+        'R': {
+            'value': 1.,
+            'definition': 'Available ressources',
+            'units': 'Units',
+        },
+        'Y_R': {
+            'value': 1.,
+            'definition': 'Flux of extracted ressources',
+            'units': 'Units.y^{-1}',
+        },
+        'I_R': {
+            'value': 1.,
+            'definition': 'Investment (real) for ressources',
+            'units': 'Units.y^{-1}',
+        },
+        'Kstar': {
+            'value': 1.,
+            'definition': "Equivalent capital for services",
+            'units': 'Units',
+        },
+        'd_R': {
+            'value': 1.,
+            'definition': 'debt ratio ressources',
+            'units': 'y',
+        },
+        'inflation_R': {
+            'value': 1.,
+            'definition': 'inflation for ressources',
+            'units': 'y^{-1}',
+        },
+    },
+"""
+
+
 # #############################################################################
 # #############################################################################
 #                   FIELDS OF FIELDS AND EXPECTED VALUES
 # #############################################################################
-# dict of default value in fields
-
-
-__DEFAULTFIELDS = {
-    'value': {
-        'default': None,
-        'type': (int, float, np.int_, np.float_, np.ndarray, list),
-        'allowed': None,
-    },
-    'definition': {
-        'default': '',
-        'type': str,
-        'allowed': None,
-    },
-    'com': {
-        'default': 'No comment',
-        'type': str,
-        'allowed': None,
-    },
-    'dimension': {
-        'default': 'undefined',
-        'type': str,
-        'allowed': None,
-    },
-    'units': {
-        'default': 'undefined',
-        'type': str,
-        'allowed': [
-            'Units',   # Any physical quantity of something (capital, ressources...)
-            'y',       # Time
-            '$',       # Money
-            'C',       # Carbon Concentration
-            'Tc',      # Temperature (Celsius)
-            'Humans',  # Population
-            'W',       # Energy
-            'L',       # Length
-            '',        # Dimensionless
-        ],
-    },
-    'type': {
-        'default': 'undefined',
-        'type': str,
-        'allowed': [
-            'intensive',
-            'extensive',
-            'dimensionless',
-        ],
-    },
-    'symbol': {
-        'default': '',
-        'type': str,
-        'allowed': None,
-    },
-    'group': {
-        'default': '',
-        'type': str,
-        'allowed': None,
-    },
-}
-
-
-# --------------------
-# Make sure the default is allowed
-for k0, v0 in __DEFAULTFIELDS.items():
-    if v0.get('allowed') is not None:
-        __DEFAULTFIELDS[k0]['allowed'].append(v0['default'])
-
 
 # ------------------------------------
 # Derive new _DFIELDS from _LIBRARY
-
 __LKLIB = [dict.fromkeys(v0.keys(), k0) for k0, v0 in _LIBRARY.items()]
 for ii, dd in enumerate(__LKLIB[1:]):
     __LKLIB[0].update(dd)
-
 _DFIELDS = {
     k0: dict(_LIBRARY[v0][k0]) for k0, v0 in __LKLIB[0].items()
 }
-
 for k0, v0 in __LKLIB[0].items():
     _DFIELDS[k0]['group'] = v0
-
-
-# #############################################################################
-# #############################################################################
-#               Conformity checks (for safety, to detect typos...)
-# #############################################################################
 
 
 def _complete_DFIELDS(
     dfields=_DFIELDS,
     default_fields=__DEFAULTFIELDS,
-    complete=__FILLDEFAULTVALUES,
-    check=__DOTHECHECK,
+    complete=True,
+    check=True,
 ):
     """ Complete dfields from default"""
 
+    # --------------------
+    # Make sure the default is allowed
+    for k0, v0 in default_fields.items():
+        if v0.get('allowed') is not None:
+            default_fields[k0]['allowed'].append(v0['default'])
+
     # --------------
     # run loop
-
     dfail = {}
     for k0, v0 in dfields.items():
         for k1, v1 in default_fields.items():
@@ -1073,14 +1013,13 @@ def _complete_DFIELDS(
             if complete and v0.get(k1) is None:
                 # set symbol to key if not defined
                 if k1 == 'symbol':
-                    dfields[k0][k1] = k0
+                    dfields[k0][k1] = str('$'+k0+'$') if '$' not in k0 else k0
                 else:
                     dfields[k0][k1] = default_fields[k1]['default']
 
             # ---------
             # check
             if check and v0.get(k1) is not None:
-
                 # check type
                 if not isinstance(v0[k1], default_fields[k1]['type']):
                     dfail[k0] = (
@@ -1090,7 +1029,6 @@ def _complete_DFIELDS(
 
                 # check allowed values
                 elif default_fields[k1].get('allowed') is not None:
-
                     # treat units spearately
                     if k1 == 'units':
                         unit = v0[k1].split('.') if '.' in v0[k1] else [v0[k1]]
@@ -1142,6 +1080,7 @@ def _complete_DFIELDS(
             + "\n".join(lstr)
         )
         raise Exception(msg)
+    return dfields
 
 
-_complete_DFIELDS()
+_DFIELDS = _complete_DFIELDS(_DFIELDS)

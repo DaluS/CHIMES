@@ -1,18 +1,25 @@
 # -*- coding: utf-8 -*-
 """
+THIS DOCUMENT IS A TUTORIAL ON HOW TO USE PYGEMMES AS A SIMPLE USER
+EXECUTE THE DOCUMENT LINE BY LINE TO UNDERSTAND WHAT IS HAPPENING
+"""
+
+
+"""
+# IF PYGEMMES IS NOT IN YOUR PATH, OR YOU DID NOT START YOUR TERMINAL IN PYGEMMES
 import sys
 path = "C:\\Users\\Paul Valcke\\Documents\\GitHub\\GEMMES"  # Where pygemmes is
 sys.path.insert(0, path)  # we tell python to look at the folder `path`
 """
-import matplotlib.pyplot as plt
-import matplotlib as mpl
+
 import pygemmes as pgm
 import numpy as np
-import os
 
-'''
-Always use tab on pgm or hub, and ? on each functions
-'''
+
+# ## BEST ADVICE EVER ####################################!#!#!#!#!#!#!#
+# Always use tab and ? on pgm, hub, and each functions ###!#!#!#!#!#!#!#
+
+
 # ########################################################################### #
 # %%#####################  LEVEL 1 : USER ################################### #
 # ########################################################################### #
@@ -22,122 +29,115 @@ analysis.
 '''
 
 
-# %% OVERVIEW OF PYGEMMES
-pgm.get_available_fields()
-pgm.get_available_models(details=False)
-pgm.get_available_solvers()
+# %% OVERVIEW OF PYGEMMES ########################################
+
+# Content (practical functions will be shown later)
+pgm.get_available_fields(exploreModels=True, showModels=True,) #returnas=list)
 pgm.get_available_functions()
-
-pgm.get_available_models(details=True)
-
-listofsolver = pgm.get_available_solvers(returnas=list)
-listofmodels = pgm.get_available_models(returnas=list)
+pgm.get_available_models() # details=True
+pgm.get_available_plots()
+#pgm.get_available_models(details=True)
+#listofmodels = pgm.get_available_models(returnas=list)
 
 
 # %% LOADING A MODEL
 hub = pgm.Hub('GK')
-hub = pgm.Hub('GK', verb=True)
+hub = pgm.Hub('GK', verb=False)
 
-# EXPLORING IT
+# EXPLORING ITS CONTENT ######################
 hub.get_summary()  # definition concern the field definition, com the way it is calculated
 hub.get_equations_description()
 
-hub.get_Network()
-hub.get_Network(params=True)
+# plot the causal network
+hub.get_Network()                               # state variables, differential equations
+hub.get_Network(params=True)                    # state,differential,parameters
+hub.get_Network(auxilliary=False,params=True)   # remove auxilliary statevar and differential
+hub.get_Network(filters=('Pi',))                # remove the variable Pi and its connexions
+hub.get_Network(filters=('Pi',),redirect=True)  # all connexions from Pi are reconnected
 
-
-# %% MISC SUPPLEMENTARY INFORMATION
+# miscellaneous supplementary informations
 hub.dmodel  # Gives the content of the model file
 hub.dmisc   # gives multiple informations on the run and the variables
 hub         # Minimalist informations
 
 
-# %% Calculation
-hub.run()
-hub.run(verb=1.1)
-hub.run(solver=listofsolver[3])
+# %% RUN THE MODEL ########################################################
+hub.run(verb=0)           # calculate all the runs
+hub.run(verb=1.1)         # show how it is
+hub.run(N=100)            # after the run, reinterpolate temporal data on 100 values
+hub.get_summary()         # shows summary with latest values
 
-hub.get_summary()
 
+# %% Plots ################################################################
+hub.plot()
+"""There are three layers of filters, each of them has the same logic :
+if the filter is a tuple () it exclude the elements inside,
+if the filter is a list [] it includes the elements inside.
 
-# %% Plots
-dax = hub.plot()
-dax2 = hub.plot(key=['lambda', 'omega', 'd'])  # Select the variables
-dax3 = hub.plot(key=('GDP', 'a', 'Pi', 'kappa'))  # Remove some variables
+Filters are the following :
+filters_units      : select the units you want
+filters_sector     : select the sector you want  ( '' is all monosetorial variables)
+filters_sector     : you can put sector names if you want them or not. '' corespond to all monosectoral variables
+separate_variables : key is a unit (y , y^{-1}... and value are keys from that units that will be shown on another graph,
+
+Region             : is, if there a multiple regions, the one you want to plot
+idx                : is the same for parrallel systems"""
+hub.plot(filters_key =('p'),
+         filters_units=('Units'),
+         filters_sector=(),
+         separate_variables={'':['employment','omega']},
+         idx=0,
+         Region=0,
+         title='',
+         lw=2)
 hub.plot_preset(preset='default')
 
 
-# %% Get your data accessible
+# %% Get your data accessible #############################################
 R = hub.get_dparam()
 R.keys()
-R['lambda'].keys()
-np.shape(R['lambda']['value'])
+R['employment'].keys()
+np.shape(R['employment']['value'])
 
-
-# %% Reinterpolate data to be lighter
-hub.reinterpolate_dparam(1000)
-R = hub.get_dparam()
-np.shape(R['lambda']['value'])
-
-
-# %% Get more subtle criterias ['key', 'dimension', 'units', 'type', 'group', 'eqtype']
-R1 = hub.get_dparam(key=['lambda', 'omega'])
-R2 = hub.get_dparam(key=('lambda', 'omega'))
+# %% Get more subtle criterias ############################################
+# the criterias are : 'key', 'dimension', 'units', 'type', 'group', 'eqtype'
+R1 = hub.get_dparam(key=['employment', 'omega'])
+R2 = hub.get_dparam(key=('employment', 'omega'))
 R1.keys()
 R2.keys()
 
-groupsoffields = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['ode', 'statevar'])
+groupsoffields = hub.get_dparam_as_reverse_dict(
+    crit='units',
+    eqtype=['ode', 'statevar'])
 
-
-# %% STUDY OF CYCLES
-hub = pgm.Hub('GK')
-hub.run()
-hub.calculate_Cycles(ref='lambda')
-dax4 = hub.plot(mode='cycles', key=['lambda', 'omega', 'd', 'phillips'])
 
 # && ####################### ACCESS TO INDIVIDUAL PLOTS ######################
 hub = pgm.Hub('GK')
-
-# Plots that are not related to a run but to a function
-pgm.plots.slices_wholelogic(hub, key='kappa', axes=[['pi', 0, 0.3]], N=100, tid=0, idx=0)
-pgm.plots.slices_wholelogic(hub, key='L', axes=[['a', 1, 3], ['K', 1, 5]], N=100, tid=0, idx=0)
-
-# Plots related to a run
 hub.run()
 
-pgm.plots.phasespace(hub, x='omega', y='lambda', color='d', idx=0)
-pgm.plots.phasespace(hub, x='lambda', y='pi', color='d', idx=0)
-pgm.plots.plotnyaxis(hub, x='time',
-                     y=[['lambda', 'omega'],
-                        ['d'],
-                        ['kappa', 'pi'],
-                        ],
-                     idx=0,
-                     title='',
-                     lw=2)
-pgm.plots.plot_timetraces(hub, key=['lambda', 'omega', 'd'])
-pgm.plots.plot3D(hub, x='lambda',
+pgm.plots.plotbyunits() # same as hub.plot()
+
+pgm.plots.phasespace(hub,
+                     x='omega',
+                     y='employment',
+                     color='d',
+                     idx=0)
+pgm.plots.phasespace(hub,
+                     x='employment',
+                     y='pi',
+                     color='d',
+                     idx=0)
+pgm.plots.plot_timetraces(hub,
+                          key=['employment', 'omega', 'd'])
+pgm.plots.plot3D(hub, x='employment',
                  y='omega',
                  z='d',
-                 cinf='pi',
+                 color='pi',
                  cmap='jet',
                  index=0,
                  title='')
-pgm.plots.plotbyunits(hub)
+pgm.plots.Var(hub,'pi',log=True)
 
-
-# Plots about derivates
-hub.calculate_variation_rate()
-
-pgm.plots.plot_variation_rate(hub, ['omega', 'lambda', 'd', 'D']
-                              )
-
-# plots about cycles
-hub.calculate_Cycles(ref='omega')
-
-pgm.plots.cycles_characteristics(hub, xaxis='omega',
-                                 yaxis='lambda',
-                                 ref='omega')
 # %% CHANGING VALUES ########################################################
 '''
 Order of loading values/status (latest in the one kept) :
@@ -147,23 +147,22 @@ Order of loading values/status (latest in the one kept) :
     * the values of set_dparam
 '''
 
-
 # %% Using presets
 pgm.get_available_models(model='GK', details=True)
 hub = pgm.Hub(model='GK', preset='default')
 hub.run()
 hub.plot_preset(preset='default')
-# dpreset use will be explained later
 
 
-# %% Using  set_dparam
+# %% Using  set_preset
 hub = pgm.Hub('GK')
-hub.set_dparam(preset='default')
+hub.set_preset('default')
 
 # Changing one parameter
 hub = pgm.Hub('GK')
-hub.set_dparam(key='dt', value=0.01)
-hub.set_dparam(Tmax=50)
+hub.set_dparam('dt',0.02)
+hub.set_dparam('Tmax',50)
+hub.get_summary()
 
 # Put a dictionnary
 dparam = {'alpha': 0, 'n': 1}
@@ -171,22 +170,20 @@ hub.set_dparam(**dparam)
 
 # Create N system in parrallel with different values
 hub = pgm.Hub('GK')
-hub.set_dparam(alpha=[0,
+hub.set_dparam(**{'nx':4,
+                  'alpha':[0,
                       0.01,
                       0.02,
-                      0.03])
+                      0.03]})
 hub.get_summary()
 hub.run()
-dax = hub.plot(key=['lambda',
-                    'omega'])
-
+hub.reinterpolate_dparam(1000)
 
 # %% CALCULATING SENSIVITY ##################################################
 '''
 Instead of doing one run, we do N run in parrallel, with each field having a
 value in its distribution
 '''
-
 SensitivityDic = {
     'alpha': {'mu': .02,
               'sigma': .12,
@@ -198,40 +195,138 @@ SensitivityDic = {
            'sigma': .12,
            'type': 'log'},
 }
-
 presetSimple = pgm.generate_dic_distribution(
     {'alpha': {'mu': 0.02,
                'sigma': .2,
                'type': 'log'}, }, N=10)
-
 presetCoupled = pgm.generate_dic_distribution(SensitivityDic,
                                               N=10,
                                               grid=False)
-
+presetCoupled['nx']=10
 hub = pgm.Hub('GK')
 hub.set_dparam(**presetCoupled)
-hub.run()
-dax = hub.plot()
-
-hub.reinterpolate_dparam(1000)
+hub.run(N=100)
 hub.calculate_StatSensitivity()
-dax = hub.plot(key=['lambda', 'omega'], mode='sensitivity')
+pgm.plots.Var(hub,'employment',mode='sensitivity')
 
-
-# %% GENERATE DPRESET AND USE IT
-_DPRESETS = {'SensitivitySimple': {'fields': presetSimple, 'com': ''},
-             'SensitivityCoupled': {'fields': presetCoupled, 'com': ''},
-             }
-hub = pgm.Hub('GK', preset='SensitivityCoupled', dpresets=_DPRESETS)
+# %% CALCULATING CYCLES ######################################################
+hub = pgm.Hub('GK')
 hub.run()
-hub.reinterpolate_dparam(1000)
-hub.calculate_StatSensitivity()
-dax = hub.plot(mode='sensitivity')
+hub.calculate_Cycles(ref='employment') # The ref will determine what variables are the begin and end of cycles calculated
+pgm.plots.Var(hub,'employment',mode='cycles')
+pgm.plots.cycles_characteristics(hub,'employment','omega',
+                                 ref='g',
+                                 type1='frequency',
+                                 type2='meanval')
+
+#pgm.plots.slices_wholelogic(hub,key='g',axes=[['omega',0,2]],N=100,tid=0,idx=0,Region=0)
+
+#######################################################################################
+##################### MULTISECTORIALITY ###############################################
+
+hub=pgm.Hub('test_multisect2');
+hub=pgm.Hub('test_multisect2');hub.set_dparam()
+hub=pgm.Hub('test_multisect2');hub.set_dparam(**{'nr': 5})
+hub=pgm.Hub('test_multisect2');hub.set_dparam(**{'nr': ['Paris','Berlin']})
+hub=pgm.Hub('test_multisect2');hub.set_dparam(**{'Nprod': ['Capital','Consommation']})
+hub=pgm.Hub('test_multisect2');hub.set_dparam(**{'Nprod': 5})
+hub.set_dparam(**{'dt':1})
+
+# Changement de valeur monosect #########
+hub.set_dparam(**{'a': 1.1})          # valeur initiale
+hub.set_dparam(**{'alpha': 0.05})     # valeur de parametre
+
+# Changement monosect sur vecteur #######
+
+hub=pgm.Hub('test_multisect2');hub.set_dparam(**{'nx':3,
+                  'a': [0.5,.1,3]})     # Si non explicite, automatiquement sur nx
+hub=pgm.Hub('test_multisect2');hub.set_dparam(**{'nr':2,
+                  'alpha': ['nr',[0.5,.1]]})                # need nr=2, change on all nx
+hub=pgm.Hub('test_multisect2');hub.set_dparam(**{'nx':4,'nr':['France','USA'],'alpha': [['nr','France'],0.5]})        # change on region 0, nx 1
+hub=pgm.Hub('test_multisect2');hub.set_dparam(**{'nr'   : ['France','USA'], 'nx':3,               # Two named regions
+                'alpha': [['nr','France'],['nx',1],0.5]}) # Change in region France
+hub=pgm.Hub('test_multisect2');hub.set_dparam(**{'nr'   : ['France','USA','China'], 'nx':3,          # Three regions, change in France and USA
+                'alpha': [['nr','France'],['nx',1],0.5]})
+hub=pgm.Hub('test_multisect2');hub.set_dparam(**{'nx':5,
+                'alpha': [['nr',0],['nx',0,4],[0.5,0.2]]})
+hub=pgm.Hub('test_multisect2');hub.set_dparam(**{'nr'   : ['France','USA','China'], 'nx':3,       'alpha': [['nr',0],['nx',1],0.5]})
+
+# FOR VECTOR OR MATRICES, THE SYSTEM WILL AUTOMATICALLY RECOGNIZE THE FIRST ENTRIES
+hub.set_dparam(**{'Z': [['energy','capital'],['nr',0],[0.5,0.22]]})
+hub.set_dparam(**{'MATRIX': {'first':['energy','capital'],
+                             'second':['mine','consumption'],
+                             'nr':0,
+                             'value':[0.5,0.22]}})
+hub.set_dparam(**{'MATRIX': [['energy','capital'],['mine','consumption'],['nr',0],[0.5,0.22]]})
+hub.set_dparam(**{'MATRIX': [['energy','capital'],['mine','consumption'],[0.5,0.22]]})
+hub=pgm.Hub('test_multisect2');hub.set_dparam(**{'MATRIX': [['energy','capital'],0.22]})
+
+
+
+# dpreset, puis preset
+preset= {
+    'name1': {
+        'fields': {
+            'dt': 0.01,
+            'nx': 3,
+            'a': 1,
+            'N': 1,
+            'K': 2.9,
+            'w': .85*1.2,
+            'alpha': 0.02,
+            'n': 0.025,
+        },
+        'com': (
+            'This is a run that should give simple '
+            'convergent oscillations'),
+        'plots': {
+            'timetrace': [{}],
+            'nyaxis': [{'x': 'time',
+                        'y': [['lambda', 'omega'],
+                              ['d'],
+                              ['kappa', 'pi'],
+                              ],
+                        'idx':0,
+                        'title':'',
+                        'lw':2},
+                       {'x': 'time',
+                        'y': [['K', 'Y', 'I', 'Pi'],
+                              ['inflation', 'g'],
+                              ],
+                        'idx':0,
+                        'title':'',
+                        'lw':1}],
+            'phasespace': [{'x': 'lambda',
+                            'y': 'omega',
+                            'color': 'd',
+                            'idx': 0}],
+            '3D': [{'x': 'lambda',
+                    'y': 'omega',
+                    'z': 'd',
+                    'cinf': 'pi',
+                    'cmap': 'jet',
+                    'index': 0,
+                    'title': ''}],
+            'byunits': [{'title': '',
+                         'lw': 2,       # optional
+                         'idx': 0,      # optional
+                         'color': 'k'},  # optional
+                        ],
+            'cycles_characteristics': [{'xaxis': 'omega',
+                                        'yaxis': 'lambda',
+                                        'ref': 'lambda'}
+                                       ]
+        },
+    }
+}
+hub.set_dpreset(preset)
+hub.set_preset('name1')
+
 
 # %% BASIN OF ATTRACTIONS ####################################################
 '''
 This is an example on how someone can do more complex analysis
-'''
+
 
 
 # Initialisation of the system with 1000 points in a box
@@ -296,32 +391,18 @@ scat = ax.scatter(R['lambda']['value'][0, ConvergeRate > 0.001],
 plt.axis('tight')
 
 # Add trajectory of converging points
-'''
+
 for i in range(len(ConvergeRate)):
     if ConvergeRate[i]:
         ax.plot(R['lambda']['value'][:, i],
                 R['omega']['value'][:, i],
                 R['d']['value'][:, i], c='k', lw=0.1)
-'''
+
 # Add colobar
 cbar = fig.colorbar(scat)
 cbar.ax.set_ylabel(r'$f_{carac}^{stab} (y^{-1})$')
 plt.show()
-
-
-# %% FORKING A LOADED MODEL ##################################################
-hub = pgm.Hub('GK')
-hub2 = hub.copy()
-
-
-# %% SAVING AND LOADING ######################################################
-hub = pgm.Hub('Reduced_GK', preset='default')
-hub.run()
-hub.save()
-
-loaddic = pgm.get_available_output(returnas=dict)
-hub = pgm.load(pgm.get_available_output(returnas=list)[0])[0]
-
+'''
 
 # %% EXERCICES ###############################################################
 '''
@@ -367,15 +448,3 @@ Exercise 3 : add on github
 # !pytest pygemmes/tests/test_02_Hub_Multiple -v
 # !pytest pygemmes/tests/test_03_articles -v
 
-
-listofsolver = pgm.get_available_solvers(returnas=list)
-listofsolver = [listofsolver[i] for i in [0,3]]
-listofmodels = pgm.get_available_models(returnas=list)
-for model in listofmodels:
-    presets = pgm.get_available_models(returnas=dict)[model]['presets']
-    for preset in [None]+presets:
-        hub = pgm.Hub(model, preset=preset)
-        hub.set_dparam(Tmax=10, verb=False)
-        for solver in listofsolver:
-            print(model, preset, solver)
-            hub.run()

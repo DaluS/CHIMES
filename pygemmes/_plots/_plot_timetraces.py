@@ -22,6 +22,7 @@ _DLEG = {
 }
 
 
+
 # #############################################################################
 # #############################################################################
 #                   check inputs
@@ -30,7 +31,7 @@ _DLEG = {
 
 def _plot_timetraces_check(
     hub_id=None,
-    idx=None,
+    idx=0,
     color=None,
     label=None,
     dleg=None,
@@ -82,7 +83,7 @@ def _plot_timetraces_check(
 def _plot_timetraces_check_dax(
     hub=None,
     dpar=None,
-    idx=None,
+    idx=0,
     dax=None,
     ncols=None,
     sharex=None,
@@ -210,8 +211,9 @@ def plot_timetraces(
     dleg=None,
     show=None,
     # for selection of data
-    idx=None,
+    idx=0,
     eqtype=None,
+    Region=0,
     **kwdargs,
 ):
     '''
@@ -293,11 +295,11 @@ def plot_timetraces(
             continue
         # Add by Paul : Statistical indicators on multiple runs
         if mode == 'sensitivity':
-            time = hub.dparam['time']['value'][:, 0]
+            time = hub.dparam['time']['value'][:, idx,Region,0,0]
             V = hub.dparam[k0]['sensitivity']
             # Plot all trajectory
             for i in range(len(hub.dparam['time']['value'][0, :])):
-                dax[k0].plot(time, hub.dparam[k0]['value']
+                dax[k0].plot(time, hub.dparam[k0]['value'][:, idx,Region,0,0]
                              [:, i], c='k', ls='--', lw=0.5)
 
             # Plot mean an median
@@ -354,20 +356,13 @@ def plot_timetraces(
             stdv = np.array(cyclvar['stdval'])
             dax[k0].fill_between(tmcycles, meanv - stdv, meanv + stdv, alpha=0.2)
 
-        elif idx is None:
-            dax[k0].plot(
-                hub.dparam['time']['value'],
-                v0['value'],
-                color=color,
-                label=label,
-            )
-        else:
-            dax[k0].plot(
-                hub.dparam['time']['value'][idx],
-                v0['value'][idx],
-                color=color,
-                label=label,
-            )
+        if idx is None: idx=0
+        dax[k0].plot(
+            hub.dparam['time']['value'][:,idx,Region,0,0],
+            v0['value'][:,idx,Region,0,0],
+            color=color,
+            label=label,
+        )
 
     if mode:
         dax[k0].legend()
