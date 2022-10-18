@@ -333,9 +333,9 @@ _LOGICS = {
                   'size': ['Nprod']
                   },
 
-        #'sigma': {'value': 1,
-        #          'size': ['Nprod']
-        #          },
+        'sigma': {'value': 1,
+                  'size': ['Nprod']
+                  },
         'gammai': {'value': 1,
                   },
         'eta': {'value': 0.5,

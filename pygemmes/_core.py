@@ -113,22 +113,23 @@ class Hub():
             self.reset()
 
     # ##############################
-    # %% Setting / getting parameters
+    # %% Setting parameters
     # ##############################
-
     def set_dpreset(self,
                     input,
                     preset_name=None,
                     verb=_VERB):
         """
-        change the dictionnary of presets
+        change the dictionnary of presets that you can load directly
+        The structure is the same as in model files !
 
-        Check shape of the dictionnary
         Input must be : a dictionnary with
-         { name : {fields : {} ,
-                   com: '',
-                   plots : {} },
-         }
+         { name1 : {fields : {key1:values,
+                              key1:values,} ,
+                   com: 'Message',
+                   plots : {'plotname1':[{kwargs1},{kwargs2}...],
+                            'plotname2':[{kwargs1},{kwargs2}...]}
+         },
 
          if preset_name is a name in this dpreset,
           then it loads the preset
@@ -156,11 +157,9 @@ class Hub():
     def set_preset(self,
                    input,verb=_VERB):
         '''
-        will load the preset in dpreset
-        preset must be a string , with the name existing in dpreset
+        will load the preset that is already defined in dpreset (either in the model file or user added with set_dpreset
+        preset must be a string
         check get_summary to see which are available !
-
-        input must be the name of an available preset
         '''
         if input not in self.__dmodel['presets'].keys():
             return f"{input} is not a valid preset name ! the preset name must be in {list(self.__dmodel['presets'].keys())}"
@@ -170,39 +169,61 @@ class Hub():
 
     def set_dparam(self,key=None,value=None,verb=_VERB,**kwargs):
         """
-        function to change both the sizes of the system (system in parrallel, regions, sectors, time vector...)
-        Input : many different possibilities :
+        Your best friend to change the fields values or sizes in the system.
+        It can change :
+            * dimensions ( duration of the simulated tine 'Tmax',
+                           duration of one timestep 'dt'
+                           number of system in parrallel 'nx',
+                           number of regions             'nr',
+                           number of sectors in a multisector object _nameofthedimension...
+                           )
+            * values of parameters and initial conditions, either for all systems/regions/sector, either indexwise
 
-        set_dparam('a',0.1) will assign the value 0.1 to a
+        if you want to change only one field, you can do "set_dparam(key,values)"
+        if you want to change multiple fields at once you can do "set_dparam(**dict)" with dict={key:values},
+        the way to put multiple values or specific sector will be explained in 2)
 
+        1) ### CHANGE DIMENSIONS ###################################
+        if you change a dimension such as the number of region of the number of sector, you can either put :
+        an integer (and the sector name will be their number)
+        a list of sector name (the number of sector will be the length of the list
+        hub.set_dparam('nr',['France','Germany','China']) will create 3 named regions
+        hub.set_dparam('nr',54) will create 54 regions with their number as index
 
-        It can :
-        * Change all the values ( Nx,Nr,Multisect )
-        * Change only one value
+        if Nprod is the number of production sector :
+        hub.set_dparam('Nprod',100)
+        hub.set_dparam('Nprod',['Consumption','Capital','Mine','Energy','Food'])
 
+        CAUTION : if some specific values at certain indexes has been put, you cannot change the dimensions.
+        do all your dimensions changes before filling specific values.
 
-        ### PARAMETERS/INITIAL COND CHANGES #######
-        when a dimension is not specified, it will fill it.
-        FULL EXAMPLE :
+        2) ### CHANGE FIELDS AND INITIAL CONDITIONS ##################
+        if no axis is explicitely put, the value will be changed for all axes
 
+        # CHANGES ON MONOSECTORAL FIELDS
+        (example on alpha, but it could be on anything else
+        hub.set_dparam('alpha',0) will put 0 for all the axes of alpha (parrallel, regions,multisector...)
+        hub.set_dparam('alpha',[0.1,0.2]) will put 0.1 in the first parrallel system, 0.2 in the second
+        hub.set_dparam('alpha',[['nr','France'],0.5]) will put 0.5 in all parrallel systems, for the region named "France"
+        hub.set_dparam('alpha',[['nr','France'],['nx',1],0.5]) will put 0.5 in the parrallel 1, region "France"
+        hub.set_dparam('alpha',[['nr',0],['nx',0,4],[0.5,0.2]]) region 0, value 0.5 in parrallel 0, 0.2 in parrallel 4
+        hub.set_dparam('alpha',[['nr','France','USA'],['nx',1],0.5]) parrallel 1, 0.5 both in France and USA
 
-        hub.set_dparam(**{'nx':3,
-                          'a': [0.5,.1,3]})     # Si non explicite, automatiquement sur nx
-        hub.set_dparam(**{'nx':2,
-                          'alpha': [0.5,.1,4]}) # Si non explicite, automatiquement sur nx
-        hub.set_dparam(**{'nr':2,
-                          'alpha': ['nr',[0.5,.1]]})                # need nr=2, change on all nx
-        hub.set_dparam(**{'alpha': [['nr','France'],0.5]})        # change on region 0, nx 1
-        hub.set_dparam(**{'nr'   : ['France','USA'],                # Two named regions
-                        'alpha': [['nr','France'],['nx',1],0.5]}) # Change in region France
-        hub.set_dparam(**{'nr'   : ['France','USA','China'],        # Three regions, change in France and USA
-                        'alpha': [['nr','France','USA'],['nx',1],0.5]})
-        hub.set_dparam(**{'nx':5,
-                        'alpha': [['nr',0],['nx',0,4],[0.5,0.2]]})
-        hub.set_dparam(**{'alpha': [['nr',0],['nx',1],0.5]})
+        hub.set_dparam('alpha',{'nr':['France','USA'],
+                                'nx':1,
+                                'value':0.5}                         will do the same !
+        (the system will reconstruct automatically this dictionnary by itself)
 
         # FOR VECTOR OR MATRICES, THE SYSTEM WILL AUTOMATICALLY RECOGNIZE THE FIRST ENTRIES
-        hub.set_dparam(**{'Z': [['energy','capital'],['nr',0],[0.5,0.22]]})
+        if 'Z' is a multisectoral element as a vector of dimension 2
+        hub.set_dparam('Z',[0,1]) will put [0,1] for all parrallel all regions
+        hub.set_dparam('Z',[['nr',0],[0,1]) will put [0,1] for all parrallel in region 0
+        hub.set_dparam('Z',[['nr',0,1],[0,1]) will put [0,1] for all parrallel in region 0 and 1
+        hub.set_dparam('Z',[['nx',0],['nr',0,1],[0,1]) will put [0,1] for parrallel system 0, in region 0 and 1
+
+        if 'M' is a matric of dimension 2,2
+        hub.set_dparam('Z',[[0,1],[1,0]]) will put [[0,1],[1,0]] for all parrallel all regions
+        hub.set_dparam('Z',np.eye(2)) will put [[1,0],[0,1]] for all parrallel all regions})
         hub.set_dparam(**{'MATRIX': {'first':['energy','capital'],
                                      'second':['mine','consumption'],
                                      'nr':0,
@@ -211,13 +232,18 @@ class Hub():
         hub.set_dparam(**{'MATRIX': [['energy','capital'],['mine','consumption'],[0.5,0.22]]})
         hub.set_dparam(**{'MATRIX': [['energy','capital'],0.22]})
 
-        set_dparam(**{'alpha':{'nx'   : # NUMBER
-                               'nr'   : # NUMBER
-                               'sect1': # NAME OR NUMBER
-                               'sect2': # NAME OR NUMBER
-                               'value':0.2},
-        if 'value' : has the size of non-precised axis, it will change all the values
+        YOU CAN PUT A LOT OF CHANGES AT ONCE :
+        dictchange={
+                'Tmax':40,
+                'Nprod': ['Consumption','Capital'],
+                'nx':10,
+                'alpha':np.linspace(0,0.02,10),
+                'n':0.025,
+                'phinull':0.1
+                }
+        hub.set_dparam(**dictchange)
         """
+
         # Take minimal changes
         if (key and value):
             kwargs[key]=value
@@ -248,7 +274,6 @@ class Hub():
         #### SEND IT TO THE PIPE ###################
         self._set_dimensions(verb,**dimtochange)
         self._set_fields(verb,**fieldtochange)
-
 
     def _set_dimensions(self,verb=_VERB,**kwargs):
         '''
@@ -295,7 +320,6 @@ class Hub():
         self.__dargs=_class_set.get_dargs_by_reference(self.__dparam,
                                                        dfunc_order=self.__dmisc['dfunc_order'])
 
-
     def _set_fields(self,verb=_VERB, **kwargs):
         # Get list of variables that might need a reshape
         parametersandifferential =  list(set(self.get_dparam(eqtype=['differential', None]))
@@ -321,7 +345,6 @@ class Hub():
                 ### DECOMPOSE THE TYPE OF VARIABLE
                 v= kwargs[kk]
                 OLDVAL= np.copy(self.__dparam[kk][direct[kk]])
-                print(kk,v)
                 # THIS IS A LIST OF VALUE
                 if type(v) in [np.ndarray]:
                     #print('nd')
@@ -374,8 +397,7 @@ class Hub():
 
     def __deep_set_dparam(self, OLDVAL, FLATTABLE, dimname, inpt,name):
         '''
-        If you are here, I am sorry. That will be messy
-
+        If you are here, I am sorry. That will be messy.
         This is what happens when we ask a non-trivial construction of variable value
 
         :param OLDVAL:    What was loaded in the system before you change the value
@@ -395,9 +417,7 @@ class Hub():
         if personal dimensions exists, then added  
         '''
 
-
         fullinfos = {}
-
         #################################
         # if it's a dict, it is easier to translate
         if type(inpt) is dict:
@@ -520,37 +540,24 @@ class Hub():
             print('The system do not understand your input')
         fullinfos['value'] = inpt[-1]
         return fullinfos
-##############################################################################
 
-    def get_dparam(self, condition=None, verb=None, returnas=dict, **kwdargs):
+    # ##############################
+    # %% Getting parameters ########
+    # ##############################
+
+    def get_dparam(self, condition=None,returnas=dict,verb=False, **kwdargs):
        """ Return a copy of the input parameters dict that you can filter
-
-       Return as:
-           - dict: dict
-           - 'DataGFrame': a pandas DataFrame
-           - np.ndarray: a dict of np.ndarrays
-           - False: return nothing (useful of verb=True)
-
-       verb:
-           - True: pretty-print the chosen parameters
-           - False: print nothing
-
        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype','isneeded']
-
        """
        lcrit = ['key', 'dimension', 'units',
                 'type', 'group', 'eqtype', 'isneeded']
-       lprint = [
-           'parameter', 'value', 'units', 'dimension', 'symbol',
-           'type', 'eqtype', 'group', 'comment',
-       ]
 
        return _class_utility._get_dict_subset(
            indict=self.__dparam,
-           verb=verb,
-           returnas=returnas,
+           verb=False,
+           returnas=dict,
            lcrit=lcrit,
-           lprint=lprint,
+           lprint=[],
            condition=condition,
            **kwdargs,
        )
@@ -646,10 +653,14 @@ class Hub():
     def dmisc(self):
        return self.__dmisc
 
+
     # ##############################
     # reset
     # ##############################
 
+   # ##############################
+   # run simulation
+   # ##############################
     def reset(self):
        """ Re-initializes all variables
 
@@ -695,12 +706,9 @@ class Hub():
        # set run to False
        self.__dmisc['run'] = False
 
-       # ##############################
-       # run simulation
-       # ##############################
-
     def run(
            self,
+           N=False,
            verb=None,
     ):
        """ Run the simulation, with any of the solver existing in :
@@ -710,11 +718,13 @@ class Hub():
            - 1 at every step
            - any float (like 1.1) the iteration is written at any of these value
 
+       if you define N, the system will reinterpolate the temporal values on N samples
+       typically, N=Tmax will put 1 value per year
+
        Compute each time step from the previous one using:
            - parameters
            - differentials (ode)
            - intermediary functions in specified func_order
-
        """
        if (_VERB == True and verb is None):
            verb = 1.1
@@ -735,6 +745,8 @@ class Hub():
            )
            self.__dmisc['run'] = True
            self.__dmisc['solver'] = solver
+           if N:
+            self.reinterpolate_dparam(N)
 
        except Exception as err:
            self.__dmisc['run'] = False
@@ -772,7 +784,6 @@ class Hub():
     # ##############################
     #  Introspection
     # ##############################
-
     def __repr__(self, verb=None):
        """ This is automatically called when only the instance is entered """
 
@@ -824,6 +835,7 @@ class Hub():
 
         INPUT :
         * idx = index of the model you want the value to be shown when there are multiple models in parrallel
+        * region : name or index of the region you want to plot
         """
 
         _FLAGS = ['run', 'cycles', 'derivative','multisectoral','solver']
@@ -879,7 +891,6 @@ class Hub():
         col4, ar4 = _class_utility._get_summary_functions_vector(
            self, idx=idx,Region=Region, eqtype=['statevar'])
 
-        # Print matrices
 
 
         # ----------
@@ -890,6 +901,7 @@ class Hub():
            verb=True,
            returnas=False,)
 
+        # Print matrices
         _class_utility._print_matrix(self,idx=idx,Region=Region)
 
     def get_equations_description(self):
@@ -944,103 +956,61 @@ class Hub():
                     if [] contains only what will be shown
                     if () contains what will NOT be shown
         auxilliary : if False, remove variables that are not necessary for a run
+        redirect : removed variable will transfer their dependency to the one they are linked to
         """
         _Network.Network_pyvis(self,
                                filters=filters,
-                               redirect=False,
+                               redirect=redirect,
                                auxilliary=auxilliary,
                                screensize=screensize,
                                custom=custom,
                                plot_params=params)
 
-    def Extract_preset(self, t=-1):
-        ### Getting time vector
-        T = self.get_dparam(key=['time'])
-        vectime = T['time']['value'][:, 0, 0, 0]
 
-        ### Extracting values
-        if t!= -1:
-            idt = np.argmin(np.abs(vectime - t))-1
-        else:
-            idt = -1
-        R = self.get_dparam(key=('time','__ONE__'))
+    # ##############################
+    #       plotting methods
+    # ##############################
 
-        presetdict = {}
-        for k, v in R.items():
-            type = v.get('eqtype', None)
-            if type in ['differential']:
-                presetdict[k] = v['value'][idt, :, :, :]
-            elif type in ['parameters',None]:
-                presetdict[k] =  v['value']
-            elif type in ['size']:
-                presetdict[k] = v.get('list', v['value'])
+    def plot_preset(self, preset=None):
+        '''
+        Automatically plot all functions that are defined in _plot.py, associated with the preset
 
-        return presetdict
+        If a preset is loaded, you do not need to precise it when using the function
+        If no preset is loaded, you can try to plot its associated plots by calling it.
+        '''
+
+        if preset is None:
+            preset = self.dmodel['preset']
+        tempd = self.dmodel['presets'][preset]['plots']
+
+        for plot, funcplot in _DPLOT.items():
+            for argl in tempd.get(plot, []):
+                funcplot(self, **argl)
+
+    def plot(self,
+             filters_key =(),
+             filters_units=(),
+             filters_sector=(),
+             separate_variables={},
+             idx=0,
+             Region=0,
+             title='',
+             lw=2):
+
+            _DPLOT['byunits'](self,
+                             filters_key,
+                             filters_units,
+                             filters_sector,
+                             separate_variables,
+                             lw,
+                             idx ,
+                             Region ,
+                             title ,
+                              )
 
     # ##############################
     #       Deep analysis methods
     # ##############################
-
-    def calculate_variation_rate(self, epsilon=0.0001):
-        '''
-        Calculate all derivatives :
-            * time derivative
-            * time log_derivative (variation rate)
-            * partial_derivatives (gradient on the other variables)
-            * partial_contribution (partial_derivatives time the respective time derivate)
-
-        partial derivative is associating to field Y a dic as {X : dY/dX} for each statevar
-
-        accessible in :
-            dparam[key]['time_derivate']
-            dparam[key]['time_log_derivate']
-            dparam[key]['partial_derivatives']
-            dparam[key]['partial_contribution']
-        '''
-
-        R = self.__dparam
-
-        varlist = self.dmisc['dfunc_order']['statevar'] + \
-            self.dmisc['dfunc_order']['differential']
-
-        varlist.remove('time')
-
-        for k in varlist:
-            R[k]['time_derivate'] = np.gradient(
-                R[k]['value'], axis=0)/R['dt']['value']
-            R[k]['time_log_derivate'] = R[k]['time_derivate']/R[k]['value']
-
-            if R[k]['eqtype'] == 'differential':
-                R[k]['time_dderivate'] = np.gradient(
-                    R[k]['time_derivate'], axis=0)/R['dt']['value']
-            # SENSITIVITY CALCULATION
-            func = R[k]['func']
-            args = R[k]['args']['differential']+R[k]['args']['statevar']
-            if 'itself' in R[k]['kargs']:
-                args += k
-
-            argsV = {k2: R[k2]['value'] for k2 in args}
-
-            if k in args:
-                argsV['itself'] = argsV[k]
-                del argsV[k]
-                args += ['itself']
-                args.remove(k)
-
-            R[k]['partial_derivatives'] = {}
-            for k2 in args:
-                argTemp = copy.deepcopy(argsV)
-                argTemp[k2] += epsilon
-                R[k]['partial_derivatives'][k2] = (
-                    func(**argTemp)-func(**argsV))/epsilon
-
-        # Contribution of partial derivatives
-        for k in varlist:
-            R[k]['partial_contribution'] = {k2: R[k]['partial_derivatives'][k2]
-                                            * R[k2]['time_derivate']
-                                            for k2 in R[k]['partial_derivatives'].keys()}
-        self.__dmisc['derivative'] = True
-
     def calculate_Cycles(self, ref=None, n=10):
         '''
         This function is a wrap-up on GetCycle to do it on all variables.
@@ -1188,9 +1158,6 @@ class Hub():
 
             self.__dparam[var]['cycles_bykey'] = copy.deepcopy(newcycles)
 
-    # ##############################
-    #       Multiple run stats
-    # ##############################
 
     def calculate_StatSensitivity(self):
         '''
@@ -1199,27 +1166,26 @@ class Hub():
 
         Do not use with grid=True
         '''
-        R = self.__dparam
-        keys = [k for k in R.keys() if R[k].get(
-            'eqtype', 'parameter') != 'parameter']
+        leq = ['differential', 'statevar']
+        R0= self.get_dparam()
+        R = self.get_dparam(returnas=dict, eqtype=leq)
 
-        for ke in keys:
-            R[ke]['sensitivity'] = {}
-
-            val = R[ke]['value']
-
-            V = R[ke]['sensitivity']
-            V['mean'] = np.mean(val, axis=1)
-            V['stdv'] = np.std(val, axis=1)
-            V['min'] = np.amin(val, axis=1)
-            V['max'] = np.amax(val, axis=1)
-            V['median'] = np.median(val, axis=1)
+        for ke in R.keys():
+            self.__dparam[ke]['sensitivity'] = []
+            for kr in range(R0['nr']['value']):
+                d={}
+                for ii,kx in enumerate(R0[R0[ke]['size'][0]].get('list',[0])):
+                    val = R[ke]['value'][:,:,kr,ii,0]
+                    d[kx]={
+                    'mean': np.mean(val, axis=1),
+                    'stdv': np.std(val, axis=1),
+                    'min' : np.amin(val, axis=1),
+                    'max' :np.amax(val, axis=1),
+                    'median': np.median(val, axis=1)}
+                self.__dparam[ke]['sensitivity'].append(d)
         self.__dmisc['sensitivity'] = True
 
-    # ##############################
-    #       Convergence toward a point
-    # ##############################
-    def calculate_ConvergeRate(self, finalpoint):
+    def calculate_ConvergeRate(self, finalpoint,Region=0,idx=0):
         '''
         Will calculate how the evolution of the distance of each trajectory to
         the final point.
@@ -1228,13 +1194,21 @@ class Hub():
 
         finalpoint has to be :
             { 'field1' : number1,
-              'field2' : number2,
+              'field2' : ['sectorname',number2],
               'field3' : number3}
         '''
         # Final step studies ##################
         R = self.get_dparam(
             key=[k for k in finalpoint]+['time'], returnas=dict)
-        Coords = [R[k]['value']-finalpoint[k] for k in finalpoint.keys()]
+
+        # Take into account multisectoriality
+        sector={k:0 for k in finalpoint.keys()}
+        for k,v in finalpoint.items():
+            if type(v) is list :
+                sector[k]=v[1]
+                finalpoint[k]=v[0]
+
+        Coords = [R[k]['value'][idx,Region,sector[k],0]-finalpoint[k] for k in finalpoint.keys()]
         dist = np.linalg.norm(Coords, axis=0)
         t = R['time']['value'][:, 0]
 
@@ -1252,93 +1226,44 @@ class Hub():
                 ConvergeRate[i] = -fit[0]
         return ConvergeRate
 
-    # ##############################
-    #       plotting methods
-    # ##############################
-
-    def plot_preset(self, preset=None):
-        '''
-        Automatically plot all functions that are defined in _plot.py, associated with the preset
-
-        If a preset is loaded, you do not need to precise it when using the function
-        If no preset is loaded, you can try to plot its associated plots by calling it.
-        '''
-
-        if preset is None:
-            preset = self.dmodel['preset']
-        tempd = self.dmodel['presets'][preset]['plots']
-
-        for plot, funcplot in _DPLOT.items():
-            for argl in tempd.get(plot, []):
-                funcplot(self, **argl)
-
-    def plot(
-        self,
-        mode=False,
-        # for forcing a color / label
-        color=None,
-        label=None,
-        # for figure creation
-        dax=None,
-        ncols=None,
-        sharex=None,
-        tit=None,
-        wintit=None,
-        dmargin=None,
-        fs=None,
-        dleg=None,
-        show=None,
-        # for selection of data
-        idx=None,
-        eqtype=None,
-        **kwdargs,
-    ):
-        """
-        Launch the basic plot: time traces
-        """
-
-        # -------------
-        # check inputs
-        '''
-        idx = _class_checks._check_idx(
-            idx=idx,
-            nt=self.__dparam['nt']['value'],
-            dmulti=self.__dmisc.get('dmulti'),
-        )
-        '''
-        return _DPLOT['timetrace'](
-            self,
-            mode=mode,
-            # for forcing a color / label
-            color=color,
-            label=label,
-            # for figure creation
-            dax=dax,
-            ncols=ncols,
-            sharex=sharex,
-            tit=tit,
-            wintit=wintit,
-            dmargin=dmargin,
-            fs=fs,
-            dleg=dleg,
-            show=show,
-            # for selection of data
-            idx=idx,
-            eqtype=eqtype,
-            **kwdargs,
-
-        )
 
     # ##############################
     #       data conversion
     # ##############################
+    def Extract_preset(self, t=-1):
+        '''
+        Create a dictionnary, containing all fields value at the instant t.
+        by default take the value at the latest instant
+        you can save it and put it with set_dparam in a new run !
+        '''
+
+        ### Getting time vector
+        T = self.get_dparam(key=['time'])
+        vectime = T['time']['value'][:, 0, 0, 0]
+
+        ### Extracting values
+        if t != -1:
+            idt = np.argmin(np.abs(vectime - t)) - 1
+        else:
+            idt = -1
+        R = self.get_dparam(key=('time', '__ONE__'))
+
+        presetdict = {}
+        for k, v in R.items():
+            type = v.get('eqtype', None)
+            if type in ['differential']:
+                presetdict[k] = v['value'][idt, :, :, :]*1.
+            elif type in ['parameters', None]:
+                presetdict[k] = v['value']
+            elif type in ['size']:
+                presetdict[k] = v.get('list', v['value'])
+        return presetdict
 
     def _to_dict(self):
         """ Convert instance to dict """
-
         dout = {
             'dmodel': copy.deepcopy(self.__dmodel),
-            'dparam': self.get_dparam(returnas=dict, verb=False),
+            'dparam': self.get_dparam(),
             'dmisc': copy.deepcopy(self.__dmisc),
             'dargs': copy.deepcopy(self.__dargs),
         }
@@ -1395,6 +1320,70 @@ class Hub():
         )
 
         return obj
+
+    def __calculate_variation_rate(self, epsilon=0.0001):
+        '''
+        INACTIVE IN THIS VERSION
+
+        Calculate all derivatives :
+            * time derivative
+            * time log_derivative (variation rate)
+            * partial_derivatives (gradient on the other variables)
+            * partial_contribution (partial_derivatives time the respective time derivate)
+
+        partial derivative is associating to field Y a dic as {X : dY/dX} for each statevar
+
+        accessible in :
+            dparam[key]['time_derivate']
+            dparam[key]['time_log_derivate']
+            dparam[key]['partial_derivatives']
+            dparam[key]['partial_contribution']
+        '''
+
+        R = self.__dparam
+
+        varlist = self.dmisc['dfunc_order']['statevar'] + \
+                  self.dmisc['dfunc_order']['differential']
+
+        varlist.remove('time')
+
+        for k in varlist:
+            R[k]['time_derivate'] = np.gradient(
+                R[k]['value'], axis=0) / R['dt']['value']
+            R[k]['time_log_derivate'] = R[k]['time_derivate'] / R[k]['value']
+
+            if R[k]['eqtype'] == 'differential':
+                R[k]['time_dderivate'] = np.gradient(
+                    R[k]['time_derivate'], axis=0) / R['dt']['value']
+            # SENSITIVITY CALCULATION
+            func = R[k]['func']
+            args = R[k]['args']['differential'] + R[k]['args']['statevar']
+            if 'itself' in R[k]['kargs']:
+                args += k
+
+            argsV = {k2: R[k2]['value'] for k2 in args}
+
+            if k in args:
+                argsV['itself'] = argsV[k]
+                del argsV[k]
+                args += ['itself']
+                args.remove(k)
+
+            R[k]['partial_derivatives'] = {}
+            for k2 in args:
+                argTemp = copy.deepcopy(argsV)
+                argTemp[k2] += epsilon
+                R[k]['partial_derivatives'][k2] = (
+                                                          func(**argTemp) - func(**argsV)) / epsilon
+
+        # Contribution of partial derivatives
+        for k in varlist:
+            R[k]['partial_contribution'] = {k2: R[k]['partial_derivatives'][k2]
+                                                * R[k2]['time_derivate']
+                                            for k2 in R[k]['partial_derivatives'].keys()}
+        self.__dmisc['derivative'] = True
+
+
 
     # ##############################
     #       saving methods

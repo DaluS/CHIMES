@@ -6,7 +6,9 @@ dict={
 ### MONOSECTORAL
 'Tmax':40,
 'Nprod': ['Consumption','Capital'],
-'alpha':0.02,
+'nx':10,
+
+'alpha':np.linspace(0,0.02,10),
 'n':0.025,
 'phinull':0.1,
 'gammai':0,
@@ -133,9 +135,11 @@ dict3={
 hub.set_dparam(**dict)
 hub.get_summary()
 hub.run()
+hub.reinterpolate_dparam(N=100)
 hub.calculate_Cycles()
-#hub.reinterpolate_dparam(N=100)
-pgm.plots.plotbyunits_multi(hub,
+
+hub.calculate_StatSensitivity()
+pgm.plots.plotbyunits(hub,
                             filters_key=('kappa','a','w','basket'),
                             filters_units=['$.y^{-1}','$.units^{-1}','','y^{-1}'],
                             filters_sector=(),

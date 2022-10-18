@@ -95,7 +95,7 @@ def get_available_fields(returnas=False,exploreModels=_FIELDS_EXPLOREMODEL,showM
          v0['group'],
          v0['value'],
          v0['units'],
-         str(v0['inmodel']) if showModels else len(v0['inmodel'])
+         str(v0['inmodel']) if showModels else (len(v0['inmodel']) if len(v0['inmodel']) else '')
          ]
         for k0, v0 in dparam_sub.items() if v0['group'] != 'Numerical'
     ]

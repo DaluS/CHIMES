@@ -1,18 +1,25 @@
 # -*- coding: utf-8 -*-
 """
+THIS DOCUMENT IS A TUTORIAL ON HOW TO USE PYGEMMES AS A SIMPLE USER
+EXECUTE THE DOCUMENT LINE BY LINE TO UNDERSTAND WHAT IS HAPPENING
+"""
+
+
+"""
+# IF PYGEMMES IS NOT IN YOUR PATH, OR YOU DID NOT START YOUR TERMINAL IN PYGEMMES
 import sys
 path = "C:\\Users\\Paul Valcke\\Documents\\GitHub\\GEMMES"  # Where pygemmes is
 sys.path.insert(0, path)  # we tell python to look at the folder `path`
 """
-import matplotlib.pyplot as plt
-import matplotlib as mpl
+
 import pygemmes as pgm
 import numpy as np
-import os
 
-'''
-Always use tab on pgm or hub, and ? on each functions
-'''
+
+# ## BEST ADVICE EVER ####################################!#!#!#!#!#!#!#
+# Always use tab and ? on pgm, hub, and each functions ###!#!#!#!#!#!#!#
+
+
 # ########################################################################### #
 # %%#####################  LEVEL 1 : USER ################################### #
 # ########################################################################### #
@@ -23,29 +30,32 @@ analysis.
 
 
 # %% OVERVIEW OF PYGEMMES ########################################
+
 # Content (practical functions will be shown later)
-pgm.get_available_fields(exploreModels=True ,
-                         showModels=True)
-                          #returnas=None
+pgm.get_available_fields(exploreModels=True, showModels=True,) #returnas=list)
 pgm.get_available_functions()
 pgm.get_available_models() # details=True
 pgm.get_available_plots()
-
-#pgm.get_available_solvers() # Removed temporary, only one solver
 #pgm.get_available_models(details=True)
 #listofmodels = pgm.get_available_models(returnas=list)
 
 
 # %% LOADING A MODEL
 hub = pgm.Hub('GK')
-hub = pgm.Hub('GK', verb=True)
+hub = pgm.Hub('GK', verb=False)
+
 
 # EXPLORING ITS CONTENT
 hub.get_summary()  # definition concern the field definition, com the way it is calculated
 hub.get_equations_description()
-hub.get_Network()
-hub.get_Network(params=True)
-hub.get_Network(auxilliary=False,params=True)
+
+
+# Plotting the diagram
+hub.get_Network()                               # state variables, differential equations
+hub.get_Network(params=True)                    # state,differential,parameters
+hub.get_Network(auxilliary=False,params=True)   # remove auxilliary statevar and differential
+hub.get_Network(filters=('Pi',))                # remove the variable Pi and its connexions
+hub.get_Network(filters=('Pi',),redirect=True)  # all connexions from Pi are reconnected
 
 # %% MISC SUPPLEMENTARY INFORMATION
 hub.dmodel  # Gives the content of the model file
@@ -60,9 +70,15 @@ hub.get_summary()
 
 
 # %% Plots ################################################################
-dax = hub.plot()
-dax2 = hub.plot(key=['employment', 'omega', 'd'])  # Select the variables
-dax3 = hub.plot(key=('GDP', 'a', 'Pi', 'kappa'))  # Remove some variables
+hub.plot()
+hub.plot(filters_key =('p'),
+         filters_units=('Units'),
+         filters_sector=(),
+         separate_variables={'':['employment','omega']},
+         idx=0,
+         Region=0,
+         title='',
+         lw=2)
 hub.plot_preset(preset='default')
 
 
@@ -86,30 +102,18 @@ groupsoffields = hub.get_dparam_as_reverse_dict(
 
 # && ####################### ACCESS TO INDIVIDUAL PLOTS ######################
 hub = pgm.Hub('GK')
-
-# Plots related to a run
 hub.run()
 
 pgm.plots.phasespace(hub, x='omega', y='employment', color='d', idx=0)
 pgm.plots.phasespace(hub, x='employment', y='pi', color='d', idx=0)
-pgm.plots.plotnyaxis(hub, x='time',
-                     y=[['employment', 'omega'],
-                        ['d'],
-                        ['kappa', 'pi'],
-                        ],
-                     idx=0,
-                     title='',
-                     lw=2)
 pgm.plots.plot_timetraces(hub, key=['employment', 'omega', 'd'])
 pgm.plots.plot3D(hub, x='employment',
                  y='omega',
                  z='d',
-                 cinf='pi',
+                 color='pi',
                  cmap='jet',
                  index=0,
                  title='')
-pgm.plots.plotbyunits(hub)
-
 
 # %% CHANGING VALUES ########################################################
 '''
@@ -152,14 +156,7 @@ hub.set_dparam(**{'nx':4,
                       0.03]})
 hub.get_summary()
 hub.run()
-dax = hub.plot(key=['employment',
-                    'omega'],idx=0)
-dax = hub.plot(key=['employment',
-                    'omega'],idx=1,dax=dax)
-dax = hub.plot(key=['employment',
-                    'omega'],idx=2,dax=dax)
-dax = hub.plot(key=['employment',
-                    'omega'],idx=3,dax=dax)
+hub.reinterpolate_dparam(1000)
 
 # %% CALCULATING SENSIVITY ##################################################
 '''
@@ -187,38 +184,21 @@ presetCoupled = pgm.generate_dic_distribution(SensitivityDic,
 presetCoupled['nx']=10
 hub = pgm.Hub('GK')
 hub.set_dparam(**presetCoupled)
-hub.run()
-dax = hub.plot()
+hub.run(N=100)
+hub.calculate_StatSensitivity()
+pgm.plots.Var(hub,'employment',mode='sensitivity')
 
-#hub.reinterpolate_dparam(1000)
-#hub.calculate_StatSensitivity()
-#dax = hub.plot(key=['employment', 'omega'], mode='sensitivity')
-
-
-# %% GENERATE DPRESET AND USE IT
-#_DPRESETS = {'SensitivitySimple': {'fields': presetSimple, 'com': ''},
-#             'SensitivityCoupled': {'fields': presetCoupled, 'com': ''},
-#             }
-#hub = pgm.Hub('GK', preset='SensitivityCoupled', dpresets=_DPRESETS)
-#hub.run()
-#hub.reinterpolate_dparam(1000)
-#hub.calculate_StatSensitivity()
-#dax = hub.plot(mode='sensitivity')
-
-
-# %% FORKING A LOADED MODEL ##################################################
+# %% CALCULATING CYCLES ######################################################
 hub = pgm.Hub('GK')
-#hub2 = hub.copy()
-
-
-# %% SAVING AND LOADING ######################################################
-hub = pgm.Hub('GK', preset='default')
 hub.run()
-hub.save()
+hub.calculate_Cycles()
+pgm.plots.Var(hub,'employment',mode='cycles')
 
-loaddic = pgm.get_available_output(returnas=dict)
-#hub = pgm.load(pgm.get_available_output(returnas=list)[0])[0]
 
+
+
+#######################################################################################
+##################### MULTISECTORIALITY ###############################################
 
 hub=pgm.Hub('test_multisect2');
 hub=pgm.Hub('test_multisect2');hub.set_dparam()

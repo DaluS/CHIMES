@@ -42,13 +42,12 @@ plt.rcParams.update({'font.size': 15})
 
 __all__ = [
     'slices_wholelogic',
-    'plot_variation_rate',
+    #'plot_variation_rate',
     'plot_timetraces',
     'plotnyaxis',
     'phasespace',
     'plot3D',
     'plotbyunits',
-    'plotbyunits_multi',
     'Var',
     'cycles_characteristics'
 ]
@@ -56,14 +55,15 @@ __all__ = [
 # ############################################################################
 # ############## IMPORTANT PLOTS #############################################
 
-def plotbyunits_multi(hub,
+def plotbyunits(hub,
                       filters_key=(),
                       filters_units=(),
                       filters_sector=(),
                       separate_variables={},
                       lw=1,
                       idx=0,
-                      Region=0):
+                      Region=0,
+                      title=''):
     '''
     generate one subfigure per set of units existing.
 
@@ -187,68 +187,7 @@ def plotbyunits_multi(hub,
     fig.tight_layout()
 
     plt.subplots_adjust(wspace=0.01, hspace=0)
-    plt.show()
-
-
-
-def plotbyunits(hub, title='', lw=1, idx=0,Region=0, color='r'):
-    '''
-    generate one subfigure per set of units existing
-    '''
-    grpfield = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['differential', 'statevar'])
-    groupsoffields = {  k:v for k,v in grpfield.items() if (len(v)>0 and 'time' not in v)}
-    Nax = len(groupsoffields.keys())
-
-    Ncol = 2
-    Nlin = Nax // Ncol + Nax % Ncol
-    allvars = [item for sublist in groupsoffields.values() for item in sublist]
-
-    R = hub.get_dparam(keys=[allvars], returnas=dict)
-
-    vx = R['time']['value'][:, idx,Region,0,0]
-    vy = {}
-
-    fig = plt.figure()
-    fig.set_size_inches(10*Ncol, 3*Nlin)
-    dax = {key: plt.subplot(Nlin, Ncol, i+1)
-           for i, key in enumerate(groupsoffields.keys())}
-    index = 0
-    for key, vvar in groupsoffields.items():
-
-        ax = dax[key]
-
-        vy[key] = {yyy: R[yyy]['value'][:, idx,Region,0,0] for yyy in vvar}
-
-        units = r'$\  '+key.replace('$', '\$')+'  \ $'
-        ylabel = units
-        dax[key].set_ylabel(ylabel)
-        ax.set_xlim(vx[0], vx[-1])
-        ax.axhline(y=0, color='k', lw=0.5)
-        if 1 < index < Nax-2:
-            ax.set_xticklabels([])
-        else:
-            ax.set_xlabel(r'$time (y)$')
-        if index < 2:
-            ax.xaxis.tick_top()
-            # ax.xaxix.label_top()
-        ax.grid(axis='x')
-        if index % 2 == 1:
-            ax.yaxis.set_label_position("right")
-            ax.yaxis.tick_right()
-        for j, key2 in enumerate(vvar):
-            if key2 != 'time':
-                dax[key].plot(vx,
-                              vy[key][key2],
-                              color=color,
-                              label=R[key2]['symbol'],
-                              ls=_LS[j % (len(_LS)-1)],
-                              lw=lw)
-        dax[key].legend()
-        index += 1
     plt.suptitle(title)
-    fig.tight_layout()
-
-    plt.subplots_adjust(wspace=0, hspace=0)
     plt.show()
 
 
@@ -259,9 +198,8 @@ def plotnyaxis(hub, x='time', y=[[]], idx=0,Region=0, title='', lw=2):
 
     example :
         pgm.plots.plotnyaxis(hub, x='time',
-                     y=[['lambda', 'omega'],
-                        ['d'],
-                        ['kappa', 'pi'],
+                     y=[['employment', 'omega'],
+                        ['pi'],
                         ],
                      idx=0,
                      title='',
@@ -288,10 +226,10 @@ def plotnyaxis(hub, x='time', y=[[]], idx=0,Region=0, title='', lw=2):
     for i in range(1, Nyaxis):
         dax[i] = ax.twinx()
 
-    # set for each y
+    # set for each subyaxis
     vy = {}
     for ii, vlist in enumerate(y):
-        yy = y[ii]
+        yy = y[ii] # Name of the variable
         vy[ii] = {yyy: R[yyy]['value'][:, idx,Region,0,0] for yyy in yy}
 
         # y axis
@@ -322,7 +260,7 @@ def plotnyaxis(hub, x='time', y=[[]], idx=0,Region=0, title='', lw=2):
     plt.show()
 
 
-def phasespace(hub, x='omega', y='lambda', color='time', idx=0,Region=0):
+def phasespace(hub, x, y, color='time', idx=0,Region=0):
     '''
     Plot of the trajectory of the system in a 2dimensional phase-space
 
@@ -333,15 +271,37 @@ def phasespace(hub, x='omega', y='lambda', color='time', idx=0,Region=0):
     y   : key for the variable on y axis, The default is 'lambda'.
     idx : number of the system taken to be plot, The default is 0
 
-    Returns
-    -------
-    None.
+    EXAMPLE :
+    pgm.plots.phasespace(hub,'employment',['pi','Capital'],color=['omega','Consumption'])
 
     '''
+    R=hub.dparam
+    if type(x) is list :
+        xsect=R[R[x[0]]['size'][0]]['list'].index(x[1])
+        xname=x[1]
+        x=x[0]
+    else :
+        xsect=0
+        xname=''
+    if type(y) is list :
+        ysect=R[R[y[0]]['size'][0]]['list'].index(y[1])
+        yname=y[1]
+        y=y[0]
+    else :
+        ysect=0
+        yname =''
+    if type(color) is list :
+        colorsect=R[R[color[0]]['size'][0]]['list'].index(color[1])
+        colorname=color[1]
+        color=color[0]
+    else :
+        colorsect=0
+        colorname =''
+
     allvars = hub.get_dparam(returnas=dict)
-    yval = allvars[y]['value'][:, idx,Region,0,0]
-    xval = allvars[x]['value'][:, idx,Region,0,0]
-    t = allvars[color]['value'][:, idx,Region,0,0]
+    yval = allvars[y]['value'][:, idx,Region,ysect,0]
+    xval = allvars[x]['value'][:, idx,Region,xsect,0]
+    t = allvars[color]['value'][:, idx,Region,colorsect,0]
 
     points = np.array([xval, yval]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
@@ -355,9 +315,9 @@ def phasespace(hub, x='omega', y='lambda', color='time', idx=0,Region=0):
     fig.set_size_inches(10, 7)
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
     line = ax.add_collection(lc)
-    fig.colorbar(line, ax=ax, label=color)
-    plt.xlabel(allvars[x]['symbol'])
-    plt.ylabel(allvars[y]['symbol'])
+    fig.colorbar(line, ax=ax, label=allvars[color]['symbol'][:-1]+'_{'+colorname+'}$')
+    plt.xlabel(allvars[x]['symbol'][:-1]+'_{'+xname+'}$')
+    plt.ylabel(allvars[y]['symbol'][:-1]+'_{'+yname+'}$')
     plt.xlim([np.amin(xval), np.amax(xval)])
     plt.ylim([np.amin(yval), np.amax(yval)])
     plt.axis('scaled')
@@ -367,19 +327,55 @@ def phasespace(hub, x='omega', y='lambda', color='time', idx=0,Region=0):
     plt.show()
 
 
-def plot3D(hub, x, y, z, cinf, cmap='jet', index=0,Region=0, title=''):
+def plot3D(hub, x, y, z, color, cmap='jet', index=0,Region=0, title=''):
     '''
     Plot a 3D curve, with a fourth information on the colour of the curve
 
     x,y,z,cinf are names of your variables
     cmap your colormap
     title is your graph title
+
+    example, with two sectors 'Capital','Consumption'
+    pgm.plots.plot3D(hub,'employment',
+                         ['pi','Capital'],
+                         ['rd','Capital'],
+                         color=['omega','Consumption'])
+
     '''
-    R = hub.get_dparam(key=[x, y, z, cinf], returnas=dict)
-    vx = R[x]['value'][:, index,Region,0,0]
-    vy = R[y]['value'][:, index,Region,0,0]
-    vz = R[z]['value'][:, index,Region,0,0]
-    vc = R[cinf]['value'][:, index,Region,0,0]
+    R=hub.get_dparam()
+    if type(x) is list :
+        xsect=R[R[x[0]]['size'][0]]['list'].index(x[1])
+        xname=x[1]
+        x=x[0]
+    else :
+        xsect=0
+        xname=''
+    if type(y) is list :
+        ysect=R[R[y[0]]['size'][0]]['list'].index(y[1])
+        yname=y[1]
+        y=y[0]
+    else :
+        ysect=0
+        yname =''
+    if type(z) is list :
+        zsect=R[R[z[0]]['size'][0]]['list'].index(z[1])
+        zname=z[1]
+        z=z[0]
+    else :
+        zsect=0
+        zname =''
+    if type(color) is list :
+        colorsect=R[R[color[0]]['size'][0]]['list'].index(color[1])
+        colorname=color[1]
+        color=color[0]
+    else :
+        colorsect=0
+        colorname =''
+
+    vx = R[x]['value'][:, index,Region,xsect,0]
+    vy = R[y]['value'][:, index,Region,ysect,0]
+    vz = R[z]['value'][:, index,Region,zsect,0]
+    vc = R[color]['value'][:, index,Region,colorsect,0]
 
     points = np.array([vx, vy, vz]).T.reshape(-1, 1, 3)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
@@ -397,10 +393,10 @@ def plot3D(hub, x, y, z, cinf, cmap='jet', index=0,Region=0, title=''):
     line = ax.add_collection(lc)
 
     cbar = fig.colorbar(lc, ax=ax)
-    cbar.ax.set_ylabel(R[cinf]['symbol'])
-    ax.set_xlabel(R[x]['symbol'])
-    ax.set_ylabel(R[y]['symbol'])
-    ax.set_zlabel(R[z]['symbol'])
+    cbar.ax.set_ylabel(R[color]['symbol'][:-1]+'_{'+xname+'}$')
+    ax.set_xlabel(R[x]['symbol'][:-1]+'_{'+xname+'}$')
+    ax.set_ylabel(R[y]['symbol'][:-1]+'_{'+yname+'}$')
+    ax.set_zlabel(R[z]['symbol'][:-1]+'_{'+zname+'}$')
 
     plt.tight_layout()
     # plt.legend()
@@ -408,37 +404,51 @@ def plot3D(hub, x, y, z, cinf, cmap='jet', index=0,Region=0, title=''):
     plt.show()
 
 
-def Var(hub, key, idx=0,Region=0, cycles=False, log=False):
+def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
     '''
-    Parameters
-    ----------
-    sol : TYPE
-        DESCRIPTION.
-    key : TYPE
-        DESCRIPTION.
-    idx : TYPE, optional
-        DESCRIPTION. The default is 0.
-
-    Returns
-    -------
-    None.
-
+    Just one variable plot, with possibly cycles analysis to be shown
+    if you put [key,sectorname] it will load the specific sector
+    if mode = 'sensitivity' the system will show statistical variance between parrallel run of nx
+    if mode = 'cycles' the system will show cycles within the evolution of the variable with their characteristics
     '''
+    ### CHECKS
+    if not hub.dmisc['run']:
+        raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
+    if (mode=='sensitivity' and not hub.dmisc.get('sensitivity',False)):
+        print('the system is calculating statsensitivity...')
+        hub.calculate_StatSensitivity()
+    if (mode=='cycles' and not hub.dmisc.get('cycles',False)):
+        print('Calculation of cycles on each field as ref...')
+        hub.calculate_Cycles()
+
+    R=hub.get_dparam()
+    if type(key) is list :
+        keysect=R[R[key[0]]['size'][0]]['list'].index(key[1])
+        keyname=key[1]
+        key=key[0]
+    else :
+        keysect=0
+        keyname =0
+
     fig = plt.figure()
     fig.set_size_inches(10, 5)
-
     ax = plt.gca()
 
     # PLOT OF THE BASE
     allvars = hub.get_dparam(returnas=dict)
-    y = allvars[key]['value'][:, idx,Region,0,0]
+    y = allvars[key]['value'][:, idx,Region,keysect,0]
     t = allvars['time']['value'][:,idx,Region,0,0]
 
-    plt.plot(t, y, lw=2, ls='-', c='k')
+    if mode in [False,'cycles']:
+        plt.plot(t, y, lw=2, ls='-', c='k')
 
     # PLOT OF THE CYCLES
-    if cycles:
-        cyclvar = allvars[key]['cycles']
+    if mode == 'cycles':
+        cycleindex=idx   *(R['nx']['value']*R['nr']['value']*R[R[key]['size'][0]]['value'])+\
+                   Region*(                 R['nr']['value']*R[R[key]['size'][0]]['value'])+keysect
+
+        cyclvar = allvars[key]['cycles'][cycleindex]
+        #for k,v in cyclvar.items():print(k,v)
         tmcycles = cyclvar['t_mean_cycle']
 
         # Plot of each period by a rectangle
@@ -446,19 +456,18 @@ def Var(hub, key, idx=0,Region=0, cycles=False, log=False):
         maxy = np.amax(y)
 
         for car in cyclvar['period_T_intervals'][::2]:
-            print(car)
             ax.add_patch(
                 Rectangle((car[0], miny), car[1]-car[0], maxy-miny, facecolor='k', alpha=0.1))
 
         # Plot of enveloppe (mean-max)
         vmin = cyclvar['minval']
         vmax = cyclvar['maxval']
-        plt.plot(tmcycles, vmin, '--', label='min value')
-        plt.plot(tmcycles, vmax, '--', label='max value')
+        plt.plot(tmcycles, vmin, ls='dashdot', label='min value')
+        plt.plot(tmcycles, vmax, ls='dashdot', label='max value')
 
         # Plot of the mean value evolution
         meanv = np.array(cyclvar['meanval'])
-        plt.plot(tmcycles, cyclvar['meanval'], ls='dotted', label='mean value')
+        plt.plot(tmcycles, cyclvar['meanval'], ls='dashdot', label='mean value')
         plt.plot(tmcycles, cyclvar['medval'],
                  ls='dashdot', label='median value')
 
@@ -467,17 +476,47 @@ def Var(hub, key, idx=0,Region=0, cycles=False, log=False):
         ax.fill_between(tmcycles, meanv - stdv, meanv + stdv, alpha=0.2)
         plt.legend()
 
-    if log is True:
-        ax.set_yscale('log')
-    plt.title('Evolution of :' + key + ' in model : '
-              + hub.dmodel['name'] + '| system number' + str(idx))
-    plt.ylabel(key)
-    plt.xlabel('time')
+    if mode == 'sensitivity':
+        time = hub.dparam['time']['value'][:, idx,Region,keysect,0]
+
+        V = hub.dparam[key]['sensitivity'][Region][keyname]
+
+
+        ## Plot all trajectory
+        for jj in range(len(allvars[key]['value'][0, :,0,0,0])):
+            ax.plot(time, hub.dparam[key]['value'][:, jj,Region,0,0]
+                         , c='k', ls='--', lw=0.5)
+
+        # Plot mean an median
+        ax.plot(time, V['mean'], c='orange', label='mean')
+        ax.plot(time, V['median'], c='orange', ls='--', label='median')
+        ax.plot(time, V['max'], c='r', lw=0.4, label='maxmin')
+        ax.plot(time, V['min'], c='r', lw=0.4)
+
+        for j in np.arange(0.5, 5, 0.2):
+            ax.fill_between(time, V['mean'] - j * V['stdv'],
+                                 V['mean'] + j * V['stdv'], alpha=0.02, color='blue')
+        ax.fill_between(time, V['mean'],
+                             V['mean'], alpha=0.5, color='blue', label=r'$\mu \pm 5 \sigma$')
+
+        ax.set_xlim([time[0], time[-1]])
+        ax.set_ylim([np.amin(V['min']), np.amax(V['max'])])
+
+        ax.fill_between(time, V['mean'] - V['stdv'],
+                             V['mean'] + V['stdv'], alpha=0.4, color='r', label=r'$\mu \pm \sigma$')
+
+
+    if log is True: ax.set_yscale('log')
+    plt.title(title)
+    plt.ylabel(R[key]['symbol'][:-1]+'_{'+keyname+'}$' if type(keyname) is str else
+               R[key]['symbol'] )
+    plt.xlabel('time (y)')
+    if mode: ax.legend()
     plt.show()
 
 # #################################### TOOLBOX PLOTS ########################################
 
-def cycles_characteristics(hub, xaxis='omega', yaxis='lambda', ref='lambda',idx=0,Region=0):
+def cycles_characteristics(hub, xaxis='omega', yaxis='employment', ref='lambda',idx=0,Region=0):
     '''
     Plot frequency and harmonicity for each cycle found in the system
     '''
@@ -486,6 +525,11 @@ def cycles_characteristics(hub, xaxis='omega', yaxis='lambda', ref='lambda',idx=
     ax1 = plt.subplot(121)
     ax2 = plt.subplot(122)
 
+    xsector=xaxis[1] if type(xaxis) is list else 0
+    ysector=yaxis[1] if type(xaxis) is list else 0
+    xaxis=xaxis[0] if type(xaxis) is list else xaxis
+    yaxis=yaxis[0] if type(xaxis) is list else yaxis
+
     AllX = []
     AllY = []
     AllC1 = []
@@ -493,12 +537,12 @@ def cycles_characteristics(hub, xaxis='omega', yaxis='lambda', ref='lambda',idx=
     R = hub.get_dparam()
     cycs = R[ref]['cycles_bykey']
 
-    for i in range(hub.dmisc['dmulti']['shape'][0]):  # loop on parrallel system
-        for j, ids in enumerate(cycs['period_indexes'][i]):  # loop on cycles decomposition
-            AllX.append(R[xaxis]['value'][ids[0]:ids[1], i])
-            AllY.append(R[yaxis]['value'][ids[0]:ids[1], i])
-            AllC1.append(cycs['frequency'][i][j])
-            AllC2.append(cycs['Harmonicity'][i][j])
+    for i in range(hub.dparam['nx']['value']):  # loop on parrallel system
+        for j, ids in enumerate(cycs['period_indexes'][idx][i]):  # loop on cycles decomposition
+            AllX.append(R[xaxis]['value'][ids[0]:ids[1], i,Region,xsector])
+            AllY.append(R[yaxis]['value'][ids[0]:ids[1], i,Region,ysector])
+            AllC1.append(cycs['frequency'][idx][i][j])
+            AllC2.append(cycs['Harmonicity'][idx][i][j])
 
     lc1 = _multiline(AllX, AllY, AllC1, ax=ax1, cmap='jet', lw=2)
     lc2 = _multiline(AllX, AllY, AllC2, ax=ax2, cmap='jet', lw=2)
@@ -521,7 +565,7 @@ def cycles_characteristics(hub, xaxis='omega', yaxis='lambda', ref='lambda',idx=
     plt.show()
 
 
-def slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0):
+def slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0,Region=0):
     '''
     Take the logic of a field, and calculate a slice given two of the argument fields that are modified
 
@@ -546,8 +590,8 @@ def slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0):
     Returns
     -------
     None.
-
     '''
+
     R = hub.get_dparam()
 
     if len(axes) > 2:
@@ -555,18 +599,27 @@ def slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0):
     elif len(axes) == 2:
         axx = axes[0]
         axy = axes[1]
-        XX, YY = np.meshgrid(np.linspace(axx[1], axx[2], N),
-                             np.linspace(axy[1], axy[2], N))
+
+        ## If the axes contains a sector
+        if len(axx)==4: RegionX=axx[1]
+        else : RegionX=0
+        if len(axy)==4: RegionY=axy[1]
+        else : RegionY=0
+
+        ### CREATE THE GRID
+        XX, YY = np.meshgrid(np.linspace(axx[-2], axx[-1], N),
+                             np.linspace(axy[-2], axy[-1], N))
+
 
         keys = [axes[0][0], axes[1][0]]
         defaultkeys = [k for k in R[key]['kargs'] if k not in keys]
 
         defaultval = {k: R[k]['value'] for k in defaultkeys if k in hub.dmisc['parameters']}
-        defaultval.update({k: R[k]['value'][tid, idx]
+        defaultval.update({k: R[k]['value'][tid, idx,Region,:,0]
                           for k in defaultkeys if k in hub.dmisc['dfunc_order']['statevar']})
         defaultval0 = copy.deepcopy(defaultval)
-        defaultval[keys[0]] = XX
-        defaultval[keys[1]] = YY
+        defaultval[keys[0]][:,RegionX] = XX
+        defaultval[keys[1]][:,RegionY] = YY
 
         Z = R[key]['func'](**defaultval)
 
@@ -579,14 +632,17 @@ def slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0):
         plt.show()
     elif len(axes) == 1:
         XX = np.linspace(axes[0][1], axes[0][2], N)
+        if len(axes[0])==4: RegionX=axes[0][1]
+        else : RegionX=0
+
         defaultkeys = [k for k in R[key]['kargs'] if k not in [key]]
 
         defaultval = {k: R[k]['value'] for k in defaultkeys if k in hub.dmisc['parameters']}
 
-        defaultval.update({k: R[k]['value'][tid, idx]
+        defaultval.update({k: R[k]['value'][tid, idx,Region,:,0]
                           for k in defaultkeys if k in hub.dmisc['dfunc_order']['statevar']})
         defaultval0 = copy.deepcopy(defaultval)
-        defaultval[axes[0][0]] = XX
+        defaultval[axes[0][0]][:,RegionX] = XX
 
         Z = R[key]['func'](**defaultval)
 
@@ -598,7 +654,7 @@ def slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0):
         plt.show()
 
 
-def plot_variation_rate(hub, varlist, title='', idx=0):
+def __plot_variation_rate(hub, varlist, title='', idx=0):
     '''
     Allow one to observe the time variation and the contribution of each dependency.
     Useful for debugging or understanding where are the main loops
@@ -694,7 +750,7 @@ def plot_variation_rate(hub, varlist, title='', idx=0):
 
 _DPLOT = {
     'Slice_logic': slices_wholelogic,
-    'variation_rate': plot_variation_rate,
+    #'variation_rate': plot_variation_rate,
     'timetrace': plot_timetraces,
     'nyaxis': plotnyaxis,
     'phasespace': phasespace,
