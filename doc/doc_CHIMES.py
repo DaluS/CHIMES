@@ -8,8 +8,8 @@ dict={
 'Nprod': ['Consumption','Capital'],
 'nx':10,
 
-'alpha':np.linspace(0,0.02,10),
-'n':0.025,
+'alpha' : np.linspace(0,0.02,10),
+'n'     : 0.025,
 'phinull':0.1,
 'gammai':0,
 'r':0.03,

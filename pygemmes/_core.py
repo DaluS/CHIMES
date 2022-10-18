@@ -996,6 +996,22 @@ class Hub():
              Region=0,
              title='',
              lw=2):
+            '''
+generate one subfigure per set of units existing.
+
+There are three layers of filters, each of them has the same logic :
+if the filter is a tuple () it exclude the elements inside,
+if the filter is a list [] it includes the elements inside.
+
+Filters are the following :
+filters_units      : select the units you want
+filters_sector     : select the sector you want  ( '' is all monosetorial variables)
+filters_sector     : you can put sector names if you want them or not. '' corespond to all monosectoral variables
+separate_variables : key is a unit (y , y^{-1}... and value are keys from that units that will be shown on another graph,
+
+Region             : is, if there a multiple regions, the one you want to plot
+idx                : is the same for parrallel systems
+'''
 
             _DPLOT['byunits'](self,
                              filters_key,
@@ -1039,6 +1055,8 @@ class Hub():
             tempval = np.reshape(dic1['value'],(np.shape(dic1['value'])[0],-1))
             self.__dparam[var]['cycles'] = [{k: []
                                              for k in fields} for i in range(np.shape(tempval)[1])]
+        for var, dic1 in self.get_dparam(returnas=dict, eqtype=leq).items():
+            tempval = np.reshape(dic1['value'], (np.shape(dic1['value'])[0], -1))
             for idx in range(np.shape(tempval)[1]):
                 if ref is None:
                     self.__dparam[var]['cycles'][idx]['reference'] = var
@@ -1129,7 +1147,7 @@ class Hub():
         while id1 < len(val) - 2:
             if (val[id1] > val[id1 - 1] and
                     val[id1] > val[id1 + 1]):
-                if np.abs(val[id1]-val[id1-1])>0.0000001:
+                if np.abs(val[id1]-val[id1-1]):
                     periods.append(1 * id1)
             id1 += 1
 

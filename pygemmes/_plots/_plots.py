@@ -516,10 +516,36 @@ def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
 
 # #################################### TOOLBOX PLOTS ########################################
 
-def cycles_characteristics(hub, xaxis='omega', yaxis='employment', ref='lambda',idx=0,Region=0):
+def cycles_characteristics(hub,
+                           xaxis='omega',
+                           yaxis='employment',
+                           ref='employment',
+                           type1='frequency',
+                           type2='meanval',
+                           idx=0,Region=0):
     '''
     Plot frequency and harmonicity for each cycle found in the system
+
+    xaxis='omega',
+    yaxis='employment',
+    ref='employment',
+   type1 and type2 should be in 't_mean_cycle':
+                                'period_T':,
+                                'medval': ,
+                                'stdval':,
+                                'minval':,
+                                'maxval':  ,
+                                'frequency':,
+                                'Coeffs':
+                                'Harmonicity': }
     '''
+    if not hub.dmisc['run']:
+        raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
+
+    if not hub.dmisc.get('cycles',False):
+        print('Calculation of cycles on each field as ref...')
+        hub.calculate_Cycles(ref=ref)
+
     ####
     fig = plt.figure()
     ax1 = plt.subplot(121)
@@ -538,11 +564,11 @@ def cycles_characteristics(hub, xaxis='omega', yaxis='employment', ref='lambda',
     cycs = R[ref]['cycles_bykey']
 
     for i in range(hub.dparam['nx']['value']):  # loop on parrallel system
-        for j, ids in enumerate(cycs['period_indexes'][idx][i]):  # loop on cycles decomposition
+        for j, ids in enumerate(cycs['period_indexes'][i]):  # loop on cycles decomposition
             AllX.append(R[xaxis]['value'][ids[0]:ids[1], i,Region,xsector])
             AllY.append(R[yaxis]['value'][ids[0]:ids[1], i,Region,ysector])
-            AllC1.append(cycs['frequency'][idx][i][j])
-            AllC2.append(cycs['Harmonicity'][idx][i][j])
+            AllC1.append(cycs[type1][i][j])
+            AllC2.append(cycs[type2][i][j])
 
     lc1 = _multiline(AllX, AllY, AllC1, ax=ax1, cmap='jet', lw=2)
     lc2 = _multiline(AllX, AllY, AllC2, ax=ax2, cmap='jet', lw=2)
@@ -552,20 +578,20 @@ def cycles_characteristics(hub, xaxis='omega', yaxis='employment', ref='lambda',
     divider1 = make_axes_locatable(ax1)
     cax1 = divider1.append_axes('right', size='5%', pad=0.05)
     fig.colorbar(lc1, cax=cax1, orientation='vertical')
-    ax1.set_title('frequency')
+    ax1.set_title(type1)
 
     ax2.set_xlabel(R[xaxis]['symbol'])
     ax2.set_ylabel(R[yaxis]['symbol'])
     divider2 = make_axes_locatable(ax2)
     cax2 = divider2.append_axes('right', size='5%', pad=0.05)
     fig.colorbar(lc2, cax=cax2, orientation='vertical')
-    ax2.set_title('Harmonicity')
+    ax2.set_title(type2)
 
     plt.suptitle('Period analysis on : '+R[ref]['symbol'])
     plt.show()
 
 
-def slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0,Region=0):
+def __slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0,Region=0):
     '''
     Take the logic of a field, and calculate a slice given two of the argument fields that are modified
 
@@ -637,12 +663,13 @@ def slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0,Region=0):
 
         defaultkeys = [k for k in R[key]['kargs'] if k not in [key]]
 
-        defaultval = {k: R[k]['value'] for k in defaultkeys if k in hub.dmisc['parameters']}
+        defaultval = {k: R[k]['value'] for k in defaultkeys if k in hub.dmisc['dfunc_order']['parameters']}
 
         defaultval.update({k: R[k]['value'][tid, idx,Region,:,0]
                           for k in defaultkeys if k in hub.dmisc['dfunc_order']['statevar']})
         defaultval0 = copy.deepcopy(defaultval)
-        defaultval[axes[0][0]][:,RegionX] = XX
+
+        defaultval[axes[0][0]][:] = XX
 
         Z = R[key]['func'](**defaultval)
 
@@ -749,13 +776,12 @@ def __plot_variation_rate(hub, varlist, title='', idx=0):
 
 
 _DPLOT = {
-    'Slice_logic': slices_wholelogic,
+    #'Slice_logic': __slices_wholelogic,
     #'variation_rate': plot_variation_rate,
     'timetrace': plot_timetraces,
     'nyaxis': plotnyaxis,
     'phasespace': phasespace,
     '3D': plot3D,
     'byunits': plotbyunits,
-
     'Onevariable': Var,
     'cycles_characteristics': cycles_characteristics}

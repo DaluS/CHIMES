@@ -44,33 +44,44 @@ pgm.get_available_plots()
 hub = pgm.Hub('GK')
 hub = pgm.Hub('GK', verb=False)
 
-
-# EXPLORING ITS CONTENT
+# EXPLORING ITS CONTENT ######################
 hub.get_summary()  # definition concern the field definition, com the way it is calculated
 hub.get_equations_description()
 
-
-# Plotting the diagram
+# plot the causal network
 hub.get_Network()                               # state variables, differential equations
 hub.get_Network(params=True)                    # state,differential,parameters
 hub.get_Network(auxilliary=False,params=True)   # remove auxilliary statevar and differential
 hub.get_Network(filters=('Pi',))                # remove the variable Pi and its connexions
 hub.get_Network(filters=('Pi',),redirect=True)  # all connexions from Pi are reconnected
 
-# %% MISC SUPPLEMENTARY INFORMATION
+# miscellaneous supplementary informations
 hub.dmodel  # Gives the content of the model file
 hub.dmisc   # gives multiple informations on the run and the variables
 hub         # Minimalist informations
 
 
 # %% RUN THE MODEL ########################################################
-hub.run()
-hub.run(verb=1.1)
-hub.get_summary()
+hub.run(verb=0)           # calculate all the runs
+hub.run(verb=1.1)         # show how it is
+hub.run(N=100)            # after the run, reinterpolate temporal data on 100 values
+hub.get_summary()         # shows summary with latest values
 
 
 # %% Plots ################################################################
 hub.plot()
+"""There are three layers of filters, each of them has the same logic :
+if the filter is a tuple () it exclude the elements inside,
+if the filter is a list [] it includes the elements inside.
+
+Filters are the following :
+filters_units      : select the units you want
+filters_sector     : select the sector you want  ( '' is all monosetorial variables)
+filters_sector     : you can put sector names if you want them or not. '' corespond to all monosectoral variables
+separate_variables : key is a unit (y , y^{-1}... and value are keys from that units that will be shown on another graph,
+
+Region             : is, if there a multiple regions, the one you want to plot
+idx                : is the same for parrallel systems"""
 hub.plot(filters_key =('p'),
          filters_units=('Units'),
          filters_sector=(),
@@ -88,25 +99,36 @@ R.keys()
 R['employment'].keys()
 np.shape(R['employment']['value'])
 
-
 # %% Get more subtle criterias ############################################
-# ['key', 'dimension', 'units', 'type', 'group', 'eqtype']
+# the criterias are : 'key', 'dimension', 'units', 'type', 'group', 'eqtype'
 R1 = hub.get_dparam(key=['employment', 'omega'])
 R2 = hub.get_dparam(key=('employment', 'omega'))
 R1.keys()
 R2.keys()
 
 groupsoffields = hub.get_dparam_as_reverse_dict(
-    crit='units', eqtype=['ode', 'statevar'])
+    crit='units',
+    eqtype=['ode', 'statevar'])
 
 
 # && ####################### ACCESS TO INDIVIDUAL PLOTS ######################
 hub = pgm.Hub('GK')
 hub.run()
 
-pgm.plots.phasespace(hub, x='omega', y='employment', color='d', idx=0)
-pgm.plots.phasespace(hub, x='employment', y='pi', color='d', idx=0)
-pgm.plots.plot_timetraces(hub, key=['employment', 'omega', 'd'])
+pgm.plots.plotbyunits() # same as hub.plot()
+
+pgm.plots.phasespace(hub,
+                     x='omega',
+                     y='employment',
+                     color='d',
+                     idx=0)
+pgm.plots.phasespace(hub,
+                     x='employment',
+                     y='pi',
+                     color='d',
+                     idx=0)
+pgm.plots.plot_timetraces(hub,
+                          key=['employment', 'omega', 'd'])
 pgm.plots.plot3D(hub, x='employment',
                  y='omega',
                  z='d',
@@ -114,6 +136,7 @@ pgm.plots.plot3D(hub, x='employment',
                  cmap='jet',
                  index=0,
                  title='')
+pgm.plots.Var(hub,'pi',log=True)
 
 # %% CHANGING VALUES ########################################################
 '''
@@ -124,13 +147,11 @@ Order of loading values/status (latest in the one kept) :
     * the values of set_dparam
 '''
 
-
 # %% Using presets
 pgm.get_available_models(model='GK', details=True)
 hub = pgm.Hub(model='GK', preset='default')
 hub.run()
 hub.plot_preset(preset='default')
-# dpreset use will be explained later
 
 
 # %% Using  set_preset
@@ -191,11 +212,14 @@ pgm.plots.Var(hub,'employment',mode='sensitivity')
 # %% CALCULATING CYCLES ######################################################
 hub = pgm.Hub('GK')
 hub.run()
-hub.calculate_Cycles()
+hub.calculate_Cycles(ref='employment') # The ref will determine what variables are the begin and end of cycles calculated
 pgm.plots.Var(hub,'employment',mode='cycles')
+pgm.plots.cycles_characteristics(hub,'employment','omega',
+                                 ref='g',
+                                 type1='frequency',
+                                 type2='meanval')
 
-
-
+#pgm.plots.slices_wholelogic(hub,key='g',axes=[['omega',0,2]],N=100,tid=0,idx=0,Region=0)
 
 #######################################################################################
 ##################### MULTISECTORIALITY ###############################################

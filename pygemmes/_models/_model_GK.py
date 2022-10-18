@@ -119,7 +119,7 @@ _PRESETS = {
             'byunits': [{'title': '',
                          'lw': 2,       # optional
                          'idx': 0,      # optional
-                         'color': 'k'},  # optional
+                         },  # optional
                         ],
         },
     },
@@ -170,7 +170,7 @@ _PRESETS = {
             'byunits': [{'title': '',
                          'lw': 2,       # optional
                          'idx': 0,      # optional
-                         'color': 'k'},  # optional
+                         },  # optional
                         ],
         },
     },
