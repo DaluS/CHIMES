@@ -41,7 +41,7 @@ plt.rcParams.update({'font.size': 15})
 
 
 __all__ = [
-    'slices_wholelogic',
+    #'slices_wholelogic',
     #'plot_variation_rate',
     'plot_timetraces',
     'plotnyaxis',
@@ -56,14 +56,14 @@ __all__ = [
 # ############## IMPORTANT PLOTS #############################################
 
 def plotbyunits(hub,
-                      filters_key=(),
-                      filters_units=(),
-                      filters_sector=(),
-                      separate_variables={},
-                      lw=1,
-                      idx=0,
-                      Region=0,
-                      title=''):
+               filters_key=(),
+               filters_units=(),
+               filters_sector=(),
+               separate_variables={},
+               lw=1,
+               idx=0,
+               Region=0,
+               title=''):
     '''
     generate one subfigure per set of units existing.
 
@@ -87,6 +87,9 @@ def plotbyunits(hub,
     another figure will be added with x only on it, and pi and epsilon on the other one)
 
     '''
+    ### CHECKS
+    if not hub.dmisc['run']:
+        raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
 
     ### FILTERING THE KEYS
     grpfield = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['differential', 'statevar'])
@@ -191,7 +194,7 @@ def plotbyunits(hub,
     plt.show()
 
 
-def plotnyaxis(hub, x='time', y=[[]], idx=0,Region=0, title='', lw=2):
+def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2):
     '''
     x must be a variable name (x axis organisation)
     y must be a list of list of variables names (each list is a shared axis)
@@ -205,15 +208,18 @@ def plotnyaxis(hub, x='time', y=[[]], idx=0,Region=0, title='', lw=2):
                      title='',
                      lw=2)
     '''
-    allvarname = [x]+[item for sublist in y for item in sublist]
-    R = hub.get_dparam(keys=[allvarname], returnas=dict)
+    ### CHECKS
+    if not hub.dmisc['run']:
+        raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
 
+    ### INITIALIZE FIGURE
     fig = plt.figure()
     fig.set_size_inches(10, 5)
     ax = plt.gca()
 
+    allvarname = [x]+[item for sublist in y for item in sublist]
+    R = hub.get_dparam(keys=[allvarname], returnas=dict)
     p = {}  # dictionnary of curves
-
     # Prepare x axis
     vx = R[x]['value'][:, idx,Region,0,0]
     units = r'$(  '+R[x]['units']+'  )$'
@@ -229,25 +235,53 @@ def plotnyaxis(hub, x='time', y=[[]], idx=0,Region=0, title='', lw=2):
     # set for each subyaxis
     vy = {}
     for ii, vlist in enumerate(y):
-        yy = y[ii] # Name of the variable
-        vy[ii] = {yyy: R[yyy]['value'][:, idx,Region,0,0] for yyy in yy}
+        ## PREPARE DATA AND SYMBOLS
+        vy[ii]={}
+        symbolist = []
+        for yyy in vlist:
+            ### Monosectorial entry
+            if type(yyy) is str:
+                vy[ii][yyy]= R[yyy]['value'][:, idx,Region,0,0]
+                symbolist.append( R[yyy]['symbol'])
+                name=yyy
+            ### Multisectorial entry
+            else:
+                name=yyy[0]
+                if type(yyy[1]) is str:
+                    sectornumber= R[R[name]['size'][0]]['list'].index(yyy[1])
+                    sectorname = yyy[1]
+                else:
+                    sectorname= str(yyy[1])
+                    sectornumber= yyy[1]
 
-        # y axis
+                vy[ii][name+sectorname]=R[name]['value'][:, idx,Region,sectornumber,0]
+                symbolist.append(R[yyy[0]]['symbol'][:-1]+'_{'+sectorname+'}$')
+
+        units = r'$(' + R[name]['units'].replace('$', '\$') + ')$'
+
+        ## Work on the limit
         ymin = np.amin([np.amin(v) for v in vy[ii].values()])
         ymax = np.amax([np.amax(v) for v in vy[ii].values()])
-        units = r'$(  '+R[y[ii][-1]]['units'].replace('$', '\$')+'  $)'
-        ylabel = r''.join([R[xx]['symbol']+', ' for xx in y[ii]]) + units
-        dax[ii].set_ylabel(ylabel)
         dax[ii].set_ylim(ymin, ymax)
+
+        ## Work on the colors
         color = np.array(plt.cm.hsv(ii/Nyaxis))
         color[:-1] *= 0.8
         color = tuple(color)
-        # Add the curves
-        for j, key in enumerate(y[ii]):
-            p[key], = dax[ii].plot(vx, vy[ii][key],    color=color,
-                                   label=R[key]['symbol'], ls=_LS[j % (len(_LS)-1)], lw=lw)
+
+        ## Add the curves
+
+        for j, val in enumerate(vy[ii].values()):
+            p[symbolist[j]], = dax[ii].plot(vx, val,    color=color,
+                                   label=symbolist[j], ls=_LS[j % (len(_LS)-1)], lw=lw)
+
+        ## Fill and Move y axes
         side = 'right' if ii % 2 else 'left'
 
+        if units == '$()$': units=''
+        ylabel = r''.join([xx+'\n, ' for xx in symbolist])[:-2] + units
+
+        dax[ii].set_ylabel(ylabel,loc='bottom', rotation=0,labelpad=-40 if side=='right' else 0)
         dax[ii].spines[side].set_position(('outward', np.amax((0, 60*(ii//2)))))
         if side == 'left':
             dax[ii].yaxis.tick_left()
@@ -273,8 +307,11 @@ def phasespace(hub, x, y, color='time', idx=0,Region=0):
 
     EXAMPLE :
     pgm.plots.phasespace(hub,'employment',['pi','Capital'],color=['omega','Consumption'])
-
     '''
+    ### CHECKS
+    if not hub.dmisc['run']:
+        raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
+
     R=hub.dparam
     if type(x) is list :
         xsect=R[R[x[0]]['size'][0]]['list'].index(x[1])
@@ -342,6 +379,10 @@ def plot3D(hub, x, y, z, color, cmap='jet', index=0,Region=0, title=''):
                          color=['omega','Consumption'])
 
     '''
+    ### CHECKS
+    if not hub.dmisc['run']:
+        raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
+
     R=hub.get_dparam()
     if type(x) is list :
         xsect=R[R[x[0]]['size'][0]]['list'].index(x[1])

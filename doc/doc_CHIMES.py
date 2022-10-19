@@ -137,10 +137,11 @@ hub.get_summary()
 hub.run()
 hub.reinterpolate_dparam(N=100)
 hub.calculate_Cycles()
-
 hub.calculate_StatSensitivity()
+
 pgm.plots.plotbyunits(hub,
                             filters_key=('kappa','a','w','basket'),
                             filters_units=['$.y^{-1}','$.units^{-1}','','y^{-1}'],
                             filters_sector=(),
                             separate_variables={'':['pi','xi','gamma','rd','omega']})
+pgm.plots.plotnyaxis(hub,y=[[['K','Consumption'],['K',"Capital"],['V','Consumption']],['employment'],])

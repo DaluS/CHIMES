@@ -674,6 +674,7 @@ class Hub():
        # Reset initial for ode
        for k0 in self.get_dparam(eqtype=['differential'], returnas=list):
            self.__dparam[k0]['value'][0, ...] = self.__dparam[k0]['initial']
+       self.__dparam['time']['value'][0,...] = self.__dparam['Tini']['value']
 
        # recompute initial value for function-parameters
        pstate = self.__dmisc['dfunc_order']['parameter']

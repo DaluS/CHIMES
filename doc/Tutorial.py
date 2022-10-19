@@ -208,6 +208,8 @@ hub.set_dparam(**presetCoupled)
 hub.run(N=100)
 hub.calculate_StatSensitivity()
 pgm.plots.Var(hub,'employment',mode='sensitivity')
+output_preset = hub.Extract_preset()
+hub.set_dparam(**output_preset)
 
 # %% CALCULATING CYCLES ######################################################
 hub = pgm.Hub('GK')
@@ -219,7 +221,12 @@ pgm.plots.cycles_characteristics(hub,'employment','omega',
                                  type1='frequency',
                                  type2='meanval')
 
+
+
+# TO BE REINTRODUCED ########################################################
 #pgm.plots.slices_wholelogic(hub,key='g',axes=[['omega',0,2]],N=100,tid=0,idx=0,Region=0)
+
+#calculate_Convergerate
 
 #######################################################################################
 ##################### MULTISECTORIALITY ###############################################
