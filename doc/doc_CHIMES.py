@@ -44,48 +44,50 @@ dict={
 }
 
 
-dict2={
+dictMONOGOODWIN={
 # Numerical structural
-'Tmax'  : 50,
+'Tmax'  : 100,
 'Nprod' : ['Mono'],
+'Tini'  : 0,
 
 # Population
-'n'     : 0.025,
-'N'     : 1,
+'n'     : 0.025, # MONOSECT
+'N'     : 1    , # MONOSECT
 
 # PRODUCTION-MATERIAL FLUXES #######
-'K'    : 2.7/3,
-'Gamma': 0.1,
-'Xi'   : 3,
-'nu'   : 1,
+'K'    : 2.7,
+'Gamma': 0,
+'Xi'   : 1,
+'nu'   : 3,
 'delta': 0.05,
 'b'    : 1,
-'a'    : 1,
-'alpha': 0.02,
-'u'    : .95,
+'a'    : 1, # MONOSECT
+'alpha': 0.02, # MONOSECT
+'u'    : 1,
 
 # Inventory-related dynamics
 'V'     : 1000,
-'sigma' : 1,  # use variation
+'sigma' : 0,  # use variation
 'chi'   : 0,    # inflation variation
 
 # Debt-related
-'Dh'    : 0,
+'Dh'    : 0, # MONOSECT
 'D'     : [0],
-'r'     : 0.03,
+'r'     : 0.03, # MONOSECT
 
 # Wages-prices
-'w'     : 0.6,
+'w'     : 0.6, # MONOSECT
 'p'     : 1,
 'z'     : 1,
 'mu0'   : 1.3,
-'eta'   : 0.1,
-'gammai': 0,
-'phinull':0.1,
+'eta'   : 0.0,
+'gammai': 0, # MONOSECT
+'phinull':0.1, # MONOSECT
 
 # Consumption theory
 'Cpond' : [1],
 }
+
 
 
 dict3={
@@ -132,10 +134,10 @@ dict3={
 }
 
 
-hub.set_dparam(**dict)
+hub.set_dparam(**dictMONOGOODWIN)
 hub.get_summary()
 hub.run()
-hub.reinterpolate_dparam(N=100)
+hub.reinterpolate_dparam(N=200)
 hub.calculate_Cycles()
 hub.calculate_StatSensitivity()
 
@@ -144,4 +146,4 @@ pgm.plots.plotbyunits(hub,
                             filters_units=['$.y^{-1}','$.units^{-1}','','y^{-1}'],
                             filters_sector=(),
                             separate_variables={'':['pi','xi','gamma','rd','omega']})
-pgm.plots.plotnyaxis(hub,y=[[['K','Consumption'],['K',"Capital"],['V','Consumption']],['employment'],])
+#pgm.plots.plotnyaxis(hub,y=[[['K','Consumption'],['K',"Capital"],['V','Consumption']],['employment'],])

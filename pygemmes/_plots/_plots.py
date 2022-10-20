@@ -95,11 +95,11 @@ def plotbyunits(hub,
     grpfield = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['differential', 'statevar'])
     ### Key filters
     if type(filters_key)==list:
-        groupsoffields = {k: [vv for vv in v if vv in filters_key] for k, v in grpfield.items() if
-                          (len(v) > 0 and 'time' not in v)}
+        groupsoffields = {k: [vv for vv in v if vv in filters_key if vv != 'time'] for k, v in grpfield.items() if
+                          len(v) > 0}
     else:
-        groupsoffields = {  k:[vv for vv in v if vv not in filters_key] for k,v in grpfield.items() if (len(v)>0 and 'time' not in v)}
-            ### units filters
+        groupsoffields = {  k:[vv for vv in v if vv not in filters_key if vv != 'time'] for k,v in grpfield.items() if len(v)>0}
+    ### units filters
     if type(filters_units)==list:
         groupsoffields = {k: v for k, v in groupsoffields.items() if k in filters_units}
     else:
@@ -158,7 +158,8 @@ def plotbyunits(hub,
         ylabel = units
         dax[key].set_ylabel(ylabel)
         ax.set_xlim(vx[0], vx[-1])
-        ax.axhline(y=0, color='k', lw=0.5)
+
+
         if 1 < index < Nax-2:
             ax.set_xticklabels([])
         else:
@@ -175,6 +176,7 @@ def plotbyunits(hub,
 
         ### ADD EFFECTIVELY THE PLOTS
         j=-1
+        mini=1
         for j, key2 in enumerate(vy[key].keys()):
             symb= R[key2.split('_')[0]]['symbol'][:-1] + '_{'+key2.split('_')[1]+'}$' if '_' in key2 else R[key2]['symbol']
             dax[key].plot(vx,
@@ -183,9 +185,13 @@ def plotbyunits(hub,
                           label=symb ,
                           ls=_LS[j % (len(_LS)-1)],
                           lw=lw)
+            mini=np.amin((mini,np.amin(vy[key][key2])))
         if j >= 0:
             dax[key].legend(ncol=1+j//4)
         index += 1
+
+        #ax.axhline(y=0, color='k', lw=0.5)
+
     #plt.suptitle(title)
     fig.tight_layout()
 
@@ -458,9 +464,11 @@ def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
     if (mode=='sensitivity' and not hub.dmisc.get('sensitivity',False)):
         print('the system is calculating statsensitivity...')
         hub.calculate_StatSensitivity()
+        print('done')
     if (mode=='cycles' and not hub.dmisc.get('cycles',False)):
         print('Calculation of cycles on each field as ref...')
         hub.calculate_Cycles()
+        print('done')
 
     R=hub.get_dparam()
     if type(key) is list :

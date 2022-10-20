@@ -426,7 +426,7 @@ plots = {
     '3D': [{'x': 'employment',
             'y': 'omega',
             'z': 'd',
-            'cinf': 'pi',
+            'color': 'pi',
             'cmap': 'jet',
             'index': 0,
             'title': ''

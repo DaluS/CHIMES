@@ -200,12 +200,11 @@ presetSimple = pgm.generate_dic_distribution(
                'sigma': .2,
                'type': 'log'}, }, N=10)
 presetCoupled = pgm.generate_dic_distribution(SensitivityDic,
-                                              N=10,
-                                              grid=False)
+                                              N=10)
 presetCoupled['nx']=10
 hub = pgm.Hub('GK')
 hub.set_dparam(**presetCoupled)
-hub.run(N=100)
+hub.run(N=1000)
 hub.calculate_StatSensitivity()
 pgm.plots.Var(hub,'employment',mode='sensitivity')
 output_preset = hub.Extract_preset()

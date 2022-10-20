@@ -64,31 +64,7 @@ for category, dic in _GK_LOGICS.items():
 
 # ---------------------------
 # List of presets for specific interesting simulations
-_PRESETS = {
-    'default': {
-        'fields': {
-            'dt': 0.011,
-            'a': 1.01,
-            'N': 1.01,
-            'K': 2.91,
-            'D': 0.01,
-            'w': .85*1.19,
-            'alpha': 0.021,
-            'n': 0.0251,
-            'nu': 3.01,
-            'delta': .0051,
-            'k0': -0.00651,
-            'k1': np.exp(-5.01),
-            'k2': 20.01,
-            'r': 0.031,
-            'p': 1.31,
-            'eta': 0.11,
-            'gammai': 0.51,
-        },
-        'com': (
-            'This is a run that should give simple '
-            'convergent oscillations'),
-        'plots': {
+plotdict= {
             'timetrace': [{}],
             'nyaxis': [{'x': 'time',
                         'y': [['employment', 'omega'],
@@ -122,14 +98,40 @@ _PRESETS = {
                          },  # optional
                         ],
         },
+
+_PRESETS = {
+    'default': {
+        'fields': {
+            'dt': 0.011,
+            'a': 1.01,
+            'N': 1.01,
+            'K': 2.91,
+            'D': 0.01,
+            'w': .85*1.19,
+            'alpha': 0.021,
+            'n': 0.0251,
+            'nu': 3.01,
+            'delta': .0051,
+            'k0': -0.00651,
+            'k1': np.exp(-5.01),
+            'k2': 20.01,
+            'r': 0.031,
+            'p': 1.31,
+            'eta': 0.11,
+            'gammai': 0.51,
+        },
+        'com': (
+            'This is a run that should give simple '
+            'convergent oscillations'),
+        'plots': plotdict,
     },
-    'crisis': {
+    'farfromEQ': {
         'fields': {
             'dt': 0.01,
             'a': 1,
             'N': 1,
             'D': 5,
-            'K': 2.9,
+            'K': 2.1,
             'w': .85*1.2,
             'alpha': 0.02,
             'n': 0.025,
@@ -144,34 +146,30 @@ _PRESETS = {
             'gammai': 0.5,
         },
         'com': (
-            'This is a run that should give simple '
-            'convergent oscillations'),
-        'plots': {
-            'timetrace': [],
-            'nyaxis': [{'x': 'time',
-                        'y': [['employment', 'omega'],
-                              ['d'],
-                              ['kappa', 'pi'],
-                              ],
-                        'idx':0,
-                        'title':'',
-                        'lw':2}],
-            'phasespace': [{'x': 'employment',
-                            'y': 'omega',
-                            'color': 'd',
-                            'idx': 0}],
-            '3D': [{'x': 'employment',
-                    'y': 'omega',
-                    'z': 'd',
-                    'color': 'pi',
-                    'cmap': 'jet',
-                    'index': 0,
-                    'title': ''}],
-            'byunits': [{'title': '',
-                         'lw': 2,       # optional
-                         'idx': 0,      # optional
-                         },  # optional
-                        ],
+            'Far from equilibrium run'),
+        'plots': plotdict,
+    },
+    'crisis': {
+        'fields': {
+            'dt': 0.01,
+            'a': 1,
+            'N': 1,
+            'D': 5,
+            'K': 2.1,
+            'w': .78 ,
+            'alpha': 0.02,
+            'n': 0.025,
+            'nu': 3,
+            'delta': .005,
+            'k0': -0.0065,
+            'k1': np.exp(-5),
+            'k2': 20,
+            'r': 0.03,
+            'p': 1.3,
+            'eta': 0.1,
+            'gammai': 0.5,
         },
+        'com': ('Slowly diverging to crisis'),
+        'plots': plotdict,
     },
 }

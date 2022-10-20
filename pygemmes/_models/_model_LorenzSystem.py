@@ -58,6 +58,6 @@ _PRESETS = {
         'fields': {
         },
         'com': '',
-        'plots': [],
+        'plots': {},
     },
 }
