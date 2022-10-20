@@ -41,6 +41,7 @@ _COUPLING = {
             'func': lambda intensity, nu, nuMine: intensity*nuMine+(1-intensity)*nu,
             'com': 'nu from both system together',
             'definition': "nu when pseudo-bisectorial",
+            'units':'y'
         },
         'c': {
             'func': lambda w, a, Gamma, intensity:  w/(a*(1+intensity*Gamma)),

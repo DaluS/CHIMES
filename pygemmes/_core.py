@@ -161,7 +161,9 @@ class Hub():
         preset must be a string
         check get_summary to see which are available !
         '''
+
         if input not in self.__dmodel['presets'].keys():
+            raise Exception(f"{input} is not a valid preset name ! the preset name must be in {list(self.__dmodel['presets'].keys())}")
             return f"{input} is not a valid preset name ! the preset name must be in {list(self.__dmodel['presets'].keys())}"
         else :
             self.__dmodel['preset']=input
@@ -674,6 +676,7 @@ class Hub():
        # Reset initial for ode
        for k0 in self.get_dparam(eqtype=['differential'], returnas=list):
            self.__dparam[k0]['value'][0, ...] = self.__dparam[k0]['initial']
+       self.__dparam['time']['value'][0,...] = self.__dparam['Tini']['value']
 
        # recompute initial value for function-parameters
        pstate = self.__dmisc['dfunc_order']['parameter']
@@ -718,6 +721,7 @@ class Hub():
            - 1 at every step
            - any float (like 1.1) the iteration is written at any of these value
 
+       AFTER THE RUN
        if you define N, the system will reinterpolate the temporal values on N samples
        typically, N=Tmax will put 1 value per year
 
@@ -1097,7 +1101,7 @@ idx                : is the same for parrallel systems
 
         for key in ['period_indexes', 'period_T_intervals',
                     't_mean_cycle', 'period_T']:
-            dic1[key] = copy.deepcopy(dic2[key])
+            dic1[key] = copy.copy(dic2[key])
 
         tim = self.__dparam['time']['value'][:,0,0,0]
         dic1['period_T_intervals'] = [[tim[idx[0], 0], tim[idx[1], 0]]
@@ -1153,7 +1157,7 @@ idx                : is the same for parrallel systems
 
         # Fill the formalism
         self.__dparam[refval]['cycles'][idx]['period_indexes'] = [
-            [periods[i], periods[i + 1]] for i in range(len(periods) - 1)
+            [periods[i], periods[i + 1]+1] for i in range(len(periods) - 1)
         ]
         tim = self.__dparam['time']['value']
         dic1 = self.__dparam[refval]['cycles'][idx]

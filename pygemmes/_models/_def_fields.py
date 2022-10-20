@@ -45,7 +45,7 @@ _LIBRARY = {
             'definition': 'Total simulated time',
         },
         'Tini': {
-            'value': 2015,
+            'value': 0,
             'definition': 'Initial time for simulations',
             'units': 'y',
         },

@@ -39,7 +39,9 @@ def filter_kargs(hub, filters,redirect):
     '''
     kargs, impact = find_auxiliary(hub)
     # Reverse filters if it is a list
-    print(type(filters))
+    #print(type(filters))
+    if type(filters) is str:
+        filters=tuple(list(filters))
     if type(filters) is not tuple:
         filters=tuple(set([k for k in kargs.keys()])-set(filters))
     # REMOVE THE KEY

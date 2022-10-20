@@ -9,71 +9,94 @@ This is a basic Goodwin model :
     * No money, no inflation
     * No loan possibility
 
+
 The interesting things :
     * growth is an emergent property
     * Economic cycles (on employment and wage share) are an emergent property
     * trajectories are closed in the phasespace (lambda, omega) employment - wageshare
 
-Link : https://en.wikipedia.org/wiki/Goodwin_model_(economics) (notations differs)
+This construction has debt and inventory possible dynamics, but the Goodwin hypothesis are cancelling their dynamics
 
+Link : https://en.wikipedia.org/wiki/Goodwin_model_(economics) (notations differs)
 
 @author: Paul Valcke
 """
-
 from pygemmes._models import Funcs
 
-# ---------------------------
-# user-defined model
-# contains parameters and functions of various types
 _LOGICS = {
     'differential': {
         # Exogenous entries in the model
-        'a': Funcs.Productivity.exogenous,
-        'N': Funcs.Population.exp,
+        'a':{'func': lambda a, alpha: a*alpha,
+            'com': 'ODE exogenous, exponential',},
+        'N':{'func': lambda N, n: N*n,
+            'com': 'ODE exogenous, exponential',},
+
+        # Price Dynamics
+        'w': {'func': lambda phillips, w : w * phillips,
+            'com': 'Phillips impact (no negociation)'},
+        'p': {'func': lambda p, inflation: p * inflation,
+            'com': 'through inflation',},
 
         # Stock-flow consistency
         'K': Funcs.Kappa.kfromIr,
 
-        # Price Dynamics
-        'w': {
-            'func': lambda phillips, w : w * phillips,
-            'com': 'Phillips impact (no negociation)'
-        }
-    },
+        #### DIFFERENTIAL THAT COULD EVOLVES BUT WILL HERE REMAINS CONSTANT
+        'D': {'func': lambda D,r,C,p,w,L : r*D+w*L-p*C,
+            'com': 'Full form No shareholding',
+              'initial':0},
+        'Dh': {'func': lambda Dh, r, C, p, w, L: r*Dh-w*L+p*C,
+            'com': 'No shareholding',
+               'initial':0},
+        'V': {'func': lambda dotV: dotV,
+            'com': 'expression in dotV',
+              'initial':1},
+        'u': {'func': lambda u, dotV, V, sigma: sigma * (1 - u) * (-dotV) / V,
+            'com': 'response to inventory variation',
+              'initial':.9999},
+
+        #### AUXILLIARY
+        'H': {'func': lambda C,deltah,H: C-deltah*H,
+              'com': 'Consumption is accumulation',
+              'initial':0},},
 
     # Intermediary relevant functions
     'statevar': {
-        # Production function and its employement
-        'Y': Funcs.ProductionWorkers.Leontiev_Optimised.Yfnu,
+        # Labor estimation
         'L': Funcs.ProductionWorkers.Leontiev_Optimised.Lfa,
 
-        # Parametric behavior functions
-        'phillips': Funcs.Phillips.div,
-        'I': Funcs.Kappa.ifromnobank,
-        'Ir': Funcs.Kappa.irfromI,
-        'C': {'func': lambda w,L,p : w*L/p,
+        # PHYSICAL FLOWS
+        'Y': {'func': lambda K,nu,u : u*K/nu,
+              'com': 'prod with use rate'},
+        'C': {'func': lambda w, L, p: w * L / p,
               'units': 'Units.y^{-1}'},
-        'W': {
-            'func': lambda w,  L,: w*L,
+        'Ir': Funcs.Kappa.irfromI,
+        'dotV': {'func':lambda Y,C,Ir: Y-C-Ir,
+                 'com': 'non intermediary cons',
+                 'units':'Units.y^{-1}'},
+
+        # MONETARY FLOWS
+        'GDP': Funcs.Definitions.GDPmonosec,
+        'I': Funcs.Kappa.ifromnobank,
+        'W': {'func': lambda w, L,: w * L,
             'definition': 'Total income of household',
             'com': 'no shareholding, no bank possession',
             'units': '$.y^{-1}',
-            'symbol': r'$\mathcal{W}$'
+            'symbol': r'$\mathcal{W}$'},
+        'Pi': {'func': lambda GDP, W, r, D: GDP - W - r * D,
+            'com': 'Profit for production-Salary', },
+
+        # PRICES DYNAMICS
+        'phillips': Funcs.Phillips.div,
+        'inflation': {
+            'func': lambda p,c: 0,
+            'com': 'No inflation',
         },
+        'c': Funcs.Inflation.costonlylabor,
 
         # Intermediary variables with their definitions
         'pi': Funcs.Definitions.pi,
         'employment': Funcs.Definitions.employment,
         'omega': Funcs.Definitions.omega,
-        'GDP': Funcs.Definitions.GDPmonosec,
-
-        # Costs per unit produced
-        'c': Funcs.Inflation.costonlylabor,
-
-        # Stock-Flow consistency
-        'Pi': {
-            'func': lambda GDP, w, L: GDP - w * L,
-            'com': 'Profit for production-Salary', },
 
         # Auxilliary for practical purpose
         'g': {

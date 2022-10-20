@@ -161,7 +161,11 @@ Case in which the amount of workers is the optimal one for profit optimisation
             '''
             Yfnu = {
                 'func': lambda K, nu: K/nu,
-                'com': 'Assume full employment, nu formalism'
+                'com': 'Assume full required employment, nu formalism'
+            }
+            Lfa = {
+                'func': lambda Y, a: Y / a,
+                'com': 'Assume full instant employment, nu formalism'
             }
             Y = {
                 'func': lambda K, nu, b: 2*b*K/nu,
