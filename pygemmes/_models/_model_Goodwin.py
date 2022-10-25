@@ -12,7 +12,7 @@ This is a basic Goodwin model :
 The interesting things :
     * growth is an emergent property
     * Economic cycles (on employment and wage share) are an emergent property
-    * trajectories are closed in the phasespace (lambda, omega) employment - wageshare
+    * trajectories are closed in the phasespace (employment, omega) employment - wageshare
 
 Link : https://en.wikipedia.org/wiki/Goodwin_model_(economics) (notations differs)
 
@@ -51,7 +51,7 @@ _LOGICS = {
         'phillips': Funcs.Phillips.div,
         'I': Funcs.Kappa.ifromnobank,
         'Ir': Funcs.Kappa.irfromI,
-        'C': {'func': lambda w,L,p : w*L/p,
+        'C': {'func':  lambda w,L,p : w*L/p,
               'units': 'Units.y^{-1}'},
         'W': {
             'func': lambda w,  L,: w*L,
@@ -72,12 +72,12 @@ _LOGICS = {
 
         # Stock-Flow consistency
         'Pi': {
-            'func': lambda GDP, w, L: GDP - w * L,
+            'func':  lambda  GDP, w, L: GDP - w * L,
             'com': 'Profit for production-Salary', },
 
         # Auxilliary for practical purpose
         'g': {
-            'func': lambda I, K, delta: (I - K * delta)/K,
+            'func':  lambda  I, K, delta: (I - K * delta)/K,
             'com': 'relative growth rate'},
     },
     'parameter': {},
@@ -109,20 +109,20 @@ _PRESETS = {
         'plots': {
             'timetrace': [{}],
             'nyaxis': [{'x': 'time',
-                        'y': [['lambda', 'omega'],
+                        'y': [['employment', 'omega'],
                               ['K'],
                               ],
                         'idx':0,
                         'title':'',
                         'lw':1}],
-            'phasespace': [{'x': 'lambda',
+            'phasespace': [{'x': 'employment',
                             'y': 'omega',
                             'color': 'time',
                             'idx': 0}],
-            '3D': [{'x': 'lambda',
+            '3D': [{'x': 'employment',
                     'y': 'omega',
                     'z': 'time',
-                    'cinf': 'pi',
+                    'color': 'pi',
                     'cmap': 'jet',
                     'index': 0,
                     'title': ''}],
@@ -146,9 +146,9 @@ _PRESETS = {
         'com': (
             'Shows many trajectories'),
         'plots': {
-            'timetrace': [{'keys': ['lambda', 'omega']}],
+            'timetrace': [{'keys': ['employment', 'omega']}],
             'nyaxis': [],
-            'phasespace': [{'x': 'lambda',
+            'phasespace': [{'x': 'employment',
                            'y': 'omega',
                             'idx': 0}],
             '3D': [],

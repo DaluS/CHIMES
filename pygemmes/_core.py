@@ -106,9 +106,9 @@ class Hub():
 
         # update from preset if relevant ######################################
         if dpresets is not None:
-            self.set_dpreset(dpresets,verb=verb)
+            self.set_dpreset(dpresets,verb=False)
         if preset is not None:
-            self.set_preset(preset, verb=verb)
+            self.set_preset(preset, verb=False)
         else:
             self.reset()
 
@@ -167,7 +167,7 @@ class Hub():
             return f"{input} is not a valid preset name ! the preset name must be in {list(self.__dmodel['presets'].keys())}"
         else :
             self.__dmodel['preset']=input
-            self.set_dparam(self,**self.__dmodel['presets'][input]['fields'])
+            self.set_dparam(self,verb=verb,**self.__dmodel['presets'][input]['fields'])
 
     def set_dparam(self,key=None,value=None,verb=_VERB,**kwargs):
         """
@@ -281,7 +281,6 @@ class Hub():
         '''
         Change the dimensions of the system
         '''
-
         # we scan all fields that will need to have their values changed
         # Check if we can change value
         setofdimensions = set(['nr','nx','dt','Tini','Tmax']+list(self.get_dparam(eqtype=['size'])))
@@ -380,20 +379,23 @@ class Hub():
                                                        dfunc_order=self.__dmisc['dfunc_order'])
         self.reset()
 
-    def _change_line(self,kk,v):
+    def _change_line(self,kk,v,verb=False):
         if self.__dparam[kk]['size'][0] == '__ONE__':
-            print(f'Identified {kk} as value changes on nx (list)')
+            if verb:
+                print(f'Identified {kk} as value changes on nx (list)')
             newv = np.array(v)
             while len(np.shape(newv)) < 4:
                 newv = newv[:, np.newaxis] + 0
         elif self.__dparam[kk]['size'][1] == '__ONE__':
-            print(f'Identified {kk} as value changes on first vector dimension')
+            if verb:
+                print(f'Identified {kk} as value changes on first vector dimension')
             newv=np.array(v)
             newv=newv[np.newaxis,np.newaxis,:,np.newaxis]+0
         else:
-            print(f'Identified {kk} as value changes on the matrix')
+            if verb:
+                print(f'Identified {kk} as value changes on the matrix')
             newv=np.array(v)
-            print(newv,np.shape(newv))
+            #print(newv,np.shape(newv))
             newv=newv[np.newaxis,np.newaxis,:,:]+0
         return newv
 
@@ -694,6 +696,7 @@ class Hub():
        # recompute inital value for statevar
        lstate = self.__dmisc['dfunc_order']['statevar']
 
+       ERROR=False
        for k0 in lstate:
            kwdargs = {
                k1: v1[0, ...] if k1 in self.__dmisc['dfunc_order']['statevar'] +
@@ -701,10 +704,16 @@ class Hub():
                for k1, v1 in self.__dargs[k0].items()
            }
 
-           # run function
-           self.__dparam[k0]['value'][0, ...] = (
-               self.__dparam[k0]['func'](**kwdargs)
-           )
+           try :
+               # run function
+               self.__dparam[k0]['value'][0, ...] = (
+                   self.__dparam[k0]['func'](**kwdargs)
+               )
+           except BaseException:
+               print(f'You have a problem on your object sizes for {k0}')
+               ERROR=True
+       if ERROR:
+           raise Exception('ALLOCATION CANNOT BE DONE,CHECK YOUR MODEL FILE')
 
        # set run to False
        self.__dmisc['run'] = False

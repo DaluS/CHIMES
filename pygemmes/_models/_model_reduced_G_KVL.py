@@ -5,6 +5,10 @@ In consequence it is a 2- differential equation model, but with the same dynamic
 
 The rest of the documentation is in _model_Goodwin
 
+This version is slightly different, just on its change on the productivity rate :
+* alpha is a function of g (physical growth rate, through Kaldor-Verdorn effect)
+* alpha is a function of the employment : a lot of employees will make the
+
 LINKTOARTICLE:
 
 Created on Wed Jul 21 15:11:15 2021

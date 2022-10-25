@@ -288,6 +288,7 @@ df = {
     'p': 1.,
     'N': 4.83,
     'time': Tini,
+    'Tini': 2015,
 
     # parameters
     'n': 0.0305,
@@ -416,7 +417,8 @@ plots = {
                   ['d'],
                   ['g'],
                   ['T'],
-                  ['Emission']],
+                  ['Emission'],
+                  ['sigmaEm']],
             'idx':0,
             'title':'Relevant variables',
             'lw':1
@@ -426,7 +428,7 @@ plots = {
     '3D': [{'x': 'employment',
             'y': 'omega',
             'z': 'd',
-            'color': 'pi',
+            'color': 'sigmaEm',
             'cmap': 'jet',
             'index': 0,
             'title': ''

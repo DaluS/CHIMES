@@ -15,10 +15,15 @@ import matplotlib.pyplot as plt
 import matplotlib
 from matplotlib.collections import LineCollection
 from matplotlib.patches import Rectangle
+import matplotlib.patches as patches
+
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.gridspec import GridSpec
+
+
+__USETEX=False
 
 
 _LS = [
@@ -38,6 +43,24 @@ _LS = [
 matplotlib.rc('xtick', labelsize=15)
 matplotlib.rc('ytick', labelsize=15)
 plt.rcParams.update({'font.size': 15})
+params = {'legend.fontsize': 10,
+          'legend.handlelength': 2,
+          'legend.borderpad':0,
+          'legend.labelspacing':0.0}
+SIZETICKS = 20
+SIZEFONT = 25
+LEGENDSIZE = 20
+LEGENDHANDLELENGTH = 2
+if __USETEX:
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif', size=SIZEFONT)
+    plt.rcParams.update({'figure.autolayout': True})
+    plt.rcParams['text.latex.preamble'] = [r"\usepackage{amsmath} \usepackage{libertine}"]
+    ticksfontProperties = {'family': 'sans-serif', 'sans-serif': ['Helvetica'], 'weight': 'medium',}
+plt.rcParams.update(params)
+
+
+
 
 
 __all__ = [
@@ -49,7 +72,8 @@ __all__ = [
     'plot3D',
     'plotbyunits',
     'Var',
-    'cycles_characteristics'
+    'cycles_characteristics',
+    'repartition'
 ]
 
 # ############################################################################
@@ -171,8 +195,8 @@ def plotbyunits(hub,
         if index % 2 == 1:
             ax.yaxis.set_label_position("right")
             ax.yaxis.tick_right()
-        color = np.array(plt.cm.jet(np.linspace(0,1,len(vy[key])+2)))
-        color[:,-1] *= 0.8
+        color = np.array(plt.cm.turbo(np.linspace(0,1,len(vy[key]))))
+        #color[:,-1] *= 0.8
 
         ### ADD EFFECTIVELY THE PLOTS
         j=-1
@@ -190,7 +214,7 @@ def plotbyunits(hub,
             dax[key].legend(ncol=1+j//4)
         index += 1
 
-        #ax.axhline(y=0, color='k', lw=0.5)
+        ax.axhline(y=0, color='k', lw=0.5)
 
     #plt.suptitle(title)
     fig.tight_layout()
@@ -271,7 +295,7 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
         dax[ii].set_ylim(ymin, ymax)
 
         ## Work on the colors
-        color = np.array(plt.cm.hsv(ii/Nyaxis))
+        color = np.array(plt.cm.turbo(ii/Nyaxis))
         color[:-1] *= 0.8
         color = tuple(color)
 
@@ -570,8 +594,9 @@ def cycles_characteristics(hub,
                            yaxis='employment',
                            ref='employment',
                            type1='frequency',
-                           type2='meanval',
-                           idx=0,Region=0):
+                           normalize=False,
+                           Region=0,
+                           title=''):
     '''
     Plot frequency and harmonicity for each cycle found in the system
 
@@ -597,8 +622,8 @@ def cycles_characteristics(hub,
 
     ####
     fig = plt.figure()
-    ax1 = plt.subplot(121)
-    ax2 = plt.subplot(122)
+    ax1 = plt.subplot(111)
+
 
     xsector=xaxis[1] if type(xaxis) is list else 0
     ysector=yaxis[1] if type(xaxis) is list else 0
@@ -617,10 +642,12 @@ def cycles_characteristics(hub,
             AllX.append(R[xaxis]['value'][ids[0]:ids[1], i,Region,xsector])
             AllY.append(R[yaxis]['value'][ids[0]:ids[1], i,Region,ysector])
             AllC1.append(cycs[type1][i][j])
-            AllC2.append(cycs[type2][i][j])
+
+
+    if normalize:
+        AllC1/=np.amax(AllC1)
 
     lc1 = _multiline(AllX, AllY, AllC1, ax=ax1, cmap='jet', lw=2)
-    lc2 = _multiline(AllX, AllY, AllC2, ax=ax2, cmap='jet', lw=2)
 
     ax1.set_xlabel(R[xaxis]['symbol'])
     ax1.set_ylabel(R[yaxis]['symbol'])
@@ -629,16 +656,74 @@ def cycles_characteristics(hub,
     fig.colorbar(lc1, cax=cax1, orientation='vertical')
     ax1.set_title(type1)
 
-    ax2.set_xlabel(R[xaxis]['symbol'])
-    ax2.set_ylabel(R[yaxis]['symbol'])
-    divider2 = make_axes_locatable(ax2)
-    cax2 = divider2.append_axes('right', size='5%', pad=0.05)
-    fig.colorbar(lc2, cax=cax2, orientation='vertical')
-    ax2.set_title(type2)
 
-    plt.suptitle('Period analysis on : '+R[ref]['symbol'])
+    plt.suptitle(title+'Period analysis on : '+R[ref]['symbol'])
     plt.show()
 
+
+
+
+def repartition(hub ,
+                keys : list ,
+                sector : [str,int] ,
+                ref = '',
+                title= '',
+                idx=0,
+                region=0,
+                dashboundary=True):
+
+
+    """
+    Will create a substack of the different component you put in.
+
+    Example on a multisectoral :
+    repartition(hub,['pi','rd','xi','gamma','omega'],sector='Consumption')
+    repartition(hub,['pi','rd','xi','gamma','omega'],sector='Capital')
+    """
+    R=hub.get_dparam()
+
+    if type(sector) is int :
+        sectindex = sector*1
+        sectname = R[R[keys[0]]['size'][0] ]['list'][sectindex]
+    else:
+        sectname = str(sector)
+        sectindex = R[R[keys[0]]['size'][0] ]['list'].index(sectname)
+
+
+    dicvals = { R[k]['symbol'][:-1]+'_{'+sectname+'}$': R[k]['value'][:,idx,region,sectindex,0] for k in keys}
+    color = list(plt.cm.jet(np.linspace(0,1,len(keys)+1)))
+    dicvalpos = { k : np.maximum(v,0) for k,v in dicvals.items()}
+    dicvalneg = { k : np.minimum(v,0) for k,v in dicvals.items()}
+    time = R['time']['value'][:,0,0,0,0]
+
+
+
+    plt.figure()
+    ax=plt.gca()
+    if len(ref):
+        name = R[ref]['symbol'][:-1]+'_{'+sectname+'}$'
+        ax.plot(time,R[ref]['value'][:,idx,region,sectindex,0],c='k',lw=1,label=name)
+    ax.stackplot(time,dicvalpos.values(),labels=dicvals.keys(),colors=color)
+    ax.legend(loc='upper left')
+    ax.stackplot(time, dicvalneg.values(),lw=3,colors=color)
+    if dashboundary:
+        sumval= np.sum([v for v in dicvalpos.values()], axis=0)
+        maxx = np.amax(sumval)
+        minn = np.amin(np.sum([v for v in dicvalneg.values()],axis=0))
+        Rec1 = patches.Rectangle([time[0], 1], time[-1], maxx, fill=False, alpha=.5, color='w' ,hatch='XX')
+        Rec2 = patches.Rectangle([time[0], minn], time[-1], -minn, fill=False, alpha=.5, color='w' ,hatch='XX')
+        ax.add_patch(Rec1)
+        ax.add_patch(Rec2)
+        plt.plot(time,time*0,color='k',ls='--',lw=1)
+        plt.plot(time, time * 0+1,  color='k',ls='--',lw=1)
+
+    plt.ylabel('Repartition $ '+R[keys[0]]['units'].replace('$', '\$')+' $ ' if len(R[keys[0]]['units']) else 'Repartition')
+    plt.xlabel('Time (y)')
+    plt.suptitle(title)
+    plt.show()
+
+# %% DEPRECIATED ##################################################################
+###################################################################################
 
 def __slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0,Region=0):
     '''
@@ -833,4 +918,8 @@ _DPLOT = {
     '3D': plot3D,
     'byunits': plotbyunits,
     'Onevariable': Var,
-    'cycles_characteristics': cycles_characteristics}
+    'cycles_characteristics': cycles_characteristics,
+    'repartition':repartition}
+
+
+

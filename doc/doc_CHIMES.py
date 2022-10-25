@@ -3,14 +3,14 @@ import numpy as np
 hub=pgm.Hub('CHIMES')
 
 dict={
-### MONOSECTORAL
-'Tmax':40,
+'Tmax':80,
 'Nprod': ['Consumption','Capital'],
-'nx':10,
+'nx':1,
 
-'alpha' : np.linspace(0,0.02,10),
+'alpha' : 0.02,
 'n'     : 0.025,
 'phinull':0.1,
+
 'gammai':0,
 'r':0.03,
 'a':1,
@@ -21,26 +21,29 @@ dict={
 'sigma':[0,0],
 'K': [2.2,0.6],
 'D':[0,0],
-'u':[.9,.9],
-'p':[1,3],
-'V':[10,15],
+'u':[1,1],
+'p':[1.5,3],
+'V':[100,150],
 'z':[1,1],
+'k0': 1.3,
 
-'Cpond':[1.1,0],
+'Cpond':[1,0],
 
 'mu0':[1.3,2],
 'delta':0.05,
 'deltah':0.05,
 'eta':0.3,
-'chi':[0.,0.3],
+'chi':[1,1],
 'b':1,
 'nu':3,
 
 ## MATRICES
-'Gamma': [[0.0 ,0.0],
-          [0.0 ,0.0]],
-'Xi': [['Consumption','Capital','Consumption','Capital'],
-       ['Consumption','Capital','Capital','Consumption'],[0,2,1,0]],
+'Gamma': [[0.1 ,0.015],
+          [0.015 ,0.1]],
+#'Xi': [['Consumption','Capital','Consumption','Capital'],
+#       ['Consumption','Capital','Capital','Consumption'],[0,.5,1,0]],
+'Xi': [[0.01,.5],[1,0.02]],
+'rho': np.eye(2),
 }
 
 
@@ -70,6 +73,9 @@ dictMONOGOODWIN={
 'sigma' : 0,  # use variation
 'chi'   : 0,    # inflation variation
 
+# investment
+'k0': 1.,
+
 # Debt-related
 'Dh'    : 0, # MONOSECT
 'D'     : [0],
@@ -87,8 +93,6 @@ dictMONOGOODWIN={
 # Consumption theory
 'Cpond' : [1],
 }
-
-
 
 dict3={
 # Numerical structural
@@ -120,6 +124,8 @@ dict3={
 'D'     : [0],
 'r'     : 0.03,
 
+'k0': 1.,
+
 # Wages-prices
 'w'     : 0.6,
 'p'     : 1,
@@ -133,17 +139,33 @@ dict3={
 'Cpond' : [1],
 }
 
-
-hub.set_dparam(**dictMONOGOODWIN)
+hub=pgm.Hub('CHIMES')
+hub.set_dparam(**dict,verb=False)
 hub.get_summary()
 hub.run()
-hub.reinterpolate_dparam(N=200)
-hub.calculate_Cycles()
-hub.calculate_StatSensitivity()
+#hub.reinterpolate_dparam(N=200)
+#hub.calculate_Cycles()
+#hub.calculate_StatSensitivity()
+
 
 pgm.plots.plotbyunits(hub,
-                            filters_key=('kappa','a','w','basket'),
-                            filters_units=['$.y^{-1}','$.units^{-1}','','y^{-1}'],
+                            filters_key=('kappa','w','basket'),
+                            filters_units=('$.y^{-1}'),#,'$.units^{-1}','','y^{-1}'],
                             filters_sector=(),
                             separate_variables={'':['pi','xi','gamma','rd','omega']})
-#pgm.plots.plotnyaxis(hub,y=[[['K','Consumption'],['K',"Capital"],['V','Consumption']],['employment'],])
+pgm.plots.plotnyaxis(hub,y=[[['K','Consumption'],['K',"Capital"],['V','Consumption']],['employment'],])
+'''
+# Repartition relative pi
+pgm.plots.repartition(hub,['xi','gamma','omega','pi','rd','reldotv','reloverinvest'],sector='Consumption',title='')
+pgm.plots.repartition(hub,['TakenbyY','TakenbyI','C','dotV'],ref='Y',sector='Consumption',dashboundary=False,title='')
+
+# Repartition of physical fluxes
+pgm.plots.repartition(hub,['xi','gamma','omega','pi','rd','reldotv','reloverinvest'],sector='Capital',title='')
+pgm.plots.repartition(hub,['TakenbyY','TakenbyI','C','dotV'],ref='Y',sector='Capital',dashboundary=False,title='')
+'''
+# Repartition of monetary fluxes
+for sector in ['Consumption','Capital']:
+    pgm.plots.repartition(hub,['xi','gamma','omega','pi','rd','reldotv','reloverinvest'],sector=sector,title=sector)
+    pgm.plots.repartition(hub,['TakenbyY','TakenbyI','C','dotV'],ref='Y',sector=sector,dashboundary=False,title=sector)
+    pgm.plots.repartition(hub,['TransactI','TransactInter','Consumption','Interests','Wage'],ref='dotD',sector=sector,dashboundary=False,title=sector)
+
