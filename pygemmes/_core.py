@@ -247,8 +247,11 @@ class Hub():
         """
 
         # Take minimal changes
-        if (key and value):
+
+        if (key is not None and
+            value is not None):
             kwargs[key]=value
+
 
         #### DECOMPOSE INTO SIZE AND VALUES #######
         setofdimensions = set(['nr','nx','dt','Tmax']+list(self.get_dparam(eqtype=['size'])))
@@ -548,6 +551,24 @@ class Hub():
     # ##############################
     # %% Getting parameters ########
     # ##############################
+    def get_presets(self,returnas=False):
+        '''
+        Give preset name and description
+
+        if returnas= False : print
+        if returnas= list : give the list of the presets
+        if returnas= dict : give the dict of the presets
+        '''
+
+        if returnas==False :
+            print('List of available presets :')
+            for k,v in self.__dmodel['presets'].items():
+                print(k.ljust(30),v['com'])
+        if returnas==list:
+            return list(self.__dmodel['presets'].keys())
+        if returnas==dict:
+            return {k:v['com'] for k,v in self.__dmodel['presets'].items() }
+
 
     def get_dparam(self, condition=None,returnas=dict,verb=False, **kwdargs):
        """ Return a copy of the input parameters dict that you can filter
@@ -696,7 +717,7 @@ class Hub():
        # recompute inital value for statevar
        lstate = self.__dmisc['dfunc_order']['statevar']
 
-       ERROR=False
+       ERROR=''
        for k0 in lstate:
            kwdargs = {
                k1: v1[0, ...] if k1 in self.__dmisc['dfunc_order']['statevar'] +
@@ -709,14 +730,18 @@ class Hub():
                self.__dparam[k0]['value'][0, ...] = (
                    self.__dparam[k0]['func'](**kwdargs)
                )
+
            except BaseException:
-               print(f'You have a problem on your object sizes for {k0}')
-               ERROR=True
-       if ERROR:
+               print(k0)
+               ERROR=+f'You have a problem on your object sizes for {k0} \n'
+       if len(ERROR):
            raise Exception('ALLOCATION CANNOT BE DONE,CHECK YOUR MODEL FILE')
 
        # set run to False
        self.__dmisc['run'] = False
+       self.__dmisc['cycles'] = False
+       self.__dmisc['sensitivity'] = False
+
 
     def run(
            self,
@@ -835,7 +860,7 @@ class Hub():
        else:
            return col0, ar0
 
-    def get_summary(self, idx=0, Region=0):
+    def get_summary(self, idx=0, Region=0,removesector=()):
         """
         INTROSPECTION TOOL :
         Print a str summary of the model, with
@@ -896,13 +921,13 @@ class Hub():
             print(20 * '#', str('Parr. sys numb:'+str(self.__dparam['nx'].get('list',np.arange(self.__dparam['nx']['value']))[idx])).center(18), 20 * '#')
         print(60 * '#')
         # parameters
-        col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx)
+        col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx,filtersector=removesector)
         # SCALAR ODE
         col3, ar3 = _class_utility._get_summary_functions_vector(
-           self, idx=idx,Region=Region, eqtype=['differential'])
+           self, idx=idx,Region=Region, eqtype=['differential'],filtersector=removesector)
         # SCALAR Statevar
         col4, ar4 = _class_utility._get_summary_functions_vector(
-           self, idx=idx,Region=Region, eqtype=['statevar'])
+           self, idx=idx,Region=Region, eqtype=['statevar'],filtersector=removesector)
 
 
 
@@ -994,8 +1019,10 @@ class Hub():
 
         if preset is None:
             preset = self.dmodel['preset']
-        tempd = self.dmodel['presets'][preset]['plots']
 
+        tempd = self.dmodel['presets'][preset]['plots']
+        if type(tempd) is tuple:
+            raise Exception('your plot dictionnary might have a comma at the end, please remove it !')
         for plot, funcplot in _DPLOT.items():
             for argl in tempd.get(plot, []):
                 funcplot(self, **argl)

@@ -51,6 +51,7 @@ SIZETICKS = 20
 SIZEFONT = 25
 LEGENDSIZE = 20
 LEGENDHANDLELENGTH = 2
+
 if __USETEX:
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif', size=SIZEFONT)
@@ -242,6 +243,12 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
     if not hub.dmisc['run']:
         raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
 
+
+    if type(log) in [str,bool]:
+        log=[log for l in y]
+    if len(log)!=len(y):
+        raise Exception(f'The length of the log list ({len(log)}) does not correspond to the length of the axes ({len(y)})!')
+
     ### INITIALIZE FIGURE
     fig = plt.figure()
     fig.set_size_inches(10, 5)
@@ -319,6 +326,8 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
         dax[ii].yaxis.label.set_color(color)
         dax[ii].tick_params(axis='y', colors=color)
 
+        if log[ii]:
+            dax[ii].set_yscale('log')
     dax[ii].legend(handles=p.values(), loc='best')
     plt.title(title)
     plt.show()
@@ -665,12 +674,11 @@ def cycles_characteristics(hub,
 
 def repartition(hub ,
                 keys : list ,
-                sector : [str,int] ,
+                sector = '' ,
                 ref = '',
                 title= '',
                 idx=0,
-                region=0,
-                dashboundary=True):
+                region=0,):
 
 
     """
@@ -682,7 +690,10 @@ def repartition(hub ,
     """
     R=hub.get_dparam()
 
-    if type(sector) is int :
+    if sector in ['',False,None]:
+        sectindex = 0
+        sectname = ''
+    elif type(sector) is int :
         sectindex = sector*1
         sectname = R[R[keys[0]]['size'][0] ]['list'][sectindex]
     else:
@@ -699,6 +710,8 @@ def repartition(hub ,
 
 
     plt.figure()
+    fig=plt.gcf()
+    fig.set_size_inches(15, 10 )
     ax=plt.gca()
     if len(ref):
         name = R[ref]['symbol'][:-1]+'_{'+sectname+'}$'
@@ -706,16 +719,6 @@ def repartition(hub ,
     ax.stackplot(time,dicvalpos.values(),labels=dicvals.keys(),colors=color)
     ax.legend(loc='upper left')
     ax.stackplot(time, dicvalneg.values(),lw=3,colors=color)
-    if dashboundary:
-        sumval= np.sum([v for v in dicvalpos.values()], axis=0)
-        maxx = np.amax(sumval)
-        minn = np.amin(np.sum([v for v in dicvalneg.values()],axis=0))
-        Rec1 = patches.Rectangle([time[0], 1], time[-1], maxx, fill=False, alpha=.5, color='w' ,hatch='XX')
-        Rec2 = patches.Rectangle([time[0], minn], time[-1], -minn, fill=False, alpha=.5, color='w' ,hatch='XX')
-        ax.add_patch(Rec1)
-        ax.add_patch(Rec2)
-        plt.plot(time,time*0,color='k',ls='--',lw=1)
-        plt.plot(time, time * 0+1,  color='k',ls='--',lw=1)
 
     plt.ylabel('Repartition $ '+R[keys[0]]['units'].replace('$', '\$')+' $ ' if len(R[keys[0]]['units']) else 'Repartition')
     plt.xlabel('Time (y)')

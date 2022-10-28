@@ -446,7 +446,7 @@ def _get_summary_numerical(hub):
     return col1, ar1
 
 
-def _get_summary_parameters(hub, idx=0,Region=0):
+def _get_summary_parameters(hub, idx=0,Region=0,filtersector=()):
 
     # ----------------
     # preliminary criterion
@@ -477,7 +477,7 @@ def _get_summary_parameters(hub, idx=0,Region=0):
             v0['group'] ,
             v0['definition'] ,
         ]
-        for idsectr,ksector in enumerate(hub.dparam[v0['size'][0]].get('list',['.']))]
+        for idsectr,ksector in enumerate(hub.dparam[v0['size'][0]].get('list',['.'])) if ksector not in filtersector ]
     for k0, v0 in dparam_sub.items() if v0['size'][1]=='__ONE__'
     ]
 
@@ -515,7 +515,7 @@ def _print_matrix(hub,
 
 
 
-def _get_summary_functions_vector(hub, idx=0,Region=0, eqtype=['ode', 'statevar']):
+def _get_summary_functions_vector(hub, idx=0,Region=0, eqtype=['ode', 'statevar'],filtersector=()):
 
     # get sub-dict of interest
     dparam_sub = hub.get_dparam(
@@ -539,15 +539,16 @@ def _get_summary_functions_vector(hub, idx=0,Region=0, eqtype=['ode', 'statevar'
     ar3 = [[[
     k0,
     ksector,
-    paramfunc2str(dparam=dparam_sub,key=k0,dmisc=hub.dmisc,)if idsectr==0 else '.',
+    paramfunc2str(dparam=dparam_sub,key=k0,dmisc=hub.dmisc,) ,#if idsectr==0 else '.',
     f"{v0.get('value')[0,idx,Region,idsectr,0]:.3f}",#f"{v0.get('value')[tuple(np.r_[0, idx[1:],0,0])]:.3f}",
     f"{v0.get('value')[-1,idx,Region,idsectr,0]:.3f}" if hub.dmisc['run'] else '' ,#",#f"{v0.get('value')[tuple(np.r_[-1, idx[1:],0,0])]:.3f}",
-    v0['units'] if idsectr==0 else '.',
-    v0['definition'] if idsectr==0 else '.',
-    v0['com'] if idsectr==0 else '.',
-    not(v0['isneeded']) if idsectr==0 else '.' ]
-        for idsectr,ksector in enumerate(hub.dparam[v0['size'][0]].get('list',['.']))]
-    for k0, v0 in dparam_sub.items()
+    v0['units'] ,#if idsectr==0 else '.',
+    v0['definition'] ,# if idsectr==0 else '.',
+    v0['com'] ,# if idsectr==0 else '.',
+    not(v0['isneeded']) ,# if idsectr==0 else '.'
+        ]
+        for idsectr,ksector in enumerate(hub.dparam[v0['size'][0]].get('list',['.',])) if ksector not in filtersector ]
+    for k0, v0 in dparam_sub.items() if v0['size'][1]=='__ONE__'
     ]
 
     if len(ar3):

@@ -31,7 +31,12 @@ _GK_LOGICS = {
 
         # Price Dynamics
         'w': Funcs.Phillips.salaryfromPhillips,
-        'p': Funcs.Inflation.pricefrominflation,
+        'p': {
+            'func': lambda p,inflation : p*inflation,
+            'initial':1,
+            'units': '$.Units^{-1}',
+            'com': 'inflation driven'
+        }
     },
 
     # Intermediary relevant functions
@@ -79,6 +84,7 @@ plotdict= {
                               ['inflation', 'g'],
                               ],
                         'idx':0,
+                        'log':[False,False],
                         'title':'',
                         'lw':1}],
             'phasespace': [{'x': 'employment',
@@ -97,7 +103,7 @@ plotdict= {
                          'idx': 0,      # optional
                          },  # optional
                         ],
-        },
+        }
 
 _PRESETS = {
     'default': {

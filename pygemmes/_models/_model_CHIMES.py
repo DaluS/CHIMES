@@ -1,37 +1,117 @@
 # -*- coding: utf-8 -*-
 """
-DESCRIPTION :
+CORE for HOLISTIC INTERDISCIPLINARY MODEL assessing ECOLOGICAL SUSTAINABILITY
 
-CHIMES : Cor
+The goal of CHIMES is :
+    * description of production with physical variables
+    * behavior of agents (price, investment) based on economic values
+    * Connexion to ecological systems through physical coupling (emissions, land use...)
+
+It integrates :
+    * N productive sector, by activity
+    * Material flow analysis integrated inside
+    * Loans dynamics for investment and cross-sector expanses
+    * Inventory fluctuations
+    * Inflation
+    * Adaptive use of capital
+
+WE ARE STILL ON A DUMMY CONSUMPTION THEORY
+IF YOU WANT A LIGHT VERSION, OPEN THE MODEL FILE AND CHANGE __AUXIN and __AGGIN
+
+More infos : https://www.overleaf.com/read/vywvyymcqwwk
+
+CHIMES :
 """
 
+__AUXIN = False
+__AGGIN = False
+
+
 import numpy as np
-from pygemmes._models import Funcs
 
 
 # ######################## OPERATORS ####################################
+'''
+Those are operators that can be used to do multisectoral operations : 
+coupling, transposition, sums... 
+'''
 def sprod(X,Y):
+    ''' Scalar product between vector X and Y.
+    Z=sprod(X,Y) so Z_i=\sum X_i Y_i'''
     return np.matmul(np.moveaxis(X,-1,-2),Y)
 def ssum(X):
+    ''' Scalar product between vector X and Y.
+    Z=ssum(X) so Z_i=\sum X_i'''
     return np.matmul(np.moveaxis(X,-1,-2),X*0+1)
 def transpose(X):
+    '''Transposition of X :
+    Y=transpose(X)  Y_ij=X_ji'''
     return np.moveaxis(X, -1, -2)
 def matmul(M,V):
+    '''Matrix product Z=matmul(M,V) Z_i = \sum_j M_{ij} V_j'''
     return np.matmul(M,V)
-# #######################################################################
+def distXY(x,y):
+    '''x and y vector of position, z=distXY(x,y) is the matrix of distance
+     between each particle of position x,y :
+     z_ij= \sqrt{ (x_i-x_j)^2 + (y_i-y_j)^2}'''
+    return np.sqrt((x - transpose(x)) ** 2 + (y - transpose(y)) ** 2)
 
+
+
+# #######################################################################
+### The loop to merge the two dictionnaries
+def MERGE(Recipient,dictoadd,override=True,verb=True):
+    '''
+    If you mix two models or want to add new auxlliary logics,
+    you can merge your two dictionnaries.
+
+    override : true will replace previous fields with new one if conflict such as :
+        * another definition with the same type of logic (ODE, statevar)
+        * change of logic type (transform a statevar to an ODE)
+
+    Recipient is _LOGICS that you want to fill
+    dicttoadd contains the new elements you want
+    '''
+    ### Category of the variable in a dict
+    keyvars = { k:v.keys() for k,v in Recipient.items() }
+    typ= {}
+    for k,v in keyvars.items():
+        for vv in v :
+            typ[vv]=k
+    ### Merging dictionnaries
+    for category, dic in dictoadd.items(): ### LOOP ON [SECTOR SIZE,ODE,STATEVAR,PARAMETERS]
+        for k, v in dic.items(): ### LOOP ON THE FIELDS
+            if k in typ.keys(): ### IF FIELD ALREADY EXIST
+                if override:
+                    if verb : print(f'Override {category} variable {k}. Previous :{Recipient[category][k]} \n by :{v}')
+                    Recipient[category][k] = v
+                if typ[k]!=category :
+                    if verb : print(f'Category change for logic of {k} : from {typ[k]} to {category}')
+                    del Recipient[typ[k]][k]
+                elif verb : print(f'Keeping old definition {category} variable {k}. Previous :{Recipient[category][k]} \n {v}')
+            else: ### IF FIELD DOES NOT
+                Recipient[category][k] = v
+    return Recipient
+
+
+
+# #######################################################################
+# #######################################################################
+# #######################################################################
 def Debtvariation(r,D,w,L,z,p,Y,C,Ir,Gamma,Xi):
-    debt = r*D+w*z*L-p*C \
+    debt = r*D \
+        +w*z*L \
+        -p*C \
         +matmul((Xi   -transpose(Xi)   ),p*Ir) \
         +matmul((Gamma-transpose(Gamma)),p*Y)
     return debt
 
-
-
+# #### AUXILLIARY FIELDS THAT ARE NOT NECESSARY TO COMPUTE THE SYSTEM,
+# ARE PRACTICAL TO EXPLORE IT
 _LOGICS = {
     'size': {
         'Nprod': {
-            'list': ['Consumption','Capital'],
+            'list': ['MONO'],
         },
     },
     'differential': {
@@ -39,9 +119,9 @@ _LOGICS = {
             'func': lambda Ir,delta,u,K: Ir-delta*u*K,
             'com': 'depreciation proportional to u',
             'definition': 'Productive capital in physical units',
-            'units': 'Units',
+            'units': 'units',
             'size': ['Nprod'],
-            'initial': 2.7*0.5,
+            'initial': 2.7,
         },
         'D': {
             'func': lambda dotD:dotD,
@@ -79,14 +159,6 @@ _LOGICS = {
             'units': 'units',
             'symbol': '$V$'
         },
-        'H': {
-            'func': lambda H, deltah, rho, C: C - deltah * H - matmul(rho, H),
-            'com': 'explicit stock-flow',
-            'definition': 'Possessions',
-            'units': 'units',
-            'size': ['Nprod']
-        },
-
         'w': {'func': lambda philips, w,gammai, ibasket : w*(philips+gammai*ibasket),
               'com': 'exogenous',
              },
@@ -99,24 +171,20 @@ _LOGICS = {
     },
     'statevar': {
         ### price,profit,inflation ###
-        'inflation': {
-            'func': lambda p,eta,mu0,c,chi,dotV,V: eta*np.log(mu0*c/p)-chi*dotV/V,
-            'com': 'log on markup',
-            'size': ['Nprod'],
-            'units': 'y^{-1}',
-            'symbol': 'i'
-        },
-        'pi': {
-            'func': lambda omega,gamma,xi,rd : 1 - omega - gamma - xi - rd,
-            'com': 'explicit form',
-            'size': ['Nprod'],
-            'units':'',
-        },
         'c': {
             'func': lambda omega,gamma,xi,p : p*( omega + gamma + xi),
             'com':'explicit form',
             'size': ['Nprod'],
             'units': '$.Units^{-1}',
+        },
+        'inflation': {
+            # 'func': lambda inflationMarkup,inflationdotV: inflationMarkup+inflationdotV,
+            # 'com': 'sum of inflation contributions',
+            'func': lambda p, eta, mu0, c, chi, dotV, V: eta * np.log(mu0 * c / p) - chi * dotV / V,
+            'com': 'costpush and inventoryvariation',
+            'size': ['Nprod'],
+            'units': 'y^{-1}',
+            'symbol': '$i$'
         },
         'ibasket': {
             'func': lambda inflation,basket : sprod(inflation,basket),
@@ -147,12 +215,6 @@ _LOGICS = {
             'com': 'no shareholding, no bank possession',
             'units':'Units.Humans^{-1}.y^{-1}'
         },
-        #'Hid': {
-        #    'func': lambda N,hid0,Omega,Omega0,x: N*hid0/(1+np.exp(-x*(Omega/Omega0-1))),
-        #    'definition': 'Ideal goods for purchasing power',
-        #    'com':'deduced from Omega',
-        #    'size': ['Nprod'],
-        #},
         'L': {
             'func': lambda a,b,Y: Y/(a*(2-b)),
             'com': 'instant recruitment on leontiev',
@@ -171,10 +233,7 @@ _LOGICS = {
             'symbol': r'$\Phi(\lambda)$',
         },
 
-
-
-        ### Physical fluxes ##################### ############################# ###############################
-        ### NON-AUXILLIARY
+        ### Physical fluxes ################
         'dotV': {
             'func': lambda Y, Gamma, Ir, C, Xi: Y - matmul(transpose(Gamma), Y) - C - matmul(transpose(Xi), Ir),
             'com': 'stock-flow',
@@ -204,35 +263,8 @@ _LOGICS = {
 
         ### AUXILLIARY
         },
-        'TakenbyI': {
-            'func' : lambda Ir,Xi: matmul(transpose(Xi),Ir),
-            'definition': 'physical flux removed through investment',
-            'com': 'definition',
-            'units': 'Units.y^{-1}',
-            'size': ['Nprod'],
-            'symbol': r'$(\Xi^T I^r)$'
-        },
-        'TakenbyY': {
-            'func': lambda Y, Gamma: matmul(transpose(Gamma), Y),
-            'definition': 'physical flux removed through intermediary consumption',
-            'com': 'definition',
-            'units': 'Units.y^{-1}',
-            'size': ['Nprod'],
-            'symbol': r'$(\Gamma^T Y)$'
-        },
 
-
-
-        ### Explicit monetary flux ########### ################################ ############################
-        ### NON-AUXILLIARY
-        'pY': {
-            'func': lambda p,Y: p*Y,
-            'definition': 'nominal output',
-            'com': '',
-            'units': '$.y^{-1}',
-            'size': ['Nprod'],
-            'symbol': "$(pY)$",
-        },
+        ### Explicit monetary flux ###########
         'dotD': {
             'func': Debtvariation,
             'definition': 'debt variation',
@@ -248,57 +280,16 @@ _LOGICS = {
             'units': '$.y^{-1}',
             'size': ['Nprod'],
         },
-        'TransactI' : {
-            'func': lambda p, Ir, Xi : matmul((Xi   -transpose(Xi)   ),p*Ir),
-            'definition': 'Net money flux from investment',
-            'com': 'component of dotD',
-            'units': '$.y^{-1}',
-            'size': ['Nprod'],
-            'symbol': '$((\Xi-\Xi^T)p I^r)$'
-        },
-        'TransactInter': {
-            'func': lambda p, Y, Gamma: matmul((Gamma-transpose(Gamma)),p*Y),
-            'definition': 'Net money flux from intermediary consumption',
-            'com': 'component of dotD',
-            'units': '$.y^{-1}',
-            'size': ['Nprod'],
-            'symbol': '$((\Gamma-\Gamma^T)pY)$'
-        },
-        ### AUXILLIARY
-        'Consumption': {
-            'func': lambda p,C: -p*C,
-            'definition': 'Consumption in monetary value',
-            'com': 'Just to check',
-            'units': '$.y^{-1}',
-            'size': ['Nprod'],
-        },
-        'Interests': {
-            'func': lambda r, D: r * D,
-            'definition': 'interest volume',
-            'com': 'Just to check',
-            'units': '$.y^{-1}',
-            'size': ['Nprod'],
-            'symbol': '$(rD)$',
-        },
-        'Wage': {
-            'func': lambda w,z,L: w*z*L,
-            'definition': 'local salaries',
-            'com': 'Just to check',
-            'units': '$.y^{-1}',
-            'size': ['Nprod'],
-            'symbol': "$(wzL)$",
-        },
-
 
         ### investment curve
         'kappa': {
             'func': lambda pi,k0: k0*pi,
-            'com': 'no external investment (but inventory)',
+            'com': 'LINEAR KAPPA FUNCTION',
             'units': '',
             'size': ['Nprod'],
         },
 
-        ### AUXILLIARY VECT STATEVAR
+        ### Non-dimensional statevar
         'gamma': {
             'func': lambda Gamma,p: matmul(Gamma,p)/p,
             'definition': 'share of intermediary consumption',
@@ -313,29 +304,6 @@ _LOGICS = {
             'units': '',
             'size': ['Nprod'],
         },
-        'reldotv': {
-            'func': lambda dotV, Y, p, c: -(c-p) * dotV / (p * Y),
-            'com': 'calculated as inventorycost on production',
-            'definition': 'relative budget weight of inventory change',
-            'units': '',
-            'size': ['Nprod'],
-            'symbol': r'$\dot{v}$',
-        },
-        'reloverinvest': {
-            'func': lambda kappa, pi: kappa - pi,
-            'com': 'difference between kappa and pi',
-            'units': '',
-            'symbol': r'$(\kappa-\pi)$',
-            'size': ['Nprod'],
-            'definition': 'relative overinstment of the budget',
-        },
-        'rd': {
-            'func': lambda r, D, p, Y: r * D / (p * Y),
-            'com': 'deduced from D',
-            'definition': 'relative weight debt',
-            'units': '',
-            'size': ['Nprod'],
-        },
         'xi': {
             'func': lambda delta, nu, b, p, Xi: (delta * nu / b) * matmul(Xi, p) / p,
             'definition': 'relative capex weight',
@@ -344,30 +312,13 @@ _LOGICS = {
             'size': ['Nprod'],
             'symbol': r'$\xi$',
         },
-
-        'employmentlocal': {
-            'func': lambda L,N : L/N,
-            'com': 'raw def',
-            'definition': 'part of population working in sector',
+        'pi': {
+            'func': lambda omega, gamma, xi, r, D, p, Y: 1 - omega - gamma - xi - r * D / (p * Y),
+            'com': 'explicit form',
             'size': ['Nprod'],
-            'symbol': '$\lambda$',
             'units': '',
         },
-        'growthK': {
-            'func': lambda  Ir,delta,u,K: Ir/K-u*delta,
-            'definition': 'growth rate of capital',
-            'com': 'no u variation',
-            'units': 'y^{-1}',
-            'size': ['Nprod'],
-            'symbol': '$g^K$'
-        }
-
-        ### AUXILLIARY STATEVAR
-        #'GDP_nominal': 0,
-        #'GDP': 0,
-
     },
-
 
     'parameter': {
         ### SCALARS
@@ -381,22 +332,10 @@ _LOGICS = {
               'definition': 'local wage ponderation',
               'size': ['Nprod']
               },
-        #'e': {'value': 1,
-        #      'definition': 'weight of other consumptions',
-        #      'size': ['Nprod']
-        #      },
-        'Cpond': {'value': 0,
+        'Cpond': {'value': .5,
               'definition': 'part of salary into consumption of the product',
               'size': ['Nprod']
               },
-        #'f': {'value': 1,
-        #      'definition': 'consumption adjustment rate',
-        #      'size': ['Nprod']
-        #      },
-        #'hid0': {'value': 1,
-        #      'definition': 'willed quantity of goods',
-        #      'size': ['Nprod']
-        #      },
         'mu0': {'value': 1.3,
               'definition': '',
               'size': ['Nprod']
@@ -407,7 +346,6 @@ _LOGICS = {
         'deltah': {'value': 0.1,
                   'size': ['Nprod']
                   },
-
         'sigma': {'value': 1,
                   'size': ['Nprod']
                   },
@@ -425,12 +363,6 @@ _LOGICS = {
         'nu': {'value': 3,
                'size': ['Nprod']
                },
-        #'Omega0': {'value': 1,
-        #           'size': ['Nprod']
-        #           },
-        #'x': {'value': 1,
-        #      'size': ['Nprod']
-        #      },
 
         ### MATRICES
         'Gamma': {
@@ -450,6 +382,371 @@ _LOGICS = {
 }
 
 """
+Not used in the dynamics but can be useful to check
+"""
+_LOGICS_AUX = {
+    'size': {
+    },
+    'differential': {
+        'H': {
+            'func': lambda H, deltah, rho, C: C - deltah * H - matmul(rho, H),
+            'com': 'explicit stock-flow',
+            'definition': 'Possessions',
+            'units': 'units',
+            'size': ['Nprod'],
+            'initial':1,
+        },
+    },
+    'statevar': {
+        'inflationMarkup': {
+            'func': lambda p, eta, mu0, c,: eta * np.log(mu0 * c / p),
+            'com': 'log on markup',
+            'size': ['Nprod'],
+            'units': 'y^{-1}',
+            'symbol': '$i^{\mu}$'
+        },
+        'inflationdotV': {
+            'func': lambda chi, dotV, V: - chi * dotV / V,
+            'com': 'price adjustment to demand-offer',
+            'size': ['Nprod'],
+            'units': 'y^{-1}',
+            'symbol': '$i^{\dot{V}}$'
+        },
+        'Hid': {
+            'func': lambda N,hid0,Omega,Omega0,x: N*hid0/(1+np.exp(-x*(Omega/Omega0-1))),
+            'definition': 'Ideal goods for purchasing power',
+            'com':'deduced from Omega',
+            'size': ['Nprod'],
+        },
+
+        ### PROFITS
+        'Pi': {
+            'func' : lambda Y,p,pi : Y*p*pi,
+            'com': 'from pi',
+            'definition': 'expected Profit',
+            'symbol': '$\Pi^{e}$',
+            'units': '$.y^{-1}',
+            'size': ['Nprod'],
+        },
+        'PiInstant': {
+            'func': lambda Pi, dotV,c,p: Pi+(c-p)*dotV,
+            'com': 'Pi+(c-p)\dot{V}',
+            'definition': 'Profit corrected by inventory change',
+            'symbol': '$\Pi^{inst}$',
+            'units': '$.y^{-1}',
+            'size': ['Nprod'],
+        },
+        'piInstant': {
+            'func': lambda PiInstant,p,Y: PiInstant/(p*Y),
+            'com': 'from PiInstant',
+            'definition': 'instant relative profit',
+            'symbol': '$\pi^{inst}$',
+            'units': '',
+            'size': ['Nprod'],
+        },
+        'Iaccontability':{
+            'func': lambda I,p,Y,xi,c,dotV: I-p*Y*xi+c*dotV,
+            'com': 'corrected I',
+            #'definition': 'productive investment '
+            'units': '$.y^{-1}',
+            'size': ['Nprod'],
+            'symbol': 'I^{acc}'
+        },
+
+        ### MONETARY FLUXES
+        'TakenbyI': {
+            'func': lambda Ir, Xi: matmul(transpose(Xi), Ir),
+            'definition': 'physical flux removed through investment',
+            'com': 'definition',
+            'units': 'Units.y^{-1}',
+            'size': ['Nprod'],
+            'symbol': r'$(\Xi^T I^r)$'
+        },
+        'TakenbyY': {
+            'func': lambda Y, Gamma: matmul(transpose(Gamma), Y),
+            'definition': 'physical flux removed through intermediary consumption',
+            'com': 'definition',
+            'units': 'Units.y^{-1}',
+            'size': ['Nprod'],
+            'symbol': r'$(\Gamma^T Y)$'
+        },
+        'pY': {
+            'func': lambda p, Y: p * Y,
+            'definition': 'Brut nominal output',
+            'com': '',
+            'units': '$.y^{-1}',
+            'size': ['Nprod'],
+            'symbol': "$(pY)$",
+        },
+        'TransactI': {
+            'func': lambda p, Ir, Xi: matmul((Xi - transpose(Xi)), p * Ir),
+            'definition': 'Net money flux from investment',
+            'com': 'component of dotD',
+            'units': '$.y^{-1}',
+            'size': ['Nprod'],
+            'symbol': '$((\Xi-\Xi^T)p I^r)$'
+        },
+        'TransactInter': {
+            'func': lambda p, Y, Gamma: matmul((Gamma - transpose(Gamma)), p * Y),
+            'definition': 'Net money flux from intermediary consumption',
+            'com': 'component of dotD',
+            'units': '$.y^{-1}',
+            'size': ['Nprod'],
+            'symbol': '$((\Gamma-\Gamma^T)pY)$'
+        },
+        'Consumption': {
+            'func': lambda p, C: -p * C,
+            'definition': 'Consumption in monetary value',
+            'com': 'Just to check',
+            'units': '$.y^{-1}',
+            'size': ['Nprod'],
+        },
+        'Interests': {
+            'func': lambda r, D: r * D,
+            'definition': 'interest volume',
+            'com': 'Just to check',
+            'units': '$.y^{-1}',
+            'size': ['Nprod'],
+            'symbol': '$(rD)$',
+        },
+        'Wage': {
+            'func': lambda w, z, L: w * z * L,
+            'definition': 'local salaries',
+            'com': 'Just to check',
+            'units': '$.y^{-1}',
+            'size': ['Nprod'],
+            'symbol': "$(wzL)$",
+        },
+
+        'MtransactY': {
+            'func': lambda p, Y, Gamma: Y*Gamma*transpose(p),
+            'definition': 'Money from i to j through intermediary consumption',
+            'com': 'matrix expansion',
+            'units': '$.y^{-1}',
+            'size': ['Nprod','Nprod'],
+            'symbol': r'$\mathcal{T}^Y$'
+        },
+        'MtransactI': {
+            'func': lambda I,Xi,p: I*Xi*transpose(p) / (matmul(Xi,p)),
+            'definition': 'Money from i to j through investment',
+            'com': 'matrix expansion',
+            'units': '$.y^{-1}',
+            'size': ['Nprod', 'Nprod'],
+            'symbol': r'$\mathcal{T}^I$'
+        },
+
+        ### NON-DIMENSIONAL QUANTITIES
+        'employmentlocal': {
+            'func': lambda L, N: L / N,
+            'com': 'raw def',
+            'definition': 'part of population working in sector',
+            'size': ['Nprod'],
+            'symbol': '$\lambda$',
+            'units': '',
+        },
+        'growthK': {
+            'func': lambda Ir, delta, u, K: Ir / K - u * delta,
+            'definition': 'growth rate of capital',
+            'com': 'no u variation',
+            'units': 'y^{-1}',
+            'size': ['Nprod'],
+            'symbol': '$g^K$'
+        },
+        'reldotv': {
+            'func': lambda dotV, Y, p, c: (c - p) * dotV / (p * Y),
+            'com': 'calculated as inventorycost on production',
+            'definition': 'relative budget weight of inventory change',
+            'units': '',
+            'size': ['Nprod'],
+            'symbol': r'$\dot{v}$',
+        },
+        'reloverinvest': {
+            'func': lambda kappa, pi: pi - kappa,
+            'com': 'difference between kappa and pi',
+            'units': '',
+            'symbol': r'$(\kappa-\pi)$',
+            'size': ['Nprod'],
+            'definition': 'relative overinstment of the budget',
+        },
+        'rd': {
+            'func': lambda r, D, p, Y: r * D / (p * Y),
+            'com': 'deduced from D',
+            'definition': 'relative weight debt',
+            'units': '',
+            'size': ['Nprod'],
+        },
+
+        ### EQUITIES
+        'Equity': {
+            'func': lambda K,p,c,V,D,Xi: sprod(K,matmul(Xi,p))+sprod(c,V)-D,
+            'definition' : 'per sector equity',
+            'units': '$',
+            'size': ['Nprod'],
+        },
+        'EquityHousehold': {
+            'func': lambda H,p,Dh: sprod(H,p)+Dh,
+            'definition' : 'Household equity',
+            'units': '$',
+            'symbol': r'Equity$_{H}$'
+
+        },
+    },
+    'parameter':{
+         'Omega0': {'value': 1,
+                  'size': ['Nprod']
+                  },
+         'x': {'value': 1,
+              'size': ['Nprod']
+              },
+         'e': {'value': 1,
+              'definition': 'weight of other consumptions',
+              'size': ['Nprod']
+              },
+         'f': {'value': 1,
+              'definition': 'consumption adjustment rate',
+              'size': ['Nprod']
+              },
+         'hid0': {'value': 1,
+              'definition': 'willed quantity of goods',
+              'size': ['Nprod']
+              },
+    },
+}
+
+"""
+ALL AGREGATED VALUES THAT CAN BE CALCULATED 
+"""
+_LOGICS_AGREGATES = {
+    'statevar': {
+        'pAGG': { 'func': lambda p,basket: sprod(p,basket),
+                  'definition': 'price deflator',
+                  'units': '',
+                  'symbol': r'$p_{\bigcirc}$'
+        },
+        'GDPnomY': { 'func': lambda p,Gamma,Y: sprod(p,matmul(1-transpose(Gamma),Y)),
+                     'com': 'calculated on Y',
+                     'definition': 'nominal expected GDP',
+                     'symbol': r'$Y^{NY}_{\bigcirc}$',
+                     'units': '$.y^{-1}'
+        },
+        'GDPnom2': {'func': lambda C,p,I,c,dotV: sprod(C,p)+ssum(I)+sprod(c,dotV),
+                    'com': 'calculated on C+I+cdotV',
+                    'definition': 'Inventory accountability nominal GDP',
+                    'symbol': r'$Y^{NV}_{\bigcirc}$',
+                    'units': '$.y^{-1}'
+                    },
+        'GDP': { 'func': lambda GDPnomY,pAGG: GDPnomY/pAGG ,
+                 'com': 'GDP on production deflated',
+                 'definition': 'deflated expected GDP',
+                 'symbol': r'$Y_{\bigcirc}$',
+                 'units': 'y^{-1}'
+        },
+        'CAGG': { 'func': lambda p,C: sprod(p,C) ,
+                  'com': 'Nominal consumption',
+                  'symbol': r'$C_{\bigcirc}$',
+                  'units': '$.y^{-1}',
+        },
+        'IAGG': { 'func': lambda I: ssum(I) ,
+                  'com' : 'nominal investment',
+                  'symbol': r'$I_{\bigcirc}$',
+                  'units': '$.y^{-1}',
+        },
+        'KAGGpass': { 'func': lambda Xi,p,K: sprod(matmul(Xi,p),K) ,
+                      'com': 'capital value on its creation',
+                      'definition': 'nominal passive capital value',
+                      'symbol': r'$K^{\Xi}_{\bigcirc}$',
+                      'units': '$',
+        },
+        'KAGGact': {'func': lambda nu,delta, p, K: sprod(p/(nu*delta), K),
+                    'com': 'capital value on its potential production',
+                    'definition': 'nominal active capital value',
+                    'symbol': r'$K^{\nu}_{\bigcirc}$',
+                    'units': '$',
+        },
+        'HAGG': { 'func': lambda H,p: sprod(H,p),
+                  'definition' : 'nominal household possessions',
+                    'symbol': r'$H_{\bigcirc}$',
+                    'units': '$',
+        },
+        'HidAGG': { 'func': lambda Hid,p: sprod(Hid,p) ,
+                    'definition': 'nominal household expected possessions',
+                    'symbol': r'$H^{id}_{\bigcirc}$',
+                    'units': '$',
+
+        },
+        'LAGG': { 'func': lambda L: ssum(L) ,
+                  'definition': 'total workers',
+                  'symbol': r'$L_{\bigcirc}$',
+                  'units': 'Humans'
+        },
+        'aAGG': { 'func': lambda GDP,LAGG: GDP/LAGG,
+                  'definition': 'aggregated productivity',
+                  'symbol': r'$a_{\bigcirc}$',
+                  'units': 'Humans^{-1}.y^{-1}'
+        },
+        'omegaAGG': { 'func': lambda w,L,z,GDPnomY: sprod(w*z,L)/GDPnomY  ,
+                      'definition': 'aggregated wage share',
+                      'symbol': r'$\omega_{\bigcirc}$',
+                       'units': ''
+        },
+        'uAGG': { 'func': lambda u,K,b,nu : sprod(u,K*b/nu)/sprod(K,b/nu),
+                  'definition': 'agregated use rate of capital',
+                    'symbol': r'$u_{\bigcirc}$',
+                       'units': ''
+        },
+        'nuAGG': { 'func': lambda KAGGpass,GDPnomY: KAGGpass/GDPnomY ,
+                   'com': 'On active capital',
+                   'definition': 'agregated return on capital',
+                    'symbol': r'$\nu_{\bigcirc}$',
+                       'units': 'y'
+        },
+        'deltaAGG': { 'func': lambda delta,Xi,p,K, KAGGpass: sprod(delta,matmul(Xi,p)*K)/KAGGpass ,
+                      'definition': 'agregated capital degradation rate',
+                    'symbol': r'$\delta_{\bigcirc}$',
+                       'units': 'y^{-1}'
+        },
+        'deltahAGG': { 'func': lambda p, deltah,rho,H : sprod(p,deltah*H+matmul(rho,H))/sprod(p,H) ,
+                       'definition': 'agregated possessions degradation rate',
+                       'symbol': r'$\delta^h_{\bigcirc}$',
+                       'units': 'y^{-1}'
+        },
+        'dAGG': { 'func': lambda D,GDPnomY: ssum(D)/GDPnomY ,
+                  'com': 'on YGDP',
+                  'definition': 'relative agregated debt',
+                  'symbol': r'$d_{\bigcirc}$',
+                  'units': 'y'
+        },
+        'gammaAGG': { 'func': lambda p,Gamma,Y : sprod(p,matmul(transpose(Gamma),Y))/sprod(p,Y),
+                      'definition': 'agregated part of intermediary consumption',
+                      'symbol': r'$\gamma_{\bigcirc}$',
+                      'units': ''
+        },
+        'XiAGG': { 'func': lambda p,nu,delta,b,Xi,Y: sprod(p ,matmul(transpose(Xi),Y)*nu*delta/b)/sprod(p ,Y*nu*delta/b) ,
+                   'definition': 'agregated relative size of capital',
+                    'symbol': r'$\Xi_{\bigcirc}$',
+                    'units': ''
+        },
+        'xiAGG': { 'func': lambda deltaAGG,nuAGG,XiAGG : deltaAGG*nuAGG*XiAGG,
+                   'definition': 'aggregated relative weight of capital destruction',
+                    'symbol': r'$\xi_{\bigcirc}$',
+                    'units': ''
+        },
+        'piAGG': { 'func': lambda omegaAGG,gammaAGG,xiAGG,r,dAGG: 1-omegaAGG-gammaAGG-xiAGG-r*dAGG,
+                   'definition': 'aggregated relative profit',
+                   'com': 'on expected',
+                   'symbol': r'$\pi_{\bigcirc}$',
+                   'units': ''
+        },
+        'cAGG': { 'func': lambda omegaAGG,gammaAGG,xiAGG, pAGG : (omegaAGG+gammaAGG+xiAGG)* pAGG ,
+                  'definition': 'aggregated relative cost',
+                  'symbol': r'$c_{\bigcirc}$',
+                  'units': '$'
+        },
+    },
+}
+
+
+"""
 'C': {
     'func': lambda f, Hid,rho,H: f*(Hid-H)+matmul(rho,H),
     'com': 'consumption as relaxation',
@@ -458,10 +755,114 @@ _LOGICS = {
 },
 """
 
+if __AUXIN or __AGGIN:
+    _LOGICS=MERGE(_LOGICS,_LOGICS_AUX,verb=True)
+if __AGGIN:
+    _LOGICS = MERGE(_LOGICS, _LOGICS_AGREGATES, verb=True)
+
+
+
+preset_basis = {
+'Tmax':80,
+'Nprod': ['Consumption','Capital'],
+'nx':1,
+
+'alpha' : 0.02,
+'n'     : 0.025,
+'phinull':0.1,
+
+'gammai':0,
+'r':0.03,
+'a':1,
+'N':1,
+'Dh':0,
+'w':0.8,
+
+'sigma':[1,1],
+'K': [2.2,0.6],
+'D':[0,0],
+'u':[.90,.90],
+'p':[1.5,3],
+'V':[100,150],
+'z':[1,1],
+'k0': 1.3,
+
+'Cpond':[1,0],
+
+'mu0':[1.3,2],
+'delta':0.05,
+'deltah':0.05,
+'eta':0.3,
+'chi':[1,1],
+'b':1,
+'nu':3,
+
+## MATRICES
+'Gamma': [[0.1 ,0.15],
+          [0 ,0.1]],
+#'Xi': [['Consumption','Capital','Consumption','Capital'],
+#       ['Consumption','Capital','Capital','Consumption'],[0,.5,1,0]],
+'Xi': [[0.01,.5],[1,0.02]],
+'rho': np.eye(2),
+}
+
+dictMONOGOODWIN={
+# Numerical structural
+'Tmax'  : 100,
+'Nprod' : ['Mono'],
+'Tini'  : 0,
+
+# Population
+'n'     : 0.025, # MONOSECT
+'N'     : 1    , # MONOSECT
+
+# PRODUCTION-MATERIAL FLUXES #######
+'K'    : 2.7,
+'Gamma': 0.05,
+'Xi'   : 1,
+'nu'   : 3,
+'delta': 0.05,
+'b'    : 1,
+'a'    : 1, # MONOSECT
+'alpha': 0.02, # MONOSECT
+'u'    : 1,
+
+# Inventory-related dynamics
+'V'     : 1,
+'sigma' : 0,  # use variation
+'chi'   : 0,  # inflation variation
+
+# investment
+'k0': 1.,
+
+# Debt-related
+'Dh'    : 0, # MONOSECT
+'D'     : [0],
+'r'     : 0.03, # MONOSECT
+
+# Wages-prices
+'w'     : 0.6, # MONOSECT
+'p'     : 1,
+'z'     : 1,
+'mu0'   : 1.3,
+'eta'   : 0.0,
+'gammai': 0, # MONOSECT
+'phinull':0.1, # MONOSECT
+
+# Consumption theory
+'Cpond' : [1],
+}
+
 _PRESETS = {
-    'default': {
-        'fields': {},
-        'com': (''),
+    'GoodwinPURE': {
+        'fields': dictMONOGOODWIN,
+        'com': ('A monosectoral system that behaves just as a Goodwin'),
+        'plots': {},
+    },
+    'Bi-sectoral': {
+        'fields': preset_basis,
+        'com': ('Two sectors : one producing consumption good, one for capital goods.'
+                'Converging run starting for VERY far from equilibrium'),
         'plots': {},
     },
 }

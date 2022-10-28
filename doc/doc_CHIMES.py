@@ -1,6 +1,42 @@
 import pygemmes as pgm
 import numpy as np
-hub=pgm.Hub('CHIMES')
+
+pgm.get_available_models('CHIMES',details=True)
+
+
+presets = ['Bi-sectoral','GoodwinPURE']
+hub=pgm.Hub('CHIMES',preset=presets[0])
+hub.run()
+#hub.plot()
+R=hub.get_dparam()
+sectors = R['Nprod']['list']
+for sector in sectors :
+    pgm.plots.plotnyaxis(hub, y=[[['inflation', sector],
+                                  ['inflationMarkup', sector],
+                                  ['inflationdotV', sector], ],
+                                 [['c',sector],
+                                  ['p',sector]],
+                                 [['pi',sector],
+                                  ['kappa',sector]],
+                                 [['employmentlocal',sector],
+                                  ['u',sector],
+                                  ]],)
+    pgm.plots.repartition(hub,
+                          ['pi','omega','xi','gamma','rd','reloverinvest','reldotv'],
+                          sector=sector,
+                          title='Expected relative budget $\pi$ ')
+    pgm.plots.repartition(hub,['TakenbyY','TakenbyI','C','dotV'],
+                          ref='Y',
+                          sector=sector,
+                          title=f'Physical Fluxes for sector {sector}')
+    pgm.plots.repartition(hub,['Wage','TransactInter','TransactI','Consumption','Interests'],
+                          ref='dotD',
+                          sector=sector,
+                          title=f'Monetary Fluxes for sector {sector}')
+
+
+
+
 
 dict={
 'Tmax':80,
@@ -18,10 +54,10 @@ dict={
 'Dh':0,
 'w':0.8,
 
-'sigma':[0,0],
+'sigma':[1,1],
 'K': [2.2,0.6],
 'D':[0,0],
-'u':[1,1],
+'u':[.90,.90],
 'p':[1.5,3],
 'V':[100,150],
 'z':[1,1],
@@ -47,97 +83,6 @@ dict={
 }
 
 
-dictMONOGOODWIN={
-# Numerical structural
-'Tmax'  : 100,
-'Nprod' : ['Mono'],
-'Tini'  : 0,
-
-# Population
-'n'     : 0.025, # MONOSECT
-'N'     : 1    , # MONOSECT
-
-# PRODUCTION-MATERIAL FLUXES #######
-'K'    : 2.7,
-'Gamma': 0,
-'Xi'   : 1,
-'nu'   : 3,
-'delta': 0.05,
-'b'    : 1,
-'a'    : 1, # MONOSECT
-'alpha': 0.02, # MONOSECT
-'u'    : 1,
-
-# Inventory-related dynamics
-'V'     : 1000,
-'sigma' : 0,  # use variation
-'chi'   : 0,    # inflation variation
-
-# investment
-'k0': 1.,
-
-# Debt-related
-'Dh'    : 0, # MONOSECT
-'D'     : [0],
-'r'     : 0.03, # MONOSECT
-
-# Wages-prices
-'w'     : 0.6, # MONOSECT
-'p'     : 1,
-'z'     : 1,
-'mu0'   : 1.3,
-'eta'   : 0.0,
-'gammai': 0, # MONOSECT
-'phinull':0.1, # MONOSECT
-
-# Consumption theory
-'Cpond' : [1],
-}
-
-dict3={
-# Numerical structural
-'Tmax'  : 50,
-'Nprod' : 10,
-
-# Population
-'n'     : 0.025,
-'N'     : 10,
-
-# PRODUCTION-MATERIAL FLUXES #######
-'K'    : 2.7/3,
-'Gamma': np.eye(10)*0.1,
-'Xi'   : np.eye(10)*3,
-'nu'   : 1,
-'delta': 0.05,
-'b'    : 1,
-'a'    : 1,
-'alpha': 0.02,
-'u'    : .95,
-
-# Inventory-related dynamics
-'V'     : 1000,
-'sigma' : 1,  # use variation
-'chi'   : 0,    # inflation variation
-
-# Debt-related
-'Dh'    : 0,
-'D'     : [0],
-'r'     : 0.03,
-
-'k0': 1.,
-
-# Wages-prices
-'w'     : 0.6,
-'p'     : 1,
-'z'     : 1,
-'mu0'   : 1.3,
-'eta'   : 0.1,
-'gammai': 0,
-'phinull':0.1,
-
-# Consumption theory
-'Cpond' : [1],
-}
 
 hub=pgm.Hub('CHIMES')
 hub.set_dparam(**dict,verb=False)
@@ -147,13 +92,18 @@ hub.run()
 #hub.calculate_Cycles()
 #hub.calculate_StatSensitivity()
 
-
+'''
 pgm.plots.plotbyunits(hub,
                             filters_key=('kappa','w','basket'),
-                            filters_units=('$.y^{-1}'),#,'$.units^{-1}','','y^{-1}'],
+                            filters_units=('$.y^{-1}',),#,'$.units^{-1}','','y^{-1}'],
                             filters_sector=(),
                             separate_variables={'':['pi','xi','gamma','rd','omega']})
-pgm.plots.plotnyaxis(hub,y=[[['K','Consumption'],['K',"Capital"],['V','Consumption']],['employment'],])
+'''
+
+#pgm.plots.plotnyaxis(hub,y=[[['K','Consumption'],['K',"Capital"],['V','Consumption']],['employment']])
+
+
+
 '''
 # Repartition relative pi
 pgm.plots.repartition(hub,['xi','gamma','omega','pi','rd','reldotv','reloverinvest'],sector='Consumption',title='')
@@ -165,7 +115,28 @@ pgm.plots.repartition(hub,['TakenbyY','TakenbyI','C','dotV'],ref='Y',sector='Cap
 '''
 # Repartition of monetary fluxes
 for sector in ['Consumption','Capital']:
-    pgm.plots.repartition(hub,['xi','gamma','omega','pi','rd','reldotv','reloverinvest'],sector=sector,title=sector)
+    pgm.plots.plotnyaxis(hub, y=[[['inflation', sector],
+                                  ['inflationMarkup', sector],
+                                  ['inflationdotV', sector], ],
+                                 [['c',sector],
+                                  ['p',sector]],
+                                 [['employmentlocal',sector],
+                                  ['u',sector],
+                                  ]],)
+
+    pgm.plots.plotnyaxis(hub, y=[[['kappa', sector],
+                                  ['K', "Capital"],
+                                  ['V', 'Consumption']],
+                                 ['employment'], ])
+    pgm.plots.repartition(hub,['pi','xi','gamma','omega','rd','reloverinvest','reldotv'],sector=sector,title='Expected relative budget $\pi$ ')
     pgm.plots.repartition(hub,['TakenbyY','TakenbyI','C','dotV'],ref='Y',sector=sector,dashboundary=False,title=sector)
     pgm.plots.repartition(hub,['TransactI','TransactInter','Consumption','Interests','Wage'],ref='dotD',sector=sector,dashboundary=False,title=sector)
 
+pgm.plots.plotnyaxis(hub, y=[[['inflation', sector],
+                              ['inflationMarkup', sector],
+                              ['inflationdotV', sector], ],
+                             [['c',sector],
+                              ['p',sector]],
+                             [['employmentlocal',sector],
+                              ['u',sector],
+                              ]],)
