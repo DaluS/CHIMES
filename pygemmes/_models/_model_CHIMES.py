@@ -23,8 +23,8 @@ More infos : https://www.overleaf.com/read/vywvyymcqwwk
 CHIMES :
 """
 
-__AUXIN = False
-__AGGIN = False
+__AUXIN = True
+__AGGIN = True
 
 
 import numpy as np
@@ -43,6 +43,10 @@ def ssum(X):
     ''' Scalar product between vector X and Y.
     Z=ssum(X) so Z_i=\sum X_i'''
     return np.matmul(np.moveaxis(X,-1,-2),X*0+1)
+def ssum2(X):
+    '''
+    Z_i=ssum_j(X_{ij}) so Z_i=\sum_j X_{ij}'''
+    return np.sum(X, axis=-1)[...,np.newaxis]
 def transpose(X):
     '''Transposition of X :
     Y=transpose(X)  Y_ij=X_ji'''
@@ -55,8 +59,9 @@ def distXY(x,y):
      between each particle of position x,y :
      z_ij= \sqrt{ (x_i-x_j)^2 + (y_i-y_j)^2}'''
     return np.sqrt((x - transpose(x)) ** 2 + (y - transpose(y)) ** 2)
-
-
+def Identity(X):
+    '''generate an identity matrix of the same size a matrix X'''
+    return np.eye(np.shape(X)[-1])
 
 # #######################################################################
 ### The loop to merge the two dictionnaries
@@ -94,16 +99,17 @@ def MERGE(Recipient,dictoadd,override=True,verb=True):
     return Recipient
 
 
-
 # #######################################################################
 # #######################################################################
 # #######################################################################
-def Debtvariation(r,D,w,L,z,p,Y,C,Ir,Gamma,Xi):
+def Debtvariation(r,D,w,L,z,p,C,MtransactY,MtransactI):
     debt = r*D \
         +w*z*L \
         -p*C \
-        +matmul((Xi   -transpose(Xi)   ),p*Ir) \
-        +matmul((Gamma-transpose(Gamma)),p*Y)
+        +ssum2(MtransactY) \
+        -ssum2(transpose(MtransactY)) \
+        +ssum2(MtransactI) \
+        -ssum2(transpose(MtransactI))
     return debt
 
 # #### AUXILLIARY FIELDS THAT ARE NOT NECESSARY TO COMPUTE THE SYSTEM,
@@ -280,6 +286,27 @@ _LOGICS = {
             'units': '$.y^{-1}',
             'size': ['Nprod'],
         },
+        'MtransactY': {
+            'func': lambda p, Y, Gamma: Y * Gamma * transpose(p),
+            'definition': 'Money from i to j through intermediary consumption',
+            'com': 'matrix expansion',
+            'units': '$.y^{-1}',
+            'size': ['Nprod', 'Nprod'],
+            'symbol': r'$\mathcal{T}^Y$'
+        },
+        'MtransactI': {
+            'func': lambda I, Xi, p: I * Xi * transpose(p) / (matmul(Xi, p)),
+            'definition': 'Money from i to j through investment',
+            'com': 'matrix expansion',
+            'units': '$.y^{-1}',
+            'size': ['Nprod', 'Nprod'],
+            'symbol': r'$\mathcal{T}^I$'
+        },
+        'checksumI': {
+            'func' : lambda MtransactI, I : I - ssum2(MtransactI),
+            'definition' : 'should be zero',
+            'size': ['Nprod'],
+        },
 
         ### investment curve
         'kappa': {
@@ -381,9 +408,7 @@ _LOGICS = {
     },
 }
 
-"""
-Not used in the dynamics but can be useful to check
-"""
+"""Not used in the dynamics but can be useful to check"""
 _LOGICS_AUX = {
     'size': {
     },
@@ -412,12 +437,12 @@ _LOGICS_AUX = {
             'units': 'y^{-1}',
             'symbol': '$i^{\dot{V}}$'
         },
-        'Hid': {
-            'func': lambda N,hid0,Omega,Omega0,x: N*hid0/(1+np.exp(-x*(Omega/Omega0-1))),
-            'definition': 'Ideal goods for purchasing power',
-            'com':'deduced from Omega',
-            'size': ['Nprod'],
-        },
+        #'Hid': {
+        #    'func': lambda N,hid0,Omega,Omega0,x: N*hid0/(1+np.exp(-x*(Omega/Omega0-1))),
+        #    'definition': 'Ideal goods for purchasing power',
+        #    'com':'deduced from Omega',
+        #    'size': ['Nprod'],
+        #},
 
         ### PROFITS
         'Pi': {
@@ -479,20 +504,20 @@ _LOGICS_AUX = {
             'symbol': "$(pY)$",
         },
         'TransactI': {
-            'func': lambda p, Ir, Xi: matmul((Xi - transpose(Xi)), p * Ir),
+            'func': lambda MtransactI: ssum2(MtransactI)-ssum2(transpose(MtransactI)),
             'definition': 'Net money flux from investment',
             'com': 'component of dotD',
             'units': '$.y^{-1}',
             'size': ['Nprod'],
-            'symbol': '$((\Xi-\Xi^T)p I^r)$'
+            'symbol': '$\sum_j (\mathcal{T}^I_{ij}-\mathcal{T}^I_{ji})$'
         },
         'TransactInter': {
-            'func': lambda p, Y, Gamma: matmul((Gamma - transpose(Gamma)), p * Y),
+            'func': lambda MtransactY: ssum2(MtransactY)-ssum2(transpose(MtransactY)),
             'definition': 'Net money flux from intermediary consumption',
             'com': 'component of dotD',
             'units': '$.y^{-1}',
             'size': ['Nprod'],
-            'symbol': '$((\Gamma-\Gamma^T)pY)$'
+            'symbol': '$\sum_j (\mathcal{T}^Y_{ij}-\mathcal{T}^Y_{ji})$'
         },
         'Consumption': {
             'func': lambda p, C: -p * C,
@@ -592,30 +617,10 @@ _LOGICS_AUX = {
         },
     },
     'parameter':{
-         'Omega0': {'value': 1,
-                  'size': ['Nprod']
-                  },
-         'x': {'value': 1,
-              'size': ['Nprod']
-              },
-         'e': {'value': 1,
-              'definition': 'weight of other consumptions',
-              'size': ['Nprod']
-              },
-         'f': {'value': 1,
-              'definition': 'consumption adjustment rate',
-              'size': ['Nprod']
-              },
-         'hid0': {'value': 1,
-              'definition': 'willed quantity of goods',
-              'size': ['Nprod']
-              },
     },
 }
 
-"""
-ALL AGREGATED VALUES THAT CAN BE CALCULATED 
-"""
+"""ALL AGREGATED VALUES THAT CAN BE CALCULATED"""
 _LOGICS_AGREGATES = {
     'statevar': {
         'pAGG': { 'func': lambda p,basket: sprod(p,basket),
@@ -623,7 +628,7 @@ _LOGICS_AGREGATES = {
                   'units': '',
                   'symbol': r'$p_{\bigcirc}$'
         },
-        'GDPnomY': { 'func': lambda p,Gamma,Y: sprod(p,matmul(1-transpose(Gamma),Y)),
+        'GDPnomY': { 'func': lambda p,Gamma,Y: sprod(p,Y-matmul(transpose(Gamma),Y)),
                      'com': 'calculated on Y',
                      'definition': 'nominal expected GDP',
                      'symbol': r'$Y^{NY}_{\bigcirc}$',
@@ -668,12 +673,6 @@ _LOGICS_AGREGATES = {
                     'symbol': r'$H_{\bigcirc}$',
                     'units': '$',
         },
-        'HidAGG': { 'func': lambda Hid,p: sprod(Hid,p) ,
-                    'definition': 'nominal household expected possessions',
-                    'symbol': r'$H^{id}_{\bigcirc}$',
-                    'units': '$',
-
-        },
         'LAGG': { 'func': lambda L: ssum(L) ,
                   'definition': 'total workers',
                   'symbol': r'$L_{\bigcirc}$',
@@ -684,6 +683,11 @@ _LOGICS_AGREGATES = {
                   'symbol': r'$a_{\bigcirc}$',
                   'units': 'Humans^{-1}.y^{-1}'
         },
+        'DAGG': {'func': lambda D: ssum(D),
+                 'definition': 'sum of private debt',
+                 'symbol': r'$D_{\bigcirc}$',
+                 'units': '$'
+                 },
         'omegaAGG': { 'func': lambda w,L,z,GDPnomY: sprod(w*z,L)/GDPnomY  ,
                       'definition': 'aggregated wage share',
                       'symbol': r'$\omega_{\bigcirc}$',
@@ -716,6 +720,12 @@ _LOGICS_AGREGATES = {
                   'symbol': r'$d_{\bigcirc}$',
                   'units': 'y'
         },
+        'rdAGG': {'func': lambda r,D, GDPnomY: r*ssum(D) / GDPnomY,
+                 'com': 'on YGDP',
+                 'definition': 'relative private debt weight',
+                 'symbol': r'$d_{\bigcirc}$',
+                 'units': ''
+                 },
         'gammaAGG': { 'func': lambda p,Gamma,Y : sprod(p,matmul(transpose(Gamma),Y))/sprod(p,Y),
                       'definition': 'agregated part of intermediary consumption',
                       'symbol': r'$\gamma_{\bigcirc}$',
@@ -747,23 +757,47 @@ _LOGICS_AGREGATES = {
 
 
 """
+        #'HidAGG': { 'func': lambda Hid,p: sprod(Hid,p) ,
+        #           'definition': 'nominal household expected possessions',
+        #            'units': '$',
+        #
+        #},
 'C': {
     'func': lambda f, Hid,rho,H: f*(Hid-H)+matmul(rho,H),
     'com': 'consumption as relaxation',
     'definition': 'flux of goods for household',
     'size': ['Nprod'],
+    
+             '''
+         'Omega0': {'value': 1,
+                  'size': ['Nprod']
+                  },
+         'x': {'value': 1,
+              'size': ['Nprod']
+              },
+         'e': {'value': 1,
+              'definition': 'weight of other consumptions',
+              'size': ['Nprod']
+              },
+         'f': {'value': 1,
+              'definition': 'consumption adjustment rate',
+              'size': ['Nprod']
+              },
+         'hid0': {'value': 1,
+              'definition': 'willed quantity of goods',
+              'size': ['Nprod']
+              },
+         '''
 },
 """
 
-if __AUXIN or __AGGIN:
-    _LOGICS=MERGE(_LOGICS,_LOGICS_AUX,verb=True)
-if __AGGIN:
-    _LOGICS = MERGE(_LOGICS, _LOGICS_AGREGATES, verb=True)
+if __AUXIN or __AGGIN:  _LOGICS = MERGE(_LOGICS, _LOGICS_AUX,       verb=True)
+if __AGGIN:             _LOGICS = MERGE(_LOGICS, _LOGICS_AGREGATES, verb=True)
 
 
 
 preset_basis = {
-'Tmax':80,
+'Tmax':20,
 'Nprod': ['Consumption','Capital'],
 'nx':1,
 
@@ -778,18 +812,18 @@ preset_basis = {
 'Dh':0,
 'w':0.8,
 
-'sigma':[1,1],
+'sigma':[1,5],
 'K': [2.2,0.6],
 'D':[0,0],
-'u':[.90,.90],
+'u':[.95,.6],
 'p':[1.5,3],
-'V':[100,150],
-'z':[1,1],
-'k0': 1.3,
+'V':[10,10],
+'z':[1,.3],
+'k0': 1.,
 
 'Cpond':[1,0],
 
-'mu0':[1.3,2],
+'mu0':[1.05,1.5],
 'delta':0.05,
 'deltah':0.05,
 'eta':0.3,
@@ -798,11 +832,12 @@ preset_basis = {
 'nu':3,
 
 ## MATRICES
-'Gamma': [[0.1 ,0.15],
-          [0 ,0.1]],
+'Gamma': [[0.05 ,0],
+          [0 ,0]],
 #'Xi': [['Consumption','Capital','Consumption','Capital'],
 #       ['Consumption','Capital','Capital','Consumption'],[0,.5,1,0]],
-'Xi': [[0.01,.5],[1,0.02]],
+'Xi': [[0.01,.5],
+       [0.1,.5]],
 'rho': np.eye(2),
 }
 

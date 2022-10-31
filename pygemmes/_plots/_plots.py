@@ -112,9 +112,9 @@ def plotbyunits(hub,
     another figure will be added with x only on it, and pi and epsilon on the other one)
 
     '''
-    ### CHECKS
     if not hub.dmisc['run']:
-        raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
+        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
+        hub.run()
 
     ### FILTERING THE KEYS
     grpfield = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['differential', 'statevar'])
@@ -239,10 +239,9 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
                      title='',
                      lw=2)
     '''
-    ### CHECKS
     if not hub.dmisc['run']:
-        raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
-
+        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
+        hub.run()
 
     if type(log) in [str,bool]:
         log=[log for l in y]
@@ -316,9 +315,9 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
         side = 'right' if ii % 2 else 'left'
 
         if units == '$()$': units=''
-        ylabel = r''.join([xx+'\n, ' for xx in symbolist])[:-2] + units
+        ylabel = r''.join([xx+', ' for xx in symbolist])[:-2] + units
 
-        dax[ii].set_ylabel(ylabel,loc='bottom', rotation=0,labelpad=-40 if side=='right' else 0)
+        dax[ii].set_ylabel(ylabel,labelpad=-40 if side=='right' else 0)#,loc='bottom', rotation=0
         dax[ii].spines[side].set_position(('outward', np.amax((0, 60*(ii//2)))))
         if side == 'left':
             dax[ii].yaxis.tick_left()
@@ -330,6 +329,7 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
             dax[ii].set_yscale('log')
     dax[ii].legend(handles=p.values(), loc='best')
     plt.title(title)
+    plt.tight_layout()
     plt.show()
 
 
@@ -347,9 +347,10 @@ def phasespace(hub, x, y, color='time', idx=0,Region=0):
     EXAMPLE :
     pgm.plots.phasespace(hub,'employment',['pi','Capital'],color=['omega','Consumption'])
     '''
-    ### CHECKS
     if not hub.dmisc['run']:
-        raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
+        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
+        hub.run()
+
 
     R=hub.dparam
     if type(x) is list :
@@ -418,9 +419,9 @@ def plot3D(hub, x, y, z, color, cmap='jet', index=0,Region=0, title=''):
                          color=['omega','Consumption'])
 
     '''
-    ### CHECKS
     if not hub.dmisc['run']:
-        raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
+        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
+        hub.run()
 
     R=hub.get_dparam()
     if type(x) is list :
@@ -491,9 +492,11 @@ def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
     if mode = 'sensitivity' the system will show statistical variance between parrallel run of nx
     if mode = 'cycles' the system will show cycles within the evolution of the variable with their characteristics
     '''
+
     ### CHECKS
     if not hub.dmisc['run']:
-        raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
+        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
+        hub.run()
     if (mode=='sensitivity' and not hub.dmisc.get('sensitivity',False)):
         print('the system is calculating statsensitivity...')
         hub.calculate_StatSensitivity()
@@ -675,12 +678,12 @@ def cycles_characteristics(hub,
 def repartition(hub ,
                 keys : list ,
                 sector = '' ,
+                sign= '+',
                 ref = '',
+                refsign = '+',
                 title= '',
                 idx=0,
                 region=0,):
-
-
     """
     Will create a substack of the different component you put in.
 
@@ -688,8 +691,25 @@ def repartition(hub ,
     repartition(hub,['pi','rd','xi','gamma','omega'],sector='Consumption')
     repartition(hub,['pi','rd','xi','gamma','omega'],sector='Capital')
     """
-    R=hub.get_dparam()
+    if not hub.dmisc['run']:
+        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
+        hub.run()
 
+
+    ### SIGNS HANDING
+    # Signs repartition
+    if type(sign) in [int,str]:
+        sign=[sign for l in keys]
+    if len(sign)!=len(keys):
+        raise Exception(f'The length of the sign list ({len(sign)}) does not correspond to the length of the elements ({len(keys)})!')
+    sign = [ 1 if s in ['+',1] else -1 for s in sign]
+    # refsign handling
+    if refsign in ['+',1]: refsign=1
+    else : refsign=-1
+
+
+    R=hub.get_dparam()
+    # Sector names
     if sector in ['',False,None]:
         sectindex = 0
         sectname = ''
@@ -701,13 +721,11 @@ def repartition(hub ,
         sectindex = R[R[keys[0]]['size'][0] ]['list'].index(sectname)
 
 
-    dicvals = { R[k]['symbol'][:-1]+'_{'+sectname+'}$': R[k]['value'][:,idx,region,sectindex,0] for k in keys}
+    dicvals = { R[k]['symbol'][:-1]+'_{'+sectname+'}$': sign[enum]*R[k]['value'][:,idx,region,sectindex,0] for enum, k in enumerate(keys)}
     color = list(plt.cm.jet(np.linspace(0,1,len(keys)+1)))
     dicvalpos = { k : np.maximum(v,0) for k,v in dicvals.items()}
     dicvalneg = { k : np.minimum(v,0) for k,v in dicvals.items()}
     time = R['time']['value'][:,0,0,0,0]
-
-
 
     plt.figure()
     fig=plt.gcf()
@@ -715,7 +733,7 @@ def repartition(hub ,
     ax=plt.gca()
     if len(ref):
         name = R[ref]['symbol'][:-1]+'_{'+sectname+'}$'
-        ax.plot(time,R[ref]['value'][:,idx,region,sectindex,0],c='k',lw=1,label=name)
+        ax.plot(time,refsign*R[ref]['value'][:,idx,region,sectindex,0],c='k',lw=1,label=name)
     ax.stackplot(time,dicvalpos.values(),labels=dicvals.keys(),colors=color)
     ax.legend(loc='upper left')
     ax.stackplot(time, dicvalneg.values(),lw=3,colors=color)
@@ -723,6 +741,7 @@ def repartition(hub ,
     plt.ylabel('Repartition $ '+R[keys[0]]['units'].replace('$', '\$')+' $ ' if len(R[keys[0]]['units']) else 'Repartition')
     plt.xlabel('Time (y)')
     plt.suptitle(title)
+    plt.tight_layout()
     plt.show()
 
 # %% DEPRECIATED ##################################################################

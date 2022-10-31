@@ -3,11 +3,12 @@ import numpy as np
 
 pgm.get_available_models('CHIMES',details=True)
 
-
+plt.close('all')
 presets = ['Bi-sectoral','GoodwinPURE']
 hub=pgm.Hub('CHIMES',preset=presets[0])
+hub.get_summary()
+#hub.set_dparam(**{'Tmax':20})
 hub.run()
-#hub.plot()
 R=hub.get_dparam()
 sectors = R['Nprod']['list']
 for sector in sectors :
@@ -23,8 +24,9 @@ for sector in sectors :
                                   ]],)
     pgm.plots.repartition(hub,
                           ['pi','omega','xi','gamma','rd','reloverinvest','reldotv'],
+                          sign= [1,1,1,1,1,1,-1],
                           sector=sector,
-                          title='Expected relative budget $\pi$ ')
+                          title=f'Expected relative budget $\pi$ for sector {sector} ')
     pgm.plots.repartition(hub,['TakenbyY','TakenbyI','C','dotV'],
                           ref='Y',
                           sector=sector,
@@ -35,7 +37,22 @@ for sector in sectors :
                           title=f'Monetary Fluxes for sector {sector}')
 
 
-
+pgm.plots.plotnyaxis(hub, y=[['ibasket','philips']+[['inflation',sector] for sector in sectors],
+                             ['employment']+[['employmentlocal',sector] for sector in sectors] ,
+                             ['uAGG'] + [['u', sector] for sector in sectors]
+                             ],)
+pgm.plots.plotnyaxis(hub, y=[['gammaAGG']+[['gamma',sector] for sector in sectors] ,
+                             ['xiAGG'] + [['xi', sector] for sector in sectors],
+                             ['piAGG'] + [['pi', sector] for sector in sectors],
+                             ['omegaAGG'] + [['omega', sector] for sector in sectors],
+                             ['rdAGG'] + [['rd', sector] for sector in sectors]
+                             ],)
+pgm.plots.plotnyaxis(hub, y=[['DAGG']+[['D',sector] for sector in sectors] ,
+                             [['K', sector] for sector in sectors],
+                             ['IAGG']+[['I',sector] for sector in sectors],
+                             ['CAGG'],
+                             ['GDPnomY']+[['pY',sector] for sector in sectors],
+                             ],)
 
 
 dict={

@@ -732,10 +732,10 @@ class Hub():
                )
 
            except BaseException:
-               print(k0)
-               ERROR=+f'You have a problem on your object sizes for {k0} \n'
+               #print(k0)
+               ERROR+=f'You have a problem on your object sizes for {k0} \n'
        if len(ERROR):
-           raise Exception('ALLOCATION CANNOT BE DONE,CHECK YOUR MODEL FILE')
+           raise Exception(ERROR+'ALLOCATION CANNOT BE DONE,CHECK YOUR MODEL FILE !')
 
        # set run to False
        self.__dmisc['run'] = False
