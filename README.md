@@ -38,8 +38,11 @@ hub.get_summary()
 ![image](https://user-images.githubusercontent.com/11523050/153496401-63d8eef8-ec82-4550-a4c9-444038fcedb2.png)
 *Sensitivity impact Of initial conditions*
 
+# Structure of the library (general)
 
-# Structure of the library and method (user side)
+![image](https://user-images.githubusercontent.com/11523050/199280909-ef35f3e7-f240-4610-8ad3-b1fa902426c8.png)
+
+# Structure of the library and methods (user side)
 
 ![image](https://user-images.githubusercontent.com/11523050/199279983-4c7ed333-3254-4e10-897d-e36b7d6a2d29.png)
 
