@@ -543,22 +543,6 @@ _LOGICS_AUX = {
             'symbol': "$(wzL)$",
         },
 
-        'MtransactY': {
-            'func': lambda p, Y, Gamma: Y*Gamma*transpose(p),
-            'definition': 'Money from i to j through intermediary consumption',
-            'com': 'matrix expansion',
-            'units': '$.y^{-1}',
-            'size': ['Nprod','Nprod'],
-            'symbol': r'$\mathcal{T}^Y$'
-        },
-        'MtransactI': {
-            'func': lambda I,Xi,p: I*Xi*transpose(p) / (matmul(Xi,p)),
-            'definition': 'Money from i to j through investment',
-            'com': 'matrix expansion',
-            'units': '$.y^{-1}',
-            'size': ['Nprod', 'Nprod'],
-            'symbol': r'$\mathcal{T}^I$'
-        },
 
         ### NON-DIMENSIONAL QUANTITIES
         'employmentlocal': {
@@ -656,6 +640,11 @@ _LOGICS_AGREGATES = {
                   'symbol': r'$I_{\bigcirc}$',
                   'units': '$.y^{-1}',
         },
+        'VAGG': {'func': lambda V,c: sprod(V,c),
+                 'com': 'nominal inventory',
+                 'symbol': r'$V_{\bigcirc}$',
+                 'units': '$.y^{-1}',
+                 },
         'KAGGpass': { 'func': lambda Xi,p,K: sprod(matmul(Xi,p),K) ,
                       'com': 'capital value on its creation',
                       'definition': 'nominal passive capital value',
@@ -797,7 +786,8 @@ if __AGGIN:             _LOGICS = MERGE(_LOGICS, _LOGICS_AGREGATES, verb=True)
 
 
 preset_basis = {
-'Tmax':20,
+'Tmax':100,
+'dt':0.1,
 'Nprod': ['Consumption','Capital'],
 'nx':1,
 
@@ -823,7 +813,7 @@ preset_basis = {
 
 'Cpond':[1,0],
 
-'mu0':[1.05,1.5],
+'mu0':[1.2,1.2],
 'delta':0.05,
 'deltah':0.05,
 'eta':0.3,
@@ -833,7 +823,7 @@ preset_basis = {
 
 ## MATRICES
 'Gamma': [[0.05 ,0],
-          [0 ,0]],
+          [0    ,0]],
 #'Xi': [['Consumption','Capital','Consumption','Capital'],
 #       ['Consumption','Capital','Capital','Consumption'],[0,.5,1,0]],
 'Xi': [[0.01,.5],

@@ -1,9 +1,18 @@
 import pygemmes as pgm
 import numpy as np
-
-pgm.get_available_models('CHIMES',details=True)
-
 plt.close('all')
+
+'''
+pgm.get_available_models('CHIMES',details=True)
+hub=pgm.Hub('CHIMES',preset='Bi-sectoral')
+hub.run()
+dict=hub.Extract_preset()
+dict['u'][:,:,1,:]=0.1
+del dict['nx'],dict['nr'],dict['Nprod']
+hub.set_dparam(**dict)
+hub.run()
+'''
+
 presets = ['Bi-sectoral','GoodwinPURE']
 hub=pgm.Hub('CHIMES',preset=presets[0])
 hub.get_summary()
@@ -15,6 +24,7 @@ for sector in sectors :
     pgm.plots.plotnyaxis(hub, y=[[['inflation', sector],
                                   ['inflationMarkup', sector],
                                   ['inflationdotV', sector], ],
+                                 [['dotV',sector]],
                                  [['c',sector],
                                   ['p',sector]],
                                  [['pi',sector],
@@ -37,7 +47,10 @@ for sector in sectors :
                           title=f'Monetary Fluxes for sector {sector}')
 
 
-pgm.plots.plotnyaxis(hub, y=[['ibasket','philips']+[['inflation',sector] for sector in sectors],
+
+## Inflation, employment, use
+pgm.plots.plotnyaxis(hub, y=[['philips'],
+                             ['ibasket']+[['inflation',sector] for sector in sectors],
                              ['employment']+[['employmentlocal',sector] for sector in sectors] ,
                              ['uAGG'] + [['u', sector] for sector in sectors]
                              ],)
