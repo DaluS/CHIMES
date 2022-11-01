@@ -269,6 +269,17 @@ class Hub():
             else :
                 wrongfields.append(kk)
 
+        ### Check if dimensions are changed
+        Rdim=self.get_dparam(keys=dimtochange.keys())
+        ignored=[]
+        for k,v in dimtochange.items():
+            if ( v==Rdim[k]['value'] or v==Rdim.get('list',[])):
+                if verb : print(f'{k} asked to be changed but the value {v} is already the one in the system')
+                ignored.append(k)
+        for k in ignored :
+            wrongfields.append(k)
+            del dimtochange[k]
+
         if verb:
             print('')
             print('### Identified keys to be changed ###')

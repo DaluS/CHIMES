@@ -494,7 +494,7 @@ def _print_matrix(hub,
         ax1 = hub.dparam[hub.dparam[m]['size'][0]]['list']
         ax2 = hub.dparam[hub.dparam[m]['size'][1]]['list']
         if m in hub.dmisc['dfunc_order']['parameters']:
-            val= hub.dparam[m]['value'][idx,Region,...]
+            val=  hub.dparam[m]['value'][idx,Region,...]
         else :
             val = hub.dparam[m]['value'][0,idx, Region, ...]
 
@@ -504,7 +504,7 @@ def _print_matrix(hub,
         print('')
         print(f"name : {m}, units : {hub.dparam[m]['units']}")
         for ii,x in enumerate(ax2):
-            liste =[x,'|']+[val[ii,jj] for jj in range(len(ax1))]
+            liste =[x,'|']+[f"{val[ii,jj]:.2E}" if (abs(val[ii,jj])<0.01 and val[ii,jj]!=0) else f"{val[ii,jj]:.2f}" for jj in range(len(ax1))]
             ar1.append(liste)
 
         _utils._get_summary(

@@ -15,7 +15,10 @@ hub.run()
 
 presets = ['Bi-sectoral','GoodwinPURE']
 hub=pgm.Hub('CHIMES',preset=presets[0])
-hub.get_summary()
+hub.get_summary(removesector=('.','Consumption'))
+hub.get_summary(removesector=('.','Capital'))
+hub.get_summary(removesector=('Consumption','Capital'))
+
 #hub.set_dparam(**{'Tmax':20})
 hub.run()
 R=hub.get_dparam()
@@ -66,6 +69,12 @@ pgm.plots.plotnyaxis(hub, y=[['DAGG']+[['D',sector] for sector in sectors] ,
                              ['CAGG'],
                              ['GDPnomY']+[['pY',sector] for sector in sectors],
                              ],)
+
+pgm.plots.plot3D(hub,
+                 x='omegaAGG',
+                 y='employment',
+                 z='piAGG',
+                 color='time')
 
 
 dict={

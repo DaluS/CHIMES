@@ -786,7 +786,7 @@ if __AGGIN:             _LOGICS = MERGE(_LOGICS, _LOGICS_AGREGATES, verb=True)
 
 
 preset_basis = {
-'Tmax':100,
+'Tmax':20,
 'dt':0.1,
 'Nprod': ['Consumption','Capital'],
 'nx':1,

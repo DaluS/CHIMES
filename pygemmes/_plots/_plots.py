@@ -474,10 +474,12 @@ def plot3D(hub, x, y, z, color, cmap='jet', index=0,Region=0, title=''):
     line = ax.add_collection(lc)
 
     cbar = fig.colorbar(lc, ax=ax)
-    cbar.ax.set_ylabel(R[color]['symbol'][:-1]+'_{'+xname+'}$')
-    ax.set_xlabel(R[x]['symbol'][:-1]+'_{'+xname+'}$')
-    ax.set_ylabel(R[y]['symbol'][:-1]+'_{'+yname+'}$')
-    ax.set_zlabel(R[z]['symbol'][:-1]+'_{'+zname+'}$')
+    cbar.ax.set_ylabel(R[color]['symbol'][:-1]+'_{'+xname+'}$' if xname else R[color]['symbol'])
+    ax.set_xlabel(R[x]['symbol'][:-1]+'_{'+xname+'}$' if xname else R[x]['symbol'])
+    ax.set_ylabel(R[y]['symbol'][:-1]+'_{'+yname+'}$' if yname else R[y]['symbol'])
+    ax.set_zlabel(R[z]['symbol'][:-1]+'_{'+zname+'}$' if zname else R[z]['symbol'])
+
+    #print(R[x]['symbol'][:-1]+'_{'+xname+'}$')
 
     plt.tight_layout()
     # plt.legend()
