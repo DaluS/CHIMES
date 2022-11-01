@@ -39,11 +39,15 @@ hub.get_summary()
 *Sensitivity impact Of initial conditions*
 
 
+# Structure of the library and method (user side)
+
+![image](https://user-images.githubusercontent.com/11523050/199279983-4c7ed333-3254-4e10-897d-e36b7d6a2d29.png)
 
 
 # How to use it ?
 
-Execute line by line doc/Tutorial.py
+Execute line by line `doc/Tutorial.py`
+Look at file `doc/Introduction.ipynb`
 
 
 # IS IT AN IAM AS MANY OTHERS ?
