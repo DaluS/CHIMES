@@ -15,29 +15,24 @@ hub.run()
 R=hub.get_dparam()
 C=R['C']['value'][:,0,:,0,0]
 for i in range(9):
-    plt.plot(C[100*i,:])
+    plt.plot(C[100*i,:],label=i)
+plt.legend()
 plt.show()
 ```
 """
-
-
-
 import numpy as np
-
-
 # ######################## OPERATORS ####################################
 '''
 Those are operators that can be used to do multisectoral operations : 
 coupling, transposition, sums... 
 '''
-
 def matmul(M,V):
     '''Matrix product Z=matmul(M,V) Z_i = \sum_j M_{ij} V_j'''
     return np.matmul(M,V)
 def Rmatmul(nabla,C):
     '''Matrix product but with the axis of Regions rather than multisectoral'''
     return matmul(np.swapaxes(nabla, -3, -1),
-                                  np.swapaxes(C, -3, -2))
+                  np.swapaxes(C, -3, -2))
 
 
 # #######################################################################
@@ -85,7 +80,6 @@ def MERGE(Recipient,dictoadd,override=True,verb=True):
 # ARE PRACTICAL TO EXPLORE IT
 _LOGICS = {
     'size': {
-
     },
     'differential': {
         'C': {
@@ -96,18 +90,15 @@ _LOGICS = {
         },
     },
     'statevar': {
-        ### price,profit,inflation ###
         'gradCx': {
             'func': lambda C,nabla : Rmatmul(C,nabla),
-            'definition': 'Nabla operator',
-            'com': 'calculated with nabla C'},
+            'definition': '1d gradient of C',
+            'com': 'calculated with nabla matrix multiplication'},
         'lapC': {
             'func': lambda gradCx,nabla : Rmatmul(gradCx,nabla),
         },
     },
-
     'parameter': {
-        ### SCALARS
         'diffCoeff'  :{'value': 0.02,},
         'x'          :{'value': 0},
         'nabla': {'value':0,
@@ -116,7 +107,9 @@ _LOGICS = {
     },
 }
 
+
 N=100
+# Spatial operator (should be normalized etc)
 nabla0=np.zeros((N,N))
 nabla0[np.arange(N-1) ,np.arange(N-1)+1]=1/2
 nabla0[np.arange(N-1)+1,np.arange(N-1)]=-1/2
@@ -126,30 +119,25 @@ nabla=np.zeros((1,N,N,1))
 nabla[0,:,:,0]=nabla0
 
 x=np.linspace(0,1,N, endpoint=False)
-C0=np.sin(2*np.pi*x)
+# Concentration
 C0=np.exp(-50*(x-0.5)**2)
 C=np.zeros((1,N,1,1))
 C[0,:,0,0]=C0
 
-
+#C0=np.sin(2*np.pi*x)
 
 preset_basis = {
     'nr':N,
     'dt':0.1,
     'nx':1,
-    'diffCoeff':1,
+    'diffCoeff':10,
     'C':C,
     'nabla':nabla,
     }
-
-
-
 _PRESETS = {
     'Basic': {
         'fields': preset_basis,
-        'com': ('A diffusion on 10 elements'),
+        'com': ('A diffusion on 100 elements of a gaussian'),
         'plots': {},
     },
 }
-# Check size consistent in operations
-# If only one dimension, transform string into list
