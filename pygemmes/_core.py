@@ -335,6 +335,7 @@ class Hub():
         self.__dargs=_class_set.get_dargs_by_reference(self.__dparam,
                                                        dfunc_order=self.__dmisc['dfunc_order'])
 
+
     def _set_fields(self,verb=_VERB, **kwargs):
         # Get list of variables that might need a reshape
         parametersandifferential =  list(set(self.get_dparam(eqtype=['differential', None]))
@@ -380,7 +381,8 @@ class Hub():
                     if verb:print(f'Identified {kk} as a value change on all axes')
                     newvalue[kk] = kwargs[kk]+0.
             else:
-                newvalue[kk]=np.ravel(np.array(oldvalue[kk]))[0]
+                #newvalue[kk]=np.ravel(np.array(oldvalue[kk]))[0]
+                newvalue[kk]=oldvalue[kk]
 
         for kk in parametersandifferential:
             self.__dparam[kk][direct[kk]]=newvalue[kk]

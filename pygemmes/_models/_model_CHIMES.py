@@ -805,7 +805,7 @@ preset_basis = {
 'sigma':[1,5],
 'K': [2.2,0.6],
 'D':[0,0],
-'u':[.95,.6],
+'u':[.95,.7],
 'p':[1.5,3],
 'V':[10,10],
 'z':[1,.3],
@@ -826,8 +826,8 @@ preset_basis = {
           [0    ,0]],
 #'Xi': [['Consumption','Capital','Consumption','Capital'],
 #       ['Consumption','Capital','Capital','Consumption'],[0,.5,1,0]],
-'Xi': [[0.01,.5],
-       [0.1,.5]],
+'Xi': [[0.01,1],
+       [0.1,1]],
 'rho': np.eye(2),
 }
 

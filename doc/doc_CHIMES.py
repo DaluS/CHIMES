@@ -15,9 +15,9 @@ hub.run()
 
 presets = ['Bi-sectoral','GoodwinPURE']
 hub=pgm.Hub('CHIMES',preset=presets[0])
-hub.get_summary(removesector=('.','Consumption'))
-hub.get_summary(removesector=('.','Capital'))
-hub.get_summary(removesector=('Consumption','Capital'))
+#hub.get_summary(removesector=('.','Consumption'))
+#hub.get_summary(removesector=('.','Capital'))
+#hub.get_summary(removesector=('Consumption','Capital'))
 
 #hub.set_dparam(**{'Tmax':20})
 hub.run()
