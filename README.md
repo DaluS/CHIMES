@@ -161,6 +161,35 @@ _LOGICS contains in itself 3 dictionnary :
 
 Check the ipython notebook in `doc/Model_creation.ipynb`
 
+## Code path at initialization (for developper)
+
+1) __config 
+2) __init__
+3) _core hub __init__
+    4) _class_set.load_model 
+        * Check model name
+        * Load "model" as a dictionnary
+        * prepare pygemmes knowledge of fields to be compatible
+        * Check completude 
+        * Translation from dmodel to dparam 
+        * Add pygemmes knowledge 
+        * Identification for categories/solving
+        * Initial shapes
+        * Big dictionnary of pointers
+    5) _set_preset
+        * set dparam
+            * set dimensions
+            * set fields 
+    6) reset 
+7) set dparam
+    * set dimensions            
+    * set fields 
+8) run
+    9) _solvers.solve
+        10) get_func_dydt
+            * Create all buffers and arrays
+            * create the function y'=F(y) with F coupling functions
+
 # The Developpers
 
 * Paul Valcke
