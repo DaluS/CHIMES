@@ -23,7 +23,8 @@ from pygemmes._models._model_G import _LOGICS as _LOGICS0
 from copy import deepcopy
 _LOGICS = deepcopy(_LOGICS0)
 
-_LOGICS['ode']['w'] = Funcs.Phillips.salaryfromPhillipsProfitsNoInflation
+_LOGICS['statevar']['phillips']= {'func': lambda phi0,phi1,zpi,employment,pi: -phi0+((pi/0.15)**zpi)*phi1/(1-employment)**2,
+                                  'com': 'Philips modified to take into account profit'}
 _LOGICS['param']['zpi'] = {'value': 0.5,
                            'definition': 'impact of profit in salary negociation'}
 
@@ -33,6 +34,7 @@ _LOGICS['param']['zpi'] = {'value': 0.5,
 _PRESETS = {
     'zpi': {
         'fields': {
+            'nx':4,
             'dt': 0.01,
             'a': 1,
             'N': 1,

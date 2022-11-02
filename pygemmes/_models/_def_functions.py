@@ -22,6 +22,82 @@ do not use _ in any name
 import numpy as np
 
 
+# ######################## OPERATORS ####################################
+'''
+Those are operators that can be used to do multisectoral operations :
+coupling, transposition, sums...
+'''
+
+def sprod(X, Y):
+    ''' Scalar product between vector X and Y.
+    Z=sprod(X,Y) so Z_i=\sum X_i Y_i'''
+    return np.matmul(np.moveaxis(X, -1, -2), Y)
+
+def ssum(X):
+    ''' Scalar product between vector X and Y.
+    Z=ssum(X) so Z_i=\sum X_i'''
+    return np.matmul(np.moveaxis(X, -1, -2), X * 0 + 1)
+
+def transpose(X):
+    '''Transposition of X :
+    Y=transpose(X)  Y_ij=X_ji'''
+    return np.moveaxis(X, -1, -2)
+
+def matmul(M, V):
+    '''Matrix product Z=matmul(M,V) Z_i = \sum_j M_{ij} V_j'''
+    return np.matmul(M, V)
+
+def distXY(x, y):
+    '''x and y vector of position, z=distXY(x,y) is the matrix of distance
+     between each particle of position x,y :
+     z_ij= \sqrt{ (x_i-x_j)^2 + (y_i-y_j)^2}'''
+    return np.sqrt((x - np.moveaxis(x, -1, -2)) ** 2 +
+                   (y - np.moveaxis(y, -1, -2)) ** 2 )
+
+# #######################################################################
+### The loop to merge the two dictionnaries
+def MERGE(Recipient,dictoadd,override=True,verb=True):
+    '''
+    If you mix two models or want to add new auxlliary logics,
+    you can merge your two dictionnaries.
+
+    override : true will replace previous fields with new one if conflict such as :
+        * another definition with the same type of logic (ODE, statevar)
+        * change of logic type (transform a statevar to an ODE)
+
+    Recipient is _LOGICS that you want to fill
+    dicttoadd contains the new elements you want
+    '''
+
+    ### Category of the variable in a dict
+    keyvars = { k:v.keys() for k,v in Recipient.items() }
+    typ= {}
+    for k,v in keyvars.items():
+        for vv in v :
+            typ[vv]=k
+
+    ### Merging dictionnaries
+    for category, dic in dictoadd.items(): ### LOOP ON [SECTOR SIZE,ODE,STATEVAR,PARAMETERS]
+        for k, v in dic.items(): ### LOOP ON THE FIELDS
+            if k in typ.keys(): ### IF FIELD ALREADY EXIST
+                if override:
+                    if verb : print(f'Override {category} variable {k}. Previous :{Recipient[category][k]} \n by :{v}')
+                    Recipient[category][k] = v
+                if typ[k]!=category :
+                    if verb : print(f'Category change for logic of {k} : from {typ[k]} to {category}')
+                    del Recipient[typ[k]][k]
+                elif verb : print(f'Keeping old definition {category} variable {k}. Previous :{Recipient[category][k]} \n {v}')
+            else: ### IF FIELD DOES NOT
+                Recipient[category][k] = v
+    return Recipient
+
+
+# ###############################################################################
+# ###############################################################################
+# ###############################################################################
+# ###############################################################################
+
+
 class Funcs:
     class Phillips:
         """
@@ -37,7 +113,7 @@ The phenomena behind is a class struggle
 
         div = {
             'func': lambda employment, phi0, phi1: -phi0 + phi1 / (1 - employment)**2,
-            'com': 'diverging (force omega \leq 1)'
+            'com': 'diverging (force employment \leq 1)'
         }
 
         lin = {

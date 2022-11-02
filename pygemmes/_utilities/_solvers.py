@@ -145,6 +145,7 @@ def solve(
         dmisc=dmisc,
     )
 
+    store_statevar = True
     # -------------
     # dispatch to relevant solver to solve ode using dydt_func
     _eRK4_homemade(
@@ -155,7 +156,7 @@ def solve(
         lstate=lstate,
         nt=dparam['nt']['value'],
         dverb=dverb,
-        dictpos=dictpos
+        dictpos=dictpos,
     )
 
     # ----------------------
@@ -316,6 +317,8 @@ def _eRK4_homemade(
         for k0 in lode:
             v = dictpos[k0]
             dparam[k0]['value'][ii, ...] = y[...,v,:]
+
+
     for k0 in lode:
         v = dictpos[k0]
         dparam[k0]['value'][0, ...] = y0[...,v,:]

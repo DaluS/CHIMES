@@ -15,10 +15,15 @@ import matplotlib.pyplot as plt
 import matplotlib
 from matplotlib.collections import LineCollection
 from matplotlib.patches import Rectangle
+import matplotlib.patches as patches
+
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.gridspec import GridSpec
+
+
+__USETEX=False
 
 
 _LS = [
@@ -38,6 +43,25 @@ _LS = [
 matplotlib.rc('xtick', labelsize=15)
 matplotlib.rc('ytick', labelsize=15)
 plt.rcParams.update({'font.size': 15})
+params = {'legend.fontsize': 10,
+          'legend.handlelength': 2,
+          'legend.borderpad':0,
+          'legend.labelspacing':0.0}
+SIZETICKS = 20
+SIZEFONT = 25
+LEGENDSIZE = 20
+LEGENDHANDLELENGTH = 2
+
+if __USETEX:
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif', size=SIZEFONT)
+    plt.rcParams.update({'figure.autolayout': True})
+    plt.rcParams['text.latex.preamble'] = [r"\usepackage{amsmath} \usepackage{libertine}"]
+    ticksfontProperties = {'family': 'sans-serif', 'sans-serif': ['Helvetica'], 'weight': 'medium',}
+plt.rcParams.update(params)
+
+
+
 
 
 __all__ = [
@@ -49,7 +73,8 @@ __all__ = [
     'plot3D',
     'plotbyunits',
     'Var',
-    'cycles_characteristics'
+    'cycles_characteristics',
+    'repartition'
 ]
 
 # ############################################################################
@@ -87,9 +112,9 @@ def plotbyunits(hub,
     another figure will be added with x only on it, and pi and epsilon on the other one)
 
     '''
-    ### CHECKS
     if not hub.dmisc['run']:
-        raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
+        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
+        hub.run()
 
     ### FILTERING THE KEYS
     grpfield = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['differential', 'statevar'])
@@ -171,8 +196,8 @@ def plotbyunits(hub,
         if index % 2 == 1:
             ax.yaxis.set_label_position("right")
             ax.yaxis.tick_right()
-        color = np.array(plt.cm.jet(np.linspace(0,1,len(vy[key])+2)))
-        color[:,-1] *= 0.8
+        color = np.array(plt.cm.turbo(np.linspace(0,1,len(vy[key]))))
+        #color[:,-1] *= 0.8
 
         ### ADD EFFECTIVELY THE PLOTS
         j=-1
@@ -190,7 +215,7 @@ def plotbyunits(hub,
             dax[key].legend(ncol=1+j//4)
         index += 1
 
-        #ax.axhline(y=0, color='k', lw=0.5)
+        ax.axhline(y=0, color='k', lw=0.5)
 
     #plt.suptitle(title)
     fig.tight_layout()
@@ -214,9 +239,14 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
                      title='',
                      lw=2)
     '''
-    ### CHECKS
     if not hub.dmisc['run']:
-        raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
+        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
+        hub.run()
+
+    if type(log) in [str,bool]:
+        log=[log for l in y]
+    if len(log)!=len(y):
+        raise Exception(f'The length of the log list ({len(log)}) does not correspond to the length of the axes ({len(y)})!')
 
     ### INITIALIZE FIGURE
     fig = plt.figure()
@@ -271,7 +301,7 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
         dax[ii].set_ylim(ymin, ymax)
 
         ## Work on the colors
-        color = np.array(plt.cm.hsv(ii/Nyaxis))
+        color = np.array(plt.cm.turbo(ii/Nyaxis))
         color[:-1] *= 0.8
         color = tuple(color)
 
@@ -285,9 +315,9 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
         side = 'right' if ii % 2 else 'left'
 
         if units == '$()$': units=''
-        ylabel = r''.join([xx+'\n, ' for xx in symbolist])[:-2] + units
+        ylabel = r''.join([xx+', ' for xx in symbolist])[:-2] + units
 
-        dax[ii].set_ylabel(ylabel,loc='bottom', rotation=0,labelpad=-40 if side=='right' else 0)
+        dax[ii].set_ylabel(ylabel,labelpad=-40 if side=='right' else 0)#,loc='bottom', rotation=0
         dax[ii].spines[side].set_position(('outward', np.amax((0, 60*(ii//2)))))
         if side == 'left':
             dax[ii].yaxis.tick_left()
@@ -295,8 +325,11 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
         dax[ii].yaxis.label.set_color(color)
         dax[ii].tick_params(axis='y', colors=color)
 
+        if log[ii]:
+            dax[ii].set_yscale('log')
     dax[ii].legend(handles=p.values(), loc='best')
     plt.title(title)
+    plt.tight_layout()
     plt.show()
 
 
@@ -314,9 +347,10 @@ def phasespace(hub, x, y, color='time', idx=0,Region=0):
     EXAMPLE :
     pgm.plots.phasespace(hub,'employment',['pi','Capital'],color=['omega','Consumption'])
     '''
-    ### CHECKS
     if not hub.dmisc['run']:
-        raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
+        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
+        hub.run()
+
 
     R=hub.dparam
     if type(x) is list :
@@ -385,9 +419,9 @@ def plot3D(hub, x, y, z, color, cmap='jet', index=0,Region=0, title=''):
                          color=['omega','Consumption'])
 
     '''
-    ### CHECKS
     if not hub.dmisc['run']:
-        raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
+        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
+        hub.run()
 
     R=hub.get_dparam()
     if type(x) is list :
@@ -440,10 +474,12 @@ def plot3D(hub, x, y, z, color, cmap='jet', index=0,Region=0, title=''):
     line = ax.add_collection(lc)
 
     cbar = fig.colorbar(lc, ax=ax)
-    cbar.ax.set_ylabel(R[color]['symbol'][:-1]+'_{'+xname+'}$')
-    ax.set_xlabel(R[x]['symbol'][:-1]+'_{'+xname+'}$')
-    ax.set_ylabel(R[y]['symbol'][:-1]+'_{'+yname+'}$')
-    ax.set_zlabel(R[z]['symbol'][:-1]+'_{'+zname+'}$')
+    cbar.ax.set_ylabel(R[color]['symbol'][:-1]+'_{'+xname+'}$' if xname else R[color]['symbol'])
+    ax.set_xlabel(R[x]['symbol'][:-1]+'_{'+xname+'}$' if xname else R[x]['symbol'])
+    ax.set_ylabel(R[y]['symbol'][:-1]+'_{'+yname+'}$' if yname else R[y]['symbol'])
+    ax.set_zlabel(R[z]['symbol'][:-1]+'_{'+zname+'}$' if zname else R[z]['symbol'])
+
+    #print(R[x]['symbol'][:-1]+'_{'+xname+'}$')
 
     plt.tight_layout()
     # plt.legend()
@@ -458,9 +494,11 @@ def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
     if mode = 'sensitivity' the system will show statistical variance between parrallel run of nx
     if mode = 'cycles' the system will show cycles within the evolution of the variable with their characteristics
     '''
+
     ### CHECKS
     if not hub.dmisc['run']:
-        raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
+        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
+        hub.run()
     if (mode=='sensitivity' and not hub.dmisc.get('sensitivity',False)):
         print('the system is calculating statsensitivity...')
         hub.calculate_StatSensitivity()
@@ -570,8 +608,9 @@ def cycles_characteristics(hub,
                            yaxis='employment',
                            ref='employment',
                            type1='frequency',
-                           type2='meanval',
-                           idx=0,Region=0):
+                           normalize=False,
+                           Region=0,
+                           title=''):
     '''
     Plot frequency and harmonicity for each cycle found in the system
 
@@ -597,8 +636,8 @@ def cycles_characteristics(hub,
 
     ####
     fig = plt.figure()
-    ax1 = plt.subplot(121)
-    ax2 = plt.subplot(122)
+    ax1 = plt.subplot(111)
+
 
     xsector=xaxis[1] if type(xaxis) is list else 0
     ysector=yaxis[1] if type(xaxis) is list else 0
@@ -617,10 +656,12 @@ def cycles_characteristics(hub,
             AllX.append(R[xaxis]['value'][ids[0]:ids[1], i,Region,xsector])
             AllY.append(R[yaxis]['value'][ids[0]:ids[1], i,Region,ysector])
             AllC1.append(cycs[type1][i][j])
-            AllC2.append(cycs[type2][i][j])
+
+
+    if normalize:
+        AllC1/=np.amax(AllC1)
 
     lc1 = _multiline(AllX, AllY, AllC1, ax=ax1, cmap='jet', lw=2)
-    lc2 = _multiline(AllX, AllY, AllC2, ax=ax2, cmap='jet', lw=2)
 
     ax1.set_xlabel(R[xaxis]['symbol'])
     ax1.set_ylabel(R[yaxis]['symbol'])
@@ -629,16 +670,84 @@ def cycles_characteristics(hub,
     fig.colorbar(lc1, cax=cax1, orientation='vertical')
     ax1.set_title(type1)
 
-    ax2.set_xlabel(R[xaxis]['symbol'])
-    ax2.set_ylabel(R[yaxis]['symbol'])
-    divider2 = make_axes_locatable(ax2)
-    cax2 = divider2.append_axes('right', size='5%', pad=0.05)
-    fig.colorbar(lc2, cax=cax2, orientation='vertical')
-    ax2.set_title(type2)
 
-    plt.suptitle('Period analysis on : '+R[ref]['symbol'])
+    plt.suptitle(title+'Period analysis on : '+R[ref]['symbol'])
     plt.show()
 
+
+
+
+def repartition(hub ,
+                keys : list ,
+                sector = '' ,
+                sign= '+',
+                ref = '',
+                refsign = '+',
+                title= '',
+                idx=0,
+                region=0,):
+    """
+    Will create a substack of the different component you put in.
+
+    Example on a multisectoral :
+    repartition(hub,['pi','rd','xi','gamma','omega'],sector='Consumption')
+    repartition(hub,['pi','rd','xi','gamma','omega'],sector='Capital')
+    """
+    if not hub.dmisc['run']:
+        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
+        hub.run()
+
+
+    ### SIGNS HANDING
+    # Signs repartition
+    if type(sign) in [int,str]:
+        sign=[sign for l in keys]
+    if len(sign)!=len(keys):
+        raise Exception(f'The length of the sign list ({len(sign)}) does not correspond to the length of the elements ({len(keys)})!')
+    sign = [ 1 if s in ['+',1] else -1 for s in sign]
+    # refsign handling
+    if refsign in ['+',1]: refsign=1
+    else : refsign=-1
+
+
+    R=hub.get_dparam()
+    # Sector names
+    if sector in ['',False,None]:
+        sectindex = 0
+        sectname = ''
+    elif type(sector) is int :
+        sectindex = sector*1
+        sectname = R[R[keys[0]]['size'][0] ]['list'][sectindex]
+    else:
+        sectname = str(sector)
+        sectindex = R[R[keys[0]]['size'][0] ]['list'].index(sectname)
+
+
+    dicvals = { R[k]['symbol'][:-1]+'_{'+sectname+'}$': sign[enum]*R[k]['value'][:,idx,region,sectindex,0] for enum, k in enumerate(keys)}
+    color = list(plt.cm.jet(np.linspace(0,1,len(keys)+1)))
+    dicvalpos = { k : np.maximum(v,0) for k,v in dicvals.items()}
+    dicvalneg = { k : np.minimum(v,0) for k,v in dicvals.items()}
+    time = R['time']['value'][:,0,0,0,0]
+
+    plt.figure()
+    fig=plt.gcf()
+    fig.set_size_inches(15, 10 )
+    ax=plt.gca()
+    if len(ref):
+        name = R[ref]['symbol'][:-1]+'_{'+sectname+'}$'
+        ax.plot(time,refsign*R[ref]['value'][:,idx,region,sectindex,0],c='k',lw=1,label=name)
+    ax.stackplot(time,dicvalpos.values(),labels=dicvals.keys(),colors=color)
+    ax.legend(loc='upper left')
+    ax.stackplot(time, dicvalneg.values(),lw=3,colors=color)
+
+    plt.ylabel('Repartition $ '+R[keys[0]]['units'].replace('$', '\$')+' $ ' if len(R[keys[0]]['units']) else 'Repartition')
+    plt.xlabel('Time (y)')
+    plt.suptitle(title)
+    plt.tight_layout()
+    plt.show()
+
+# %% DEPRECIATED ##################################################################
+###################################################################################
 
 def __slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0,Region=0):
     '''
@@ -833,4 +942,8 @@ _DPLOT = {
     '3D': plot3D,
     'byunits': plotbyunits,
     'Onevariable': Var,
-    'cycles_characteristics': cycles_characteristics}
+    'cycles_characteristics': cycles_characteristics,
+    'repartition':repartition}
+
+
+

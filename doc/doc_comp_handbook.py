@@ -2,10 +2,33 @@ import pygemmes as pgm
 from copy import deepcopy
 import numpy as np
 
-# %% Small check for pleasure
+# %% Small check for the sake of it
 hub= pgm.Hub('LorenzSystem',preset='Canonical example')
 hub.run()
 pgm.plots.plot3D(hub, 'x', 'y', 'z', 'time')
+
+# %% Agents systems
+import matplotlib.pyplot as plt
+hub=pgm.Hub('Agents')
+hub.run()
+R=hub.get_dparam()
+
+## Trajectory
+X=R['x']['value'][:,0,0,:,0]
+Y=R['y']['value'][:,0,0,:,0]
+for i in range(10):
+    plt.plot(X[:,i],Y[:,i])
+plt.show()
+
+## Interdistance
+plt.figure()
+for i in range(R['nt']['value']):
+    plt.clf()
+    plt.imshow(R['distances']['value'][i, 0, 0, :, :])
+    plt.title(i)
+    plt.pause(0.01)
+    plt.draw()
+plt.close('all')
 
 # %% INTERACTION SCHEMES ################################
 # Goodwin interaction scheme, Goodwin-reduced interaction scheme
@@ -19,10 +42,12 @@ hubR.get_Network()
 # %% RUNS ###################################
 # 3 system in parrallel with small difference in
 hub= pgm.Hub('Goodwin')
-hub.set_dparam(**{'nx':3,
+hub.set_dparam(**{'Tmax':100,
+                  'nx':3,
                   'K':[2.7,2.3,1]})
 hub.get_summary()
 hub.run(N=1000)
+
 
 # Loop on all indexes
 for idx in range(3):
@@ -34,15 +59,32 @@ for idx in range(3):
 hub= pgm.Hub('Goodwin')
 hub.set_dparam(**{'Tmax':30,
                   'nx':30,
-                  'K':np.linspace(.5,2.75,30)})
+                  'n':0.1,
+                  'w':0.7,
+                  'K':np.linspace(.25,2.9,30)})
 hub.run(N=1000)
 hub.calculate_Cycles(ref='employment')
-pgm.plots.Var(hub,'omega',mode='cycles')
+#pgm.plots.Var(hub,'omega',mode='cycles')
 pgm.plots.Var(hub,'g',mode='sensitivity')
 pgm.plots.cycles_characteristics(hub,'omega','employment',
                                  ref='g',
                                  type1='frequency',
-                                 type2='meanval')
+                                 normalize=True,
+                                 )
+
+cm=plt.cm.jet(np.linspace(0,1,10))
+plt.figure()
+omega=np.linspace(0.01,0.999,100)
+f = lambda eta, omega : (omega**(-eta/(1+eta))-1)**(1/eta)
+for i,eta in enumerate(np.logspace(1,4,10)):
+    l = f(eta,omega)
+    plt.plot(omega,l,label=f'$\eta={int(eta)}$',color=cm[i,:])
+plt.legend()
+plt.ylim(0,2)
+plt.ylabel('$l=\dfrac{L}{L_c}$')
+plt.xlabel('$\omega_c$')
+plt.show()
+
 
 # %% GOODWIN REDUCED #################################################
 hub= pgm.Hub('reduced_G')
@@ -52,13 +94,15 @@ hub.plot()
 
 # %% VAN DER PLOECK aka GOODWIN CES ##################################
 hub= pgm.Hub('Goodwin_CES')
-hub.set_dparam(**{'nx':4,
-                  'K':2.5,
-                  'Tmax':300,
-                  'CESexp':[18,100,500,1000]})
+hub.set_dparam(**{'nx':5,
+                  'dt':0.005,
+                  'K':[2.55],
+                  'Tmax':50,
+                  'CESexp':[100000]})
 hub.get_summary()
 hub.run()
-pgm.plots.phasespace(hub, 'omega', 'employment', 'time', idx=1)
+hub.reinterpolate_dparam(200)
+pgm.plots.phasespace(hub, 'omega', 'employment', 'time', idx=4)
 pgm.plots.phasespace(hub, 'omega', 'l', 'time', idx=0)
 pgm.plots.Var(hub,'omega',mode='cycles')
 
@@ -71,8 +115,7 @@ hub.run()
 pgm.plots.Var(hub,'l',mode='cycles')
 pgm.plots.cycles_characteristics(hub,'omega','employment',
                                  ref='l',
-                                 type1='frequency',
-                                 type2='meanval')
+                                 type1='frequency',)
 
 # %% GOODWIN-KEEN ####################################################
 hub= pgm.Hub('GK',preset='default')
@@ -82,17 +125,28 @@ hub.plot()
 
 hub= pgm.Hub('GK',preset='farfromEQ')
 hub.get_summary()
-hub.run()
+hub.run(N=500)
 hub.plot()
 pgm.plots.plot3D(hub,'omega','employment','d','time')
 
 #
 hub= pgm.Hub('GK',preset='farfromEQ')
-hub.set_dparam(**{'D':0})
+hub.set_dparam(**{'D':0,
+                  'nt':50})
 hub.get_summary()
-hub.run()
+hub.run(N=500)
 hub.plot()
 pgm.plots.plot3D(hub,'omega','employment','d','time')
+
+
+hub= pgm.Hub('GK',preset='farfromEQ')
+hub.set_dparam(**{'D':15,
+                  'nt':50})
+hub.get_summary()
+hub.run(N=1000)
+hub.plot()
+pgm.plots.plot3D(hub,'omega','employment','d','time')
+
 
 # How inflation here stabilize
 hub= pgm.Hub('GK',preset='farfromEQ')
@@ -105,7 +159,7 @@ pgm.plots.plot3D(hub,'omega','employment','d','time')
 # Crisis with inflation
 hub= pgm.Hub('GK',preset='crisis')
 hub.get_summary()
-hub.run()
+hub.run(N=500)
 hub.plot()
 pgm.plots.plot3D(hub,'omega','employment','d','time')
 

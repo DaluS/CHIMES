@@ -106,9 +106,9 @@ class Hub():
 
         # update from preset if relevant ######################################
         if dpresets is not None:
-            self.set_dpreset(dpresets,verb=verb)
+            self.set_dpreset(dpresets,verb=False)
         if preset is not None:
-            self.set_preset(preset, verb=verb)
+            self.set_preset(preset, verb=False)
         else:
             self.reset()
 
@@ -167,7 +167,7 @@ class Hub():
             return f"{input} is not a valid preset name ! the preset name must be in {list(self.__dmodel['presets'].keys())}"
         else :
             self.__dmodel['preset']=input
-            self.set_dparam(self,**self.__dmodel['presets'][input]['fields'])
+            self.set_dparam(self,verb=verb,**self.__dmodel['presets'][input]['fields'])
 
     def set_dparam(self,key=None,value=None,verb=_VERB,**kwargs):
         """
@@ -247,8 +247,11 @@ class Hub():
         """
 
         # Take minimal changes
-        if (key and value):
+
+        if (key is not None and
+            value is not None):
             kwargs[key]=value
+
 
         #### DECOMPOSE INTO SIZE AND VALUES #######
         setofdimensions = set(['nr','nx','dt','Tmax']+list(self.get_dparam(eqtype=['size'])))
@@ -266,6 +269,17 @@ class Hub():
             else :
                 wrongfields.append(kk)
 
+        ### Check if dimensions are changed
+        Rdim=self.get_dparam(keys=dimtochange.keys())
+        ignored=[]
+        for k,v in dimtochange.items():
+            if ( v==Rdim[k]['value'] or v==Rdim.get('list',[])):
+                if verb : print(f'{k} asked to be changed but the value {v} is already the one in the system')
+                ignored.append(k)
+        for k in ignored :
+            wrongfields.append(k)
+            del dimtochange[k]
+
         if verb:
             print('')
             print('### Identified keys to be changed ###')
@@ -281,7 +295,6 @@ class Hub():
         '''
         Change the dimensions of the system
         '''
-
         # we scan all fields that will need to have their values changed
         # Check if we can change value
         setofdimensions = set(['nr','nx','dt','Tini','Tmax']+list(self.get_dparam(eqtype=['size'])))
@@ -321,6 +334,7 @@ class Hub():
                                                    self.__dmisc['dfunc_order'])
         self.__dargs=_class_set.get_dargs_by_reference(self.__dparam,
                                                        dfunc_order=self.__dmisc['dfunc_order'])
+
 
     def _set_fields(self,verb=_VERB, **kwargs):
         # Get list of variables that might need a reshape
@@ -367,7 +381,8 @@ class Hub():
                     if verb:print(f'Identified {kk} as a value change on all axes')
                     newvalue[kk] = kwargs[kk]+0.
             else:
-                newvalue[kk]=np.ravel(np.array(oldvalue[kk]))[0]
+                #newvalue[kk]=np.ravel(np.array(oldvalue[kk]))[0]
+                newvalue[kk]=oldvalue[kk]
 
         for kk in parametersandifferential:
             self.__dparam[kk][direct[kk]]=newvalue[kk]
@@ -380,20 +395,23 @@ class Hub():
                                                        dfunc_order=self.__dmisc['dfunc_order'])
         self.reset()
 
-    def _change_line(self,kk,v):
+    def _change_line(self,kk,v,verb=False):
         if self.__dparam[kk]['size'][0] == '__ONE__':
-            print(f'Identified {kk} as value changes on nx (list)')
+            if verb:
+                print(f'Identified {kk} as value changes on nx (list)')
             newv = np.array(v)
             while len(np.shape(newv)) < 4:
                 newv = newv[:, np.newaxis] + 0
         elif self.__dparam[kk]['size'][1] == '__ONE__':
-            print(f'Identified {kk} as value changes on first vector dimension')
+            if verb:
+                print(f'Identified {kk} as value changes on first vector dimension')
             newv=np.array(v)
             newv=newv[np.newaxis,np.newaxis,:,np.newaxis]+0
         else:
-            print(f'Identified {kk} as value changes on the matrix')
+            if verb:
+                print(f'Identified {kk} as value changes on the matrix')
             newv=np.array(v)
-            print(newv,np.shape(newv))
+            #print(newv,np.shape(newv))
             newv=newv[np.newaxis,np.newaxis,:,:]+0
         return newv
 
@@ -546,6 +564,24 @@ class Hub():
     # ##############################
     # %% Getting parameters ########
     # ##############################
+    def get_presets(self,returnas=False):
+        '''
+        Give preset name and description
+
+        if returnas= False : print
+        if returnas= list : give the list of the presets
+        if returnas= dict : give the dict of the presets
+        '''
+
+        if returnas==False :
+            print('List of available presets :')
+            for k,v in self.__dmodel['presets'].items():
+                print(k.ljust(30),v['com'])
+        if returnas==list:
+            return list(self.__dmodel['presets'].keys())
+        if returnas==dict:
+            return {k:v['com'] for k,v in self.__dmodel['presets'].items() }
+
 
     def get_dparam(self, condition=None,returnas=dict,verb=False, **kwdargs):
        """ Return a copy of the input parameters dict that you can filter
@@ -694,6 +730,7 @@ class Hub():
        # recompute inital value for statevar
        lstate = self.__dmisc['dfunc_order']['statevar']
 
+       ERROR=''
        for k0 in lstate:
            kwdargs = {
                k1: v1[0, ...] if k1 in self.__dmisc['dfunc_order']['statevar'] +
@@ -701,13 +738,23 @@ class Hub():
                for k1, v1 in self.__dargs[k0].items()
            }
 
-           # run function
-           self.__dparam[k0]['value'][0, ...] = (
-               self.__dparam[k0]['func'](**kwdargs)
-           )
+           try :
+               # run function
+               self.__dparam[k0]['value'][0, ...] = (
+                   self.__dparam[k0]['func'](**kwdargs)
+               )
+
+           except BaseException:
+               #print(k0)
+               ERROR+=f'You have a problem on your object sizes for {k0} \n'
+       if len(ERROR):
+           raise Exception(ERROR+'ALLOCATION CANNOT BE DONE,CHECK YOUR MODEL FILE !')
 
        # set run to False
        self.__dmisc['run'] = False
+       self.__dmisc['cycles'] = False
+       self.__dmisc['sensitivity'] = False
+
 
     def run(
            self,
@@ -826,7 +873,7 @@ class Hub():
        else:
            return col0, ar0
 
-    def get_summary(self, idx=0, Region=0):
+    def get_summary(self, idx=0, Region=0,removesector=()):
         """
         INTROSPECTION TOOL :
         Print a str summary of the model, with
@@ -887,13 +934,13 @@ class Hub():
             print(20 * '#', str('Parr. sys numb:'+str(self.__dparam['nx'].get('list',np.arange(self.__dparam['nx']['value']))[idx])).center(18), 20 * '#')
         print(60 * '#')
         # parameters
-        col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx)
+        col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx,filtersector=removesector)
         # SCALAR ODE
         col3, ar3 = _class_utility._get_summary_functions_vector(
-           self, idx=idx,Region=Region, eqtype=['differential'])
+           self, idx=idx,Region=Region, eqtype=['differential'],filtersector=removesector)
         # SCALAR Statevar
         col4, ar4 = _class_utility._get_summary_functions_vector(
-           self, idx=idx,Region=Region, eqtype=['statevar'])
+           self, idx=idx,Region=Region, eqtype=['statevar'],filtersector=removesector)
 
 
 
@@ -985,8 +1032,10 @@ class Hub():
 
         if preset is None:
             preset = self.dmodel['preset']
-        tempd = self.dmodel['presets'][preset]['plots']
 
+        tempd = self.dmodel['presets'][preset]['plots']
+        if type(tempd) is tuple:
+            raise Exception('your plot dictionnary might have a comma at the end, please remove it !')
         for plot, funcplot in _DPLOT.items():
             for argl in tempd.get(plot, []):
                 funcplot(self, **argl)

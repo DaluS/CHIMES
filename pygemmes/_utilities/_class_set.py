@@ -307,6 +307,8 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None, dfields=None):
     '''
     lpar_add, lfunc_add = [], []
     lkok = ['itself'] + lpar + lfunc
+
+    ERRORS=[]
     for k0 in lfunc:
         key =  k0
 
@@ -320,12 +322,16 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None, dfields=None):
         for kk in kargs:
             key = kk
             if key not in lkok:
-                if _models._DFIELDS[key].get('func') is None:
-                    if key not in lpar_add:
-                        lpar_add.append(key)
-                elif key not in lfunc_add:
-                    lfunc_add.append(key)
-
+                try:
+                    if _models._DFIELDS[key].get('func') is None:
+                        if key not in lpar_add:
+                            lpar_add.append(key)
+                    elif key not in lfunc_add:
+                        lfunc_add.append(key)
+                except BaseException:
+                    ERRORS.append([key])
+    if ERRORS:
+        raise Exception(f'Some fields cannot be found, check your model file and `def_fields` !: {ERRORS}')
     return lpar_add, lfunc_add
 
 # %% 6) SET ARGS, KARGS, FIND AUXILLIARIES
