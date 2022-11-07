@@ -15,7 +15,6 @@ import matplotlib.pyplot as plt
 import matplotlib
 from matplotlib.collections import LineCollection
 from matplotlib.patches import Rectangle
-import matplotlib.patches as patches
 
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 
@@ -24,7 +23,6 @@ from matplotlib.gridspec import GridSpec
 
 
 __USETEX=False
-
 
 _LS = [
     (0, ()),
@@ -570,9 +568,12 @@ def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
 
 
         ## Plot all trajectory
+
         for jj in range(len(allvars[key]['value'][0, :,0,0,0])):
             ax.plot(time, hub.dparam[key]['value'][:, jj,Region,0,0]
                          , c='k', ls='--', lw=0.5)
+            if jj==30:
+                print('WARNING: plotvar should be coded with a linecollection...')
 
         # Plot mean an median
         ax.plot(time, V['mean'], c='orange', label='mean')

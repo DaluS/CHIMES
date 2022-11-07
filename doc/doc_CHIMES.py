@@ -73,9 +73,14 @@ pgm.plots.plotnyaxis(hub, y=[['DAGG']+[['D',sector] for sector in sectors] ,
 pgm.plots.plot3D(hub,
                  x='omegaAGG',
                  y='employment',
-                 z='piAGG',
+                 z='rdAGG',
                  color='time')
-
+for sector in sectors :
+    pgm.plots.plot3D(hub,
+                     x=['omega',sector],
+                     y=['employmentlocal',sector],
+                     z=['rd',sector],
+                     color='time')
 
 dict={
 'Tmax':80,
