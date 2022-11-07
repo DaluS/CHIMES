@@ -58,6 +58,12 @@ _PRESETS = {
         'fields': {
         },
         'com': '',
-        'plots': {},
+        'plots': {'3D': [{'x': 'x',
+                    'y': 'y',
+                    'z': 'z',
+                    'color': 'time',
+                    'cmap': 'jet',
+                    'index': 0,
+                    'title': 'Lorenz 3-dimension strange attractor'}]},
     },
 }
