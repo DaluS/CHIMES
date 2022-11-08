@@ -1,6 +1,12 @@
 # What is pygemmes ?
 
-Pygemmes is a huge toolbox for ecological economist that want to understand interdisciplinar complex systems through models.
+Pygemmes is a huge toolbox for the study of complex models written with dynamical systems. It is aimed mostly, but not only, to ecological economists. 
+It can solves : 
+* Ordinary differential equations 
+* Spatial differential equations, on any type of grid 
+* Agent-based models 
+
+
 
 It is :
 * An ensemble of fields, concepts that makes sense in our world (temperature, inflation, debt, production, carbon concentration, productivity...)
