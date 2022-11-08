@@ -6,7 +6,7 @@ It can solves :
 * Spatial differential equations, on any type of grid 
 * Agent-based models 
 
-
+In consequence, it is possible to do multisectoral, multiregional, resources-inequalities-climate-international socio-economic system. 
 
 It is :
 * An ensemble of fields, concepts that makes sense in our world (temperature, inflation, debt, production, carbon concentration, productivity...)
