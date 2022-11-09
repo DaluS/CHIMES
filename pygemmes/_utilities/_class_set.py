@@ -73,39 +73,15 @@ def load_model(model=None, verb=None, from_user=None):
 # #############################################################################
 
 # %% 1) LOAD_DMODEL
-
-
 def load_dmodel(model, from_user=False):
     """
     Load the model from its file
     """
 
-    # %% a) choose the folder
-    if from_user is True and _PATH_PRIVATE_MODELS is not None:
-        path_models = _PATH_PRIVATE_MODELS
-    else:
-        path_models = _PATH_MODELS
-
-    # %% b) load python file
-    file_address = _MODEL_NAME_CONVENTION + model + '.py'
-    pfe = os.path.join(path_models, file_address)
-    spec = importlib.util.spec_from_file_location(file_address, pfe)
-    foo = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(foo)
-
-    # %% c) write it as a dict
-    try :
-        dmodel = {
-            'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
-            'file': foo.__file__,
-            'description': foo.__doc__,
-            'presets': {k0: dict(v0) for k0, v0 in foo._PRESETS.items()},
-            # Name of the chosen preset
-            'preset': None,
-            'name': model,
-        }
-    except BaseException:
-        raise Exception("File cannot be read, you might have a commma ',' at the end of your dictionnaries")
+    path_models,_DMODEL = _models._get_DMODEL()
+    dmodel=_DMODEL[model]
+    dmodel['preset']=None
+    dmodel['name'] = model
 
     # %% Complete size vector
     for k,v in dmodel['logics'].get('size',{}).items():

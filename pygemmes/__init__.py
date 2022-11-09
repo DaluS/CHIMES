@@ -18,7 +18,7 @@ This library has been coded mostly by Didier Vezinet and Paul Valcke,
 at the environmental justice program https://environmentaljustice.georgetown.edu/#
 You can contact me at pv229@georgetown.edu
 If you find bugs, want some new extensions, or help us improve the library, please create a new issue on github
-If this is the first time you open this library, please look at the tutorial file in doc/tutorial.py and execute it line by line.
+If this is the first time you open this library, please look at the tutorial file in doc/tutorial.py or better, and execute it line by line.
 
 TO EXPLORE :
 pgm.get_available_ then tab to see what is available
@@ -63,9 +63,9 @@ if __PRINTLOGO:
 #####################################################################################                                                                                                                                   
 """)
 if __PRINTINTRO:
-    __Add= os.path.dirname(os.path.realpath(__file__))+r'doc\tutorial.py'
+    #_Add= os.path.dirname(os.path.realpath(__file__))+r'doc\tutorial.py'
     __Add2 = os.path.dirname(os.path.realpath(__file__))+"\_config.py"
-    __Add3 = os.path.dirname(os.path.realpath(__file__)) + "\_Presentation.ipynb"
+    __Add3 = os.path.dirname(os.path.realpath(__file__)) + "\doc\TUTORIALS\TUTORIAL.ipynb"
     print(
 f"""Welcome in Pygemmes, a modular library to prototype and study dynamical systems !
 This library is oriented toward generation of macroeconomic complexity models 
@@ -75,11 +75,10 @@ at the environmental justice program https://environmentaljustice.georgetown.edu
 You can contact me at pv229@georgetown.edu 
 If you find bugs, want some new extensions, or help us improve the library, please create a new issue on github
 If this is the first time you open this library, please look at the tutorial file in doc/tutorial.py and execute it line by line. 
-Its adress is {__Add}
-The ipythonNotebook is at {__Add3}
-If you want to customize pygemmes (advancer users) like removing this message, edit {__Add2}
-Have fun !
+The ipythonNotebook is at :\n \t{__Add3}
+If you want to customize pygemmes (advancer users) like removing this message, edit :\n \t{__Add2}
+\nHave fun !
 ######################################################################################################
 """   )
-# ########################################
+# ######################################## Its adress is {__Add}
 
