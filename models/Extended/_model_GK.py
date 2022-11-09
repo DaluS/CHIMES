@@ -11,15 +11,9 @@ LINKTOARTICLE:
 
 
 import numpy as np
-from pygemmes._models import Funcs
+from pygemmes._models import Funcs, importmodel
 
-
-# ----------------------------------------------------------------------------
-# We simply do a few modifications on a previous model : we load it as a basis
-from pygemmes._models._model_Goodwin import _LOGICS as _LOGICS0
-from copy import deepcopy
-_LOGICS = deepcopy(_LOGICS0)
-
+_LOGICS,_PRESETS0= importmodel('Goodwin')
 
 # We write the fields we want to add/modify
 _GK_LOGICS = {

@@ -19,9 +19,8 @@ from pygemmes._models import Funcs
 
 # ----------------------------------------------------------------------------
 # We simply do a few modifications on a previous model : we load it as a basis
-from pygemmes._models._model_Goodwin import _LOGICS as _LOGICS0
-from copy import deepcopy
-_LOGICS = deepcopy(_LOGICS0)
+from pygemmes._models import Funcs, importmodel
+_LOGICS,_PRESETS0= importmodel('Goodwin')
 
 _LOGICS['statevar']['phillips']= {
                         'func': lambda phi0,phi1,zpi,employment,pi: -phi0+(pi**zpi)*phi1/(1-employment)**2,

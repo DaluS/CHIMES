@@ -26,7 +26,7 @@ CHIMES :
 __AUXIN = True
 __AGGIN = True
 
-
+from pygemmes._models import Funcs, importmodel,mergemodel
 import numpy as np
 
 
@@ -65,38 +65,6 @@ def Identity(X):
 
 # #######################################################################
 ### The loop to merge the two dictionnaries
-def MERGE(Recipient,dictoadd,override=True,verb=True):
-    '''
-    If you mix two models or want to add new auxlliary logics,
-    you can merge your two dictionnaries.
-
-    override : true will replace previous fields with new one if conflict such as :
-        * another definition with the same type of logic (ODE, statevar)
-        * change of logic type (transform a statevar to an ODE)
-
-    Recipient is _LOGICS that you want to fill
-    dicttoadd contains the new elements you want
-    '''
-    ### Category of the variable in a dict
-    keyvars = { k:v.keys() for k,v in Recipient.items() }
-    typ= {}
-    for k,v in keyvars.items():
-        for vv in v :
-            typ[vv]=k
-    ### Merging dictionnaries
-    for category, dic in dictoadd.items(): ### LOOP ON [SECTOR SIZE,ODE,STATEVAR,PARAMETERS]
-        for k, v in dic.items(): ### LOOP ON THE FIELDS
-            if k in typ.keys(): ### IF FIELD ALREADY EXIST
-                if override:
-                    if verb : print(f'Override {category} variable {k}. Previous :{Recipient[category][k]} \n by :{v}')
-                    Recipient[category][k] = v
-                if typ[k]!=category :
-                    if verb : print(f'Category change for logic of {k} : from {typ[k]} to {category}')
-                    del Recipient[typ[k]][k]
-                elif verb : print(f'Keeping old definition {category} variable {k}. Previous :{Recipient[category][k]} \n {v}')
-            else: ### IF FIELD DOES NOT
-                Recipient[category][k] = v
-    return Recipient
 
 
 # #######################################################################
@@ -780,8 +748,8 @@ _LOGICS_AGREGATES = {
 },
 """
 
-if __AUXIN or __AGGIN:  _LOGICS = MERGE(_LOGICS, _LOGICS_AUX,       verb=True)
-if __AGGIN:             _LOGICS = MERGE(_LOGICS, _LOGICS_AGREGATES, verb=True)
+if __AUXIN or __AGGIN:  _LOGICS = mergemodel(_LOGICS, _LOGICS_AUX,       verb=True)
+if __AGGIN:             _LOGICS = mergemodel(_LOGICS, _LOGICS_AGREGATES, verb=True)
 
 
 

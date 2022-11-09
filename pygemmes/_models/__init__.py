@@ -10,7 +10,9 @@ from .._utilities import _utils
 
 import inspect
 
-from .._config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS,_MODEL_NAME_CONVENTION,_MODELS_SHOWDETAILS
+from .._config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS,_MODEL_NAME_CONVENTION,_MODELS_SHOWDETAILS,_MODEL_FOLDER_HIDDEN
+
+from copy import deepcopy
 
 # ####################################################
 # ####################################################
@@ -19,33 +21,56 @@ from .._config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS,_MODEL_NAME
 def _get_DMODEL(from_user=_FROM_USER):
     # check 09/27/2022 OK
 
+
     # FIND THE PATH TO MODELS
     if from_user is True and _PATH_PRIVATE_MODELS is not None:
         path_models = _PATH_PRIVATE_MODELS
     else:
         path_models = _PATH_MODELS
 
-    # FIND ALL FILES CORRESPONDING
-    _df = {
-        ff[:-3]: ff[len(_MODEL_NAME_CONVENTION):ff.index('.py')]
-        for ff in os.listdir(path_models)
-        if ff.startswith(_MODEL_NAME_CONVENTION) and ff.endswith('.py')
-    }
+
+    _df= {}
+    _dfr = {}
+    ERROR=[]
+    for root, dir, files in os.walk(path_models):
+        if (_MODEL_FOLDER_HIDDEN not in root and root.split("\\")[-1][0]!='_') :
+            for ff in files :
+                if ff.startswith(_MODEL_NAME_CONVENTION) and ff.endswith('.py'):
+
+                    # IF THERE IS ALREADY A MODEL WITH THE SAME NAME
+                    if ff[len(_MODEL_NAME_CONVENTION):ff.index('.py')] in _dfr.keys():
+                        ERROR.append([_dfr[ff[len(_MODEL_NAME_CONVENTION):ff.index('.py')]],
+                                      os.path.join(root,ff[:-3])])
+
+                    _df[os.path.join(root,ff[:-3])]= ff[len(_MODEL_NAME_CONVENTION):ff.index('.py')]
+                    _dfr[ ff[len(_MODEL_NAME_CONVENTION):ff.index('.py')]]=os.path.join(root,ff[:-3])
+    if ERROR:
+        for f in ERROR : print(f)
+        raise Exception(f'You have at leas two models with the same name !')
+
+
 
     # CREATE A DICTIONNARY CONTAINING EVERYTHING THEY HAVE
     _DMODEL = {}
     for k0, v0 in _df.items():
-        pfe = os.path.join(path_models, k0 + '.py')
-        spec = importlib.util.spec_from_file_location(k0, pfe)
-        foo = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(foo)
-        _DMODEL[v0] = {
-            'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
-            'file': foo.__file__,
-            'description': foo.__doc__,
-            'presets': {k0: dict(v0) for k0, v0 in foo._PRESETS.items()},
-            'name': v0,
-        }
+        try :
+            pfe = os.path.join(path_models, k0 + '.py')
+            spec = importlib.util.spec_from_file_location(k0, pfe)
+            foo = importlib.util.module_from_spec(spec)
+
+            spec.loader.exec_module(foo)
+            _DMODEL[v0] = {
+                'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
+                'file': foo.__file__,
+                'description': foo.__doc__,
+                'presets': {k0: dict(v0) for k0, v0 in foo._PRESETS.items()},
+                'name': v0,
+                'address': k0,
+            }
+        except BaseException as Err:
+            print(f'Model {v0} could not be loaded from folder {k0} ! \n you might have a commma "," at the end of one of your dictionnaries. Error message :\n {Err}\n')
+
+
 
     return path_models, _DMODEL
 
@@ -98,6 +123,7 @@ def get_available_models(
             'name': str(_DMODEL[k0]['name']),
             'description': str(_DMODEL[k0]['description']),
             'presets': list(_DMODEL[k0]['presets']),
+            'address': _DMODEL[k0]['address']
         }
         for k0, v0 in _DMODEL.items()
         if k0 in model
@@ -150,12 +176,15 @@ def get_available_models(
         else:
             # compact message
             nmax = max([len(v0['name']) for v0 in dmod.values()])
+            n2max = max([len(v0['address'][len(_PATH_MODELS)+1:-len(_MODEL_NAME_CONVENTION)-len(v0['name'])-1]) for v0 in dmod.values()])+1
             lstr = [
-                f"\t- {v0['name'].ljust(nmax)}: {v0['presets']}"
+                f" {v0['address'][len(_PATH_MODELS)+1:-len(_MODEL_NAME_CONVENTION)-len(v0['name'])-1].ljust(n2max)+'| '+v0['name'].ljust(nmax)} | {v0['presets']}"
                 for k0, v0 in dmod.items()
             ]
             msg = (
                 f"The following models are available from '{path_models}'\n"
+                + "\n"+' FOLDER'.ljust(n2max+1)+"| MODEL NAME".ljust(nmax+3)+'| Presets\n'
+                + '#'*len("\n"+' FOLDER'.ljust(n2max+1)+"| MODEL NAME".ljust(nmax+3)+'| Presets\n')+'\n'
                 + "\n".join(lstr)
             )
 
@@ -211,3 +240,67 @@ def get_available_functions():
         print(f"-----------------{57*'-'}{len(sub[0])*'-'}")
         it = 0
         _printsubgroupe(sub, it)
+
+
+
+def importmodel(name : str,
+                from_user=False):
+
+    # FIND THE PATH TO MODELS
+    if from_user is True and _PATH_PRIVATE_MODELS is not None:
+        path_models = _PATH_PRIVATE_MODELS
+    else:
+        path_models = _PATH_MODELS
+
+    ### FIND THE ADRESSES
+    for root, dir, files in os.walk(path_models):
+        if (_MODEL_FOLDER_HIDDEN not in root and root.split("\\")[-1][0]!='_') :
+            for ff in files :
+                if ff.startswith(_MODEL_NAME_CONVENTION) and ff.endswith('.py'):
+                    if ff[len(_MODEL_NAME_CONVENTION):ff.index('.py')]==name:
+                        address = os.path.join(root,ff[:-3])
+                        break
+
+
+    pfe = os.path.join(path_models, address + '.py')
+    spec = importlib.util.spec_from_file_location(address, pfe)
+    foo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(foo)
+
+    return deepcopy({k0: dict(v0) for k0, v0 in foo._LOGICS.items()}),\
+           deepcopy({k0: dict(v0) for k0, v0 in foo._PRESETS.items()})
+
+
+
+def mergemodel(Recipient,dictoadd,override=True,verb=True):
+    '''
+    If you mix two models or want to add new auxlliary logics,
+    you can merge your two dictionnaries.
+
+    override : true will replace previous fields with new one if conflict such as :
+        * another definition with the same type of logic (ODE, statevar)
+        * change of logic type (transform a statevar to an ODE)
+
+    Recipient is _LOGICS that you want to fill
+    dicttoadd contains the new elements you want
+    '''
+    ### Category of the variable in a dict
+    keyvars = { k:v.keys() for k,v in Recipient.items() }
+    typ= {}
+    for k,v in keyvars.items():
+        for vv in v :
+            typ[vv]=k
+    ### Merging dictionnaries
+    for category, dic in dictoadd.items(): ### LOOP ON [SECTOR SIZE,ODE,STATEVAR,PARAMETERS]
+        for k, v in dic.items(): ### LOOP ON THE FIELDS
+            if k in typ.keys(): ### IF FIELD ALREADY EXIST
+                if override:
+                    if verb : print(f'Override {category} variable {k}. Previous :{Recipient[category][k]} \n by :{v}')
+                    Recipient[category][k] = v
+                if typ[k]!=category :
+                    if verb : print(f'Category change for logic of {k} : from {typ[k]} to {category}')
+                    del Recipient[typ[k]][k]
+                elif verb : print(f'Keeping old definition {category} variable {k}. Previous :{Recipient[category][k]} \n {v}')
+            else: ### IF FIELD DOES NOT
+                Recipient[category][k] = v
+    return Recipient

@@ -4,19 +4,21 @@ ABSTRACT : This is the model Coping from Bovari 2018: Coping with Collapse: A St
 TYPICAL BEHAVIOR : BAU and TRANSITION converges toward the good equilibrium, BAU_DAM toward the bad.
 LINKTOARTICLE : DOI: 10.1016/j.ecolecon.2018.01.034
 @author: Hugo A. MARTIN, Paul VALCKE
-"""
-from pygemmes._models import Funcs
-from copy import deepcopy
-import numpy as np
-from pygemmes._models._model_GK import _LOGICS as _LOGICSGK
-from pygemmes._models._model_Climate_3Layers import _LOGICS as _LOGICSCLIM
 
-###############################################################################
-"""
 TODO:
  - regler l'inflation pour qu'elle soit comme Coping 2. ACTUELLEMENT PHILIPS SANS INFLATION
  - verefier unite
+
 """
+import numpy as np
+
+from pygemmes._models import Funcs, importmodel
+_LOGICSGK,_PRESETS0= importmodel('GK')
+_LOGICSCLIM,_PRESETSCLIM= importmodel('Climate_3Layers')
+from copy import deepcopy
+
+###############################################################################
+
 ###############################################################################
 Tini = 2015
 

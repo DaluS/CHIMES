@@ -23,10 +23,11 @@ _MODELS_SHOWDETAILS = False
 
 # ################## MODELS FILES LOCATION AND NAME ###########################
 # FLAG FOR MODEL LOCATION : False if in the library, true in documents
+
 _FROM_USER = False                 # Location of nodel files (NOT CHECKED)
 _MODEL_NAME_CONVENTION = '_model_' # The convention for pygemmes to know where models are
-_MODEL_FOLDER = '_models'          # Files in the local library
-
+_MODEL_FOLDER = 'models'          # Files in the local library
+_MODEL_FOLDER_HIDDEN = 'Hidden'
 # ####################### SOLVER BY DEFAULT ###################################
 _SOLVER = 'eRK4-homemade'
 
@@ -134,4 +135,4 @@ _PATH_HERE = os.path.dirname(__file__)
 _PATH_USER_HOME = os.path.expanduser('~')
 _PATH_PRIVATE_MODELS = os.path.join(
     _PATH_USER_HOME, '.pygemmes', _MODEL_FOLDER)
-_PATH_MODELS = os.path.join(_PATH_HERE, _MODEL_FOLDER)
+_PATH_MODELS = os.path.join(os.path.dirname(_PATH_HERE), _MODEL_FOLDER)
