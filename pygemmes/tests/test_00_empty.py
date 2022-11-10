@@ -52,3 +52,8 @@ class Test00_Get():
     @classmethod
     def teardown_class(cls):
         pass
+
+    def test01_get_available_models(self):
+        """ Make sure the main function runs from a python console """
+
+        print('TESTS ARE EMPTY !')
