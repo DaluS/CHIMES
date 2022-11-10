@@ -62,8 +62,8 @@ _LOGICS = { 'size'        : {},
             'parameter'   : {},}
 
 # Advanced possibilites : You can import other model files and merge them
-_LOGICS_GOODWIN,_PRESETS0= importmodel('Goodwin')
-_LOGICS = mergemodel(_LOGICS, _LOGICS_GOODWIN, verb=True) # rename _LOGICS_MERGED into _LOGICS if you want to really do it !
+#_LOGICS_GOODWIN,_PRESETS0= importmodel('Goodwin')
+#_LOGICS = mergemodel(_LOGICS, _LOGICS_GOODWIN, verb=True) # rename _LOGICS_MERGED into _LOGICS if you want to really do it !
 
 # ####################### PRESETS #######################################
 '''
