@@ -11,17 +11,13 @@ Created on Wed Jul 21 15:11:15 2021
 @author: Paul Valcke
 """
 
-
+# ######################## PRELIMINARY ELEMENTS #########################
 import numpy as np
-from pygemmes._models import Funcs
+from pygemmes._models import Funcs, importmodel,mergemodel
 
-# ----------------------------------------------------------------------------
-# We simply do a few modifications on a previous model : we load it as a basis
-from pygemmes._models import Funcs, importmodel
+# ######################## LOGICS #######################################
 _LOGICS,_PRESETS0= importmodel('Goodwin')
 
-
-# We write the fields we want to add/modify
 _CES_LOGICS = {
     'statevar': {
         # Characteristics of a CES
@@ -73,14 +69,10 @@ _CES_LOGICS = {
     'size': {'Nprod': {'list':['1']},},
 }
 
-# We add them explicitely
-for category, dic in _CES_LOGICS.items():
-    for k, v in dic.items():
-        _LOGICS[category][k] = v
+_LOGICS= mergemodel(_LOGICS, _CES_LOGICS, verb=True)
 
 
-# ---------------------------
-# List of presets for specific interesting simulations
+# ####################### PRESETS #######################################
 _PRESETS = {
     'CES': {
         'fields': {

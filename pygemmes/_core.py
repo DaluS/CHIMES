@@ -1344,6 +1344,7 @@ idx                : is the same for parrallel systems
     def _from_dict(cls, dout=None, model_file=None):
         """ Create an instance from a dict """
 
+
         # --------------
         # check inputs
         c0 = (
@@ -1371,24 +1372,25 @@ idx                : is the same for parrallel systems
 
         # -------------------
         # create instance
-        obj = cls()
+        #print(cls['dmodel']['name'])
+        obj = cls('__EMPTY__',verb=False)
         obj.__dmodel = dict(dout['dmodel'])
         obj.__dparam = {k0: dict(v0) for k0, v0 in dout['dparam'].items()}
         obj.__dmisc = dict(dout['dmisc'])
         obj.__dargs = dict(dout['dargs'])
 
         # update default args for functions
-        _class_checks._update_func_default_kwdargs(
-            lfunc=obj.get_dparam(returnas=list, eqtype=(None,)),
-            dparam=obj.__dparam,
-            dmulti=obj.__dmisc['dmulti'],
-        )
+        #_class_checks._update_func_default_kwdargs(
+        #    lfunc=obj.get_dparam(returnas=list, eqtype=(None,)),
+        #    dparam=obj.__dparam,
+        #    dmulti=obj.__dmisc['dmulti'],
+        #)
 
         # re-pass dargs by reference
-        obj.__dargs = _class_checks.get_dargs_by_reference(
-            obj.__dparam,
-            dfunc_order=obj.__dmisc['dfunc_order'],
-        )
+        #obj.__dargs = _class_checks.get_dargs_by_reference(
+        #    obj.__dparam,
+        #    dfunc_order=obj.__dmisc['dfunc_order'],
+        #)
 
         return obj
 

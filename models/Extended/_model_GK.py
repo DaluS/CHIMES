@@ -8,14 +8,13 @@ LINKTOARTICLE:
 
 @author: Paul Valcke
 """
+# ######################## PRELIMINARY ELEMENTS #########################
+import numpy as np #(if you need exponential, pi, log, of matrix products...)
+from pygemmes._models import Funcs, importmodel,mergemodel
 
 
-import numpy as np
-from pygemmes._models import Funcs, importmodel
-
+# ######################## LOGICS #######################################
 _LOGICS,_PRESETS0= importmodel('Goodwin')
-
-# We write the fields we want to add/modify
 _GK_LOGICS = {
     'differential': {
         # Stock-flow consistency
@@ -54,15 +53,10 @@ _GK_LOGICS = {
     'parameter': {},
     'size': {},
 }
-
-# We add them explicitely
-for category, dic in _GK_LOGICS.items():
-    for k, v in dic.items():
-        _LOGICS[category][k] = v
+_LOGICS = mergemodel(_LOGICS, _GK_LOGICS, verb=True) # rename _LOGICS_MERGED into _LOGICS if you want to really do it !
 
 
-# ---------------------------
-# List of presets for specific interesting simulations
+# ####################### PRESETS #######################################
 plotdict= {
             'timetrace': [{}],
             'nyaxis': [{'x': 'time',

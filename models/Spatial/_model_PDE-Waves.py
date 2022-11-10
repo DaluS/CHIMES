@@ -29,7 +29,11 @@ plt.subplot(4,1,4); plt.pcolormesh(np.transpose(lapC)[0,:,:Tmax]); plt.colorbar(
 plt.show()
 ```
 """
+
+# ######################## PRELIMINARY ELEMENTS #########################
 import numpy as np
+from pygemmes._models import Funcs, importmodel,mergemodel
+
 # ######################## OPERATORS ####################################
 '''
 Those are operators that can be used to do multisectoral operations : 
@@ -44,13 +48,7 @@ def Rmatmul(nabla,C):
                   np.swapaxes(C, -3, -2))
 
 
-# #######################################################################
-# #######################################################################
-# #######################################################################
-
-
-# #### AUXILLIARY FIELDS THAT ARE NOT NECESSARY TO COMPUTE THE SYSTEM,
-# ARE PRACTICAL TO EXPLORE IT
+# ######################## LOGICS #######################################
 _LOGICS = {
     'size': {
     },
@@ -93,7 +91,7 @@ _LOGICS = {
     },
 }
 
-
+# ####################### PRESETS #######################################
 N=100
 # Spatial operator (should be normalized etc)
 nabla0=np.zeros((N,N))
@@ -109,7 +107,6 @@ x=np.linspace(0,1,N, endpoint=False)
 C0=np.exp(-50*(x-0.3)**2)
 C=np.zeros((1,N,1,1))
 C[0,:,0,0]=C0
-
 #C0=np.sin(2*np.pi*x)
 
 preset_basis = {

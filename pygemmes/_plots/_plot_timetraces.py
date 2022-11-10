@@ -193,8 +193,10 @@ def _plot_timetraces_check_dax(
 #                   Main plotting function
 # #############################################################################
 
+def plot_timetraces(hub,**kwdargs):
+    print('WARNING, PLOT `plot_timetraces` DEPRECIATED. SKIPPED FOR MATPLOTLIB ISSUES')
 
-def plot_timetraces(
+def _OLD_plot_timetraces(
     hub,
     mode=False,
     # for forcing a color / label

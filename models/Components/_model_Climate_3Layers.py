@@ -12,9 +12,11 @@ LINKTOARTICLE :
 @author: Paul Valcke
 """
 
+# ######################## PRELIMINARY ELEMENTS #########################
 import numpy as np
-from pygemmes._models import Funcs
+from pygemmes._models import Funcs, importmodel,mergemodel
 
+# ######################## LOGICS #######################################
 _LOGICS = {
     'differential': {
         # ATMOSPHERE ODE
@@ -36,9 +38,8 @@ _LOGICS = {
 }
 
 
-# ---------------------------
-# List of presets for specific interesting simulations
 
+# ####################### PRESETS #######################################
 _PRESETS = {'default': {
     'fields': {
         'Emission0': 38,

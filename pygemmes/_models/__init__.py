@@ -272,7 +272,7 @@ def importmodel(name : str,
 
 
 
-def mergemodel(Recipient,dictoadd,override=True,verb=True):
+def mergemodel(Recipient,dictoadd,override=True,verb=False):
     '''
     If you mix two models or want to add new auxlliary logics,
     you can merge your two dictionnaries.
@@ -284,6 +284,7 @@ def mergemodel(Recipient,dictoadd,override=True,verb=True):
     Recipient is _LOGICS that you want to fill
     dicttoadd contains the new elements you want
     '''
+    verb=False
     ### Category of the variable in a dict
     keyvars = { k:v.keys() for k,v in Recipient.items() }
     typ= {}
