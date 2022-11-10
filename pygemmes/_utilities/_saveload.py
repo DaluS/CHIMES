@@ -166,6 +166,9 @@ def save(
     returnas=None,
 ):
 
+    print("SAVE IS NOT WORKING FOR NOW, PROBLEM WITH PICKLE AND FUNCTIONS")
+    return
+
     # ------------
     # check inputs
     path, name, fmt, verb, returnas = _save_check_inputs(
@@ -186,7 +189,7 @@ def save(
     dinclude = {
         'model': obj.dmodel['name'].replace('_', '-').replace(' ', '-'),
         'preset': obj.dmodel['preset'],
-        'solver': obj.dmisc['solver'],
+        #'solver': obj.dmisc['solver'],
         'name': name,
         'user': getpass.getuser(),
         'date': dtm.datetime.utcnow().strftime('%Y%m%d-%H%M%S'),
