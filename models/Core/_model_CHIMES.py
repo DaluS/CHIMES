@@ -23,12 +23,11 @@ More infos : https://www.overleaf.com/read/vywvyymcqwwk
 CHIMES :
 """
 
-__AUXIN = True
-__AGGIN = True
-
+# ######################## PRELIMINARY ELEMENTS #########################
+__AUXIN = True # Add auxilliary variables
+__AGGIN = True # Add Agregated variables
 from pygemmes._models import Funcs, importmodel,mergemodel
 import numpy as np
-
 
 # ######################## OPERATORS ####################################
 '''
@@ -63,13 +62,6 @@ def Identity(X):
     '''generate an identity matrix of the same size a matrix X'''
     return np.eye(np.shape(X)[-1])
 
-# #######################################################################
-### The loop to merge the two dictionnaries
-
-
-# #######################################################################
-# #######################################################################
-# #######################################################################
 def Debtvariation(r,D,w,L,z,p,C,MtransactY,MtransactI):
     debt = r*D \
         +w*z*L \
@@ -80,8 +72,8 @@ def Debtvariation(r,D,w,L,z,p,C,MtransactY,MtransactI):
         -ssum2(transpose(MtransactI))
     return debt
 
-# #### AUXILLIARY FIELDS THAT ARE NOT NECESSARY TO COMPUTE THE SYSTEM,
-# ARE PRACTICAL TO EXPLORE IT
+
+# ######################## LOGICS ######################################
 _LOGICS = {
     'size': {
         'Nprod': {
@@ -314,7 +306,6 @@ _LOGICS = {
             'units': '',
         },
     },
-
     'parameter': {
         ### SCALARS
         'alpha'  :{'value': 0.02,},
@@ -747,12 +738,11 @@ _LOGICS_AGREGATES = {
          '''
 },
 """
-
 if __AUXIN or __AGGIN:  _LOGICS = mergemodel(_LOGICS, _LOGICS_AUX,       verb=True)
 if __AGGIN:             _LOGICS = mergemodel(_LOGICS, _LOGICS_AGREGATES, verb=True)
 
 
-
+# ####################### PRESETS #######################################
 preset_basis = {
 'Tmax':20,
 'dt':0.1,
@@ -859,5 +849,3 @@ _PRESETS = {
         'plots': {},
     },
 }
-# Check size consistent in operations
-# If only one dimension, transform string into list

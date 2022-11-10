@@ -21,8 +21,12 @@ Link : https://en.wikipedia.org/wiki/Goodwin_model_(economics) (notations differ
 
 @author: Paul Valcke
 """
-from pygemmes._models import Funcs
+# ######################## PRELIMINARY ELEMENTS #########################
+import numpy as np #(if you need exponential, pi, log, of matrix products...)
+from pygemmes._models import Funcs, importmodel,mergemodel
 
+
+# ######################## LOGICS #######################################
 _LOGICS = {
     'differential': {
         # Exogenous entries in the model
@@ -108,9 +112,7 @@ _LOGICS = {
 }
 
 
-# ---------------------------
-# List of presets for specific interesting simulations
-
+# ####################### PRESETS #######################################
 _PRESETS = {
     'default': {
         'fields': {

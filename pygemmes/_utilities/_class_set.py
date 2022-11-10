@@ -79,6 +79,10 @@ def load_dmodel(model, from_user=False):
     """
 
     path_models,_DMODEL = _models._get_DMODEL()
+
+    if model not in _DMODEL.keys():
+        raise Exception(f'The model you asked ({model}) cannot be found. \n Found models are {_DMODEL.keys()} \n'
+                        f'Maybe you mispelled it ?')
     dmodel=_DMODEL[model]
     dmodel['preset']=None
     dmodel['name'] = model

@@ -10,23 +10,16 @@ TODO:
  - verefier unite
 
 """
+
+# ######################## PRELIMINARY ELEMENTS #########################
 import numpy as np
-
 from pygemmes._models import Funcs, importmodel
-_LOGICSGK,_PRESETS0= importmodel('GK')
+_LOGICS,_PRESETS0= importmodel('GK')
 _LOGICSCLIM,_PRESETSCLIM= importmodel('Climate_3Layers')
-from copy import deepcopy
-
-###############################################################################
 
 ###############################################################################
 Tini = 2015
 
-_LOGICS = deepcopy(_LOGICSGK)
-# the main logics is from Goodwin-Keen
-for category, dic in _LOGICSGK.items():
-    for k, v in dic.items():
-        _LOGICS[category][k] = v
 
 # add the logics of climate module to the model logics
 for category, dic in _LOGICSCLIM.items():
@@ -34,7 +27,6 @@ for category, dic in _LOGICSCLIM.items():
         _LOGICS[category][k] = v
 
 # remove unused variables and params
-#del _LOGICS['differential']['t']
 del _LOGICS['statevar']['Ir']
 
 # add plenty of stuff
