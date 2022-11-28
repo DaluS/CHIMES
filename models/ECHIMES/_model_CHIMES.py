@@ -125,9 +125,9 @@ _LOGICS = {
             'units': 'units',
             'symbol': '$V$'
         },
-        'w': {'func': lambda philips, w,gammai, ibasket : w*(philips+gammai*ibasket),
+        'w': {'func': lambda philips, w, gammai, ibasket: w * (philips + gammai * ibasket),
               'com': 'exogenous',
-             },
+              },
         'a': {'func': lambda a, alpha : a*alpha,
               'com': 'exogenous',
              },
@@ -226,8 +226,6 @@ _LOGICS = {
             'definition': 'flux of goods for household',
             'units': 'Units.y^{-1}',
             'size': ['Nprod'],
-
-        ### AUXILLIARY
         },
 
         ### Explicit monetary flux ###########
@@ -396,12 +394,7 @@ _LOGICS_AUX = {
             'units': 'y^{-1}',
             'symbol': '$i^{\dot{V}}$'
         },
-        #'Hid': {
-        #    'func': lambda N,hid0,Omega,Omega0,x: N*hid0/(1+np.exp(-x*(Omega/Omega0-1))),
-        #    'definition': 'Ideal goods for purchasing power',
-        #    'com':'deduced from Omega',
-        #    'size': ['Nprod'],
-        #},
+
 
         ### PROFITS
         'Pi': {
@@ -704,40 +697,6 @@ _LOGICS_AGREGATES = {
 }
 
 
-"""
-        #'HidAGG': { 'func': lambda Hid,p: sprod(Hid,p) ,
-        #           'definition': 'nominal household expected possessions',
-        #            'units': '$',
-        #
-        #},
-'C': {
-    'func': lambda f, Hid,rho,H: f*(Hid-H)+matmul(rho,H),
-    'com': 'consumption as relaxation',
-    'definition': 'flux of goods for household',
-    'size': ['Nprod'],
-    
-             '''
-         'Omega0': {'value': 1,
-                  'size': ['Nprod']
-                  },
-         'x': {'value': 1,
-              'size': ['Nprod']
-              },
-         'e': {'value': 1,
-              'definition': 'weight of other consumptions',
-              'size': ['Nprod']
-              },
-         'f': {'value': 1,
-              'definition': 'consumption adjustment rate',
-              'size': ['Nprod']
-              },
-         'hid0': {'value': 1,
-              'definition': 'willed quantity of goods',
-              'size': ['Nprod']
-              },
-         '''
-},
-"""
 if __AUXIN or __AGGIN:  _LOGICS = mergemodel(_LOGICS, _LOGICS_AUX,       verb=True)
 if __AGGIN:             _LOGICS = mergemodel(_LOGICS, _LOGICS_AGREGATES, verb=True)
 
@@ -836,16 +795,66 @@ dictMONOGOODWIN={
 'Cpond' : [1],
 }
 
+trisector={
+'Nprod': ['Consumption', 'Capital','Intermediate'],
+'K': [5.01426008,2.79580692,1],
+'D': [ 0.75618537,-0.75618537,0],
+'Dh': -2.03540888e-17,
+'u': [0.94703658,0.7126253 ,0.9],
+'p': [2.35968699,0.79685443,1],
+'V': [10.59268384, 9.91437758,10],
+'w': 2.88903052,
+'a': 1.48884403,
+'N': 1.64460462*3/2,
+'H': [1.33837281e+00,0,0],
+'alpha': 0.02,
+'n': 0.025,
+'phinull': 0.1,
+'r': 0.03,
+'z': [1. ,0.3,.7],
+'Cpond': [1,0,0],
+'mu0': [1.2,1.2,1.2],
+'delta': [0.05,0.05,0.05],
+'deltah': [0.05,0,0],
+'sigma': [1,5,5],
+'gammai': 0.,
+'eta': [0.3,0.3,0.3],
+'chi': [1,1,1],
+'b': [1.,1.,1.],
+'nu': [3.,3.,3.],
+'Gamma': [[0, 0.  ,0.1],
+          [0, 0.  ,0.1],
+          [0, 0.  ,0.1]],
+'Xi': [[0.01, 1.  ,0],
+       [0.1 , 1.  ,0],
+       [0   , 1.  ,0]],
+'rho': [[0, 0.,1.],
+        [0.,0.,1.],
+        [0.,0.,1.]],
+'Tmax': 20,
+'Tini': 0,
+'dt': 0.1,
+'nx': 1,
+'nr': 1,
+'k0': 1.,
+ }
+
+
 _PRESETS = {
-    'GoodwinPURE': {
+    'MonoSectoral': {
         'fields': dictMONOGOODWIN,
         'com': ('A monosectoral system that behaves just as a Goodwin'),
         'plots': {},
     },
-    'Bi-sectoral': {
+    'Bisectoral': {
         'fields': preset_basis,
         'com': ('Two sectors : one producing consumption good, one for capital goods.'
                 'Converging run starting for VERY far from equilibrium'),
+        'plots': {},
+    },
+    'Trisectoral': {
+        'fields': trisector,
+        'com': ('Three sectors : Consumption, investment, intermediary.'),
         'plots': {},
     },
 }

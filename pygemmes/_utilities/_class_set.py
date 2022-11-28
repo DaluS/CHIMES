@@ -278,7 +278,10 @@ def extract_parameters(dparam, dfields, verb=None):
         )
         print(msg)
 
-
+    for k0 in dparam.keys():
+        if len(dparam[k0].get('size',[_DEFAULTSIZE]))<2 :
+            dparam[k0]['size']=[dparam[k0].get('size',[_DEFAULTSIZE])[0],
+                                _DEFAULTSIZE ]
     return dparam, lpar_new+lfunc_new+lpar
 
 
