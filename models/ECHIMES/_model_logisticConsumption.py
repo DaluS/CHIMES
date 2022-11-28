@@ -72,6 +72,7 @@ _LOGICS = {
             'com': 'consumption as relaxation',
             'definition': 'flux of goods for household',
             'size': ['Nprod'],
+        },
         'Omega': {
             'func': lambda N, W, p, basket: (W / N) / (sprod(basket, p)),
             'definition': 'MONOSECTORAL Percieved purchasing power',
@@ -104,3 +105,5 @@ _LOGICS = {
                  },
     },
 }
+
+_PRESETS={}

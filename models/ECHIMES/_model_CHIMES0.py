@@ -182,13 +182,25 @@ _LOGICS = {
 
         ### Inflations
         'inflation': {
-            # 'func': lambda inflationMarkup,inflationdotV: inflationMarkup+inflationdotV,
-            # 'com': 'sum of inflation contributions',
-            'func': lambda p, eta, mu0, c, chi, dotV, V: eta * np.log(mu0 * c / p) - chi * dotV / V,
-            'com': 'costpush and inventoryvariation',
+            'func': lambda inflationMarkup,inflationdotV: inflationMarkup+inflationdotV,
+            'com': 'sum of inflation contributions',
             'size': ['Nprod'],
             'units': 'y^{-1}',
             'symbol': '$i$'
+        },
+        'inflationMarkup': {
+            'func': lambda p, eta, mu0, c,: eta * np.log(mu0 * c / p),
+            'com': 'log on markup',
+            'size': ['Nprod'],
+            'units': 'y^{-1}',
+            'symbol': '$i^{\mu}$'
+        },
+        'inflationdotV': {
+            'func': lambda chi, dotV, V: - chi * dotV / V,
+            'com': 'price adjustment to demand-offer',
+            'size': ['Nprod'],
+            'units': 'y^{-1}',
+            'symbol': '$i^{\dot{V}}$'
         },
         'basket': {
             'func': lambda p, C: p * C / sprod(p, C),
