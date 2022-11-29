@@ -503,8 +503,10 @@ def _print_matrix(hub,
         ar1=[]
         print('')
         print(f"name : {m}, units : {hub.dparam[m]['units']}")
-        for ii,x in enumerate(ax2):
-            liste =[x,'|']+[f"{val[ii,jj]:.2E}" if (abs(val[ii,jj])<0.01 and val[ii,jj]!=0) else f"{val[ii,jj]:.2f}" for jj in range(len(ax1))]
+        #print(ax1,ax2)
+        #print(np.shape(val))
+        for ii,x in enumerate(ax1):
+            liste =[x,'|']+[f"{val[ii,jj]:.2E}" if (abs(val[ii,jj])<0.01 and val[ii,jj]!=0) else f"{val[ii,jj]:.2f}" for jj in range(len(ax2))]
             ar1.append(liste)
 
         _utils._get_summary(

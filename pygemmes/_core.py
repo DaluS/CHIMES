@@ -746,7 +746,7 @@ class Hub():
 
            except BaseException:
                #print(k0)
-               ERROR+=f'You have a problem on your object sizes for {k0} (kwargs:) {kwdargs} \n'
+               ERROR+=f'You have a problem on your object sizes for {k0} (shape of kwargs:)\n {[(k,np.shape(v)) for k,v in kwdargs.items()]} \n'
        if len(ERROR):
            raise Exception('\n'+ERROR+'ALLOCATION CANNOT BE DONE,CHECK YOUR MODEL FILE !')
 

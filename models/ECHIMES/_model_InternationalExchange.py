@@ -18,6 +18,8 @@ def ssum2(X):
     '''
     Z_i=ssum_j(X_{ij}) so Z_i=\sum_j X_{ij}'''
     return np.sum(X, axis=-1)[...,np.newaxis]
+def ssumR(X):
+    return np.sum(X,axis=-2)[...,np.newaxis]
 def transpose(X):
     '''Transposition of X :
     Y=transpose(X)  Y_ij=X_ji'''
@@ -49,8 +51,8 @@ def dotVinternational( Y, Gamma, Ir, C, Xi,PhysicalExchanges):
          - matmul(transpose(Gamma), Y) \
          - C \
          - matmul(transpose(Xi), Ir) \
-         + transposeR(PhysicalExchanges) \
-         - PhysicalExchanges
+         + ssumR(transposeR(PhysicalExchanges)) \
+         - ssumR(PhysicalExchanges)
 
 _LOGICS = {
     'size': {
@@ -61,7 +63,7 @@ _LOGICS = {
 
     'differential': {
         'ExchangeRate': {
-            'func': lambda Excedent,Mass,chiM,Exchangerate:Exchangerate*chiM*(transposeR(Excedent/Mass)-Excedent/Mass),
+            'func': lambda Excedent,Mass,chiM,ExchangeRate:ExchangeRate*chiM*(transposeR(Excedent/Mass)-Excedent/Mass),
             'size':['nr'],
             'initial':1,
         },
@@ -76,16 +78,19 @@ _LOGICS = {
     },
     'statevar': {
         'Excedent': {
-            'func': lambda PhysicalExchanges,p:ssum2( matmul( )-matmul(transpose())   ),
+            'func': lambda PhysicalExchanges,p: 0,
+            #ssum2( matmul( )-matmul(transpose())   ),
             'definition':'Commercial excedent in region'
         },
         'dotV': {
             'func': dotVinternational,
             'com': 'Added international',
+            'size': ['Nprod'],
         },
         'dotD': {
             'func': dotDinternational,
-            'com': 'Added international'
+            'com': 'Added international',
+            'size': ['Nprod'],
         },
         'pInter': {
             'func': lambda p,ExchangeRate : 0,
@@ -101,7 +106,44 @@ _LOGICS = {
         'chiM': {
             'value':1,
         },
+        'Mass': {
+            'value':1
+        },
+        'Y': {
+            'value': 0,
+            'size':['Nprod'],
+        },
+        'I': {
+            'value': 0,
+            'size': ['Nprod'],
+        },
+        'Ir': {
+            'value': 0,
+            'size': ['Nprod'],
+        },
+        'C': {
+            'value': 0,
+            'size': ['Nprod'],
+        },
+        'Gamma': {
+            'value': 0,
+            'size': ['Nprod','Nprod']
+        },
+        'Xi': {
+            'value': 0,
+            'size': ['Nprod','Nprod']
+        }
     },
 }
 
-_PRESETS={}
+_PRESETS={
+    '3by2': {
+        'fields': {'dt':1,
+                   'Tmax':2,
+                   'nr': ['Chine','US'],
+                   'Nprod':['sY','sI','sC'],
+                   },
+        'com': ('Check of the structure working as intended'),
+        'plots': {},
+    },
+}
