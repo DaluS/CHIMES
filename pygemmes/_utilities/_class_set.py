@@ -559,12 +559,14 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
         if len(shape)==len(np.shape(dparam[k0]['value'])):
             shp = np.shape(dparam[k0]['value'])
             change=False
+
             for ii,k in enumerate(shape):
                 if (shp[ii]!=k and shp[ii]!=1):
-                    print(f'WARNING : projection of {k0} on first scalar value')
+                    print(f'WARNING : projection of {k0} on first scalar value. Are you sure about your dimensions ?')
                     change=True
                     break
             if change:
+                print(dparam[k0]['value'])
                 dparam[k0]['value']= dparam[k0]['value'][0,0,0,0]
 
 

@@ -32,6 +32,8 @@ def distXY(x,y):
 def Identity(X):
     '''generate an identity matrix of the same size a matrix X'''
     return np.eye(np.shape(X)[-1])
+###########################################################################
+
 
 
 _LOGICS = {
@@ -42,17 +44,24 @@ _LOGICS = {
     },
     'statevar': {
         ### ACCESSIBILITY
+        'coeffY': {
+            'func': lambda V,Gamma,kY : 1-np.exp(-kY*transpose(V)/Gamma+1E-5),
+            'size': ['Nprod','Nprod']
+        },
+        'coeffI': {
+            'func': lambda V, Xi,kI: 1-np.exp(-kI*transpose(V) / Xi + 1E-5),
+            'size': ['Nprod','Nprod']
+        },
+
         'AcY': {
-            'func': lambda V,Gamma,kY,softmin :  1-np.exp(-kY*V/(Gamma+0.0001)),
-            #'func': lambda V,Gamma,kY,softmin :  ssum2(1-np.exp(-kY*V/(Gamma+0.0001)**(-softmin) ))**(-1/softmin),
+            'func': lambda coeffY,softmin : ssum2(coeffY**(-softmin))**(-1/softmin),
             'com': 'Softmin with Gamma',
             'definition': 'Accessibility to intermediate production',
             'symbol': r'$\mathcal{A}^Y',
             'size': ['Nprod']
         },
         'AcI': {
-            'func': lambda V,Xi,kI,softmin : 1-np.exp(-kI*V/(Xi+0.0001)),
-            #'func': lambda V,Xi,kI,softmin : ssum2( 1-np.exp(-kI*V/(Xi+0.0001))**(-softmin) )**(-1/softmin),
+            'func': lambda coeffI,softmin :    ssum2((coeffI)**(-softmin))**(-1/softmin),
             'com': 'Softmin with Xi',
             'definition': 'Accessibility to Investment',
             'symbol': r'$\mathcal{A}^Y',
@@ -66,8 +75,7 @@ _LOGICS = {
             'size': ['Nprod']
         },
         ### USE AND ACCESSIBILITY
-        'u': {'func': lambda u0,AcY,softmin: AcY,
-              #(u0**(-softmin)+AcY**(-softmin))**(-1/softmin),
+        'u': {'func': lambda u0,AcY,softmin : (u0**(-softmin)+AcY**(-softmin))**(-1/softmin),
               'com': 'for the moment only voluntary limitation',
               'definition': 'Effective use of capital',
               'size': ['Nprod']},
@@ -92,18 +100,38 @@ _LOGICS = {
     },
     'parameter':{
         'kC': {'value':10,
-               'definition': 'accessibility to consumption'},
+               'definition': 'accessibility to consumption',
+              'size':['Nprod']},
         'kI': {'value': 10,
-               'definition': 'accessibility to consumption'},
+               'definition': 'accessibility to consumption',
+              'size':['Nprod']},
         'kY': {'value': 10,
-               'definition': 'accessibility to consumption'},
-        'softmin': {'value':100},
+               'definition': 'accessibility to consumption',
+              'size':['Nprod']},
+        'softmin': {'value':100.},
         'Gamma': {'value':0.01,
                   'size':['Nprod','Nprod']},
         'Xi': {'value':0.01,
                   'size':['Nprod','Nprod']},
-        'u0': {'value':1}
+        'u0': {'value':1},
+        'V': {'value':10,
+              'size':['Nprod']}
     },
 }
 
-_PRESETS={}
+_PRESETS={
+    '3sectors': {
+        'fields': {'Nprod':['Y','I','C'],
+                   'V':[.5,1,0.1],
+                   'kC':1.,
+                   'kY':[1,10.,1],
+                   'kI':1.,
+                   'Gamma':[[0.1,0,0],
+                            [0.5,0,0],
+                            [0.3,0,0]],
+                   'Xi':[[0,1,0],
+                         [0,1,0],
+                         [0,1,0]]},
+        'com': ('Check of the structure working as intended'),
+        'plots': {},
+    },}

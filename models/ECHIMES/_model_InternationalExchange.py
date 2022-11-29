@@ -22,6 +22,10 @@ def transpose(X):
     '''Transposition of X :
     Y=transpose(X)  Y_ij=X_ji'''
     return np.moveaxis(X, -1, -2)
+def transposeR(X):
+    '''Transposition of X :
+    Y=transpose(X)  Y_ijk=X_jik'''
+    return np.moveaxis(X, -2, -3)
 def matmul(M,V):
     '''Matrix product Z=matmul(M,V) Z_i = \sum_j M_{ij} V_j'''
     return np.matmul(M,V)
@@ -40,11 +44,13 @@ def dotDinternational( MtransactI, MtransactY, wL, rD, pC):
          + wL -pC \
          + ssum2(MtransactI - transpose(MtransactI)) \
          + ssum2(MtransactY - transpose(MtransactY))
-def dotVinternational( Y, Gamma, Ir, C, Xi):
+def dotVinternational( Y, Gamma, Ir, C, Xi,PhysicalExchanges):
     return Y \
          - matmul(transpose(Gamma), Y) \
          - C \
-         - matmul(transpose(Xi), Ir)
+         - matmul(transpose(Xi), Ir) \
+         + transposeR(PhysicalExchanges) \
+         - PhysicalExchanges
 
 _LOGICS = {
     'size': {
@@ -55,13 +61,14 @@ _LOGICS = {
 
     'differential': {
         'ExchangeRate': {
-            'func': lambda p:0,
+            'func': lambda Excedent,Mass,chiM,Exchangerate:Exchangerate*chiM*(transposeR(Excedent/Mass)-Excedent/Mass),
             'size':['nr'],
             'initial':1,
         },
         'PhysicalExchanges': {
             'func': lambda p,pInter,chiM,sigmaRQ, PhysicalExchanges:  PhysicalExchanges*np.log(p/pInter)*chiM*sigmaRQ,
-            'com':'',
+            'com':'log-price dynamics',
+            'definition': 'X_{rqi} Exchange of item i From R to Q',
             'units':'Units.y^{-1}',
             'size': ['nr','Nprod'],
             'initial':0,
@@ -69,7 +76,8 @@ _LOGICS = {
     },
     'statevar': {
         'Excedent': {
-            'func': lambda PhysicalExchanges,p:0,
+            'func': lambda PhysicalExchanges,p:ssum2( matmul( )-matmul(transpose())   ),
+            'definition':'Commercial excedent in region'
         },
         'dotV': {
             'func': dotVinternational,
