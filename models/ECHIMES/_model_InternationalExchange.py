@@ -54,6 +54,13 @@ def dotVinternational( Y, Gamma, Ir, C, Xi,PhysicalExchanges):
          + ssumR(transposeR(PhysicalExchanges)) \
          - ssumR(PhysicalExchanges)
 
+def phyfunc(p,pInter,chiM,sigmaRQ, PhysicalExchanges):
+    print('p',np.shape(p))
+    print('pinter',np.shape(pInter))
+    print('phyext',np.shape(PhysicalExchanges))
+    return PhysicalExchanges*np.log(p/pInter)*chiM*sigmaRQ
+
+
 _LOGICS = {
     'size': {
         'Nprod': {
@@ -68,7 +75,7 @@ _LOGICS = {
             'initial':1,
         },
         'PhysicalExchanges': {
-            'func': lambda p,pInter,chiM,sigmaRQ, PhysicalExchanges:  PhysicalExchanges*np.log(p/pInter)*chiM*sigmaRQ,
+            'func': phyfunc,
             'com':'log-price dynamics',
             'definition': 'X_{rqi} Exchange of item i From R to Q',
             'units':'Units.y^{-1}',
@@ -93,55 +100,45 @@ _LOGICS = {
             'size': ['Nprod'],
         },
         'pInter': {
-            'func': lambda p,ExchangeRate : 0,
+            'func': lambda p,ExchangeRate :transpose(p)*ExchangeRate,
             'com': 'No taxes',
-            'definition': 'p_{qi} price of good i from region q',
+            'definition': 'p_{rqi} price in region r of good i from region q',
             'size':['nr','Nprod']
         },
     },
     'parameter':{
-        'sigmaRQ': {
-            'value':1,
-        },
-        'chiM': {
-            'value':1,
-        },
-        'Mass': {
-            'value':1
-        },
-        'Y': {
-            'value': 0,
-            'size':['Nprod'],
-        },
-        'I': {
-            'value': 0,
-            'size': ['Nprod'],
-        },
-        'Ir': {
-            'value': 0,
-            'size': ['Nprod'],
-        },
-        'C': {
-            'value': 0,
-            'size': ['Nprod'],
-        },
-        'Gamma': {
-            'value': 0,
-            'size': ['Nprod','Nprod']
-        },
-        'Xi': {
-            'value': 0,
-            'size': ['Nprod','Nprod']
-        }
+        'sigmaRQ':      {'value': 1},
+        'chiM':         {'value': 1},
+        'Mass':         {'value': 1},
+        'Y':            {'value': 0,'size':['Nprod'],},
+        'I':            {'value': 0,'size': ['Nprod'],},
+        'Ir':           {'value': 0,'size': ['Nprod'],},
+        'C':            {'value': 0,'size': ['Nprod'],},
+        'V':            {'value': 10,'size': ['Nprod'],},
+        'Gamma':        {'value': 0,'size': ['Nprod','Nprod']},
+        'Xi':           {'value': 0,'size': ['Nprod','Nprod']},
+        'MtransactI':   {'value': 0,'size': ['Nprod','Nprod']},
+        'MtransactY':   {'value': 0,'size': ['Nprod', 'Nprod']},
+        'p':            {'value': 1,'size': ['Nprod']}
     },
 }
+
+NR = ['Region1','Region2']
+Nprod = ['sY','sI','sC']
+exR = np.zeros((1,2,2,1))
+exR[0,:,:,0]=[[1,1/2],[2,1]]
+physeX = np.zeros((1,2,2,3))+1
+
 
 _PRESETS={
     '3by2': {
         'fields': {'dt':1,
-                   'Tmax':2,
-                   'nr': ['Chine','US'],
+                   'Tmax':20,
+                   'nr': ['Region1','Region2'],
                    'Nprod':['sY','sI','sC'],
+                   'p':1,
+                   'ExchangeRate': exR,
+                   'PhysicalExchanges': physeX,
                    },
         'com': ('Check of the structure working as intended'),
         'plots': {},

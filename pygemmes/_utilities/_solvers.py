@@ -199,14 +199,16 @@ def get_func_dydt(
     dictpos={}
     idx=0
     for k in lode:
-        size=np.shape(dparam[k]['value'])[-2]
+        size=np.shape(dparam[k]['value'])[-2]*np.shape(dparam[k]['value'])[-1]
         dictpos[k]=np.arange(idx+0,idx+size)
         idx+=size
 
     # initialize y
     y0=np.zeros((nx,nr,idx,1))
     for k,v in dictpos.items():
-        y0[:,:,v,:]=dparam[k]['value'][0, ...]
+        oldshape=np.shape(dparam[k]['value'][0, ...])
+        newshape=np.array([oldshape[0],oldshape[1],oldshape[-2]*oldshape[3],1])
+        y0[:,:,v,:]=dparam[k]['value'][0, ...].reshape(newshape)
 
     # ---------------------
     # prepare array to be used as buffer
