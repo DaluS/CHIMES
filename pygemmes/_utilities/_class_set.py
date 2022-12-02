@@ -82,7 +82,7 @@ def load_dmodel(model, from_user=False):
 
     if model not in _DMODEL.keys():
         modellist = "".join(['* '+str(f)+"\n" for f in list(_DMODEL.keys())])
-        raise Exception(f'The model you asked, {model}, cannot be found. Found models are \n {modellist}'
+        raise Exception(f'The model you asked, {model}, cannot be found. Found models are \n{modellist}'
                         f'...Maybe you mispelled it ?')
     dmodel=_DMODEL[model]
     dmodel['preset']=None

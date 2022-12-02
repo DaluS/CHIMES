@@ -44,46 +44,37 @@ _LOGICS = {
     },
     'statevar': {
         ### ACCESSIBILITY
-        'coeffY': {
-            'func': lambda V,Gamma,kY : 1-np.exp(-kY*transpose(V)/Gamma+1E-5),
-            'size': ['Nprod','Nprod']
-        },
-        'coeffI': {
-            'func': lambda V, Xi,kI: 1-np.exp(-kI*transpose(V) / Xi + 1E-5),
-            'size': ['Nprod','Nprod']
-        },
-
         'AcY': {
-            'func': lambda coeffY,softmin : ssum2(coeffY**(-softmin))**(-1/softmin),
+            'func': lambda V,Gamma,kY,softmin : ssum2((1-np.exp(-kY*transpose(V)/Gamma+1E-3))**(-softmin))**(-1/softmin),
             'com': 'Softmin with Gamma',
             'definition': 'Accessibility to intermediate production',
-            'symbol': r'$\mathcal{A}^Y',
+            'symbol': r'$\mathcal{A}^Y$',
             'size': ['Nprod']
         },
         'AcI': {
-            'func': lambda coeffI,softmin :    ssum2((coeffI)**(-softmin))**(-1/softmin),
+            'func': lambda V,Xi,kI,softmin :    ssum2((1-np.exp(-kI*transpose(V) / Xi + 1E-3))**(-softmin))**(-1/softmin),
             'com': 'Softmin with Xi',
             'definition': 'Accessibility to Investment',
-            'symbol': r'$\mathcal{A}^Y',
+            'symbol': r'$\mathcal{A}^I$',
             'size': ['Nprod']
         },
         'AcC': {
             'func': lambda V,Gamma,kC,softmin : 1-np.exp(-kC*V),
             'com': 'Softmin',
             'definition': 'Accessibility to consumption',
-            'symbol': r'$\mathcal{A}^Y',
+            'symbol': r'$\mathcal{A}^C$',
             'size': ['Nprod']
         },
         ### USE AND ACCESSIBILITY
         'u': {'func': lambda u0,AcY,softmin : (u0**(-softmin)+AcY**(-softmin))**(-1/softmin),
-              'com': 'for the moment only voluntary limitation',
+              'com': 'both diminution and accessibility',
               'definition': 'Effective use of capital',
               'size': ['Nprod']},
 
         ### CONSUMPTION
         'C': {
             'func': lambda W, Cpond, p,AcC: AcC*Cpond * W / p,
-            'com': 'Consumption as full salary',
+            'com': 'Accessible consumption as full salary',
             'definition': 'flux of goods for household',
             'units': 'Units.y^{-1}',
             'size': ['Nprod'],
@@ -92,7 +83,7 @@ _LOGICS = {
         ### INVESTMENT
         'I': {
             'func': lambda p, Y, kappa, Mxi,AcI: AcI * p * Y * (kappa + ssum2(Mxi)),
-            'com': 'explicit monetary flux',
+            'com': 'Accessible explicit monetary flux',
             'definition': 'monetary investment',
             'units': '$.y^{-1}',
             'size': ['Nprod'],
@@ -109,13 +100,13 @@ _LOGICS = {
                'definition': 'accessibility to consumption',
               'size':['Nprod']},
         'softmin': {'value':100.},
-        'Gamma': {'value':0.01,
-                  'size':['Nprod','Nprod']},
+        #'Gamma': {'value':0.01,
+        #          'size':['Nprod','Nprod']},
         'Xi': {'value':0.01,
                   'size':['Nprod','Nprod']},
-        'u0': {'value':1},
-        'V': {'value':10,
-              'size':['Nprod']}
+        #'u0': {'value':1},
+        #'V': {'value':10,
+        #      'size':['Nprod']}
     },
 }
 

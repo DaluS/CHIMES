@@ -245,7 +245,6 @@ def get_available_functions():
 
 def importmodel(name : str,
                 from_user=False):
-
     # FIND THE PATH TO MODELS
     if from_user is True and _PATH_PRIVATE_MODELS is not None:
         path_models = _PATH_PRIVATE_MODELS
@@ -284,7 +283,7 @@ def mergemodel(Recipient,dictoadd,override=True,verb=False):
     Recipient is _LOGICS that you want to fill
     dicttoadd contains the new elements you want
     '''
-    verb=False
+    #verb=False
     ### Category of the variable in a dict
     keyvars = { k:v.keys() for k,v in Recipient.items() }
     typ= {}
@@ -296,12 +295,13 @@ def mergemodel(Recipient,dictoadd,override=True,verb=False):
         for k, v in dic.items(): ### LOOP ON THE FIELDS
             if k in typ.keys(): ### IF FIELD ALREADY EXIST
                 if override:
-                    if verb : print(f'Override {category} variable {k}. Previous :{Recipient[category][k]} \n by :{v}')
+                    if (Recipient[category][k] !=v and verb):
+                        print(f'Override {category} variable {k}.\n Previous :{Recipient[category][k]} \n by       :{v}')
                     Recipient[category][k] = v
                 if typ[k]!=category :
                     if verb : print(f'Category change for logic of {k} : from {typ[k]} to {category}')
                     del Recipient[typ[k]][k]
-                elif verb : print(f'Keeping old definition {category} variable {k}. Previous :{Recipient[category][k]} \n {v}')
+                #elif verb : print(f'Keeping old definition {category} variable {k}. Previous :{Recipient[category][k]} \n {v}')
             else: ### IF FIELD DOES NOT
                 Recipient[category][k] = v
     return Recipient

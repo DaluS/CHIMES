@@ -787,7 +787,7 @@ _LIBRARY = {
               'units': 'Units.y^{-1}',
               'symbol': r'$C$',
               },
-        'H': {'value': 0,
+        'H': {'value': 1,
               'definition': 'Household possessions',
               'units': 'Units',
               'symbol': r'$H$', },

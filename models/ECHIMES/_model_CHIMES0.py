@@ -110,7 +110,7 @@ _LOGICS = {
         'w0': {'func': lambda Phillips, w0, gammai, ibasket: w0 * (Phillips + gammai * ibasket),
               'com': 'exogenous',
                'definition': 'Wage caracteristic level',
-               'units':'$.Humans^{-1}.y',
+               'units':'$.Humans^{-1}.y^{-1}',
                'initial':0.75,
               },
 
@@ -513,7 +513,7 @@ preset_basis = {
 'w':0.8,
 
 'sigma':[1,5],
-'K': [2.2,0.6],
+'K': [2.,0.5],
 'D':[0,0],
 'u':[.95,.7],
 'p':[1.5,3],
