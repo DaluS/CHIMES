@@ -10,7 +10,7 @@ import warnings
 import numpy as np
 import scipy.integrate as scpinteg
 import matplotlib.pyplot as plt     # DB
-
+from copy import deepcopy
 
 # specific
 from . import _utils
@@ -133,19 +133,18 @@ def solve(
     # -----------
     # check input
     solver = _check_solver(solver)
-
-    lode = dmisc['dfunc_order']['differential']
+    lode   = dmisc['dfunc_order']['differential']
     lstate = dmisc['dfunc_order']['statevar']
 
     # -----------
     # Define the function that takes/returns all functions
-    y0, dydt_func, dargs_temp,dictpos = get_func_dydt(
+    y0, dydt_func= get_func_dydt(
         dparam=dparam,
         dargs=dargs,
         dmisc=dmisc,
     )
 
-    store_statevar = True
+
     # -------------
     # dispatch to relevant solver to solve ode using dydt_func
     _eRK4_homemade(
@@ -156,7 +155,6 @@ def solve(
         lstate=lstate,
         nt=dparam['nt']['value'],
         dverb=dverb,
-        dictpos=dictpos,
     )
 
     # ----------------------
@@ -179,100 +177,29 @@ def get_func_dydt(
     dargs=None,
     dmisc=None,
 ):
-    '''
-    We create the following elements :
-    * y0      : initial values in an array
-    * dydt    : is the calculation of the variation at the instant
-    * dbuffer : dictionnary of values
-    * dargs_temp : dict of args : contains adresses but not the values
-    '''
-
     lode = dmisc['dfunc_order']['differential']
     lstate = dmisc['dfunc_order']['statevar']
     lparam = dmisc['dfunc_order']['parameter']+dmisc['dfunc_order']['parameters']+['dt']
 
-    # FIND ALL THE SIZES OF THE SYSTEM ################
-    nx=dparam['nx']['value']
-    nr=dparam['nr']['value']
-
-    # Calculate the number of scalar ode to solve at once
-    dictpos={}
-    idx=0
-    for k in lode:
-        size=np.shape(dparam[k]['value'])[-2]*np.shape(dparam[k]['value'])[-1]
-        dictpos[k]=np.arange(idx+0,idx+size)
-        idx+=size
-
-    # initialize y
-    y0=np.zeros((nx,nr,idx,1))
-    for k,v in dictpos.items():
-        oldshape=np.shape(dparam[k]['value'][0, ...])
-        newshape=np.array([oldshape[0],oldshape[1],oldshape[-2]*oldshape[3],1])
-        y0[:,:,v,:]=dparam[k]['value'][0, ...].reshape(newshape)
-
-    # ---------------------
-    # prepare array to be used as buffer
-    # array of dydt
-    dydt = np.full(np.shape(y0), np.nan)
-
-    # dict of values
-    dbuffer = {}
-    for k0 in lode:   dbuffer[k0]= dparam[k0]['value'][0, ...]
-    for k0 in lstate: dbuffer[k0]= dparam[k0]['value'][0, ...]
+    y0 = { k: dparam[k]['value'][0, ...] for k in lode}
+    dydt = {k : np.full(np.shape(v), np.nan) for k,v in y0.items()}
+    dbuffer = { k0: dparam[k0]['value'][0, ...] for k0 in lode+lstate}
     for k0 in lparam: dbuffer[k0]= dparam[k0]['value']
 
-    # dict of args, takes values in dbuffer by reference
-    dargs_temp = {
-        k0: {
-            k1: dbuffer[k1]
-            for k1 in dargs.get(k0,{}).keys() if k1 != 'time'
-        }
-        for k0 in list(dargs.keys())+lparam
-    }
-
-    # -----------------
-    # get func
     def func(
         t,
         y,
-        dargs_temp=dargs_temp,
+        dbuffer=dbuffer,
         dydt=dydt,
         dparam=dparam,
-        dbuffer=dbuffer,
-        dictpos=dictpos,
     ):
-        """ dydt = f(t, y)
-        Where y is a (n,) array
-        y[0] = fisrt ode
-        y[1] = second ode
-        ...
-        y[n] = last ode
+        for k0 in lode:   dbuffer[k0] = y[k0]
+        for k0 in lstate: dbuffer[k0] = dparam[k0]['func'](**{k:dbuffer[k] for k in dparam[k0]['kargs']})
+        for k0 in lode:   dydt[k0] = dparam[k0]['func']   (**{k:dbuffer[k] for k in dparam[k0]['kargs']})
 
-        All intermediate values ae stored in dparam[k0]['value'][-1, 0]
-        """
+        return dydt
 
-        # ------------
-        # update cache => also updates dargs and dargs_temp by reference
-        # used by dargs_temp (by reference)
-        for k0 in lode:
-            v=dictpos[k0]
-            dbuffer[k0][...] = y[...,v,:]
-
-        # ------------
-        # First update intermediary functions based on provided y
-        # The last time step is used as temporary buffer
-        # used by dargs_temp (by reference)
-        for ii, k0 in enumerate(lstate):
-            dbuffer[k0][...] = dparam[k0]['func'](**dargs_temp[k0])
-
-        # ------------
-        # Then compute derivative dydt (ode)
-        for k0 in lode:
-            v=dictpos[k0]
-            dydt[...,v,:] = dparam[k0]['func'](**dargs_temp[k0])
-        return np.copy(dydt)
-
-    return y0, func, dargs_temp, dictpos
+    return y0, func
 
 
 # #############################################################################
@@ -295,7 +222,7 @@ def _eRK4_homemade(
     """
 
     # initialize y
-    y = np.copy(y0)
+    y =deepcopy(y0)
 
     # start loop on time
     t0 = time.time()
@@ -308,7 +235,7 @@ def _eRK4_homemade(
         # dt =
 
         # compute ode variables from ii-1, using solver
-        y += _rk4(
+        y = _rk4(
             dydt_func=dydt_func,
             dt=dparam['dt']['value'],
             y=y,
@@ -316,14 +243,8 @@ def _eRK4_homemade(
         )
 
         # dispatch to store result of ode
-        for k0 in lode:
-            v = dictpos[k0]
-            dparam[k0]['value'][ii, ...] = y[...,v,:]
-
-
-    for k0 in lode:
-        v = dictpos[k0]
-        dparam[k0]['value'][0, ...] = y0[...,v,:]
+        for k0 in lode: dparam[k0]['value'][ii, ...] = y[k0]
+    for k0 in lode: dparam[k0]['value'][0, ...] = y0[k0]
 
 def _rk4(dydt_func=None, dt=None, y=None, t=None):
     """
@@ -332,10 +253,14 @@ def _rk4(dydt_func=None, dt=None, y=None, t=None):
         - dt = fixed time step
     """
     dy1_on_dt = dydt_func(t, y)
-    dy2_on_dt = dydt_func(t + dt/2., y + dy1_on_dt * dt/2.)
-    dy3_on_dt = dydt_func(t + dt/2., y + dy2_on_dt * dt/2.)
-    dy4_on_dt = dydt_func(t + dt, y + dy3_on_dt * dt)
-    return (dy1_on_dt + 2*dy2_on_dt + 2*dy3_on_dt + dy4_on_dt) * dt/6.
+    y1 = {k: y[k] + dy1_on_dt[k] * dt / 2. for k in y.keys()};dy2_on_dt = dydt_func(t + dt/2., y1)
+    y2 = {k: y[k] + dy2_on_dt[k] * dt / 2. for k in y.keys()};dy3_on_dt = dydt_func(t + dt/2., y2)
+    y3 = {k: y[k] + dy3_on_dt[k] * dt / 1. for k in y.keys()};dy4_on_dt = dydt_func(t + dt, y3)
+    y4 = {k: y[k] +(    dy1_on_dt[k]
+                    + 2*dy2_on_dt[k]
+                    + 2*dy3_on_dt[k]
+                    +   dy4_on_dt[k]) * dt/6  for k in y.keys()}
+    return y4
 
 
 # ###########################################
