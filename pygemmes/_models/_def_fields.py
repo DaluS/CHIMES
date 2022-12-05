@@ -63,10 +63,12 @@ _LIBRARY = {
         },
         'nr': {
             'value': 1,
+            'list':['local'],
             'units': '',
             'definition': 'Number of regions interconnected',
         },
 
+        ############################################################
         # DANGER ZONE DO NOT MODIFY IF YOU ARE NOT SURE ############
         '__ONE__': {
             'value': 1,
@@ -87,8 +89,216 @@ _LIBRARY = {
             'com': 'Constant dt',
             'eqtype': 'parameter',
         },
+
         # END OF DANGER ZONE #######################################
+        ############################################################
     },
+
+    'ECHIMES': {
+        'Nprod': {
+            'list': ['MONO'],
+            'definition': 'Name of productive sectors',
+            'eqtype':'size',
+        },
+        'w0': {
+            'definition': 'wage indicator',
+            'units': '$.Humans^{-1}.y^{-1}',
+            'size': ['__ONE__'],
+            'symbol': r'$w^0$',
+            'initial': 0.6,
+        },
+        'u0': {
+            'definition': 'voluntary use of productive capital',
+            'units': '',
+            'size': ['Nprod'],
+            'initial': 1,
+        },
+        'a0': {
+            'func': lambda a0, alpha: a0 * alpha,
+            'com': 'Productivity indicator',
+            'units': 'Units.Humans^{-1}.y^{-1}',
+            'initial':1,
+            },
+
+        ### MATRICES
+        'Gamma': {
+            'value': 0.0,
+            'size': ['Nprod', 'Nprod'],
+            'units':'',
+            'definition': 'intermediate consumption coefficients'
+        },
+        'Mgamma': {
+            'value': 0,
+            'definition': 'weight of intermediate consumption from j',
+            'units': '',
+            'com': 'Matrix version',
+            'size': ['Nprod','Nprod'],
+
+        },
+        'Mxi': {
+            'value': 0,
+            'definition': 'weight of capital destruction from j',
+            'units': '',
+            'com': 'Matrix version',
+            'size': ['Nprod', 'Nprod'],
+        },
+        'Minter': {
+            'value': 0,
+            'definition': 'Money from i to j through intermediary consumption',
+            'com': 'matrix expansion',
+            'units': '$.y^{-1}',
+            'size': ['Nprod', 'Nprod'],
+            'symbol': r'$\mathcal{T}^Y$'
+        },
+        'Minvest': {
+            'value': 0,
+            'definition': 'Money from i to j through investment',
+            'com': 'matrix expansion',
+            'units': '$.y^{-1}',
+            'size': ['Nprod', 'Nprod'],
+            'symbol': r'$\mathcal{T}^I$'
+        },
+        'MtransactY': {
+            'value': 0,
+            'definition': 'Money from i to j through intermediary consumption',
+            'com': 'matrix expansion',
+            'units': '$.y^{-1}',
+            'size': ['Nprod', 'Nprod'],
+            'symbol': r'$\mathcal{T}^Y$'
+
+        },
+        'MtransactI': {
+            'value': 0,
+            'definition': 'Money from i to j through investment',
+            'com': 'matrix expansion',
+            'units': '$.y^{-1}',
+            'size': ['Nprod', 'Nprod'],
+            'symbol': r'$\mathcal{T}^I$'
+
+        },
+        'basket': {
+            'value':1,
+            'com': 'cannot be non-auxilliary',
+            'definition': 'weight in consumption basket',
+            'size': ['Nprod'],
+            'units': '',
+
+        },
+        'Phillips': {
+            'func': 0,
+            'com': 'diverging (force omega \leq 1)',
+            'units': 'y^{-1}',
+            'symbol': r'$\Phi(\lambda)$',
+        },
+        'ibasket': {
+            'value':0,
+            'com': 'deduced from the basket',
+            'definition': 'basket of good inflation',
+            'units': 'y^{-1}',
+            'symbol': r'$i_{Basket}$',
+
+        },
+        'C': {
+            'value':0,
+            'com': 'Consumption as full salary',
+            'definition': 'flux of goods for household',
+            'units': 'Units.y^{-1}',
+            'size': ['Nprod','__ONE__'],
+        },
+        'dotV': {
+            'value':0,
+            'com': 'stock-flow',
+            'definition': 'temporal variation of inventory',
+            'units': 'Units.y^{-1}',
+            'size': ['Nprod'],
+            'symbol': r'$\dot{V}$'
+        },
+
+        'wL': {
+            'value':0,
+            'com': 'wage bill per sector',
+            'definition': 'wage bill per sector',
+            'units': '$.y^{-1}',
+            'size': ['Nprod'],
+
+        },
+        'pC': {
+            'value': 0,
+            'com': 'explicit monetary flux',
+            'definition': 'monetary consumption',
+            'units': '$.y^{-1}',
+            'size': ['Nprod'],
+        },
+
+        'rD': {
+            'value': 0,
+            'com': 'explicit monetary flux',
+            'definition': 'debt interests',
+            'units': '$.y^{-1}',
+            'size': ['Nprod'],
+        },
+        'dotD': {
+            'value': 0,
+            'com': 'explicit monetary flux',
+            'definition': 'debt variation',
+            'units': '$.y^{-1}',
+            'size': ['Nprod'],
+        },
+        'W': {
+            'value': 0,
+            'definition': 'Total income of household',
+            'com': 'no shareholding, no bank possession',
+            'units': '$.y^{-1}',
+            'symbol': r'$\mathcal{W}$'
+        },
+        'rDh': {
+            'value': 0,
+            'definition': 'bank interests for household',
+            'units': '$.y^{-1}',
+        },
+
+        'rd': {
+            'value': 0,
+            'com': 'explicit form',
+            'definition': 'relative weight debt',
+            'size': ['Nprod'],
+            'units': ''
+        },
+        'ROC': {
+            'value': 0.1,
+            'definition': 'return on capital',
+            'com': 'raw definition',
+            'size': ['Nprod'],
+            'units': 'y^{-1}',
+        },
+        'z': {
+            'value': 1,
+            'definition': 'local wage ponderation',
+            'size': ['Nprod']
+        },
+        'b': {'value': 1,
+              'definition': 'local productivity ponderation',
+              'size': ['Nprod']
+              },
+        'nu0': {
+            'value':3,
+            'definition': 'Sector-dependant capital to output ratio',
+            'symbol': r'$\nu^{(0)}',
+            'units': 'y',
+        },
+        'Cpond': {
+            'value':1,
+              'definition': 'part of salary into consumption of the product',
+              'size': ['Nprod']
+        },
+        'mu0': {
+            'value':1,
+            'definition': 'target markup for productive sector',
+            'size': ['Nprod']
+        },
+    },
+
+
 
     'Household': {
         # VARIABLES
@@ -258,24 +468,24 @@ _LIBRARY = {
 
         # INTERMEDIARY VARIABLES
         'g': {
-            'value': None,
+            'value': 0.03,
             'definition': 'Relative growth of GDP',
             'units': 'y^{-1}',
         },
         'pi': {
-            'value': None,
+            'value': 0.1,
             'definition': 'relative profit',
             'units': '',
             'symbol': r'$\pi$',
         },
         'Pi': {
-            'value': None,
+            'value': 0,
             'definition': 'Absolute profit',
             'units': '$.y^{-1}',
             'symbol': r'$\Pi$',
         },
         'c': {
-            'value': None,
+            'value': 0,
             'definition': 'production price',
             'units': '$.Units^{-1}'
         },
@@ -304,7 +514,7 @@ _LIBRARY = {
 
     'Salary Negociation': {
         'phillips': {
-            'value': None,
+            'value': 0,
             'definition': 'Wage inflation rate',
             'units': 'y^{-1}',
             'symbol': r'$\phi$',
@@ -434,17 +644,17 @@ _LIBRARY = {
 
     'Investment': {
         'I': {
-            'value': None,
+            'value': 0,
             'definition': 'Investment in money',
             'units': '$.y^{-1}',
         },
         'Ir': {
-            'value': None,
+            'value': 0,
             'definition': 'Number of real unit from investment',
             'units': 'Units.y^{-1}',
         },
         'kappa': {
-            'value': None,
+            'value': 0,
             'definition': 'Part of GDP in investment',
             'units': '',
             'symbol': r'$\kappa$',
@@ -537,7 +747,7 @@ _LIBRARY = {
     'Prices': {
         # VARIABLES
         'inflation': {
-            'value': None,
+            'value': 0,
             'definition': 'inflation rate',
             'units': 'y^{-1}',
         },
@@ -572,12 +782,12 @@ _LIBRARY = {
 
     'Consumption': {
         # VARIABLES
-        'G': {'value': None,
+        'G': {'value': 0,
               'definition': 'Purchased good flow',
               'units': 'Units.y^{-1}',
               'symbol': r'$C$',
               },
-        'H': {'value': 0,
+        'H': {'value': 1,
               'definition': 'Household possessions',
               'units': 'Units',
               'symbol': r'$H$', },
@@ -1084,3 +1294,10 @@ def _complete_DFIELDS(
 
 
 _DFIELDS = _complete_DFIELDS(_DFIELDS)
+for k,v in _DFIELDS.items():
+    size = v.get('size',[])
+    if len(size)==1:
+        v['size']=[size[0],__DEFAULTFIELDS['size']['default'][1]]
+    else :
+        v['size']=__DEFAULTFIELDS['size']['default']
+

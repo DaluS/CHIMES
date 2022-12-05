@@ -737,8 +737,8 @@ class Hub():
                                        self.__dmisc['dfunc_order']['differential'] else v1
                for k1, v1 in self.__dargs[k0].items()
            }
-
            try :
+
                # run function
                self.__dparam[k0]['value'][0, ...] = (
                    self.__dparam[k0]['func'](**kwdargs)
@@ -746,7 +746,7 @@ class Hub():
 
            except BaseException:
                #print(k0)
-               ERROR+=f'You have a problem on your object sizes for {k0} \n'
+               ERROR+=f'You have a problem on your object sizes for {k0} (shape of kwargs:)\n {[(k,np.shape(v)) for k,v in kwdargs.items()]} \n'
        if len(ERROR):
            raise Exception('\n'+ERROR+'ALLOCATION CANNOT BE DONE,CHECK YOUR MODEL FILE !')
 
@@ -791,7 +791,7 @@ class Hub():
            solver = _solvers.solve(
                dparam=self.__dparam,
                dmisc=self.__dmisc,
-               dargs=self.__dargs,
+               #dargs=self.__dargs,
                dverb=dverb,
            )
            self.__dmisc['run'] = True
@@ -836,12 +836,12 @@ class Hub():
     #  Introspection
     # ##############################
     def __repr__(self, verb=None):
-       """ This is automatically called when only the instance is entered """
+        """ This is automatically called when only the instance is entered """
 
-       if verb is None:
+        if verb is None:
            verb = True
-
-       col0 = [
+        
+        col0 = [
            'model',
            'preset',
            'param (fix + func)',
@@ -849,9 +849,9 @@ class Hub():
            'statevar',
            'run',
            'source',
-       ]
-
-       ar0 = [
+        ]
+        
+        ar0 = [
            self.__dmodel['name'],
            self.__dmodel['preset'],
            '{} + {}'.format(
@@ -862,41 +862,26 @@ class Hub():
            len(self.get_dparam(returnas=list, eqtype='statevar')),
            self.__dmisc['run'],
            self.__dmodel['file'],
-       ]
-       if verb is True:
+        ]
+
+        '''
+        if verb is True:
            return _utils._get_summary(
                lar=[ar0],
                lcol=[col0],
                verb=False,
                returnas=str,
            )
-       else:
+        else:
            return col0, ar0
+        '''
 
-    def get_summary(self, idx=0, Region=0,removesector=()):
-        """
-        INTROSPECTION TOOL :
-        Print a str summary of the model, with
-        * Model description
-        * Parameters, their properties and their values
-        * ODE, their properties and their values
-        * Statevar, their properties and their values
-
-        For more precise elements, you can do introspection using hub.get_dparam()
-
-        INPUT :
-        * idx = index of the model you want the value to be shown when there are multiple models in parrallel
-        * region : name or index of the region you want to plot
-        """
-
+    def __short(self):
         _FLAGS = ['run', 'cycles', 'derivative','multisectoral','solver']
         _ORDERS = ['statevar', 'differential', 'parameters']
 
         Vals = self.__dparam
 
-        print(60 * '#')
-        print(20 * '#', 'SUMMARY'.center(18), 20 * '#')
-        print(60 * '#')
         print('Model       :', self.dmodel['name'])
         print(self.dmodel['description'])
         print('File        :', self.dmodel['file'])
@@ -924,6 +909,34 @@ class Hub():
         for k in list(sub.keys())+['nx','nr']:
            v = Vals[k]
            print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
+
+
+    def get_summary(self, idx=0, Region=0,removesector=()):
+        """
+        INTROSPECTION TOOL :
+        Print a str summary of the model, with
+        * Model description
+        * Parameters, their properties and their values
+        * ODE, their properties and their values
+        * Statevar, their properties and their values
+
+        For more precise elements, you can do introspection using hub.get_dparam()
+
+        INPUT :
+        * idx = index of the model you want the value to be shown when there are multiple models in parrallel
+        * region : name or index of the region you want to plot
+        """
+
+        _FLAGS = ['run', 'cycles', 'derivative','multisectoral','solver']
+        _ORDERS = ['statevar', 'differential', 'parameters']
+
+        Vals = self.__dparam
+
+        print(60 * '#')
+        print(20 * '#', 'SUMMARY'.center(18), 20 * '#')
+        print(60 * '#')
+
+        self.__short()
 
         print('\n')
         print(60 * '#')

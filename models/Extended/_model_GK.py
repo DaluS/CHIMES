@@ -53,7 +53,7 @@ _GK_LOGICS = {
     'parameter': {},
     'size': {},
 }
-_LOGICS = mergemodel(_LOGICS, _GK_LOGICS, verb=True) # rename _LOGICS_MERGED into _LOGICS if you want to really do it !
+_LOGICS = mergemodel(_LOGICS, _GK_LOGICS, verb=False) # rename _LOGICS_MERGED into _LOGICS if you want to really do it !
 
 
 # ####################### PRESETS #######################################

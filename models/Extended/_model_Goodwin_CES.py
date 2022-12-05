@@ -69,7 +69,7 @@ _CES_LOGICS = {
     'size': {'Nprod': {'list':['1']},},
 }
 
-_LOGICS= mergemodel(_LOGICS, _CES_LOGICS, verb=True)
+_LOGICS= mergemodel(_LOGICS, _CES_LOGICS, verb=False)
 
 
 # ####################### PRESETS #######################################

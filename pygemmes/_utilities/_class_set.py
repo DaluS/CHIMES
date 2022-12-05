@@ -82,7 +82,7 @@ def load_dmodel(model, from_user=False):
 
     if model not in _DMODEL.keys():
         modellist = "".join(['* '+str(f)+"\n" for f in list(_DMODEL.keys())])
-        raise Exception(f'The model you asked, {model}, cannot be found. Found models are \n {modellist}'
+        raise Exception(f'The model you asked, {model}, cannot be found. Found models are \n{modellist}'
                         f'...Maybe you mispelled it ?')
     dmodel=_DMODEL[model]
     dmodel['preset']=None
@@ -278,7 +278,10 @@ def extract_parameters(dparam, dfields, verb=None):
         )
         print(msg)
 
-
+    for k0 in dparam.keys():
+        if len(dparam[k0].get('size',[_DEFAULTSIZE]))<2 :
+            dparam[k0]['size']=[dparam[k0].get('size',[_DEFAULTSIZE])[0],
+                                _DEFAULTSIZE ]
     return dparam, lpar_new+lfunc_new+lpar
 
 
@@ -556,12 +559,14 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
         if len(shape)==len(np.shape(dparam[k0]['value'])):
             shp = np.shape(dparam[k0]['value'])
             change=False
+
             for ii,k in enumerate(shape):
                 if (shp[ii]!=k and shp[ii]!=1):
-                    print(f'WARNING : projection of {k0} on first scalar value')
+                    print(f'WARNING : projection of {k0} on first scalar value. Are you sure about your dimensions ?')
                     change=True
                     break
             if change:
+                print(dparam[k0]['value'])
                 dparam[k0]['value']= dparam[k0]['value'][0,0,0,0]
 
 
