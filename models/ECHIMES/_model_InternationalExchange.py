@@ -57,7 +57,7 @@ def dotVinternational( Y, Gamma, Ir, C, Xi,PhysicalExchanges):
 def phyfunc(p,pInter,chiM,sigmaRQ, PhysicalExchanges):
     return PhysicalExchanges*np.log(p/pInter)*chiM*sigmaRQ
 
-
+ 
 _LOGICS = {
     'size': {
         'Nprod': {
