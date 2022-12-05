@@ -55,9 +55,6 @@ def dotVinternational( Y, Gamma, Ir, C, Xi,PhysicalExchanges):
          - ssumR(PhysicalExchanges)
 
 def phyfunc(p,pInter,chiM,sigmaRQ, PhysicalExchanges):
-    print('p',np.shape(p))
-    print('pinter',np.shape(pInter))
-    print('phyext',np.shape(PhysicalExchanges))
     return PhysicalExchanges*np.log(p/pInter)*chiM*sigmaRQ
 
 

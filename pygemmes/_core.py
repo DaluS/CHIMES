@@ -791,7 +791,7 @@ class Hub():
            solver = _solvers.solve(
                dparam=self.__dparam,
                dmisc=self.__dmisc,
-               dargs=self.__dargs,
+               #dargs=self.__dargs,
                dverb=dverb,
            )
            self.__dmisc['run'] = True

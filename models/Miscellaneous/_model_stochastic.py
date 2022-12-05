@@ -25,7 +25,7 @@ _LOGICS = {
     'differential': {
         # Exogenous entries in the model
         'y': {
-            'func' : lambda y,noise,nx,nr: y*noise*np.random.normal(loc=0,size=(nx, nr, 1, 1)),
+            'func' : lambda y,noisamp: y*noisamp,
             'com' : "noise on growth rate",
             'initial': 1,
         },
@@ -33,6 +33,9 @@ _LOGICS = {
 
     # Intermediary relevant functions
     'statevar': {
+        'noisamp' :{
+            'func':  lambda nx,nr,noise : noise*np.random.normal(loc=0,size=(nx, nr, 1, 1)),
+        },
     },
     'parameter': {
         'noise': {'value':0.5,
