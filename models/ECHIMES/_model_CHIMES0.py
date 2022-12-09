@@ -117,8 +117,9 @@ _LOGICS = {
         ### BEHAVIOR
         'u0': {
             # 'func': lambda u: 0,
-            'func': lambda u0, sigma, V, dotV: -sigma * (1 - u0) * (dotV / V),
-            'com': 'hardcapped at 1',
+            #'func': lambda u0, sigma, V, dotV: -sigma * (1 - u0) * (dotV / V),
+            'func': lambda u0, sigma, Y, dotV: -sigma * (1 - u0) * (dotV / Y),
+            'com': 'on dotV/Y',
             'definition': 'voluntary use of productive capital',
             'units': '',
             'size': ['Nprod'],
@@ -164,6 +165,7 @@ _LOGICS = {
             'definition': 'weight of intermediate consumption from j',
             'units': '',
             'com': 'Matrix version',
+            'symbol': r'$\gamma$',
             'size': ['Nprod','Nprod'],
         },
         'Mxi': {
@@ -171,8 +173,10 @@ _LOGICS = {
             'definition': 'weight of capital destruction from j',
             'units': '',
             'com': 'Matrix version',
+            'symbol': r'$\xi$',
             'size': ['Nprod', 'Nprod'],
         },
+
         'c': {
             'func': lambda omega, Mgamma, Mxi, p: p * (omega + ssum2(Mgamma) + ssum2(Mxi)),
             'com': 'sum of components',
@@ -196,8 +200,8 @@ _LOGICS = {
             'symbol': '$i^{\mu}$'
         },
         'inflationdotV': {
-            'func': lambda chi, dotV, V: - chi * dotV / V,
-            'com': 'price adjustment to demand-offer',
+            'func': lambda chi, dotV, Y,gK: - chi *(gK + dotV / Y),
+            'com': 'price adjustment to demand-offer on Y',
             'size': ['Nprod'],
             'units': 'y^{-1}',
             'symbol': '$i^{\dot{V}}$'
@@ -249,20 +253,36 @@ _LOGICS = {
         },
         # Matrix approach
         'Minter': {
+            'func': lambda Y, Gamma:  transpose(Gamma*Y) ,
+            'definition': 'Physical from i to j through intermediary consumption',
+            'com': 'matrix expansion',
+            'units': '$.y^{-1}',
+            'size': ['Nprod', 'Nprod'],
+            'symbol': r'$^\mathcal{R}\mathcal{M}^Y$'
+        },
+        'Minvest': {
+            'func': lambda Ir, Xi:  transpose(Xi* Ir),
+            'definition': 'Physical from i to j through investment',
+            'com': 'matrix expansion',
+            'units': '$.y^{-1}',
+            'size': ['Nprod', 'Nprod'],
+            'symbol': r'$^\mathcal{R}\mathcal{M}^{I}$'
+        },
+        'MtransactY': {
             'func': lambda p, Y, Gamma: Y * Gamma * transpose(p),
             'definition': 'Money from i to j through intermediary consumption',
             'com': 'matrix expansion',
             'units': '$.y^{-1}',
             'size': ['Nprod', 'Nprod'],
-            'symbol': r'$\mathcal{T}^Y$'
+            'symbol': r'($^{\$}\mathcal{M}^{Y})$'
         },
-        'Minvest': {
+        'MtransactI': {
             'func': lambda I, Xi, p: I * Xi * transpose(p) / (matmul(Xi, p)),
             'definition': 'Money from i to j through investment',
             'com': 'matrix expansion',
             'units': '$.y^{-1}',
             'size': ['Nprod', 'Nprod'],
-            'symbol': r'$\mathcal{T}^I$'
+            'symbol': r'($^{\$}\mathcal{M}^{I})$'
         },
 
         ### MONETARY FLUXES
@@ -287,22 +307,7 @@ _LOGICS = {
             'units': '$.y^{-1}',
             'size': ['Nprod'],
         },
-        'MtransactY': {
-            'func': lambda p, Y, Gamma: Y * Gamma * transpose(p),
-            'definition': 'Money from i to j through intermediary consumption',
-            'com': 'matrix expansion',
-            'units': '$.y^{-1}',
-            'size': ['Nprod', 'Nprod'],
-            'symbol': r'$\mathcal{T}^Y$'
-        },
-        'MtransactI': {
-            'func': lambda I, Xi, p: I * Xi * transpose(p) / (matmul(Xi, p)),
-            'definition': 'Money from i to j through investment',
-            'com': 'matrix expansion',
-            'units': '$.y^{-1}',
-            'size': ['Nprod', 'Nprod'],
-            'symbol': r'$\mathcal{T}^I$'
-        },
+
         'rD': {
             'func': lambda r,D: r*D,
             'com': 'explicit monetary flux',
@@ -316,6 +321,7 @@ _LOGICS = {
             'definition': 'debt variation',
             'units': '$.y^{-1}',
             'size': ['Nprod'],
+            'symbol':'$\dot{D}$',
         },
 
         ### LABOR-SIDE THEORY
@@ -331,15 +337,16 @@ _LOGICS = {
             'definition': 'bank interests for household',
             'units': '$.y^{-1}',
         },
-        'employment': {
-            'func': lambda L, N: ssum(L) / N,
+        'employmentAGG': {
+            'func': lambda employment: ssum(employment),
             'com': 'Calculation with L',
             'units': '',
             'symbol': r'$\Lambda$'
         },
         'Phillips': {
-            'func': lambda employment, phi0, phi1: -phi0 + phi1 / (1 - employment) ** 2,
-            'com': 'diverging (force omega \leq 1)',
+            #'func': lambda employmentAGG, phi0, phi1: -phi0 + phi1 / (1 - employmentAGG) ** 2,
+            'func': lambda employmentAGG, philinConst, philinSlope: philinConst + philinSlope * employmentAGG,
+            'com': 'Local Phillips',
             'units': 'y^{-1}',
             'symbol': r'$\Phi(\lambda)$',
         },
@@ -362,12 +369,60 @@ _LOGICS = {
                'definition': 'relative weight debt',
                'size': ['Nprod'],
                'units': ''},
+        ################################################
+        'gK': {
+            'func': lambda Ir,K,delta : Ir/K - delta ,
+            'definition': 'growth rate',
+            'com': 'raw definition',
+            'symbol': r'$g^K $',
+            'size': ['Nprod'],
+            'units': 'y^{-1}',
+        },
         'ROC': {
             'func': lambda pi, nu,Xi,p: pi/(nu*matmul(Xi,p)/p),
             'definition': 'return on capital',
             'com': 'raw definition',
             'size': ['Nprod'],
             'units': 'y^{-1}',
+        },
+        'employment': {
+            'func': lambda L,N: L/N,
+            'com': 'Calculation with L',
+            'units': '',
+            'size': ['Nprod'],
+            'symbol': r'$\lambda$'
+        },
+        'gamma': {
+            'func': lambda Gamma, p: matmul(Gamma, p) / p,
+            'definition': 'share of intermediary consumption',
+            'com': 'raw definition',
+            'units': '',
+            'symbol': r'$\gamma$',
+            'size': ['Nprod'],
+        },
+        'xi': {
+            'func': lambda delta, nu, b, p, Xi: (delta * nu / b) * matmul(Xi, p) / p,
+            'definition': 'relative capex weight',
+            'com': 'explicit calculation',
+            'units': '',
+            'size': ['Nprod'],
+            'symbol': r'$\xi$',
+        },
+        'reldotv': {
+            'func': lambda dotV, Y, p, c: (c - p) * dotV / (p * Y),
+            'com': 'calculated as inventorycost on production',
+            'definition': 'relative budget weight of inventory change',
+            'units': '',
+            'size': ['Nprod'],
+            'symbol': r'$\dot{v}$',
+        },
+        'reloverinvest': {
+            'func': lambda kappa, pi: pi - kappa,
+            'com': 'difference between kappa and pi',
+            'units': '',
+            'symbol': r'$(\kappa-\pi)$',
+            'size': ['Nprod'],
+            'definition': 'relative overinstment of the budget',
         },
     },
     'parameter': {
@@ -415,7 +470,7 @@ _LOGICS = {
         'chi': {'value': 1,
                'size': ['Nprod']
                },
-        'b': {'value': 0.5,
+        'b': {'value': 1,
               'size': ['Nprod']
               },
         'nu': {'value': 3,
@@ -432,13 +487,13 @@ _LOGICS = {
             'value': 0.01,
             'size': ['Nprod', 'Nprod']
         },
-        'rho': {
-            'value': 0.01,
-            'size': ['Nprod', 'Nprod']
-        },
     },
 }
 
+# 'rho': {
+#    'value': 0.01,
+#    'size': ['Nprod', 'Nprod']
+# },
 
         #'Omega': {
         #    'func': lambda N,W,p,basket: (W/N)/(sprod(basket,p)) ,
@@ -453,6 +508,7 @@ dictMONOGOODWIN={
 'Tmax'  : 50,
 'Nprod' : ['Mono'],
 'Tini'  : 0,
+'dt'    : 0.1,
 
 # Population
 'n'     : 0.025, # MONOSECT
@@ -465,7 +521,7 @@ dictMONOGOODWIN={
 'nu'   : 3,
 'delta': 0.05,
 'b'    : 3,
-'a0'    : 1, # MONOSECT
+'a0'   : 1, # MONOSECT
 'alpha': 0.02, # MONOSECT
 'u'    : 1,
 
@@ -494,9 +550,8 @@ dictMONOGOODWIN={
 # Consumption theory
 'Cpond' : [1],
 }
-
 preset_basis = {
-'Tmax':20,
+'Tmax':50,
 'dt':0.1,
 'Nprod': ['Consumption','Capital'],
 'nx':1,
@@ -512,7 +567,7 @@ preset_basis = {
 'Dh':0,
 'w':0.8,
 
-'sigma':[1,5],
+'sigma':[5,5],
 'K': [2.,0.5],
 'D':[0,0],
 'u':[.95,.7],
@@ -523,7 +578,7 @@ preset_basis = {
 
 'Cpond':[1,0],
 
-'mu0':[1.2,1.2],
+'mu0':[1.5,1.5],
 'delta':0.05,
 'deltah':0.05,
 'eta':0.3,
@@ -540,6 +595,50 @@ preset_basis = {
        [0.1,1]],
 'rho': np.eye(2),
 }
+trisector={
+        'Nprod': ['Consumption', 'Capital','Intermediate'],
+        'K': [5.01426008,2.79580692,1],
+        'D': [ 0.75618537,-0.75618537,0],
+        'Dh': -2.03540888e-17,
+        'u': [0.94703658,0.7126253 ,0.9],
+        'p': [2.35968699,0.79685443,1.2],
+        'V': [10.59268384, 9.91437758,10],
+        'w': 2.88903052,
+        'a': 1.48884403,
+        'N': 1.64460462*3/2,
+        'H': [1.33837281e+00,0,0],
+        'alpha': 0.02,
+        'n': 0.025,
+        #'phinull': 0.1,
+        'r': 0.03,
+        'z': [1. ,0.3,.5],
+        'Cpond': [1,0,0],
+        'mu0': [1.4,1.4,1.4],
+        'delta': [0.05,0.05,0.05],
+        'deltah': [0.05,0,0],
+        'sigma': [1,5,5],
+        'gammai': 0.,
+        'eta': [0.2,0.2,0.2],
+        'chi': [0,0,0],
+        'b': [1.,1.,1.],
+        'nu': [3.,3.,3.],
+        'Gamma': [[0, 0. ,0.1],
+                  [0, 0. ,0.1],
+                  [0, 0. ,0.1]],
+        'Xi': [[0.0, 1. ,0],
+               [0. , 1. ,0],
+               [0  , 1. ,0]],
+        'rho': [[0, 0.,1.],
+                [0.,0.,1.],
+                [0.,0.,1.]],
+        'Tmax': 100,
+        'Tini': 0,
+        'dt': 0.1,
+        'nx': 1,
+        'nr': 1,
+        'k0': 1.,
+ }
+
 
 _PRESETS = {
     'Goodwin': {
@@ -551,6 +650,11 @@ _PRESETS = {
         'fields': preset_basis,
         'com': ('Two sectors : one producing consumption good, one for capital goods.'
                 'Converging run starting for VERY far from equilibrium'),
+        'plots': {},
+    },
+    'Trisectoral': {
+        'fields': trisector,
+        'com': ('Three sectors: Consumption, Capital, Intermediate Consumption.'),
         'plots': {},
     },
 }

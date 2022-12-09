@@ -22,8 +22,8 @@ _LOGICS ={
         },
     },
     'differential': {
-        'mu': {
-            'func': lambda mu,costpushi,vec,M,residue: (mu**2)*(matmul(M,(costpushi+residue)*vec))/vec ,
+        'p': {
+            'func': lambda p,i: p*i,
             'size': ['Nprod'],
             'com': '',
             'symbol':r'$\mu$',
@@ -31,24 +31,18 @@ _LOGICS ={
         },
     },
     'statevar'    : {
-        'inverseM': {
-            'func': lambda M : np.linalg.inv(M),
-            'size': ['Nprod','Nprod'],
-            'com': '',
-        },
-        'M': {
-            'func': lambda mu,Xi,nu,delta,Gamma : matmul(Identity(Gamma),1/mu)-Gamma-nu*delta*Xi,
-            'size': ['Nprod','Nprod'],
-            'com': '',
-        },
-        'vec': {
-            'func': lambda inverseM,z,b : matmul(inverseM,z/b),
+        'c': {
+            'func': lambda w,a,p,Xi,Gamma,nu,delta : w/(p*a)+ matmul(Gamma,p)+ nu*delta*matmul(Xi,p),
             'size': ['Nprod'],
-            'com': '',
+            'com': 'explicit cost',
+        },
+        'mu': {
+            'func': lambda p,c : p/c,
+            'size': ['Nprod'],
+            'com': 'deduced markup',
         },
         'costpushi': {
-            'func': lambda mu, mu0, eta: eta * (mu0 / mu-1),
-            #'func': lambda mu,mu0,eta : eta*np.log(mu0/mu),
+            'func': lambda mu,mu0,eta : eta*np.log(mu0/mu),
             'size': ['Nprod'],
             'com': '',
             'units':'y^{-1}',
@@ -56,10 +50,6 @@ _LOGICS ={
         }
     },
     'parameter': {
-        'residue': {
-            'value' : -0.1,
-            'definition': 'Everything else'
-        }
     },
 }
 

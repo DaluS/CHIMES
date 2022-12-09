@@ -57,7 +57,7 @@ _LOGICS ={
     },
     'parameter': {
         'residue': {
-            'value' : -0.1,
+            'value' : -0,
             'definition': 'Everything else'
         }
     },
@@ -81,12 +81,12 @@ base = {
     'z': 1,
     'b': 1,
     'mu0': 1.5,
-    'mu': np.linspace(1.2,1,Nsector),
+    'mu': [1.5,1.5,1.5,1.5,1.4],
     'delta': 0.05,
     'Xi': np.zeros((Nsector,Nsector))+np.array([0 for i in range(Nsector-1)]+[1]),
     'Gamma': np.eye(Nsector)*0.1,
-    'Tmax':0.5,
-    'dt':0.001,
+    'Tmax':3,
+    'dt':0.01,
 }
 
 _PRESETS = {

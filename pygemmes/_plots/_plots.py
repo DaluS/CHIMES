@@ -208,7 +208,7 @@ def plotbyunits(hub,
                           label=symb ,
                           ls=_LS[j % (len(_LS)-1)],
                           lw=lw)
-            mini=np.amin((mini,np.amin(vy[key][key2])))
+            mini=np.nanmin((mini,np.nanmin(vy[key][key2])))
         if j >= 0:
             dax[key].legend(ncol=1+j//4)
         index += 1
@@ -294,8 +294,8 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
         units = r'$(' + R[name]['units'].replace('$', '\$') + ')$'
 
         ## Work on the limit
-        ymin = np.amin([np.amin(v) for v in vy[ii].values()])
-        ymax = np.amax([np.amax(v) for v in vy[ii].values()])
+        ymin = np.nanmin([np.nanmin(v) for v in vy[ii].values()])
+        ymax = np.nanmax([np.nanmax(v) for v in vy[ii].values()])
         dax[ii].set_ylim(ymin, ymax)
 
         ## Work on the colors
@@ -393,8 +393,8 @@ def phasespace(hub, x, y, color='time', idx=0,Region=0):
     fig.colorbar(line, ax=ax, label=allvars[color]['symbol'][:-1]+'_{'+colorname+'}$')
     plt.xlabel(allvars[x]['symbol'][:-1]+'_{'+xname+'}$')
     plt.ylabel(allvars[y]['symbol'][:-1]+'_{'+yname+'}$')
-    plt.xlim([np.amin(xval), np.amax(xval)])
-    plt.ylim([np.amin(yval), np.amax(yval)])
+    plt.xlim([np.nanmin(xval), np.nanmax(xval)])
+    plt.ylim([np.nanmin(yval), np.nanmax(yval)])
     plt.axis('scaled')
     plt.title('Phasespace ' + x + '-' + y + ' for model : '
               + hub.dmodel['name'] + '| system number' + str(idx))
@@ -537,8 +537,8 @@ def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
         tmcycles = cyclvar['t_mean_cycle']
 
         # Plot of each period by a rectangle
-        miny = np.amin(y)
-        maxy = np.amax(y)
+        miny = np.nanmin(y)
+        maxy = np.nanmax(y)
 
         for car in cyclvar['period_T_intervals'][::2]:
             ax.add_patch(
@@ -588,7 +588,7 @@ def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
                              V['mean'], alpha=0.5, color='blue', label=r'$\mu \pm 5 \sigma$')
 
         ax.set_xlim([time[0], time[-1]])
-        ax.set_ylim([np.amin(V['min']), np.amax(V['max'])])
+        ax.set_ylim([np.nanmin(V['min']), np.nanmax(V['max'])])
 
         ax.fill_between(time, V['mean'] - V['stdv'],
                              V['mean'] + V['stdv'], alpha=0.4, color='r', label=r'$\mu \pm \sigma$')
@@ -677,7 +677,6 @@ def cycles_characteristics(hub,
 
 
 
-
 def repartition(hub ,
                 keys : list ,
                 sector = '' ,
@@ -686,13 +685,30 @@ def repartition(hub ,
                 refsign = '+',
                 title= '',
                 idx=0,
-                region=0,):
+                region=0,
+                removetranspose=False):
     """
+    Temporal visualisation of a composition.
+    Recommended use on stock-flow consistency and budget repartition.
+
+    Variables :
+    * hub
+    * keys : list of fields considered in the decomposition
+    * sector : the sector you want to verify. Monosectoral is ''
+    * sign : either '+','-' or a list of ['+','-'], to apply for each key. Must be a list of same length.
+    * ref : the reference level to compare to the components. Typically in the case of debt stock-flow, ref is dotD.
+    * title : title,
+    * idx : number of the system in parrallel
+    * region : number or id of the system considered
+    * removetranspose : if there is a matrix of transaction (from i to j), add negatively the transpose of the matrix terms
+
     Will create a substack of the different component you put in.
 
     Example on a multisectoral :
     repartition(hub,['pi','rd','xi','gamma','omega'],sector='Consumption')
     repartition(hub,['pi','rd','xi','gamma','omega'],sector='Capital')
+
+    Same as repartition, but will take matrices as inputs
     """
     if not hub.dmisc['run']:
         print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
@@ -712,7 +728,7 @@ def repartition(hub ,
 
 
     R=hub.get_dparam()
-    # Sector names
+    # Sector names ##################################################
     if sector in ['',False,None]:
         sectindex = 0
         sectname = ''
@@ -724,8 +740,26 @@ def repartition(hub ,
         sectindex = R[R[keys[0]]['size'][0] ]['list'].index(sectname)
 
 
-    dicvals = { R[k]['symbol'][:-1]+'_{'+sectname+'}$': sign[enum]*R[k]['value'][:,idx,region,sectindex,0] for enum, k in enumerate(keys)}
-    color = list(plt.cm.jet(np.linspace(0,1,len(keys)+1)))
+    dicvals= {} # Dictonnary of entries #############################
+    for enum,k in enumerate(keys):                                          # For each entry
+        Nsects = R[R[k]['size'][1]].get('list',[''])                        # We check if it has components
+        for enum2, sect2name in enumerate(Nsects):                          # Decomposition for matrices
+
+            sectname2 = '-'+sect2name if len(Nsects)>1 else ''              # Name of matrix sector
+            entryname =  R[k]['symbol'][:-1]+'_{'+sectname+sectname2+'}$'   # Name in the dictionnary
+
+            # if the entry is non-zero
+            if np.max(np.abs(R[k]['value'][:,idx,region,sectindex,enum2]))!=0:
+                dicvals[entryname]=  sign[enum]*R[k]['value'][:,idx,region,sectindex,enum2]
+
+            if (removetranspose and R[k]['size'][1]!='__ONE__'):
+                entrynameT=R[k]['symbol'][:-1] + '_{' + sectname2[1:] +'-' +sectname + '}$'
+
+                # If the entry is non-zero
+                if np.max(np.abs(R[k]['value'][:, idx,region,enum2,sectindex]))!=0:
+                    dicvals[entrynameT] = -sign[enum] * R[k]['value'][:, idx,region,enum2,sectindex]
+
+    color = list(plt.cm.turbo(np.linspace(0,1,len(keys)+1)))
     dicvalpos = { k : np.maximum(v,0) for k,v in dicvals.items()}
     dicvalneg = { k : np.minimum(v,0) for k,v in dicvals.items()}
     time = R['time']['value'][:,0,0,0,0]
@@ -736,7 +770,7 @@ def repartition(hub ,
     ax=plt.gca()
     if len(ref):
         name = R[ref]['symbol'][:-1]+'_{'+sectname+'}$'
-        ax.plot(time,refsign*R[ref]['value'][:,idx,region,sectindex,0],c='k',lw=1,label=name)
+        ax.plot(time,refsign*R[ref]['value'][:,idx,region,sectindex,0],c='r',ls='--',lw=2,label=name)
     ax.stackplot(time,dicvalpos.values(),labels=dicvals.keys(),colors=color)
     ax.legend(loc='upper left')
     ax.stackplot(time, dicvalneg.values(),lw=3,colors=color)
@@ -746,6 +780,7 @@ def repartition(hub ,
     plt.suptitle(title)
     plt.tight_layout()
     plt.show()
+
 
 # %% DEPRECIATED ##################################################################
 ###################################################################################
@@ -878,7 +913,7 @@ def __plot_variation_rate(hub, varlist, title='', idx=0):
 
         # Ylim management
         sort = np.sort(R[key]['time_log_derivate'][1:-1, idx])[int(0.05*len(t)):-int(0.05*len(t))]
-        ax0[key].set_ylim([1.3*np.amin(sort), 1.3*np.amax(sort)])
+        ax0[key].set_ylim([1.3*np.nanmin(sort), 1.3*np.nanmax(sort)])
         # Left side axis management
         ax02[key].set_ylabel(R[key]['symbol'])
         ax02[key].spines['left'].set_position(('outward',  80))

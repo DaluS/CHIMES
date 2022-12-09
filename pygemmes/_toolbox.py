@@ -9,6 +9,7 @@ from ._models import _DFIELDS
 from ._utilities import _utils
 from . import _plots as plots
 import inspect
+import pandas as pd
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -26,22 +27,31 @@ __all__ = [
     'generate_dic_distribution'
 ]
 
+from IPython.display import display
+pd.set_option('display.colheader_justify', 'center')
 
 
-def get_available_plots():
+def get_available_plots(Return=False):
     # Check 09/27/22
     '''
     Print all the plots routines with their docstring and dependencies
     '''
     all_functions = inspect.getmembers(plots, inspect.isfunction)
 
-    for i in all_functions:
-        print(f"##### {i[0]} {'#'*(30-len(i[0]))}####################")
-        print( inspect.signature(i[1]))
-        print(i[1].__doc__)
+    
+    dic={i[0]: {'documentation': i[1].__doc__,
+                'signature': inspect.signature(i[1])}  for i in all_functions}
+    plotdf=pd.DataFrame(dic)
+    
+    #plotdf.style.set_caption("All plots available")
+    display(plotdf.transpose().style.set_properties(**{'white-space': 'pre-wrap','text-align': 'left'}))
+    if Return:
+        return plotdf
 
 
-def get_available_fields(returnas=False,exploreModels=_FIELDS_EXPLOREMODEL,showModels=_FIELDS_SHOWLIST):
+
+
+def get_available_fields(Return=False,exploreModels=_FIELDS_EXPLOREMODEL,showModels=_FIELDS_SHOWLIST,):
     # Check 09/27/22
     '''
     Will load the library of fields, then all available models,
@@ -58,7 +68,7 @@ def get_available_fields(returnas=False,exploreModels=_FIELDS_EXPLOREMODEL,showM
     dparam_sub = _DFIELDS
     for key, val in dparam_sub.items():
         dparam_sub[key]['inmodel'] = []
-    models = get_available_models(returnas=list,verb=False)
+    models = get_available_models(Return=list,verb=False)
 
     if exploreModels+showModels:
         fieldsnotinDfields = []
@@ -77,33 +87,23 @@ def get_available_fields(returnas=False,exploreModels=_FIELDS_EXPLOREMODEL,showM
 
     print(f'{len(dparam_sub)} fields in the library \n')
 
-    # ------------------
-    # get column headers
-    col2 = [
-        'Field', 'definition', 'group', 'value', 'units', 'In model'
+    dic = {k0:{
+            'definition':v0['definition'], 
+            'group':v0['group'],
+            'value':v0['value'], 
+            'units':v0['units'], 
+            'In model': str(v0['inmodel']) if showModels else (len(v0['inmodel']) if len(v0['inmodel']) else '')}
+              for k0, v0 in dparam_sub.items() if v0['group'] != 'Numerical'}
+    modeldf=pd.DataFrame(dic)
 
-    ]
-
-    # ------------------
-    # get values
-    ar2 = [
-        [k0,
-         v0['definition'],
-         v0['group'],
-         v0['value'],
-         v0['units'],
-         str(v0['inmodel']) if showModels else (len(v0['inmodel']) if len(v0['inmodel']) else '')
-         ]
-        for k0, v0 in dparam_sub.items() if v0['group'] != 'Numerical'
-    ]
-
-    return _utils._get_summary(
-        lar=[ar2],
-        lcol=[col2],
-        verb=True,
-        returnas=returnas,
-    )
-
+    
+    if Return:
+        return modeldf
+    else:
+        toprint=modeldf
+        toprint=toprint.transpose().style.set_properties(**{'white-space': 'pre-wrap','text-align': 'left'})
+        display(toprint.set_table_styles([dict(selector = 'th', props=[('text-align', 'left')])]))
+        
 
 def generate_preset_from_model_preset(targetmodel,
                                       outputmodel,

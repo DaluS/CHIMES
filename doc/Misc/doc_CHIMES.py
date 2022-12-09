@@ -2,24 +2,10 @@ import pygemmes as pgm
 import numpy as np
 plt.close('all')
 
-'''
-pgm.get_available_models('CHIMES',details=True)
-hub=pgm.Hub('CHIMES',preset='Bi-sectoral')
-hub.run()
-dict=hub.Extract_preset()
-dict['u'][:,:,1,:]=0.1
-del dict['nx'],dict['nr'],dict['Nprod']
-hub.set_dparam(**dict)
-hub.run()
-'''
-
 presets = ['Bi-sectoral','GoodwinPURE']
-hub=pgm.Hub('CHIMES',preset=presets[0])
-#hub.get_summary(removesector=('.','Consumption'))
-#hub.get_summary(removesector=('.','Capital'))
-#hub.get_summary(removesector=('Consumption','Capital'))
-
-#hub.set_dparam(**{'Tmax':20})
+hub=pgm.Hub('ECHIMES',preset='Bisectoral')
+hub.set_dparam('Tmax',50)
+#hub.set_dparam('dt',0.1)
 hub.run()
 R=hub.get_dparam()
 sectors = R['Nprod']['list']
@@ -32,42 +18,43 @@ for sector in sectors :
                                   ['p',sector]],
                                  [['pi',sector],
                                   ['kappa',sector]],
-                                 [['employmentlocal',sector],
+                                 [['employment',sector],
                                   ['u',sector],
                                   ]],)
     pgm.plots.repartition(hub,
-                          ['pi','omega','xi','gamma','rd','reloverinvest','reldotv'],
+                          ['pi','omega','Mxi','Mgamma','rd','reloverinvest','reldotv'],
                           sign= [1,1,1,1,1,1,-1],
                           sector=sector,
-                          title=f'Expected relative budget $\pi$ for sector {sector} ')
-    pgm.plots.repartition(hub,['TakenbyY','TakenbyI','C','dotV'],
+                          title=f'Expected relative budget $\pi$ for sector {sector}')
+    pgm.plots.repartition(hub,['Minter','Minvest','C','dotV'],
                           ref='Y',
                           sector=sector,
                           title=f'Physical Fluxes for sector {sector}')
-    pgm.plots.repartition(hub,['Wage','TransactInter','TransactI','Consumption','Interests'],
+    pgm.plots.repartition(hub,['MtransactY','MtransactI','wL','pC','rD'],
+                          sign=[1, 1, 1, -1, 1],
                           ref='dotD',
                           sector=sector,
-                          title=f'Monetary Fluxes for sector {sector}')
-
+                          title=f'Monetary Fluxes for sector {sector}',
+                          removetranspose=True)
 
 
 ## Inflation, employment, use
-pgm.plots.plotnyaxis(hub, y=[['philips'],
-                             ['ibasket']+[['inflation',sector] for sector in sectors],
-                             ['employment']+[['employmentlocal',sector] for sector in sectors] ,
-                             ['uAGG'] + [['u', sector] for sector in sectors]
+pgm.plots.plotnyaxis(hub, y=[['Phillips','ibasket']+[['inflation',sector] for sector in sectors],
+                             ['employmentAGG']+[['employment',sector] for sector in sectors] ,
+                             ['uAGG']    + [['u', sector] for sector in sectors]
                              ],)
-pgm.plots.plotnyaxis(hub, y=[['gammaAGG']+[['gamma',sector] for sector in sectors] ,
-                             ['xiAGG'] + [['xi', sector] for sector in sectors],
-                             ['piAGG'] + [['pi', sector] for sector in sectors],
-                             ['omegaAGG'] + [['omega', sector] for sector in sectors],
-                             ['rdAGG'] + [['rd', sector] for sector in sectors]
+pgm.plots.plotnyaxis(hub, y=[['gammaAGG']+ [['gamma',sector] for sector in sectors] ,
+                             ['xiAGG']   + [['xi'   ,sector] for sector in sectors],
+                             ['piAGG']   + [['pi'   ,sector] for sector in sectors],
+                             ['ROCAGG']  + [['ROC'  ,sector] for sector in sectors],
+                             ['omegaAGG']+ [['omega',sector] for sector in sectors],
+                             ['rdAGG']   + [['rd'   ,sector] for sector in sectors]
                              ],)
-pgm.plots.plotnyaxis(hub, y=[['DAGG']+[['D',sector] for sector in sectors] ,
-                             [['K', sector] for sector in sectors],
-                             ['IAGG']+[['I',sector] for sector in sectors],
-                             ['CAGG'],
-                             ['GDPnomY']+[['pY',sector] for sector in sectors],
+pgm.plots.plotnyaxis(hub, y=[['DAGG']    + [['D'    ,sector] for sector in sectors] ,
+                             [           +  ['K'    ,sector] for sector in sectors],
+                             ['IAGG']    + [['I'    ,sector] for sector in sectors],
+                             ['CAGG']    + [['C'    ,sector] for sector in sectors],
+                             #['GDPnomY']+[['pY',sector] for sector in sectors],
                              ],)
 
 pgm.plots.plot3D(hub,

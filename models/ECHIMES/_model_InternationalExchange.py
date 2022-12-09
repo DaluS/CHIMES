@@ -28,6 +28,10 @@ def transposeR(X):
     '''Transposition of X :
     Y=transpose(X)  Y_ijk=X_jik'''
     return np.moveaxis(X, -2, -3)
+
+def Identity(X):
+    '''generate an identity matrix of the same size a matrix X'''
+    return np.eye(np.shape(X)[-1])
 def matmul(M,V):
     '''Matrix product Z=matmul(M,V) Z_i = \sum_j M_{ij} V_j'''
     return np.matmul(M,V)
@@ -36,16 +40,14 @@ def distXY(x,y):
      between each particle of position x,y :
      z_ij= \sqrt{ (x_i-x_j)^2 + (y_i-y_j)^2}'''
     return np.sqrt((x - transpose(x)) ** 2 + (y - transpose(y)) ** 2)
-def Identity(X):
-    '''generate an identity matrix of the same size a matrix X'''
-    return np.eye(np.shape(X)[-1])
 #################################################################################
 
-def dotDinternational( MtransactI, MtransactY, wL, rD, pC):
+def dotDinternational( MtransactI, MtransactY, wL, rD, pC,MonetaryExchanges):
     return rD \
          + wL -pC \
          + ssum2(MtransactI - transpose(MtransactI)) \
-         + ssum2(MtransactY - transpose(MtransactY))
+         + ssum2(MtransactY - transpose(MtransactY)) \
+         + ssumR(MonetaryExchanges - transpose(MonetaryExchanges))
 def dotVinternational( Y, Gamma, Ir, C, Xi,PhysicalExchanges):
     return Y \
          - matmul(transpose(Gamma), Y) \
@@ -59,12 +61,7 @@ def phyfunc(p,pInter,chiM,sigmaRQ, PhysicalExchanges):
 
  
 _LOGICS = {
-    'size': {
-        'Nprod': {
-            'list': ['MONO'],
-        },
-    },
-
+    'size': {'Nprod': {'list': ['MONO'],},},
     'differential': {
         'ExchangeRate': {
             'func': lambda Excedent,Mass,chiM,ExchangeRate:ExchangeRate*chiM*(transposeR(Excedent/Mass)-Excedent/Mass),
@@ -82,9 +79,13 @@ _LOGICS = {
     },
     'statevar': {
         'Excedent': {
+            'func': lambda MonetaryExchanges: 0,
+            'definition':'Commercial excedent in region'},
+        'MonetaryExchanges': {
             'func': lambda PhysicalExchanges,p: 0,
-            #ssum2( matmul( )-matmul(transpose())   ),
-            'definition':'Commercial excedent in region'
+            'definition': 'Money associated to the physical exchange',
+            'com': 'conversion from physical',
+            'size': ['nr','Nprod'],
         },
         'dotV': {
             'func': dotVinternational,
@@ -97,7 +98,7 @@ _LOGICS = {
             'size': ['Nprod'],
         },
         'pInter': {
-            'func': lambda p,ExchangeRate :transpose(p)*ExchangeRate,
+            'func': lambda p,ExchangeRate :transposeR(p),
             'com': 'No taxes',
             'definition': 'p_{rqi} price in region r of good i from region q',
             'size':['nr','Nprod']

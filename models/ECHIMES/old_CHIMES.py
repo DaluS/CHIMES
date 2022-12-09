@@ -211,7 +211,7 @@ _LOGICS = {
         'philips':  {
             #'func': lambda employment, phi0, phi1: -phi0 + phi1 / (1 - employment)**2,
             'func': lambda employment, philinConst, philinSlope: philinConst + philinSlope * employment,
-            'com': 'diverging (force omega \leq 1)',
+            'com': 'linear',
             'units': 'y^{-1}',
             'symbol': r'$\Phi(\lambda)$',
         },

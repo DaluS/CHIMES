@@ -14,6 +14,9 @@ from .._config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS,_MODEL_NAME
 
 from copy import deepcopy
 
+import pandas as pd
+from IPython.display import display
+
 # ####################################################
 # ####################################################
 #       Automatically load all available models
@@ -83,9 +86,9 @@ def _get_DMODEL(from_user=_FROM_USER):
 def get_available_models(
     model=None,
     details=_MODELS_SHOWDETAILS,
-    returnas=None,
     verb=None,
     from_user=_FROM_USER,
+    Return=False
 ):
     '''
     Check all models available in pygemmes, and gives back the information that are asked.
@@ -99,10 +102,6 @@ def get_available_models(
     verb : print or not !
     from_user : TYPE, optional
     '''
-    # Check 9/27/22
-    # -----------------
-    # check inputs
-
     # Load the "models dictionnary"
     path_models, _DMODEL = _get_DMODEL(from_user=from_user)
 
@@ -111,10 +110,6 @@ def get_available_models(
         model = sorted(_DMODEL.keys())
     if isinstance(model, str):
         model = [model]
-    if returnas is None:
-        returnas = False
-    if verb is None:
-        verb = returnas is False
 
     # Filter the dictionnary
     dmod = {
@@ -129,77 +124,21 @@ def get_available_models(
         if k0 in model
     }
 
-    if details is None:
-        details = len(dmod) == 1
+    dic={v0['name']: {'Folder': v0['address'][len(_PATH_MODELS)+1:-len(_MODEL_NAME_CONVENTION)-len(v0['name'])-1],
+                      'Preset': v0['presets'],}for k0, v0 in dmod.items()}
+    if details: 
+        dic={v0['name']: {'Folder': v0['address'][len(_PATH_MODELS)+1:-len(_MODEL_NAME_CONVENTION)-len(v0['name'])-1],
+                      'Preset': v0['presets'],
+                      'Documentation': v0['description']}for k0, v0 in dmod.items()}       
+    modeldf=pd.DataFrame(dic)
 
-    # THE BIG PRINT
-    if verb is True or returnas is str:
-
-        if details is True:
-            # detailed message
-            msg = "\n".join([
-                "\n\n"
-                f"{11*'#'}{'#'*len(v0['name'])}{11*'#'}\n"
-                f"{10*'#'} {v0['name']} {10*'#'}\n"
-                + v0['description']
-                + "\n\n"
-                + f"####Variables ####:\n"
-                + f"#differential variables ({len(_DMODEL[k0]['logics']['differential'])}):\n"
-                + "\n".join([
-                    f"\t-  {k1} :{(10-len(k1))*' '}{_DFIELDS.get(k1,{}).get('definition','')}"
-                    for k1 in _DMODEL[k0]['logics']['differential']])
-                + '\n'
-
-                + f"# State Variables ({len(_DMODEL[k0]['logics']['statevar'])}):\n"
-                + "\n".join([
-                    f"\t-  {k1} :{(10-len(k1))*' '}{_DFIELDS.get(k1,{}).get('definition','')}"
-                    for k1 in _DMODEL[k0]['logics']['statevar']])
-                + '\n\n'
-                + f"#### ADDED Parameters #### ({len(_DMODEL[k0]['logics'].get('parameter',{}))}):\n"
-                + "\n".join([
-                    f"\t-  {k1} :{(10 - len(k1)) * ' '}{_DFIELDS.get(k1, {}).get('definition', 'unread')}"
-                    for k1 in _DMODEL[k0]['logics'].get('parameter',{})])
-                + '\n'
-                + "\n####"
-                + f"presets:\n"
-                + "\n".join([
-                    f" '{k1}' :"
-                    f" {v1['com']}"
-                    for k1, v1 in _DMODEL[k0]['presets'].items()
-                ])
-
-
-                + f"\n\nfile: {v0['file']}\n"
-                for k0, v0 in dmod.items()
-            ])
-
-        else:
-            # compact message
-            nmax = max([len(v0['name']) for v0 in dmod.values()])
-            n2max = max([len(v0['address'][len(_PATH_MODELS)+1:-len(_MODEL_NAME_CONVENTION)-len(v0['name'])-1]) for v0 in dmod.values()])+1
-            lstr = [
-                f" {v0['address'][len(_PATH_MODELS)+1:-len(_MODEL_NAME_CONVENTION)-len(v0['name'])-1].ljust(n2max)+'| '+v0['name'].ljust(nmax)} | {v0['presets']}"
-                for k0, v0 in dmod.items()
-            ]
-            msg = (
-                f"The following models are available from '{path_models}'\n"
-                + "\n"+' FOLDER'.ljust(n2max+1)+"| MODEL NAME".ljust(nmax+3)+'| Presets\n'
-                + '#'*len("\n"+' FOLDER'.ljust(n2max+1)+"| MODEL NAME".ljust(nmax+3)+'| Presets\n')+'\n'
-                + "\n".join(lstr)
-            )
-
-        if verb is True:
-            print(msg)
-
-
-
-    # return
-    if returnas is list:
+    if Return is list: 
         return model
-    elif returnas is dict:
-        return dmod
-    elif returnas is str:
-        return msg
+    if Return:
+        return modeldf
+    else:
+        display(modeldf.transpose().style.set_properties(**{'white-space': 'pre-wrap','text-align': 'left'}))
+
 
 
 def _printsubgroupe(sub, it):
