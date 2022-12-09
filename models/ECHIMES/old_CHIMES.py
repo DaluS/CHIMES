@@ -29,6 +29,7 @@ CHIMES :
 __AUXIN = True # Add auxilliary variables
 __AGGIN = True # Add Agregated variables
 from pygemmes._models import Funcs, importmodel,mergemodel
+
 import numpy as np
 
 # ######################## OPERATORS ####################################
@@ -208,7 +209,8 @@ _LOGICS = {
             'symbol': r'$\Lambda$'
         },
         'philips':  {
-            'func': lambda employment, phi0, phi1: -phi0 + phi1 / (1 - employment)**2,
+            #'func': lambda employment, phi0, phi1: -phi0 + phi1 / (1 - employment)**2,
+            'func': lambda employment, philinConst, philinSlope: philinConst + philinSlope * employment,
             'com': 'diverging (force omega \leq 1)',
             'units': 'y^{-1}',
             'symbol': r'$\Phi(\lambda)$',
@@ -398,6 +400,12 @@ _LOGICS_AUX = {
 
 
         ### PROFITS
+        'ROC': {
+            'func': lambda pi,nu,Xi,p: p*pi/(nu*matmul(Xi,p)),
+            'definition': 'return on capital',
+            'symbol': '$\mathbf{r}$',
+            'com': 'with matmul'
+        },
         'Pi': {
             'func' : lambda Y,p,pi : Y*p*pi,
             'com': 'from pi',
@@ -666,7 +674,7 @@ trisector={
 'D': [ 0.75618537,-0.75618537,0],
 'Dh': -2.03540888e-17,
 'u': [0.94703658,0.7126253 ,0.9],
-'p': [2.35968699,0.79685443,1],
+'p': [2.35968699,0.79685443,1.2],
 'V': [10.59268384, 9.91437758,10],
 'w': 2.88903052,
 'a': 1.48884403,
@@ -676,9 +684,9 @@ trisector={
 'n': 0.025,
 'phinull': 0.1,
 'r': 0.03,
-'z': [1. ,0.3,.7],
+'z': [1. ,0.3,.5],
 'Cpond': [1,0,0],
-'mu0': [1.2,1.2,1.2],
+'mu0': [1.4,1.4,1.4],
 'delta': [0.05,0.05,0.05],
 'deltah': [0.05,0,0],
 'sigma': [1,5,5],
@@ -687,16 +695,16 @@ trisector={
 'chi': [1,1,1],
 'b': [1.,1.,1.],
 'nu': [3.,3.,3.],
-'Gamma': [[0, 0.  ,0.1],
-          [0, 0.  ,0.1],
-          [0, 0.  ,0.1]],
-'Xi': [[0.01, 1.  ,0],
-       [0.1 , 1.  ,0],
-       [0   , 1.  ,0]],
+'Gamma': [[0, 0. ,0.1],
+          [0, 0. ,0.1],
+          [0, 0. ,0.1]],
+'Xi': [[0.0, 1. ,0],
+       [0. , 1. ,0],
+       [0  , 1. ,0]],
 'rho': [[0, 0.,1.],
         [0.,0.,1.],
         [0.,0.,1.]],
-'Tmax': 20,
+'Tmax': 100,
 'Tini': 0,
 'dt': 0.1,
 'nx': 1,
