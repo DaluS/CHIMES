@@ -9,6 +9,16 @@ ALL THE BASIC FIELDS THAT ONE MIGHT NEED
 
 import numpy as np
 import os
+import pandas as pd
+
+# ################# PANDAS AND JUPYTER HANDLING ###############################
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', 1000)
+pd.set_option('display.colheader_justify', 'center')
+pd.set_option('display.precision', 2)
+
+
 
 # ################# LOGS AND PRINTS IN THE SYSTEM #############################
 _VERB = True         # Print by default when actions are done

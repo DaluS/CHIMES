@@ -1,4 +1,6 @@
-
+'''
+State variables, monosectoral, calculated on a productive multisectoral
+'''
 from pygemmes._models import Funcs, importmodel,mergemodel
 import numpy as np
 
@@ -34,6 +36,11 @@ def Identity(X):
 
 
 _LOGICS = {
+    'size': {
+        'Nprod': {
+            'list': ['MONO'],
+        },
+    },
     'statevar': {
         'pAGG': { 'func': lambda p,basket: sprod(p,basket),
                   'definition': 'price deflator',
@@ -79,11 +86,6 @@ _LOGICS = {
                       'symbol': r'$K^{\Xi}_{\bigcirc}$',
                       'units': '$',
         },
-        #'HAGG': { 'func': lambda H,p: sprod(H,p),
-        #          'definition' : 'nominal household possessions',
-        #            'symbol': r'$H_{\bigcirc}$',
-        #            'units': '$',
-        #},
         'LAGG': { 'func': lambda L: ssum(L) ,
                   'definition': 'total workers',
                   'symbol': r'$L_{\bigcirc}$',
@@ -120,11 +122,6 @@ _LOGICS = {
                     'symbol': r'$\delta_{\bigcirc}$',
                        'units': 'y^{-1}'
         },
-        #'deltahAGG': { 'func': lambda p, deltah,rho,H : sprod(p,deltah*H+matmul(rho,H))/sprod(p,H) ,
-        #               'definition': 'agregated possessions degradation rate',
-        #               'symbol': r'$\delta^h_{\bigcirc}$',
-        #               'units': 'y^{-1}'
-        #},
         'dAGG': { 'func': lambda D,GDPnomY: ssum(D)/GDPnomY ,
                   'com': 'on YGDP',
                   'definition': 'relative agregated debt',

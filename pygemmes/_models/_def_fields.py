@@ -58,14 +58,17 @@ _LIBRARY = {
         # You should not modify this here, use preset or setdparam ##
         'nx': {
             'value': 1,
+            'list':['no parrallel'],
             'units': '',
             'definition': 'Number of system in parrallel',
+            'eqtype':'size',
         },
         'nr': {
             'value': 1,
             'list':['local'],
             'units': '',
             'definition': 'Number of regions interconnected',
+            'eqtype':'size',
         },
 
         ############################################################
@@ -96,6 +99,7 @@ _LIBRARY = {
 
     'ECHIMES': {
         'Nprod': {
+            'value':1,
             'list': ['MONO'],
             'definition': 'Name of productive sectors',
             'eqtype':'size',
@@ -105,19 +109,19 @@ _LIBRARY = {
             'units': '$.Humans^{-1}.y^{-1}',
             'size': ['__ONE__'],
             'symbol': r'$w^0$',
-            'initial': 0.6,
+            'value': 0.6,
         },
         'u0': {
             'definition': 'voluntary use of productive capital',
             'units': '',
             'size': ['Nprod'],
-            'initial': 1,
+            'value':1,
         },
         'a0': {
             'func': lambda a0, alpha: a0 * alpha,
             'com': 'Productivity indicator',
             'units': 'Units.Humans^{-1}.y^{-1}',
-            'initial':1,
+            'value':1,
             },
 
         ### MATRICES
@@ -308,7 +312,7 @@ _LIBRARY = {
             'units': 'Humans',
         },
         'L': {
-            'value': None,
+            'value': 1,
             'definition': 'Workers',
             'units': 'Humans',
         },
@@ -791,7 +795,7 @@ _LIBRARY = {
               'definition': 'Household possessions',
               'units': 'Units',
               'symbol': r'$H$', },
-        'Hid': {'value': None,
+        'Hid': {'value': 1,
                 'definition': 'Household optimal possessions',
                 'units': 'Units',
                 'symbol': r'$H^{id}$', },

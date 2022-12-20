@@ -13,6 +13,8 @@ It integrates :
     * Inventory fluctuations
     * Inflation
     * Adaptive use of capital
+
+LINK TO ARTICLE : https://www.overleaf.com/project/62fbdce83176c9784e52236c    
 """
 
 from pygemmes._models import Funcs, importmodel,mergemodel
@@ -119,7 +121,8 @@ _LOGICS = {
             # 'func': lambda u: 0,
             #'func': lambda u0, sigma, V, dotV: -sigma * (1 - u0) * (dotV / V),
             'func': lambda u0, sigma, Y, dotV: -sigma * (1 - u0) * (dotV / Y),
-            'com': 'on dotV/Y',
+            #'func': lambda u0, sigma, v0: -sigma * (1 - u0) * (1-1/v0),
+            'com': 'commanding inventory',
             'definition': 'voluntary use of productive capital',
             'units': '',
             'size': ['Nprod'],
@@ -152,6 +155,11 @@ _LOGICS = {
         'nu': {'func': lambda nu0, u: nu0/u,
                'com': 'Adjusted by use of capital',
                'size': ['Nprod']},
+        #'v0': {'func': lambda V,K,nu0,epsilon: epsilon*V*nu0/K,
+        #        'com': 'on total potential prod',
+        #        'size': ['Nprod'],
+        #        'definition': 'Relative inventory',
+        #        'units':''},
 
         ### COST COMPONENTS
         'omega': {
@@ -200,7 +208,8 @@ _LOGICS = {
             'symbol': '$i^{\mu}$'
         },
         'inflationdotV': {
-            'func': lambda chi, dotV, Y,gK: - chi *(gK + dotV / Y),
+            #'func': lambda chi, dotV, Y,gK: - chi *(gK + dotV / Y),
+            'func': lambda chi, dotV, V,gK: - chi *( dotV / V),
             'com': 'price adjustment to demand-offer on Y',
             'size': ['Nprod'],
             'units': 'y^{-1}',
@@ -467,7 +476,7 @@ _LOGICS = {
         'eta': {'value': 0.5,
                'size': ['Nprod']
                },
-        'chi': {'value': 1,
+        'chi': {'value': 1.5,
                'size': ['Nprod']
                },
         'b': {'value': 1,
@@ -476,6 +485,8 @@ _LOGICS = {
         'nu': {'value': 3,
                'size': ['Nprod']
                },
+#        'epsilon':{'value':1/8,
+#                    'size':['Nprod']},
 
         ### MATRICES
         'Gamma': {
@@ -570,15 +581,15 @@ preset_basis = {
 'sigma':[5,5],
 'K': [2.,0.5],
 'D':[0,0],
-'u':[.95,.7],
+'u':[.5,.75],
 'p':[1.5,3],
-'V':[10,10],
+'V':[8,8],
 'z':[1,.3],
 'k0': 1.,
 
 'Cpond':[1,0],
 
-'mu0':[1.5,1.5],
+'mu0':[1.45,1.45],
 'delta':0.05,
 'deltah':0.05,
 'eta':0.3,

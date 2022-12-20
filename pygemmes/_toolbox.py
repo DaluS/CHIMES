@@ -2,7 +2,7 @@
 
 # Here we decide what the user will see
 from ._core import Hub
-from ._models import get_available_models  # get_dfields_overview
+from ._models import get_available_models  
 from ._utilities._solvers import get_available_solvers
 from ._utilities._saveload import get_available_output, load
 from ._models import _DFIELDS
@@ -27,12 +27,8 @@ __all__ = [
     'generate_dic_distribution'
 ]
 
-from IPython.display import display
-pd.set_option('display.colheader_justify', 'center')
-
-
-def get_available_plots(Return=False):
-    # Check 09/27/22
+def get_available_plots():
+    # Check 2022
     '''
     Print all the plots routines with their docstring and dependencies
     '''
@@ -42,17 +38,11 @@ def get_available_plots(Return=False):
     dic={i[0]: {'documentation': i[1].__doc__,
                 'signature': inspect.signature(i[1])}  for i in all_functions}
     plotdf=pd.DataFrame(dic)
-    
-    #plotdf.style.set_caption("All plots available")
-    display(plotdf.transpose().style.set_properties(**{'white-space': 'pre-wrap','text-align': 'left'}))
-    if Return:
-        return plotdf
+    return plotdf.transpose()
 
 
-
-
-def get_available_fields(Return=False,exploreModels=_FIELDS_EXPLOREMODEL,showModels=_FIELDS_SHOWLIST,):
-    # Check 09/27/22
+def get_available_fields(exploreModels=_FIELDS_EXPLOREMODEL):
+    # Check 2022
     '''
     Will load the library of fields, then all available models,
     and will print the ensemble of fields with their properties and the models they are in.
@@ -70,7 +60,7 @@ def get_available_fields(Return=False,exploreModels=_FIELDS_EXPLOREMODEL,showMod
         dparam_sub[key]['inmodel'] = []
     models = get_available_models(Return=list,verb=False)
 
-    if exploreModels+showModels:
+    if exploreModels:
         fieldsnotinDfields = []
         if exploreModels:
             for model in models:
@@ -92,18 +82,11 @@ def get_available_fields(Return=False,exploreModels=_FIELDS_EXPLOREMODEL,showMod
             'group':v0['group'],
             'value':v0['value'], 
             'units':v0['units'], 
-            'In model': str(v0['inmodel']) if showModels else (len(v0['inmodel']) if len(v0['inmodel']) else '')}
+            'In model': str(v0['inmodel'])}
               for k0, v0 in dparam_sub.items() if v0['group'] != 'Numerical'}
     modeldf=pd.DataFrame(dic)
+    return modeldf.transpose()
 
-    
-    if Return:
-        return modeldf
-    else:
-        toprint=modeldf
-        toprint=toprint.transpose().style.set_properties(**{'white-space': 'pre-wrap','text-align': 'left'})
-        display(toprint.set_table_styles([dict(selector = 'th', props=[('text-align', 'left')])]))
-        
 
 def generate_preset_from_model_preset(targetmodel,
                                       outputmodel,

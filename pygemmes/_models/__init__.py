@@ -15,7 +15,15 @@ from .._config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS,_MODEL_NAME
 from copy import deepcopy
 
 import pandas as pd
-from IPython.display import display
+
+
+pd.set_option('display.max_rows', None)
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', 1000)
+pd.set_option('display.colheader_justify', 'center')
+pd.set_option('display.precision', 2)
+
+
 
 # ####################################################
 # ####################################################
@@ -90,17 +98,16 @@ def get_available_models(
     from_user=_FROM_USER,
     Return=False
 ):
+    # Check 2022
     '''
-    Check all models available in pygemmes, and gives back the information that are asked.
-    With no arguments, it prints everything it can
+    Return all available models with their respective instructions as a dataframe
+    if model is None, gives all the model
+    if model is not None, gives details of the model
+    if details, gives model description
 
-    Parameters
-    ----------
-    model : Name of the models you are intereted in
-    details : Boolean
-    returnas : dict, none, list depending of what you need
-    verb : print or not !
-    from_user : TYPE, optional
+    if Return is dict, gives a dictionnary
+    if Return is list, gives the list of model 
+    if Return is False, gives dataframe
     '''
     # Load the "models dictionnary"
     path_models, _DMODEL = _get_DMODEL(from_user=from_user)
@@ -110,6 +117,7 @@ def get_available_models(
         model = sorted(_DMODEL.keys())
     if isinstance(model, str):
         model = [model]
+        details=True
 
     # Filter the dictionnary
     dmod = {
@@ -134,10 +142,11 @@ def get_available_models(
 
     if Return is list: 
         return model
-    if Return:
-        return modeldf
+    if Return is dict:
+        return dic
     else:
-        display(modeldf.transpose().style.set_properties(**{'white-space': 'pre-wrap','text-align': 'left'}))
+        return modeldf.transpose()
+
 
 
 

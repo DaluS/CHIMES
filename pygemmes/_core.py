@@ -8,7 +8,7 @@ import copy
 
 # Common
 import numpy as np
-
+import pandas as pd
 
 # Library-specific
 from ._config import _FROM_USER

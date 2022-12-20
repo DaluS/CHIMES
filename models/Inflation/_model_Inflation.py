@@ -23,7 +23,7 @@ _LOGICS ={
     },
     'differential': {
         'p': {
-            'func': lambda p,i: p*i,
+            'func': lambda p,inflation: p*inflation,
             'size': ['Nprod'],
             'com': '',
             'symbol':r'$\mu$',
