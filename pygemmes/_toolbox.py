@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 
-# Here we decide what the user will see
 from ._core import Hub
 from ._models import get_available_models  
-from ._utilities._solvers import get_available_solvers
-from ._utilities._saveload import get_available_output, load
 from ._models import _DFIELDS
 from ._utilities import _utils
 from . import _plots as plots
@@ -15,15 +12,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from ._config import _FIELDS_EXPLOREMODEL
-from ._config import _FIELDS_SHOWLIST
 
+# FULLY CHECKED DECEMBER 2022 
 # #############################################################################
 
 __all__ = [
     'get_available_fields',
     'get_available_plots',
-    'get_available_output',
-    'generate_preset_from_model_preset',
     'generate_dic_distribution'
 ]
 
@@ -60,11 +55,12 @@ def get_available_fields(exploreModels=_FIELDS_EXPLOREMODEL):
         dparam_sub[key]['inmodel'] = []
     models = get_available_models(Return=list,verb=False)
 
+
+
     if exploreModels:
         fieldsnotinDfields = []
         if exploreModels:
             for model in models:
-                #print(model)
                 hub = Hub(model, verb=False)
                 params = hub.get_dparam(returnas=dict)
                 for key in params.keys():
@@ -86,79 +82,6 @@ def get_available_fields(exploreModels=_FIELDS_EXPLOREMODEL):
               for k0, v0 in dparam_sub.items() if v0['group'] != 'Numerical'}
     modeldf=pd.DataFrame(dic)
     return modeldf.transpose()
-
-
-def generate_preset_from_model_preset(targetmodel,
-                                      outputmodel,
-                                      targetpreset=False,
-                                      targetdpreset=False,
-                                      returnas='hub'):
-    '''
-    Open targetmodel, with or without preset/dpreset, and then gives all necessary
-    values to outputmodel so that, if they solve the same equations on different approaches,
-    they give the same result
-
-    Please note that if they have different mechanism inside with different
-    parameters, you have to manually set them so that they have the same behavior.
-
-
-    Parameters
-    ----------
-    targetmodel : model name of the model we will copy the value
-        DESCRIPTION.
-    targetpreset : the preset name for targetmodel. Optional
-        DESCRIPTION. The default is False.
-    targetdpreset : the dictionnary preset for targetpreset
-        DESCRIPTION. The default is False.
-    outputmodel : the name of the model we will use after
-        DESCRIPTION.
-    returnas : (dict,'hub','dpreset') gives different type of output depending of the situation :
-        * dict is a dict of field : value
-        * hub is outputmodel loaded with the preset
-        * dpreset is a dictionnary with this preset inside
-        The default is 'hub'.
-
-    Returns
-    -------
-    None.
-
-    '''
-    # LOADING TARGET
-    # IF PRESET AND PRESET FILE GIVEN
-    if targetpreset and targetdpreset:
-        hub = Hub(targetmodel, preset=targetpreset,
-                  dpresets=targetdpreset, verb=False)
-
-    # ELIF PRESET NAME GIVEN
-    elif targetpreset:
-        hub = Hub(targetmodel, preset=targetpreset, verb=False)
-
-    # ELSE USE OF BASIC VALUES
-    else:
-        hub = Hub(targetmodel, verb=False)
-
-    hub_output = Hub(outputmodel, verb=False)
-
-    # COPY OF THE PARAMETERS INTO A NEW DICTIONNARY
-    FieldToLoad = hub_output.get_dparam(returnas=dict, eqtype=[None, 'ode'])
-    # group=('Numerical',),)
-    R = hub.get_dparam(returnas=dict)
-    tdic = {}
-    for k, v in FieldToLoad.items():
-        val = R[k]['value']
-        if 'initial' in v.keys():
-            tdic[k] = val[0][0]
-        else:
-            tdic[k] = val
-    _DPRESETS = {'Copy'+targetmodel: {'fields': tdic, }, }
-
-    if returnas == dict:
-        return tdic
-    if returnas == 'hub':
-        return Hub(outputmodel, preset='Copy'+targetmodel,
-                   dpresets=_DPRESETS, verb=False)
-    if returnas == 'preset':
-        return _DPRESETS
 
 
 def _GenerateIndividualSensitivity(key, mu, sigma, disttype='normal', dictpreset={}, N=10):

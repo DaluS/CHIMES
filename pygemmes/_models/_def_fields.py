@@ -126,7 +126,7 @@ _LIBRARY = {
 
         ### MATRICES
         'Gamma': {
-            'value': 0.0,
+            'value': 0.01,
             'size': ['Nprod', 'Nprod'],
             'units':'',
             'definition': 'intermediate consumption coefficients'
@@ -189,8 +189,8 @@ _LIBRARY = {
 
         },
         'Phillips': {
-            'func': 0,
-            'com': 'diverging (force omega \leq 1)',
+            'value': 0,
+            'definition': 'non-inflationary wage growth rate',
             'units': 'y^{-1}',
             'symbol': r'$\Phi(\lambda)$',
         },

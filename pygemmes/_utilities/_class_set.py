@@ -78,7 +78,7 @@ def load_dmodel(model, from_user=False):
     Load the model from its file
     """
 
-    path_models,_DMODEL = _models._get_DMODEL()
+    path_models,_DMODEL = _models._get_DMODEL(model)
 
     if model not in _DMODEL.keys():
         modellist = "".join(['* '+str(f)+"\n" for f in list(_DMODEL.keys())])

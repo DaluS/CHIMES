@@ -5,7 +5,7 @@ Created on Mon Jul 26 16:16:01 2021
 
 """
 
-from ._plot_timetraces import plot_timetraces
+#from ._plot_timetraces import plot_timetraces
 from ._plot_tools import _multiline
 
 import copy
@@ -21,8 +21,6 @@ from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.gridspec import GridSpec
 
-
-__USETEX=False
 
 _LS = [
     (0, ()),
@@ -50,13 +48,6 @@ SIZEFONT = 25
 LEGENDSIZE = 20
 LEGENDHANDLELENGTH = 2
 
-if __USETEX:
-    plt.rc('text', usetex=True)
-    plt.rc('font', family='serif', size=SIZEFONT)
-    plt.rcParams.update({'figure.autolayout': True})
-    plt.rcParams['text.latex.preamble'] = [r"\usepackage{amsmath} \usepackage{libertine}"]
-    ticksfontProperties = {'family': 'sans-serif', 'sans-serif': ['Helvetica'], 'weight': 'medium',}
-plt.rcParams.update(params)
 
 
 
@@ -65,7 +56,7 @@ plt.rcParams.update(params)
 __all__ = [
     #'slices_wholelogic',
     #'plot_variation_rate',
-    'plot_timetraces',
+    #'plot_timetraces',
     'plotnyaxis',
     'phasespace',
     'plot3D',
@@ -972,7 +963,7 @@ def __plot_variation_rate(hub, varlist, title='', idx=0):
 _DPLOT = {
     #'Slice_logic': __slices_wholelogic,
     #'variation_rate': plot_variation_rate,
-    'timetrace': plot_timetraces,
+    #'timetrace': plot_timetraces,
     'nyaxis': plotnyaxis,
     'phasespace': phasespace,
     '3D': plot3D,

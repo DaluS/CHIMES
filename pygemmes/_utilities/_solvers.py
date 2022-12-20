@@ -1,125 +1,21 @@
 # -*- coding: utf-8 -*-
-
+# Checked December 2022
 
 # built-in
 import time
-import warnings
-
 
 # common
 import numpy as np
-import scipy.integrate as scpinteg
-import matplotlib.pyplot as plt     # DB
 from copy import deepcopy
 
 # specific
-from . import _utils
 from . import _class_checks
-
-from .._config import _SOLVER
-
-
-_DSOLVERS = {
-    'eRK4-homemade': {
-        'type': 'explicit',
-        'step': 'fixed',
-        'com': 'Runge_Kutta order 4',
-        'source': __file__,
-    },
-}
-
-
-# #############################################################################
-# #############################################################################
-#                   user-interface to display solvers
-# #############################################################################
-
-
-def get_available_solvers(returnas=None, verb=None):
-
-    print('IN THIS VERSION, ONLY THE RK4 HOMEMADE SOLVER IS ACTIVE')
-
-    # ----------------
-    # check inputs
-
-    if returnas is None:
-        returnas = False
-    lreturnok = [False, list, dict]
-    if returnas not in lreturnok:
-        msg = (
-            f"Arg returnas must be in {lreturnok}\n"
-            f"Provided: {returnas}"
-        )
-
-    if verb is None:
-        verb = returnas is False
-
-    # ----------------
-    # print or return
-
-    if verb is True:
-        def make_source(k0, dsolvers=_DSOLVERS):
-            if 'scipy' in k0:
-                method = dsolvers[k0]['scipy']
-                source = f"scipy.integrate.solve_ivp(method='{method}')"
-            else:
-                source = dsolvers[k0]['source']
-            return source
-
-        col = ['key', 'type', 'step', 'comments', 'source']
-        ar = [
-            [
-                f"'{k0}'",
-                v0['type'],
-                v0['step'],
-                v0['com'],
-                make_source(k0),
-            ]
-            for k0, v0 in _DSOLVERS.items()
-        ]
-        return _utils._get_summary(
-            lar=[ar],
-            lcol=[col],
-            verb=verb,
-            returnas=False,
-        )
-    elif returnas is dict:
-        return {k0: dict(v0) for k0, v0 in _DSOLVERS.items()}
-    else:
-        return list(_DSOLVERS.keys())
-
-
-# #############################################################################
-# #############################################################################
-#                   check
-# #############################################################################
-
-
-def _check_solver(solver):
-
-    if solver is None:
-        solver = _SOLVER
-
-    c0 = (
-        isinstance(solver, str)
-        and solver in _DSOLVERS.keys()
-    )
-    if not c0:
-        msg = (
-            "Arg solver must be among the avaible solver keys:\n"
-            + get_available_solvers(verb=False, returnas=str)
-            + f"\n\nProvided: '{solver}'"
-        )
-        raise Exception(msg)
-
-    return solver
 
 
 # #############################################################################
 # #############################################################################
 #                   Main entry point
 # #############################################################################
-
 
 def solve(
         solver=None,
@@ -129,7 +25,7 @@ def solve(
 ):
     # -----------
     # check input
-    solver = _check_solver(solver)
+    #solver = _check_solver(solver)
     lode   = dmisc['dfunc_order']['differential']
     lstate = dmisc['dfunc_order']['statevar']
 
@@ -158,6 +54,7 @@ def solve(
 
     return solver
 
+
 def get_func_dydt(
     dparam=None,
     dmisc=None,
@@ -182,6 +79,7 @@ def get_func_dydt(
         for k0 in lode:   dydt[k0]    = dparam[k0]['func'](**{k:dbuffer[k] for k in dparam[k0]['kargs']})
         return dydt,dbuffer
     return y0, func
+
 
 def _eRK4_homemade(
     y0=None,
@@ -214,6 +112,7 @@ def _eRK4_homemade(
         for k0 in lode: dparam[k0]['value'][ii, ...] = y[k0]
         for k0 in lstate: dparam[k0]['value'][ii, ...]= state[k0]
     for k0 in lode: dparam[k0]['value'][0, ...] = y0[k0]
+
 
 def _rk4(dydt_func=None, dt=None, y=None):
     """

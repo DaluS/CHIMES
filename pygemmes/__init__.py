@@ -29,19 +29,11 @@ pgm.get_available_ then tab to see what is available
     * pgm.get_available_functions()
 pgm.Hub() to load a model
 """
-
-# Here we decide what the user will see
-#from ._private_pygemmes import create_private_pygemmes
-# run private pygemmes creation, be conservative
-# has to be done before other imports!
-#create_private_pygemmes(reset=False, reset_hard=False)
-
+# Checked December 2022
 
 # Here we decide what the user will see
 from ._models import get_available_models, get_available_functions
 from ._toolbox import *
-from ._utilities._saveload import get_available_output, load
-from ._utilities._solvers import get_available_solvers
 from ._core import Hub
 from . import _plots as plots
 
@@ -63,7 +55,6 @@ if __PRINTLOGO:
 #####################################################################################                                                                                                                                   
 """)
 if __PRINTINTRO:
-    #_Add= os.path.dirname(os.path.realpath(__file__))+r'doc\tutorial.py'
     __Add2 = os.path.dirname(os.path.realpath(__file__))+"\_config.py"
     __Add3 = os.path.dirname(os.path.realpath(__file__)) + "\doc\TUTORIALS\TUTORIAL.ipynb"
     print(
@@ -80,5 +71,5 @@ If you want to customize pygemmes (advancer users) like removing this message, e
 \nHave fun !
 ######################################################################################################
 """   )
-# ######################################## Its adress is {__Add}
+
 

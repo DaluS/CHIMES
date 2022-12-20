@@ -17,7 +17,7 @@ from ._config import _VERB
 from ._utilities import _utils, _class_checks, _class_utility, _cn
 from ._utilities import _class_set
 from ._utilities import _Network
-from ._utilities import _solvers, _saveload
+from ._utilities import _solvers
 from ._utilities import _comparesubarray
 from ._plots._plots import _DPLOT
 
@@ -62,7 +62,6 @@ class Hub():
         dpresets=None,
         verb=_VERB,
     ):
-
         # Initialize the hub main dictionnaries ###############################
         # Contains miscellaneous, practical informations
         self.__dmisc = {'run': False,        # Has a run been done
@@ -82,7 +81,6 @@ class Hub():
             from_user=from_user,
             verb=verb,
         )
-
 
 
         # Actualize the shape ##############################################
@@ -1353,59 +1351,6 @@ idx                : is the same for parrallel systems
         }
         return dout
 
-    @classmethod
-    def _from_dict(cls, dout=None, model_file=None):
-        """ Create an instance from a dict """
-
-
-        # --------------
-        # check inputs
-        c0 = (
-            isinstance(dout, dict)
-            and sorted(dout.keys()) == ['dargs', 'dmisc', 'dmodel', 'dparam']
-            and all([isinstance(dd, dict) for dd in dout.values()])
-        )
-        if not c0:
-            msg = (
-                "Arg dout must be a dict of the form:\n"
-                "{'dargs': dict, 'dmisc': dict, 'dparams': dict}\n"
-                f"You provided:\n{dout}"
-            )
-            raise Exception(msg)
-
-        # -------------
-        # rebuild all functions from source, if necessary
-        c0 = any([
-            v0.get('source_kargs') is not None
-            and not hasattr(v0.get('func'), '__call__')
-            for k0, v0 in dout['dparam'].items()
-        ])
-        if c0:
-            _saveload.rebuild_func_from_source(dout, model_file=model_file)
-
-        # -------------------
-        # create instance
-        #print(cls['dmodel']['name'])
-        obj = cls('__EMPTY__',verb=False)
-        obj.__dmodel = dict(dout['dmodel'])
-        obj.__dparam = {k0: dict(v0) for k0, v0 in dout['dparam'].items()}
-        obj.__dmisc = dict(dout['dmisc'])
-        obj.__dargs = dict(dout['dargs'])
-
-        # update default args for functions
-        #_class_checks._update_func_default_kwdargs(
-        #    lfunc=obj.get_dparam(returnas=list, eqtype=(None,)),
-        #    dparam=obj.__dparam,
-        #    dmulti=obj.__dmisc['dmulti'],
-        #)
-
-        # re-pass dargs by reference
-        #obj.__dargs = _class_checks.get_dargs_by_reference(
-        #    obj.__dparam,
-        #    dfunc_order=obj.__dmisc['dfunc_order'],
-        #)
-
-        return obj
 
     def __calculate_variation_rate(self, epsilon=0.0001):
         '''
@@ -1469,60 +1414,3 @@ idx                : is the same for parrallel systems
                                             for k2 in R[k]['partial_derivatives'].keys()}
         self.__dmisc['derivative'] = True
 
-
-
-    # ##############################
-    #       saving methods
-    # ##############################
-
-    def save(self, path=None, name=None, fmt=None, verb=None, returnas=None):
-        """ Save the instance
-
-        Saved files are stored in path/fullname.ext
-        The extension (ext) depends on the format (fmt) chosen for saving
-        The file full name (fullname) is the concatenation of a base default
-        name and a user-defined name.
-            ex.: Output_MODELNAME_USERDEFINEDNAME.ext
-        where MODELNAME is the model's name
-
-        By default path is set to 'output/', but the user can overload it
-
-        """
-
-        return _saveload.save(
-            self,
-            path=path,
-            name=name,
-            fmt=fmt,
-            verb=verb,
-            returnas=returnas,
-        )
-
-    # ##############################
-    #       replication methods
-    # ##############################
-
-    def copy(self):
-        """ Return a copy of the instance """
-
-        dout = self._to_dict()
-        return self.__class__._from_dict(dout=dout)
-
-    # ##############################
-    #       comparison methods
-    # ##############################
-
-    def __eq__(
-        self,
-        other,
-        atol=None,
-        rtol=None,
-        verb=None,
-        return_dfail=None,    ):
-        """ Automatically called when testing obj1 == obj2 """
-        return _class_utility._equal(
-            self, other,
-            atol=atol,
-            rtol=rtol,
-            verb=verb,
-            return_dfail=return_dfail)

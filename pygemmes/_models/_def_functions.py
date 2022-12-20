@@ -22,38 +22,6 @@ do not use _ in any name
 import numpy as np
 
 
-# ######################## OPERATORS ####################################
-'''
-Those are operators that can be used to do multisectoral operations :
-coupling, transposition, sums...
-'''
-
-def sprod(X, Y):
-    ''' Scalar product between vector X and Y.
-    Z=sprod(X,Y) so Z_i=\sum X_i Y_i'''
-    return np.matmul(np.moveaxis(X, -1, -2), Y)
-
-def ssum(X):
-    ''' Scalar product between vector X and Y.
-    Z=ssum(X) so Z_i=\sum X_i'''
-    return np.matmul(np.moveaxis(X, -1, -2), X * 0 + 1)
-
-def transpose(X):
-    '''Transposition of X :
-    Y=transpose(X)  Y_ij=X_ji'''
-    return np.moveaxis(X, -1, -2)
-
-def matmul(M, V):
-    '''Matrix product Z=matmul(M,V) Z_i = \sum_j M_{ij} V_j'''
-    return np.matmul(M, V)
-
-def distXY(x, y):
-    '''x and y vector of position, z=distXY(x,y) is the matrix of distance
-     between each particle of position x,y :
-     z_ij= \sqrt{ (x_i-x_j)^2 + (y_i-y_j)^2}'''
-    return np.sqrt((x - np.moveaxis(x, -1, -2)) ** 2 +
-                   (y - np.moveaxis(y, -1, -2)) ** 2 )
-
 # #######################################################################
 ### The loop to merge the two dictionnaries
 def MERGE(Recipient,dictoadd,override=True,verb=True):

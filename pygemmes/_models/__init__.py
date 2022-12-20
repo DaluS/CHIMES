@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Check 9/27/22
+# Check December 2022
 
 import os
 import importlib
@@ -29,7 +29,7 @@ pd.set_option('display.precision', 2)
 # ####################################################
 #       Automatically load all available models
 # ####################################################
-def _get_DMODEL(from_user=_FROM_USER):
+def _get_DMODEL(model=False,from_user=_FROM_USER):
     # check 09/27/2022 OK
 
 
@@ -58,6 +58,9 @@ def _get_DMODEL(from_user=_FROM_USER):
     if ERROR:
         for f in ERROR : print(f)
         raise Exception(f'You have at leas two models with the same name !')
+
+    if model is not False:
+        _df = {k:v for k,v in _df.items() if v == model}
 
 
 
@@ -190,7 +193,6 @@ def get_available_functions():
         _printsubgroupe(sub, it)
 
 
-
 def importmodel(name : str,
                 from_user=False):
     # FIND THE PATH TO MODELS
@@ -216,7 +218,6 @@ def importmodel(name : str,
 
     return deepcopy({k0: dict(v0) for k0, v0 in foo._LOGICS.items()}),\
            deepcopy({k0: dict(v0) for k0, v0 in foo._PRESETS.items()})
-
 
 
 def mergemodel(Recipient,dictoadd,override=True,verb=False):
