@@ -173,6 +173,9 @@ def logics_into_dparam(dmodel):
         if len(dparam[k0].get('size',[_DEFAULTSIZE]))<2 :
             dparam[k0]['size']=[dparam[k0].get('size',[_DEFAULTSIZE])[0],
                                 _DEFAULTSIZE ]
+
+
+        
     return dparam
 
 
@@ -249,6 +252,7 @@ def extract_parameters(dparam, dfields, verb=None):
                 lfunc_new += lf
         else:
             keepon = False
+        
 
     # %% c) if a key is unknown form dfields but exit in model, add it
     if len(lpar_new + lfunc_new) > 0:
@@ -290,8 +294,7 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None, dfields=None):
     Subroutine of extract_parameters using inspection
     '''
     lpar_add, lfunc_add = [], []
-    lkok = ['itself'] + lpar + lfunc
-
+    lkok = lpar + lfunc
     ERRORS=[]
     for k0 in lfunc:
         key =  k0
@@ -300,7 +303,6 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None, dfields=None):
             kargs = inspect.getfullargspec(dparam[key]['func']).args
         else:
             kargs = inspect.getfullargspec(dfields[key]['func']).args
-
 
         # check if any parameter is unknown
         for kk in kargs:
