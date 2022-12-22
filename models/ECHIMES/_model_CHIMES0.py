@@ -260,6 +260,15 @@ _LOGICS = {
             'size': ['Nprod'],
             'symbol': r'$\dot{V}$'
         },
+        'deltaK': {
+            'func': lambda K,delta : delta*K, 
+            'com' : 'constant degradation',
+            'definition': 'physical degraded of capital',
+            'units': 'Units.y^{-1}',
+            'size': ['Nprod'],
+            'symbol': r'$(delta K)$'
+        },
+        
         # Matrix approach
         'Minter': {
             'func': lambda Y, Gamma:  transpose(Gamma*Y) ,
@@ -514,12 +523,12 @@ _LOGICS = {
         #},
 
 
+
 dictMONOGOODWIN={
 # Numerical structural
 'Tmax'  : 50,
 'Nprod' : ['Mono'],
 'Tini'  : 0,
-'dt'    : 0.1,
 
 # Population
 'n'     : 0.025, # MONOSECT
@@ -532,7 +541,7 @@ dictMONOGOODWIN={
 'nu'   : 3,
 'delta': 0.05,
 'b'    : 3,
-'a0'   : 1, # MONOSECT
+'a0'    : 1, # MONOSECT
 'alpha': 0.02, # MONOSECT
 'u'    : 1,
 
@@ -561,6 +570,7 @@ dictMONOGOODWIN={
 # Consumption theory
 'Cpond' : [1],
 }
+
 preset_basis = {
 'Tmax':50,
 'dt':0.1,
@@ -578,18 +588,18 @@ preset_basis = {
 'Dh':0,
 'w':0.8,
 
-'sigma':[5,5],
+'sigma':[1,5],
 'K': [2.,0.5],
 'D':[0,0],
-'u':[.5,.75],
+'u':[.95,.7],
 'p':[1.5,3],
-'V':[8,8],
+'V':[1,1],
 'z':[1,.3],
 'k0': 1.,
 
 'Cpond':[1,0],
 
-'mu0':[1.45,1.45],
+'mu0':[1.2,1.2],
 'delta':0.05,
 'deltah':0.05,
 'eta':0.3,
@@ -606,49 +616,107 @@ preset_basis = {
        [0.1,1]],
 'rho': np.eye(2),
 }
-trisector={
-        'Nprod': ['Consumption', 'Capital','Intermediate'],
-        'K': [5.01426008,2.79580692,1],
-        'D': [ 0.75618537,-0.75618537,0],
-        'Dh': -2.03540888e-17,
-        'u': [0.94703658,0.7126253 ,0.9],
-        'p': [2.35968699,0.79685443,1.2],
-        'V': [10.59268384, 9.91437758,10],
-        'w': 2.88903052,
-        'a': 1.48884403,
-        'N': 1.64460462*3/2,
-        'H': [1.33837281e+00,0,0],
-        'alpha': 0.02,
-        'n': 0.025,
-        #'phinull': 0.1,
-        'r': 0.03,
-        'z': [1. ,0.3,.5],
-        'Cpond': [1,0,0],
-        'mu0': [1.4,1.4,1.4],
-        'delta': [0.05,0.05,0.05],
-        'deltah': [0.05,0,0],
-        'sigma': [1,5,5],
-        'gammai': 0.,
-        'eta': [0.2,0.2,0.2],
-        'chi': [0,0,0],
-        'b': [1.,1.,1.],
-        'nu': [3.,3.,3.],
-        'Gamma': [[0, 0. ,0.1],
-                  [0, 0. ,0.1],
-                  [0, 0. ,0.1]],
-        'Xi': [[0.0, 1. ,0],
-               [0. , 1. ,0],
-               [0  , 1. ,0]],
-        'rho': [[0, 0.,1.],
-                [0.,0.,1.],
-                [0.,0.,1.]],
-        'Tmax': 100,
-        'Tini': 0,
-        'dt': 0.1,
-        'nx': 1,
-        'nr': 1,
-        'k0': 1.,
- }
+
+preset_basis2=preset_basis.copy()
+preset_basis2['K'] = [2.3,0.5]
+preset_basis2['u'] = [1,1]
+preset_basis2['p'] = [1,1]
+preset_basis2['z'] = [1,1]
+#preset_basis2['Tmax'] = 50
+
+
+preset_TRI = {
+'Tmax':50,
+'dt':0.1,
+'Nprod': ['Consumption','Intermediate','Capital'],
+'nx':1,
+
+'alpha' : 0.02,
+'n'     : 0.025,
+'phinull':0.1,
+
+'gammai':0,
+'r':0.03,
+'a':1,
+'N':1,
+'Dh':0,
+'w':0.8,
+
+'sigma':[1,5,5],
+'K': [2.1,0.4,0.4],
+'D':[0,0,0],
+'u':[.95,.95,.95],
+'p':[1,1,1],
+'V':[1,1,1],
+'z':1,
+'k0': 1.,
+'Cpond':[1,0,0],
+'mu0':1.2,
+'delta':0.05,
+'deltah':0.05,
+'eta':0.3,
+'chi':1,
+'b':3,
+'nu':3,
+
+## MATRICES
+'Gamma': [[0.0,0.1 ,0],
+          [0  ,0.1 ,0],
+          [0.0,0.1 ,0]],
+#'Xi': [['Consumption','Capital','Consumption','Capital'],
+#       ['Consumption','Capital','Capital','Consumption'],[0,.5,1,0]],
+'Xi': [[0.0,0,1],
+       [0.0,0,1],
+       [0.0,0,1]],
+'rho': np.eye(3),
+}
+
+Nsect=4
+#A=np.diag([0.1 for i in range(Nsect-1)],1)
+#A[Nsect-2,Nsect-1]=0
+
+A=np.diag([0.1 for i in range(Nsect-1)],-1)
+A[Nsect-1,Nsect-2]=0
+
+preset_N = {
+'Tmax':8,
+'dt':0.1,
+'Nprod': ['Consumption']+['Inter'+str(i) for i in range(Nsect-2)]+['Capital'],
+'nx':1,
+
+'alpha' : 0.02,
+'n'     : 0.025,
+'phinull':0.1,
+
+'gammai':0,
+'r':0.03,
+'a':1,
+'N':4,
+'Dh':0,
+'w':0.8,
+
+'sigma':5,
+'K': [4]+[0.4 for i in range(Nsect-2)]+[5],
+'D':0,
+'u':.95,
+'p':1,
+'V':1,
+'z':1,
+'k0': 1.,
+'Cpond':[1]+[0 for i in range(Nsect-1)],
+'mu0':1.3,
+'delta':0.05,
+'deltah':0.05,
+'eta':0.3,
+'chi':1,
+'b':3,
+'nu':3,
+
+## MATRICES
+'Gamma': A,
+'Xi':    [[0 for j in range(Nsect-1)]+[1] for i in range(Nsect)],
+'rho': np.eye(Nsect),
+}
 
 
 _PRESETS = {
@@ -663,9 +731,21 @@ _PRESETS = {
                 'Converging run starting for VERY far from equilibrium'),
         'plots': {},
     },
-    'Trisectoral': {
-        'fields': trisector,
-        'com': ('Three sectors: Consumption, Capital, Intermediate Consumption.'),
+    'SimpleBi': {
+        'fields': preset_basis2, 
+        'com': ('Two sectors : one producing consumption good, one for capital goods.'
+                'Converging run starting close to equilibrium'),
+        'plots': {},
+    },
+    'SimpleTri': {
+        'fields': preset_TRI,
+        'com': 'Trisectoral',
+        'plots': {},
+    },
+    'SimpleN': {
+        'fields': preset_N,
+        'com': ('Two sectors : one producing consumption good, one for capital goods.'
+                'Converging run starting close to equilibrium'),
         'plots': {},
     },
 }

@@ -25,7 +25,8 @@ def _comparesubarray(M):
 
         Mrshp=M.reshape(-1,dimensions[ii])
         Dimtocompare = Mrshp.shape[0]
-        Sameaxis.append(np.bool(np.prod([np.array_equal(Mrshp[0,:],
+
+        Sameaxis.append(np.prod([np.array_equal(Mrshp[0,:],
                                                Mrshp[jj,:])
-                                for jj in range(Dimtocompare)])))
+                                for jj in range(Dimtocompare)])>0)
     return Sameaxis
