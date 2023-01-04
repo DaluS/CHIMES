@@ -1,13 +1,20 @@
-"""
-# 
-* **Name** : **E**CONOMIC **C**ORE for **H**OLISTIC **I**NTERDISCIPLINARY **M**ODEL assessing **E**COLOGICAL **S**USTAINABILITY
-* **Article :** https://www.overleaf.com/project/62fbdce83176c9784e52236c    
-* **Theoretical modelers :** Paul Valcke
-* **Coder :** Paul Valcke
-* **Description :** 
+'''
+Numerical core for multisectoral models
+'''
 
-# Description
-The goal of CHIMES is :
+
+
+from pygemmes._models import Funcs, importmodel,mergemodel
+import numpy as np
+
+_DESCRIPTION = """
+# **E**CONOMIC **C**ORE for **H**OLISTIC **I**NTERDISCIPLINARY **M**ODEL assessing **E**COLOGICAL **S**USTAINABILITY
+* **Article :** https://www.overleaf.com/project/62fbdce83176c9784e52236c    
+* **Author :** Paul Valcke
+* **Coder :** Paul Valcke
+
+## Description
+The goal of **E-CHIMES** is:
 * description of production with physical variables
 * behavior of agents (price, investment) based on economic values
 * Connexion to ecological systems through physical coupling (emissions, land use...)
@@ -20,12 +27,10 @@ It integrates :
 * Inflation
 * Adaptive use of capital
 
-# What should be done ?
-
+## What should be done ?
+* Check u and i mechanism
 """
 
-from pygemmes._models import Funcs, importmodel,mergemodel
-import numpy as np
 
 
 # ######################## OPERATORS ####################################
@@ -517,6 +522,7 @@ def funcs(test):
     print(test)
 
 _SUPPLEMENTS= {'Test':funcs}
+
 
 
 ########################################################################################

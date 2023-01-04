@@ -79,13 +79,19 @@ def _get_DMODEL(model=False,from_user=_FROM_USER):
                 'name': v0,
                 'address': k0,
             }
+            ### ADD Supplements
             try : 
                 _DMODEL[v0]['supplements']=foo._SUPPLEMENTS
             except BaseException:
-                #print(v0,'Not found supplements')
-                pass
+                _DMODEL[v0]['supplements']={}
+        
+            ### ADD Long Description 
+            try :
+                _DMODEL[v0]['longDescription']= foo._DESCRIPTION
+            except BaseException:
+                _DMODEL[v0]['longDescription']= foo.__doc__
         except BaseException as Err:
-            print(f'Model {v0} could not be loaded from folder {k0} ! \n you might have a commma "," at the end of one of your dictionnaries. Error message :\n {Err}\n')
+            print(f'''Model {v0} could not be loaded from folder {k0} ! \n you might have a commma "," at the end of one of your dictionnaries. Error message :\n {Err}\n''')
 
 
 
@@ -102,7 +108,8 @@ def get_available_models(
     details=_MODELS_SHOWDETAILS,
     verb=None,
     from_user=_FROM_USER,
-    Return=False
+    Return=False, 
+    FULL=False
 ):
     # Check 2022
     '''
@@ -110,6 +117,7 @@ def get_available_models(
     if model is None, gives all the model
     if model is not None, gives details of the model
     if details, gives model description
+    if FULL, gives all it can
 
     if Return is dict, gives a dictionnary
     if Return is list, gives the list of model 
@@ -144,7 +152,11 @@ def get_available_models(
         dic={v0['name']: {'Folder': v0['address'][len(_PATH_MODELS)+1:-len(_MODEL_NAME_CONVENTION)-len(v0['name'])-1],
                       'Preset': v0['presets'],
                       'Documentation': v0['description']}for k0, v0 in dmod.items()}       
+    if FULL:
+        dic = _DMODEL
     modeldf=pd.DataFrame(dic)
+
+
 
     if Return is list: 
         return model
