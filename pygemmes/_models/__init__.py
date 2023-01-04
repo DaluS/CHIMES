@@ -15,8 +15,6 @@ from .._config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS,_MODEL_NAME
 from copy import deepcopy
 
 import pandas as pd
-
-
 pd.set_option('display.max_rows', None)
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 1000)
@@ -57,7 +55,7 @@ def _get_DMODEL(model=False,from_user=_FROM_USER):
                     _dfr[ ff[len(_MODEL_NAME_CONVENTION):ff.index('.py')]]=os.path.join(root,ff[:-3])
     if ERROR:
         for f in ERROR : print(f)
-        raise Exception(f'You have at leas two models with the same name !')
+        raise Exception(f'You have at least two models with the same name !')
 
     if model is not False:
         _df = {k:v for k,v in _df.items() if v == model}
@@ -81,6 +79,11 @@ def _get_DMODEL(model=False,from_user=_FROM_USER):
                 'name': v0,
                 'address': k0,
             }
+            try : 
+                _DMODEL[v0]['supplements']=foo._SUPPLEMENTS
+            except BaseException:
+                #print(v0,'Not found supplements')
+                pass
         except BaseException as Err:
             print(f'Model {v0} could not be loaded from folder {k0} ! \n you might have a commma "," at the end of one of your dictionnaries. Error message :\n {Err}\n')
 

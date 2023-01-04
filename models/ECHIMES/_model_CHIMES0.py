@@ -1,20 +1,27 @@
 """
-ECONOMIC CORE for HOLISTIC INTERDISCIPLINARY MODEL assessing ECOLOGICAL SUSTAINABILITY
+# 
+* **Name** : **E**CONOMIC **C**ORE for **H**OLISTIC **I**NTERDISCIPLINARY **M**ODEL assessing **E**COLOGICAL **S**USTAINABILITY
+* **Article :** https://www.overleaf.com/project/62fbdce83176c9784e52236c    
+* **Theoretical modelers :** Paul Valcke
+* **Coder :** Paul Valcke
+* **Description :** 
 
+# Description
 The goal of CHIMES is :
-    * description of production with physical variables
-    * behavior of agents (price, investment) based on economic values
-    * Connexion to ecological systems through physical coupling (emissions, land use...)
+* description of production with physical variables
+* behavior of agents (price, investment) based on economic values
+* Connexion to ecological systems through physical coupling (emissions, land use...)
 
 It integrates :
-    * N productive sector, by activity
-    * Material flow analysis integrated inside
-    * Loans dynamics for investment and cross-sector expanses
-    * Inventory fluctuations
-    * Inflation
-    * Adaptive use of capital
+* Nprod productive sector, by activity
+* Material flow analysis integrated inside
+* Loans dynamics for investment and cross-sector expanses
+* Inventory fluctuations
+* Inflation
+* Adaptive use of capital
 
-LINK TO ARTICLE : https://www.overleaf.com/project/62fbdce83176c9784e52236c    
+# What should be done ?
+
 """
 
 from pygemmes._models import Funcs, importmodel,mergemodel
@@ -119,8 +126,8 @@ _LOGICS = {
         ### BEHAVIOR
         'u0': {
             # 'func': lambda u: 0,
-            #'func': lambda u0, sigma, V, dotV: -sigma * (1 - u0) * (dotV / V),
-            'func': lambda u0, sigma, Y, dotV: -sigma * (1 - u0) * (dotV / Y),
+            'func': lambda u0, sigma, V, dotV: -sigma * (1 - u0) * (dotV / V),
+            #'func': lambda u0, sigma, Y, dotV: -sigma * (1 - u0) * (dotV / Y),
             #'func': lambda u0, sigma, v0: -sigma * (1 - u0) * (1-1/v0),
             'com': 'commanding inventory',
             'definition': 'voluntary use of productive capital',
@@ -155,11 +162,6 @@ _LOGICS = {
         'nu': {'func': lambda nu0, u: nu0/u,
                'com': 'Adjusted by use of capital',
                'size': ['Nprod']},
-        #'v0': {'func': lambda V,K,nu0,epsilon: epsilon*V*nu0/K,
-        #        'com': 'on total potential prod',
-        #        'size': ['Nprod'],
-        #        'definition': 'Relative inventory',
-        #        'units':''},
 
         ### COST COMPONENTS
         'omega': {
@@ -208,8 +210,7 @@ _LOGICS = {
             'symbol': '$i^{\mu}$'
         },
         'inflationdotV': {
-            #'func': lambda chi, dotV, Y,gK: - chi *(gK + dotV / Y),
-            'func': lambda chi, dotV, V,gK: - chi *( dotV / V),
+            'func': lambda chi, dotV, V: - chi *( dotV / V),
             'com': 'price adjustment to demand-offer on Y',
             'size': ['Nprod'],
             'units': 'y^{-1}',
@@ -494,8 +495,6 @@ _LOGICS = {
         'nu': {'value': 3,
                'size': ['Nprod']
                },
-#        'epsilon':{'value':1/8,
-#                    'size':['Nprod']},
 
         ### MATRICES
         'Gamma': {
@@ -510,20 +509,17 @@ _LOGICS = {
     },
 }
 
-# 'rho': {
-#    'value': 0.01,
-#    'size': ['Nprod', 'Nprod']
-# },
+########################################################################################
+'''
+Specific parts of code that are accessible
+'''
+def funcs(test):
+    print(test)
 
-        #'Omega': {
-        #    'func': lambda N,W,p,basket: (W/N)/(sprod(basket,p)) ,
-        #    'definition': 'MONOSECTORAL Percieved purchasing power',
-        #    'com': 'no shareholding, no bank possession',
-        #    'units':'Units.Humans^{-1}.y^{-1}'
-        #},
+_SUPPLEMENTS= {'Test':funcs}
 
 
-
+########################################################################################
 dictMONOGOODWIN={
 # Numerical structural
 'Tmax'  : 50,
@@ -718,7 +714,7 @@ preset_N = {
 'rho': np.eye(Nsect),
 }
 
-
+########################################################################################
 _PRESETS = {
     'Goodwin': {
         'fields': dictMONOGOODWIN,

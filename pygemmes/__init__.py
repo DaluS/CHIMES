@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 """
-
 #####################################################################################
  _______            ______  ________  ____    ____  ____    ____  ________   ______
 |_   __ \         .' ___  ||_   __  ||_   \  /   _||_   \  /   _||_   __  |.' ____  \
@@ -24,20 +23,18 @@ TO EXPLORE :
 pgm.get_available_ then tab to see what is available
     examples :
     * pgm.get_available_fields()
-    * pgm.get_available_models(details=False)
-    * pgm.get_available_solvers()
-    * pgm.get_available_functions()
+    * pgm.get_available_models()
+    * pgm.get_available_plots()
 pgm.Hub() to load a model
 """
 # Checked December 2022
 
 # Here we decide what the user will see
+
 from ._models import get_available_models, get_available_functions
 from ._toolbox import *
 from ._core import Hub
 from . import _plots as plots
-
-
 
 # MESSAGE LOGO ########################################
 from ._config import __PRINTLOGO, __PRINTINTRO
@@ -71,5 +68,3 @@ If you want to customize pygemmes (advancer users) like removing this message, e
 \nHave fun !
 ######################################################################################################
 """   )
-
-

@@ -132,7 +132,8 @@ def Network_pyvis(hub,
 
     net = Network(directed=True, height=screensize, width=screensize,
                   heading=hub.dmodel['name']+f' Logical network, hidden:{filters}',
-                  notebook=True)
+                  #notebook=True
+                  )
 
 
     if plot_params:
@@ -239,17 +240,6 @@ Dependencies :<br>
 
     address = os.path.join(_PATH_HERE[:-9],'doc',hub.dmodel['name']+'.html').replace('/','\\')
     #print(address)
-    #net.save_graph('network.html')
+    net.save_graph(address)
     #f = open('network.html', "r")
     
-    #return f
-    from IPython.core.display import display, HTML
-    import tempfile
-
-    def pyvis_deepnote_show(nt):
-        #tmp_output_filename = tempfile.NamedTemporaryFile(suffix='.html').name
-        nt.save_graph('network.html')
-
-        f = open('network.html', "r")
-        display(HTML(f.read()))
-    pyvis_deepnote_show(net)
