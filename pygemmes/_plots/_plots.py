@@ -21,6 +21,9 @@ from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.gridspec import GridSpec
 
+import plotly.graph_objects as go
+import pandas as pd
+
 
 _LS = [
     (0, ()),
@@ -62,6 +65,7 @@ __all__ = [
     'plot3D',
     'XY',
     'XYZ',
+    'Sankey',
     'plotbyunits',
     'Var',
     'cycles_characteristics',
@@ -687,6 +691,215 @@ def Var(hub,
     if mode: ax.legend()
     plt.show()
 
+
+
+
+
+
+
+def Sankey(hub,t=0,idx=0,Region=0,_phy=False,_mon=False):
+    '''Physical and monetary Sankey diagrams'''
+
+
+    def Add_Matrix(X,TDi):
+        R=hub.get_dparam()
+        d0=R[X]
+        values = d0['value'][ntindex,idx,Region,:,:].reshape(-1)
+        names = R[d0['size'][0]]['list']
+        sectintdex=np.arange(len(names))
+
+        XX,YY=np.meshgrid(sectintdex+1,sectintdex+1)
+        XX=XX.astype(int).reshape(-1)-1
+        YY=YY.astype(int).reshape(-1)-1
+    
+        TDi['source'].extend(YY)
+        TDi['target'].extend(XX)
+        TDi['types'].extend([X for i in range(len(XX))])
+        TDi['value'].extend(values)
+        TDi['colors'].extend([len(set(TDi['types']))-1 for j in range(len(XX))])
+        TDi['label'] = names
+
+        #print('MATRIX',X)
+        #print(values)
+        #for k,v in TDi.items(): print(k,len(v),v)
+        
+        return TDi
+        
+    def Add_Vector(TD,Vecid,stype,slabel,switch):
+        V=R[Vecid]['value'][ntindex,idx,Region,:,0]        # Values we add 
+        if slabel not in TD['label']:
+            TD['label'].append(slabel)
+            plus= 1
+        else :
+            plus=0
+        V1 = np.arange(0,len(V))
+        V2 = [np.amax(TD['target']+TD['source'])+plus]*len(V)
+        TD['target'].extend(V1 if switch else V2) 
+        TD['source'].extend(V2 if switch else V1)
+        TD['value'].extend(V)
+        TD['types'].extend([stype for i in range(len(V))])
+        TD['colors'].extend([len(set(TD['colors'])) for ii in range(len(V))])
+        return TD
+
+    def Add_scalar(TD,name,source,target,type,newcolor=False):
+        if source in TD['label']:
+            sourceindex = TD['label'].index(source)
+        else : 
+            print(source,'adding')
+            sourceindex = len(TD['label'])
+            TD['label'].append(source)
+
+        if target in TD['label']:
+            targetindex = TD['label'].index(target)
+        else : 
+            targetindex = len(TD['label'])
+            TD['label'].append(target)
+
+        TD['source'].append(sourceindex)
+        TD['target'].append(targetindex)
+        TD['value'].append(R[name]['value'][ntindex,idx,Region,0,0])
+        TD['types'].append(type)
+        TD['colors'].append(TD['colors'][-1]+1 if newcolor else TD['colors'][-1])
+        return TD    
+
+    if hub.dmodel['name'] not in ['ECHIMES','CHIMES0']:
+        print('CAREFUL IT CAN ONLY WORKS ON ECHIMES RELATED MODELS')
+
+    c = ['rgba(255,  0,255, 0.8)', # Colors 
+        'rgba(  0,255,255, 0.8)' ,
+        'rgba(255,255,  0, 0.8)' ,
+        'rgba(127,255,127, 0.8)' ,
+        'rgba(0,0,0, 0.8)'       ,
+        'rgba(127,255,255, 0.8)' ,
+        'rgba(255,127,255, 0.8)']
+
+    R=hub.get_dparam()
+    ##################### TRANSLATING INPUT #################
+    # idx input
+    if type(idx)==int: pass 
+    elif type(idx)==str:
+        try : idx=hub.dparam['nx']['list'].index(idx)
+        except BaseException:
+            liste=hub.dparam['nx']['list']
+            raise Exception(f'the parrallel system cannot be found !\n you gave {idx} in {liste}')
+    else: raise Exception(f'the parrallel index cannot be understood ! you gave {idx}')
+
+    # Region input 
+    if type(Region)==int: pass 
+    elif type(Region)==str:
+        try : Region=hub.dparam['nr']['list'].index(Region)
+        except BaseException:
+            liste=hub.dparam['nr']['list']
+            raise Exception(f'the region system cannot be found !\n you gave {idx} in {liste}')
+    else: raise Exception(f'the region index cannot be understood ! you gave {idx}')
+
+    # time input
+    time = R['time']['value'][:,idx,Region,0,0]
+    if t: ntindex=np.argmin(np.abs(time-t))
+    else : ntindex=0
+
+    for _ in range(1):
+        ###############################################################
+        ### PHYSICAL FLUXES ###########################################
+        TDm={           'label' :[], # names of target/sources
+                        'target':[], # Where the flux ends
+                        'source':[], # Where the flux starts
+                        'value' :[], # Flux intensity
+                        'types' :[], # Flux category 
+                        'colors':[]}
+
+        ### MATRICES
+        for X in ['Minvest','Minter']: TDm=Add_Matrix(X,TDm)
+
+        ### ADDING VECTORS
+        TDm = Add_Vector(TDm,'C','Consumption','Household',False)
+        
+        ### INVERSE VECTORS
+        for i,v in enumerate(TDm['value']):
+            if v<0:
+                TDm['target'][i],TDm['source'][i] = TDm['source'][i],TDm['target'][i]
+                TDm['value'][i]*=-1
+
+        TDm['colors']= [c[i] for i in TDm['colors']]
+
+
+        data = go.Sankey(link = dict(source = np.array(TDm['source']).reshape(-1), 
+                                    target = np.array(TDm['target']).reshape(-1), 
+                                    value = np.array(TDm['value']).reshape(-1),
+                                    color=TDm['colors']), 
+                        node = dict(label = TDm['label'],
+                                    pad=50, 
+                                    thickness=5))
+
+        if not _phy:
+            figPhy = go.Figure(data)
+            figPhy.update_layout(
+                hovermode = 'x',
+                title=f"Physical exchanges between sectors, t={R['time']['value'][ntindex,0,0,0,0]:.2f}",
+                font=dict(size = 10, color = 'white'),
+                paper_bgcolor='#5B5958'
+            )
+            figPhy.show()
+        else :
+            figPhy.data[0].link.value=TDm['value']
+            figPhy=_mon
+
+    ###############################################################
+    #### MONETARY FLUXES ##########################################
+    for _ in range(1):
+        Matrices=['MtransactI','MtransactY']
+
+        ### INITIAL LISTS TO FILL
+        TD={            'label' :[], # names of target/sources
+                        'target':[], # Where the flux ends
+                        'source':[], # Where the flux starts
+                        'value' :[], # Flux intensity
+                        'types' :[], # Flux category 
+                        'colors':[]}
+
+        ### MATRICES
+        for X in Matrices: TD=Add_Matrix(X,TD)
+
+        ### ADDING VECTORS
+        TD = Add_Vector(TD,'pC','Consumption','Household',True)
+        TD = Add_Vector(TD,'wL','Wages','Household',False)
+        TD = Add_Vector(TD,'rD','Interests','Banks',False)
+
+        ### Adding scalar
+        TD = Add_scalar(TD,'rDh','Household','Banks','Interests',False)
+        TD['colors']= [c[i] for i in TD['colors']]
+
+        for i,v in enumerate(TD['value']):
+            if v<0:
+                TD['target'][i],TD['source'][i] = TD['source'][i],TD['target'][i]
+                TD['value'][i]*=-1
+
+        data = go.Sankey(link = dict(source = np.array(TD['source']).reshape(-1), 
+                                    target = np.array(TD['target']).reshape(-1), 
+                                    value = np.array(TD['value']).reshape(-1),
+                                    color=TD['colors']), 
+                        node= dict( label = TD['label'],
+                                    pad=50, 
+                                    thickness=5))
+
+
+
+        # plot
+        if not _mon:
+            figMoney = go.Figure(data)
+            figMoney.update_layout(
+                hovermode = 'x',
+                title=f"Monetary exchanges between sectors, t={R['time']['value'][ntindex,0,0,0,0]:.2f}",
+                font=dict(size = 10, color = 'white'),
+                paper_bgcolor='#5B5958'
+            )
+            figMoney.show()
+        else :
+            _mon.data[0].link.value=TDm['value']
+            figMoney=_mon
+    return figPhy,figMoney
+
+
 # #################################### TOOLBOX PLOTS ########################################
 
 def cycles_characteristics(hub,
@@ -1180,6 +1393,7 @@ _DPLOT = {
     'XY' : XY,
     'XYZ' : XYZ,
     '3D': plot3D,
+    'sankey': Sankey,
     'byunits': plotbyunits,
     'Onevariable': Var,
     'cycles_characteristics': cycles_characteristics,
