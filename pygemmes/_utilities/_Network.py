@@ -59,10 +59,59 @@ def filter_kargs(hub, filters,redirect):
     return kargs,filters
 
 
+
+import webbrowser
+def show(net, name, local=True):
+    """
+    Writes a static HTML file and saves it locally before opening.
+
+    :param: name: the name of the html file to save as
+    :type name: str
+    """
+    write_html(net,name, local)
+    webbrowser.open(name)
+
+from IPython.display import IFrame
+def write_html(self, name, local=True, notebook=False):
+    """
+    This method gets the data structures supporting the nodes, edges,
+    and options and updates the template to write the HTML holding
+    the visualization.
+    :type name_html: str
+    """
+    self.html = self.generate_html(notebook=notebook)
+
+    with open(name, "w+") as out:
+        out.write(self.html)
+        return IFrame(name, width=self.width, height="600px")
+    '''
+    if notebook:
+        if os.path.exists("lib"):
+            shutil.rmtree(f"lib")
+            shutil.copytree(f"{os.path.dirname(__file__)}/templates/lib", "lib")
+        with open(name, "w+") as out:
+            out.write(self.html)
+        
+    else:
+        if local:
+            tempdir = "."
+        else:
+            tempdir = tempfile.mkdtemp()
+        # with tempfile.mkdtemp() as tempdir:
+        if os.path.exists(f"{tempdir}/lib"):
+            shutil.rmtree(f"{tempdir}/lib")
+        shutil.copytree(f"{os.path.dirname(__file__)}/templates/lib", f"{tempdir}/lib")
+
+        print(f"{tempdir}/{name}")
+        with open(f"{tempdir}[2:]/{name}", "w+") as out:
+            out.write(self.html)
+            webbrowser.open(f"{tempdir}/{name}")
+    '''
+
 def Network_pyvis(hub,
                   filters = (),
                   auxilliary=False,
-                  screensize=1080,
+                  screensize=600,
                   custom=False,
                   redirect=False,
                   plot_params=True):
@@ -132,7 +181,7 @@ def Network_pyvis(hub,
 
     net = Network(directed=True, height=screensize, width=screensize,
                   heading=hub.dmodel['name']+f' Logical network, hidden:{filters}',
-                  #notebook=True
+                  notebook=True
                   )
 
 
@@ -239,7 +288,8 @@ Dependencies :<br>
     # net.prep_notebook()
 
     address = os.path.join(_PATH_HERE[:-9],'doc',hub.dmodel['name']+'.html').replace('/','\\')
-    #print(address)
-    net.save_graph(address)
+    print(address)
+    show(net,address)
+    #net.save_graph(address)
     #f = open('network.html', "r")
     

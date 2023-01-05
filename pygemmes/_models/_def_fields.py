@@ -76,6 +76,7 @@ _LIBRARY = {
         '__ONE__': {
             'value': 1,
             'definition': 'value by default for monosectorial field',
+            'list': ['Monosectoral']
         },
         'time': {
             'initial': 0.,

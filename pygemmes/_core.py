@@ -1008,7 +1008,7 @@ class Hub():
                     filters=(),
                     auxilliary=False,
                     redirect=False,
-                    screensize=1080,
+                    screensize=600,
                     custom=True,
                     params=False):
         """
