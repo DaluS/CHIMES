@@ -60,6 +60,8 @@ __all__ = [
     'plotnyaxis',
     'phasespace',
     'plot3D',
+    'XY',
+    'XYZ',
     'plotbyunits',
     'Var',
     'cycles_characteristics',
@@ -77,6 +79,8 @@ def plotbyunits(hub,
                lw=1,
                idx=0,
                Region=0,
+               tini=False,
+               tend=False,
                title=''):
     '''
     generate one subfigure per set of units existing.
@@ -94,16 +98,42 @@ def plotbyunits(hub,
     Region             : is, if there a multiple regions, the one you want to plot
     idx                : is the same for parrallel systems
 
-
-
     separate_variable : is a dictionnary, which will create a new plot with variables fron the unit selected
     (exemple: you have pi, epsilon and x which share the same units 'y', if you do separate_variables={'y':'x'}
     another figure will be added with x only on it, and pi and epsilon on the other one)
-
     '''
     if not hub.dmisc['run']:
         print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
         hub.run()
+
+    R=hub.dparam
+    # idx input
+    if type(idx)==int: pass 
+    elif type(idx)==str:
+        try : idx=hub.dparam['nx']['list'].index(idx)
+        except BaseException:
+            liste=hub.dparam['nx']['list']
+            raise Exception(f'the parrallel system cannot be found !\n you gave {idx} in {liste}')
+    else: raise Exception(f'the parrallel index cannot be understood ! you gave {idx}')
+
+    # Region input 
+    if type(Region)==int: pass 
+    elif type(Region)==str:
+        try : Region=hub.dparam['nr']['list'].index(Region)
+        except BaseException:
+            liste=hub.dparam['nr']['list']
+            raise Exception(f'the parrallel system cannot be found !\n you gave {idx} in {liste}')
+    else: raise Exception(f'the parrallel index cannot be understood ! you gave {idx}')
+
+ 
+    # time input
+    time = R['time']['value'][:,idx,Region,0,0]
+    if tini: idt0=np.argmin(np.abs(time-tini))
+    else : idt0=0
+
+    if tend: idt1=np.argmin(np.abs(time-tend))
+    else : idt1=-1
+
 
     ### FILTERING THE KEYS
     grpfield = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['differential', 'statevar'])
@@ -133,13 +163,13 @@ def plotbyunits(hub,
     Nlin = Nax // Ncol + Nax % Ncol
     allvars = [item for sublist in groupsoffields.values() for item in sublist]
     fig = plt.figure()
-    fig.set_size_inches(10*Ncol, 3*Nlin)
+    fig.set_size_inches(5*Ncol, 3*Nlin)
     dax = {key: plt.subplot(Nlin, Ncol, i+1)
            for i, key in enumerate(groupsoffields.keys())}
 
     # GETTING THE DATA
     R = hub.get_dparam(keys=[allvars], returnas=dict)
-    vx = R['time']['value'][:, idx,Region,0,0]
+    vx = R['time']['value'][idt0:idt1, idx,Region,0,0]
     vy = {}
     sectorname={}
     index = 0
@@ -152,9 +182,9 @@ def plotbyunits(hub,
             if not ismulti[ii]:
                 if ('' not in filters_sector and type(filters_sector)==tuple or
                     '' in filters_sector and type(filters_sector)==list):
-                    vy[key][yyy]=R[yyy]['value'][:, idx,Region,0,0]
+                    vy[key][yyy]=R[yyy]['value'][idt0:idt1, idx,Region,0,0]
                 else :
-                    vy[key][yyy] = R[yyy]['value'][:, idx, Region, 0, 0]
+                    vy[key][yyy] = R[yyy]['value'][idt0:idt1, idx, Region, 0, 0]
             else:
                 sectors = R[R[yyy]['size'][0]]['list']
                 if type(filters_sector)==tuple:
@@ -163,7 +193,7 @@ def plotbyunits(hub,
                     sectors=[ (jj,x) for jj,x in enumerate(sectors) if x in filters_sector]
 
                 for jj,s in sectors:
-                    vy[key][yyy+'_'+str(s)]=R[yyy]['value'][:, idx,Region,jj,0]
+                    vy[key][yyy+'_'+str(s)]=R[yyy]['value'][idt0:idt1, idx,Region,jj,0]
                     sectorname[key][jj]=s
 
         ## AXIS MAKEUP BEAUTY
@@ -322,52 +352,68 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
     plt.show()
 
 
-def phasespace(hub, x, y, color='time', idx=0,Region=0):
+def XY(hub,x,y,
+       color='time',
+       idx=0,
+       Region=0,
+       tini=False ,
+       tend=False ,
+       title='',
+       scaled=False):
     '''
-    Plot of the trajectory of the system in a 2dimensional phase-space
-
-    Parameters
-    ----------
-    sol : hub after a run
-    x   : key for the variable on x axis, The default is 'omega'.
-    y   : key for the variable on y axis, The default is 'lambda'.
-    idx : number of the system taken to be plot, The default is 0
-
-    EXAMPLE :
-    pgm.plots.phasespace(hub,'employment',['pi','Capital'],color=['omega','Consumption'])
+    plot 'x' in function of 'y', the curve color being the value of 'color'.
     '''
     if not hub.dmisc['run']:
-        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
-        hub.run()
+        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS VALUES')
+        hub.run() 
 
-
+    ### INPUT TRANSLATION ############# 
     R=hub.dparam
     if type(x) is list :
         xsect=R[R[x[0]]['size'][0]]['list'].index(x[1])
-        xname=x[1]
-        x=x[0]
-    else :
-        xsect=0
-        xname=''
+        x,xname=x[0],x[1]
+    else : xsect,xname=0,''
     if type(y) is list :
         ysect=R[R[y[0]]['size'][0]]['list'].index(y[1])
-        yname=y[1]
-        y=y[0]
-    else :
-        ysect=0
-        yname =''
+        y,yname=y[0],y[1]
+    else : ysect,yname=0,''
     if type(color) is list :
         colorsect=R[R[color[0]]['size'][0]]['list'].index(color[1])
-        colorname=color[1]
-        color=color[0]
-    else :
-        colorsect=0
-        colorname =''
+        color,color=y[0],y[1]
+    else : colorsect,colorname=0,''
 
+    # idx input
+    if type(idx)==int: pass 
+    elif type(idx)==str:
+        try : idx=hub.dparam['nx']['list'].index(idx)
+        except BaseException:
+            liste=hub.dparam['nx']['list']
+            raise Exception(f'the parrallel system cannot be found !\n you gave {idx} in {liste}')
+    else: raise Exception(f'the parrallel index cannot be understood ! you gave {idx}')
+
+    # Region input 
+    if type(Region)==int: pass 
+    elif type(Region)==str:
+        try : Region=hub.dparam['nr']['list'].index(Region)
+        except BaseException:
+            liste=hub.dparam['nr']['list']
+            raise Exception(f'the parrallel system cannot be found !\n you gave {idx} in {liste}')
+    else: raise Exception(f'the parrallel index cannot be understood ! you gave {idx}')
+
+ 
+    # time input
+    time = R['time']['value'][:,idx,Region,0,0]
+    if tini: idt0=np.argmin(np.abs(time-tini))
+    else : idt0=0
+
+    if tend: idt1=np.argmin(np.abs(time-tend))
+    else : idt1=-1
+
+    ### PLOT #################
     allvars = hub.get_dparam(returnas=dict)
-    yval = allvars[y]['value'][:, idx,Region,ysect,0]
-    xval = allvars[x]['value'][:, idx,Region,xsect,0]
-    t = allvars[color]['value'][:, idx,Region,colorsect,0]
+    t = allvars[color]['value'][idt0:idt1, idx,Region,colorsect,0]    
+    yval = allvars[y]['value'][idt0:idt1, idx,Region,ysect,0]
+    xval = allvars[x]['value'][idt0:idt1, idx,Region,xsect,0]
 
     points = np.array([xval, yval]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
@@ -377,87 +423,101 @@ def phasespace(hub, x, y, color='time', idx=0,Region=0):
     lc.set_array(t)
     lc.set_linewidth(2)
 
+
     fig = plt.figure()
     fig.set_size_inches(10, 7)
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
     line = ax.add_collection(lc)
+
+    ### BEAUTY
     fig.colorbar(line, ax=ax, label=allvars[color]['symbol'][:-1]+'_{'+colorname+'}$')
     plt.xlabel(allvars[x]['symbol'][:-1]+'_{'+xname+'}$')
     plt.ylabel(allvars[y]['symbol'][:-1]+'_{'+yname+'}$')
     plt.xlim([np.nanmin(xval), np.nanmax(xval)])
     plt.ylim([np.nanmin(yval), np.nanmax(yval)])
-    plt.axis('scaled')
-    plt.title('Phasespace ' + x + '-' + y + ' for model : '
-              + hub.dmodel['name'] + '| system number' + str(idx))
-
+    if scaled:
+        plt.axis('scaled')
+    plt.title(title)
     plt.show()
 
 
-def plot3D(hub, x, y, z, color, cmap='jet', index=0,Region=0, title=''):
+def XYZ(hub,x,y,z,
+        color='time',
+        idx=0,
+        Region=0,
+        tini=False ,
+        tend=False ,
+        title='',
+        scaled=False):
     '''
-    Plot a 3D curve, with a fourth information on the colour of the curve
-
-    x,y,z,cinf are names of your variables
-    cmap your colormap
-    title is your graph title
-
-    example, with two sectors 'Capital','Consumption'
-    pgm.plots.plot3D(hub,'employment',
-                         ['pi','Capital'],
-                         ['rd','Capital'],
-                         color=['omega','Consumption'])
-
+    Plot a 3D curve, with a fourth field as the color of the curve
     '''
     if not hub.dmisc['run']:
-        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
-        hub.run()
+        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS VALUES')
+        hub.run() 
 
-    R=hub.get_dparam()
+    ### INPUT TRANSLATION ############# 
+    R=hub.dparam
     if type(x) is list :
         xsect=R[R[x[0]]['size'][0]]['list'].index(x[1])
-        xname=x[1]
-        x=x[0]
-    else :
-        xsect=0
-        xname=''
+        x,xname=x[0],x[1]
+    else : xsect,xname=0,''
     if type(y) is list :
         ysect=R[R[y[0]]['size'][0]]['list'].index(y[1])
-        yname=y[1]
-        y=y[0]
-    else :
-        ysect=0
-        yname =''
+        y,yname=y[0],y[1]
+    else : ysect,yname=0,''
     if type(z) is list :
         zsect=R[R[z[0]]['size'][0]]['list'].index(z[1])
-        zname=z[1]
-        z=z[0]
-    else :
-        zsect=0
-        zname =''
+        z,zname=z[0],z[1]
+    else : zsect,zname=0,''
     if type(color) is list :
         colorsect=R[R[color[0]]['size'][0]]['list'].index(color[1])
-        colorname=color[1]
-        color=color[0]
-    else :
-        colorsect=0
-        colorname =''
+        color,color=y[0],y[1]
+    else : colorsect,colorname=0,''
 
-    vx = R[x]['value'][:, index,Region,xsect,0]
-    vy = R[y]['value'][:, index,Region,ysect,0]
-    vz = R[z]['value'][:, index,Region,zsect,0]
-    vc = R[color]['value'][:, index,Region,colorsect,0]
+    # idx input
+    if type(idx)==int: pass 
+    elif type(idx)==str:
+        try : idx=hub.dparam['nx']['list'].index(idx)
+        except BaseException:
+            liste=hub.dparam['nx']['list']
+            raise Exception(f'the parrallel system cannot be found !\n you gave {idx} in {liste}')
+    else: raise Exception(f'the parrallel index cannot be understood ! you gave {idx}')
+
+    # Region input 
+    if type(Region)==int: pass 
+    elif type(Region)==str:
+        try : Region=hub.dparam['nr']['list'].index(Region)
+        except BaseException:
+            liste=hub.dparam['nr']['list']
+            raise Exception(f'the region system cannot be found !\n you gave {idx} in {liste}')
+    else: raise Exception(f'the region index cannot be understood ! you gave {idx}')
+
+    # time input
+    time = R['time']['value'][:,idx,Region,0,0]
+    if tini: idt0=np.argmin(np.abs(time-tini))
+    else : idt0=0
+
+    if tend: idt1=np.argmin(np.abs(time-tend))
+    else : idt1=-1
+
+
+    vx = R[x]['value'][idt0:idt1, idx,Region,xsect,0]
+    vy = R[y]['value'][idt0:idt1, idx,Region,ysect,0]
+    vz = R[z]['value'][idt0:idt1, idx,Region,zsect,0]
+    vc = R[color]['value'][idt0:idt1, idx,Region,colorsect,0]
 
     points = np.array([vx, vy, vz]).T.reshape(-1, 1, 3)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
     norm = plt.Normalize(vc.min(), vc.max())
 
     fig = plt.figure()
-    fig.set_size_inches(10, 10)
+    fig.set_size_inches(10,5)
     ax = plt.axes(projection='3d')
     ax.plot(vx,
             vy,
             vz, lw=0.01, c='k')
-    lc = Line3DCollection(segments, cmap=cmap, norm=norm)
+    lc = Line3DCollection(segments, cmap='jet', norm=norm)
     lc.set_array(vc)
     lc.set_linewidth(2)
     line = ax.add_collection(lc)
@@ -476,9 +536,17 @@ def plot3D(hub, x, y, z, color, cmap='jet', index=0,Region=0, title=''):
     plt.show()
 
 
-def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
+def Var(hub, 
+        key, 
+        idx=0,
+        Region=0, 
+        tini=False,
+        tend=False,
+        mode=False, 
+        log=False,
+        title=''):
     '''
-    Just one variable plot, with possibly cycles analysis to be shown
+    One variable plot, with possibly cycles analysis and sensitivity if asked
     if you put [key,sectorname] it will load the specific sector
     if mode = 'sensitivity' the system will show statistical variance between parrallel run of nx
     if mode = 'cycles' the system will show cycles within the evolution of the variable with their characteristics
@@ -497,14 +565,40 @@ def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
         hub.calculate_Cycles()
         print('done')
 
-    R=hub.get_dparam()
+    R=hub.dparam
+    # key input
     if type(key) is list :
         keysect=R[R[key[0]]['size'][0]]['list'].index(key[1])
-        keyname=key[1]
-        key=key[0]
-    else :
-        keysect=0
-        keyname =0
+        key,keyname=key[0],key[1]
+    else : keysect,keyname=0,''
+
+    # idx input
+    if type(idx)==int: pass 
+    elif type(idx)==str:
+        try : idx=hub.dparam['nx']['list'].index(idx)
+        except BaseException:
+            liste=hub.dparam['nx']['list']
+            raise Exception(f'the parrallel system cannot be found !\n you gave {idx} in {liste}')
+    else: raise Exception(f'the parrallel index cannot be understood ! you gave {idx}')
+
+    # Region input 
+    if type(Region)==int: pass 
+    elif type(Region)==str:
+        try : Region=hub.dparam['nr']['list'].index(Region)
+        except BaseException:
+            liste=hub.dparam['nr']['list']
+            raise Exception(f'the region system cannot be found !\n you gave {idx} in {liste}')
+    else: raise Exception(f'the region index cannot be understood ! you gave {idx}')
+
+    # time input
+    time = R['time']['value'][:,idx,Region,0,0]
+    if tini: idt0=np.argmin(np.abs(time-tini))
+    else : idt0=0
+
+    if tend: idt1=np.argmin(np.abs(time-tend))
+    else : idt1=-1
+
+
 
     fig = plt.figure()
     fig.set_size_inches(10, 5)
@@ -512,8 +606,8 @@ def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
 
     # PLOT OF THE BASE
     allvars = hub.get_dparam(returnas=dict)
-    y = allvars[key]['value'][:, idx,Region,keysect,0]
-    t = allvars['time']['value'][:,idx,Region,0,0]
+    y = allvars[key]['value'][idt0:idt1, idx,Region,keysect,0]
+    t = allvars['time']['value'][idt0:idt1,idx,Region,0,0]
 
     if mode in [False,'cycles']:
         plt.plot(t, y, lw=2, ls='-', c='k')
@@ -553,7 +647,7 @@ def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
         plt.legend()
 
     if mode == 'sensitivity':
-        time = hub.dparam['time']['value'][:, idx,Region,keysect,0]
+        time = hub.dparam['time']['value'][idt0:idt1, idx,Region,keysect,0]
 
         V = hub.dparam[key]['sensitivity'][Region][keyname]
 
@@ -561,7 +655,7 @@ def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
         ## Plot all trajectory
 
         for jj in range(len(allvars[key]['value'][0, :,0,0,0])):
-            ax.plot(time, hub.dparam[key]['value'][:, jj,Region,0,0]
+            ax.plot(time, hub.dparam[key]['value'][idt0:idt1, jj,Region,0,0]
                          , c='k', ls='--', lw=0.5)
             if jj==30:
                 print('WARNING: plotvar should be coded with a linecollection...')
@@ -776,6 +870,123 @@ def repartition(hub ,
 # %% DEPRECIATED ##################################################################
 ###################################################################################
 
+
+def phasespace(hub, x, y, color='time', idx=0,Region=0):
+    '''
+    Depreciated, use XY instead
+    '''
+    print('plot phasespace is depreciated, use XY instead')
+
+    if not hub.dmisc['run']:
+        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS VALUES')
+        hub.run()
+
+
+
+
+    allvars = hub.get_dparam(returnas=dict)
+    yval = allvars[y]['value'][:, idx,Region,ysect,0]
+    xval = allvars[x]['value'][:, idx,Region,xsect,0]
+    t = allvars[color]['value'][:, idx,Region,colorsect,0]
+
+    points = np.array([xval, yval]).T.reshape(-1, 1, 2)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+
+    norm = plt.Normalize(t.min(), t.max())
+    lc = LineCollection(segments, cmap='viridis', norm=norm)
+    lc.set_array(t)
+    lc.set_linewidth(2)
+
+    fig = plt.figure()
+    fig.set_size_inches(10, 7)
+    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
+    line = ax.add_collection(lc)
+    fig.colorbar(line, ax=ax, label=allvars[color]['symbol'][:-1]+'_{'+colorname+'}$')
+    plt.xlabel(allvars[x]['symbol'][:-1]+'_{'+xname+'}$')
+    plt.ylabel(allvars[y]['symbol'][:-1]+'_{'+yname+'}$')
+    plt.xlim([np.nanmin(xval), np.nanmax(xval)])
+    plt.ylim([np.nanmin(yval), np.nanmax(yval)])
+    plt.axis('scaled')
+    plt.title('Phasespace ' + x + '-' + y + ' for model : '
+              + hub.dmodel['name'] + '| system number' + str(idx))
+
+    plt.show()
+
+
+def plot3D(hub, x, y, z, color, cmap='jet', index=0,Region=0, title=''):
+    '''
+    Depreciated, use XYZ instead
+    '''
+    print('Depreciated, use XYZ instead')
+    if not hub.dmisc['run']:
+        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
+        hub.run()
+
+    R=hub.get_dparam()
+    if type(x) is list :
+        xsect=R[R[x[0]]['size'][0]]['list'].index(x[1])
+        xname=x[1]
+        x=x[0]
+    else :
+        xsect=0
+        xname=''
+    if type(y) is list :
+        ysect=R[R[y[0]]['size'][0]]['list'].index(y[1])
+        yname=y[1]
+        y=y[0]
+    else :
+        ysect=0
+        yname =''
+    if type(z) is list :
+        zsect=R[R[z[0]]['size'][0]]['list'].index(z[1])
+        zname=z[1]
+        z=z[0]
+    else :
+        zsect=0
+        zname =''
+    if type(color) is list :
+        colorsect=R[R[color[0]]['size'][0]]['list'].index(color[1])
+        colorname=color[1]
+        color=color[0]
+    else :
+        colorsect=0
+        colorname =''
+
+    vx = R[x]['value'][:, index,Region,xsect,0]
+    vy = R[y]['value'][:, index,Region,ysect,0]
+    vz = R[z]['value'][:, index,Region,zsect,0]
+    vc = R[color]['value'][:, index,Region,colorsect,0]
+
+    points = np.array([vx, vy, vz]).T.reshape(-1, 1, 3)
+    segments = np.concatenate([points[:-1], points[1:]], axis=1)
+    norm = plt.Normalize(vc.min(), vc.max())
+
+    fig = plt.figure()
+    fig.set_size_inches(10, 10)
+    ax = plt.axes(projection='3d')
+    ax.plot(vx,
+            vy,
+            vz, lw=0.01, c='k')
+    lc = Line3DCollection(segments, cmap=cmap, norm=norm)
+    lc.set_array(vc)
+    lc.set_linewidth(2)
+    line = ax.add_collection(lc)
+
+    cbar = fig.colorbar(lc, ax=ax)
+    cbar.ax.set_ylabel(R[color]['symbol'][:-1]+'_{'+xname+'}$' if xname else R[color]['symbol'])
+    ax.set_xlabel(R[x]['symbol'][:-1]+'_{'+xname+'}$' if xname else R[x]['symbol'])
+    ax.set_ylabel(R[y]['symbol'][:-1]+'_{'+yname+'}$' if yname else R[y]['symbol'])
+    ax.set_zlabel(R[z]['symbol'][:-1]+'_{'+zname+'}$' if zname else R[z]['symbol'])
+
+    #print(R[x]['symbol'][:-1]+'_{'+xname+'}$')
+
+    plt.tight_layout()
+    # plt.legend()
+    plt.title(title)
+    plt.show()
+
+
+
 def __slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0,Region=0):
     '''
     Take the logic of a field, and calculate a slice given two of the argument fields that are modified
@@ -966,6 +1177,8 @@ _DPLOT = {
     #'timetrace': plot_timetraces,
     'nyaxis': plotnyaxis,
     'phasespace': phasespace,
+    'XY' : XY,
+    'XYZ' : XYZ,
     '3D': plot3D,
     'byunits': plotbyunits,
     'Onevariable': Var,

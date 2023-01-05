@@ -58,14 +58,14 @@ _LIBRARY = {
         # You should not modify this here, use preset or setdparam ##
         'nx': {
             'value': 1,
-            'list':['no parrallel'],
+            'list':[''],
             'units': '',
             'definition': 'Number of system in parrallel',
             'eqtype':'size',
         },
         'nr': {
             'value': 1,
-            'list':['local'],
+            'list':[''],
             'units': '',
             'definition': 'Number of regions interconnected',
             'eqtype':'size',
@@ -76,7 +76,7 @@ _LIBRARY = {
         '__ONE__': {
             'value': 1,
             'definition': 'value by default for monosectorial field',
-            'list': ['Monosectoral']
+            'list': ['']
         },
         'time': {
             'initial': 0.,
