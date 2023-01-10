@@ -12,35 +12,6 @@ from .._config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS
 
 # %%###########################################################################
 ####################### MODEL FILE ############################################
-
-
-def model_name(model, from_user=False, verb=False):
-    '''
-    Check that model name correspond to an existing model
-
-    # CHECK THAT MODEL FILE EXIST #############################################
-    if from_user is True and _PATH_PRIVATE_MODELS is not None:
-        path_models = _PATH_PRIVATE_MODELS
-    else:
-        path_models = _PATH_MODELS
-
-    lmodel = [
-        ff[len('_model_'):ff.index('.py')]
-        for ff in os.listdir(path_models)
-        if ff.startswith('_model_') and ff.endswith('.py')
-    ]
-    if model not in lmodel:
-        msg = (
-            f"Model not found. \n checked {path_models},\n found {lmodel} \n you provided {model}"
-        )
-        raise Exception(msg)
-
-    if verb is True:
-        print("#" * 20
-              + f"\nLoading model {model} from {path_models}"
-              )
-    '''
-
 def dmodel(dmodel=None,
            verb=None):
     """ 
@@ -52,7 +23,6 @@ def dmodel(dmodel=None,
         - statevar
 
     """
-
     # 1) CHECK THAT ALL KEYS FROM _DMODEL ARE INSIDE
     dkout = {
         k0: type(dmodel.get(k0))
@@ -83,9 +53,6 @@ def dmodel(dmodel=None,
     if len(lkout) > 0:
         print(f"WARNING :The following presets are non-valid:\n {lkout}")
 
-    #  list non-conform keys in LOGICS #############
-    #print([k0 for k0, v0 in dmodel['logics'].items()])
-    #print("LEQ",_LEQTYPES)
     lkout = [
         k0 for k0, v0 in dmodel['logics'].items()
         if not (

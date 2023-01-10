@@ -7,6 +7,7 @@ Created on Mon Jul 26 16:16:01 2021
 
 #from ._plot_timetraces import plot_timetraces
 from ._plot_tools import _multiline
+from ._plot_tools import _indexes,_key
 
 import copy
 import numpy as np
@@ -15,12 +16,9 @@ import matplotlib.pyplot as plt
 import matplotlib
 from matplotlib.collections import LineCollection
 from matplotlib.patches import Rectangle
-
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
-
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.gridspec import GridSpec
-
 import plotly.graph_objects as go
 import pandas as pd
 
@@ -51,15 +49,7 @@ SIZEFONT = 25
 LEGENDSIZE = 20
 LEGENDHANDLELENGTH = 2
 
-
-
-
-
-
 __all__ = [
-    #'slices_wholelogic',
-    #'plot_variation_rate',
-    #'plot_timetraces',
     'plotnyaxis',
     'phasespace',
     'plot3D',
@@ -106,38 +96,8 @@ def plotbyunits(hub,
     (exemple: you have pi, epsilon and x which share the same units 'y', if you do separate_variables={'y':'x'}
     another figure will be added with x only on it, and pi and epsilon on the other one)
     '''
-    if not hub.dmisc['run']:
-        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
-        hub.run()
 
-    R=hub.dparam
-    # idx input
-    if type(idx)==int: pass 
-    elif type(idx)==str:
-        try : idx=hub.dparam['nx']['list'].index(idx)
-        except BaseException:
-            liste=hub.dparam['nx']['list']
-            raise Exception(f'the parrallel system cannot be found !\n you gave {idx} in {liste}')
-    else: raise Exception(f'the parrallel index cannot be understood ! you gave {idx}')
-
-    # Region input 
-    if type(Region)==int: pass 
-    elif type(Region)==str:
-        try : Region=hub.dparam['nr']['list'].index(Region)
-        except BaseException:
-            liste=hub.dparam['nr']['list']
-            raise Exception(f'the parrallel system cannot be found !\n you gave {idx} in {liste}')
-    else: raise Exception(f'the parrallel index cannot be understood ! you gave {idx}')
-
- 
-    # time input
-    time = R['time']['value'][:,idx,Region,0,0]
-    if tini: idt0=np.argmin(np.abs(time-tini))
-    else : idt0=0
-
-    if tend: idt1=np.argmin(np.abs(time-tend))
-    else : idt1=-1
-
+    hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
 
     ### FILTERING THE KEYS
     grpfield = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['differential', 'statevar'])
@@ -248,7 +208,7 @@ def plotbyunits(hub,
     plt.show()
 
 
-def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2):
+def plotnyaxis(hub,  y=[[]],x='time', log=False, idx=0,Region=0,tini=False,tend=False, title='', lw=2):
     '''
     x must be a variable name (x axis organisation)
     y must be a list of list of variables names (each list is a shared axis)
@@ -262,14 +222,10 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
                      title='',
                      lw=2)
     '''
-    if not hub.dmisc['run']:
-        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
-        hub.run()
+    hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
 
-    if type(log) in [str,bool]:
-        log=[log for l in y]
-    if len(log)!=len(y):
-        raise Exception(f'The length of the log list ({len(log)}) does not correspond to the length of the axes ({len(y)})!')
+    if type(log) is bool:
+        log = [log for l in len(y)]
 
     ### INITIALIZE FIGURE
     fig = plt.figure()
@@ -280,7 +236,7 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
     R = hub.get_dparam(keys=[allvarname], returnas=dict)
     p = {}  # dictionnary of curves
     # Prepare x axis
-    vx = R[x]['value'][:, idx,Region,0,0]
+    vx = R[x]['value'][idt0:idt1, idx,Region,0,0]
     units = r'$(  '+R[x]['units']+'  )$'
     ax.set_xlabel(R[x]['symbol']+units)
     ax.set_xlim(vx[0], vx[-1])
@@ -300,7 +256,7 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
         for yyy in vlist:
             ### Monosectorial entry
             if type(yyy) is str:
-                vy[ii][yyy]= R[yyy]['value'][:, idx,Region,0,0]
+                vy[ii][yyy]= R[yyy]['value'][idt0:idt1, idx,Region,0,0]
                 symbolist.append( R[yyy]['symbol'])
                 name=yyy
             ### Multisectorial entry
@@ -313,7 +269,7 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
                     sectorname= str(yyy[1])
                     sectornumber= yyy[1]
 
-                vy[ii][name+sectorname]=R[name]['value'][:, idx,Region,sectornumber,0]
+                vy[ii][name+sectorname]=R[name]['value'][idt0:idt1, idx,Region,sectornumber,0]
                 symbolist.append(R[yyy[0]]['symbol'][:-1]+'_{'+sectorname+'}$')
 
         units = r'$(' + R[name]['units'].replace('$', '\$') + ')$'
@@ -358,64 +314,29 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
 
 def XY(hub,x,y,
        color='time',
+       scaled=False,
        idx=0,
        Region=0,
        tini=False ,
        tend=False ,
-       title='',
-       scaled=False):
+       title=''
+       ):
     '''
     plot 'x' in function of 'y', the curve color being the value of 'color'.
     '''
-    if not hub.dmisc['run']:
-        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS VALUES')
-        hub.run() 
+    hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
+
 
     ### INPUT TRANSLATION ############# 
     R=hub.dparam
-    if type(x) is list :
-        xsect=R[R[x[0]]['size'][0]]['list'].index(x[1])
-        x,xname=x[0],x[1]
-    else : xsect,xname=0,''
-    if type(y) is list :
-        ysect=R[R[y[0]]['size'][0]]['list'].index(y[1])
-        y,yname=y[0],y[1]
-    else : ysect,yname=0,''
-    if type(color) is list :
-        colorsect=R[R[color[0]]['size'][0]]['list'].index(color[1])
-        color,color=y[0],y[1]
-    else : colorsect,colorname=0,''
+    xsect,xname = _key(x)
+    ysect,yname = _key(y)
+    csect,cname = _key(color)
 
-    # idx input
-    if type(idx)==int: pass 
-    elif type(idx)==str:
-        try : idx=hub.dparam['nx']['list'].index(idx)
-        except BaseException:
-            liste=hub.dparam['nx']['list']
-            raise Exception(f'the parrallel system cannot be found !\n you gave {idx} in {liste}')
-    else: raise Exception(f'the parrallel index cannot be understood ! you gave {idx}')
-
-    # Region input 
-    if type(Region)==int: pass 
-    elif type(Region)==str:
-        try : Region=hub.dparam['nr']['list'].index(Region)
-        except BaseException:
-            liste=hub.dparam['nr']['list']
-            raise Exception(f'the parrallel system cannot be found !\n you gave {idx} in {liste}')
-    else: raise Exception(f'the parrallel index cannot be understood ! you gave {idx}')
-
- 
-    # time input
-    time = R['time']['value'][:,idx,Region,0,0]
-    if tini: idt0=np.argmin(np.abs(time-tini))
-    else : idt0=0
-
-    if tend: idt1=np.argmin(np.abs(time-tend))
-    else : idt1=-1
 
     ### PLOT #################
     allvars = hub.get_dparam(returnas=dict)
-    t = allvars[color]['value'][idt0:idt1, idx,Region,colorsect,0]    
+    t = allvars[color]['value'][idt0:idt1, idx,Region,csect,0]    
     yval = allvars[y]['value'][idt0:idt1, idx,Region,ysect,0]
     xval = allvars[x]['value'][idt0:idt1, idx,Region,xsect,0]
 
@@ -434,7 +355,7 @@ def XY(hub,x,y,
     line = ax.add_collection(lc)
 
     ### BEAUTY
-    fig.colorbar(line, ax=ax, label=allvars[color]['symbol'][:-1]+'_{'+colorname+'}$')
+    fig.colorbar(line, ax=ax, label=allvars[color]['symbol'][:-1]+'_{'+cname+'}$')
     plt.xlabel(allvars[x]['symbol'][:-1]+'_{'+xname+'}$')
     plt.ylabel(allvars[y]['symbol'][:-1]+'_{'+yname+'}$')
     plt.xlim([np.nanmin(xval), np.nanmax(xval)])
@@ -451,65 +372,25 @@ def XYZ(hub,x,y,z,
         Region=0,
         tini=False ,
         tend=False ,
-        title='',
-        scaled=False):
+        title=''):
     '''
     Plot a 3D curve, with a fourth field as the color of the curve
     '''
-    if not hub.dmisc['run']:
-        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS VALUES')
-        hub.run() 
+    hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
+
 
     ### INPUT TRANSLATION ############# 
     R=hub.dparam
-    if type(x) is list :
-        xsect=R[R[x[0]]['size'][0]]['list'].index(x[1])
-        x,xname=x[0],x[1]
-    else : xsect,xname=0,''
-    if type(y) is list :
-        ysect=R[R[y[0]]['size'][0]]['list'].index(y[1])
-        y,yname=y[0],y[1]
-    else : ysect,yname=0,''
-    if type(z) is list :
-        zsect=R[R[z[0]]['size'][0]]['list'].index(z[1])
-        z,zname=z[0],z[1]
-    else : zsect,zname=0,''
-    if type(color) is list :
-        colorsect=R[R[color[0]]['size'][0]]['list'].index(color[1])
-        color,color=y[0],y[1]
-    else : colorsect,colorname=0,''
 
-    # idx input
-    if type(idx)==int: pass 
-    elif type(idx)==str:
-        try : idx=hub.dparam['nx']['list'].index(idx)
-        except BaseException:
-            liste=hub.dparam['nx']['list']
-            raise Exception(f'the parrallel system cannot be found !\n you gave {idx} in {liste}')
-    else: raise Exception(f'the parrallel index cannot be understood ! you gave {idx}')
-
-    # Region input 
-    if type(Region)==int: pass 
-    elif type(Region)==str:
-        try : Region=hub.dparam['nr']['list'].index(Region)
-        except BaseException:
-            liste=hub.dparam['nr']['list']
-            raise Exception(f'the region system cannot be found !\n you gave {idx} in {liste}')
-    else: raise Exception(f'the region index cannot be understood ! you gave {idx}')
-
-    # time input
-    time = R['time']['value'][:,idx,Region,0,0]
-    if tini: idt0=np.argmin(np.abs(time-tini))
-    else : idt0=0
-
-    if tend: idt1=np.argmin(np.abs(time-tend))
-    else : idt1=-1
-
+    xsect,xname = _key(x)
+    ysect,yname = _key(y)
+    zsect,zname = _key(z)
+    csect,cname = _key(color)
 
     vx = R[x]['value'][idt0:idt1, idx,Region,xsect,0]
     vy = R[y]['value'][idt0:idt1, idx,Region,ysect,0]
     vz = R[z]['value'][idt0:idt1, idx,Region,zsect,0]
-    vc = R[color]['value'][idt0:idt1, idx,Region,colorsect,0]
+    vc = R[color]['value'][idt0:idt1, idx,Region,csect,0]
 
     points = np.array([vx, vy, vz]).T.reshape(-1, 1, 3)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
@@ -542,12 +423,12 @@ def XYZ(hub,x,y,z,
 
 def Var(hub, 
         key, 
+        mode=False, 
+        log=False,
         idx=0,
         Region=0, 
         tini=False,
         tend=False,
-        mode=False, 
-        log=False,
         title=''):
     '''
     One variable plot, with possibly cycles analysis and sensitivity if asked
@@ -557,9 +438,7 @@ def Var(hub,
     '''
 
     ### CHECKS
-    if not hub.dmisc['run']:
-        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
-        hub.run()
+    hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
     if (mode=='sensitivity' and not hub.dmisc.get('sensitivity',False)):
         print('the system is calculating statsensitivity...')
         hub.calculate_StatSensitivity()
@@ -570,39 +449,7 @@ def Var(hub,
         print('done')
 
     R=hub.dparam
-    # key input
-    if type(key) is list :
-        keysect=R[R[key[0]]['size'][0]]['list'].index(key[1])
-        key,keyname=key[0],key[1]
-    else : keysect,keyname=0,''
-
-    # idx input
-    if type(idx)==int: pass 
-    elif type(idx)==str:
-        try : idx=hub.dparam['nx']['list'].index(idx)
-        except BaseException:
-            liste=hub.dparam['nx']['list']
-            raise Exception(f'the parrallel system cannot be found !\n you gave {idx} in {liste}')
-    else: raise Exception(f'the parrallel index cannot be understood ! you gave {idx}')
-
-    # Region input 
-    if type(Region)==int: pass 
-    elif type(Region)==str:
-        try : Region=hub.dparam['nr']['list'].index(Region)
-        except BaseException:
-            liste=hub.dparam['nr']['list']
-            raise Exception(f'the region system cannot be found !\n you gave {idx} in {liste}')
-    else: raise Exception(f'the region index cannot be understood ! you gave {idx}')
-
-    # time input
-    time = R['time']['value'][:,idx,Region,0,0]
-    if tini: idt0=np.argmin(np.abs(time-tini))
-    else : idt0=0
-
-    if tend: idt1=np.argmin(np.abs(time-tend))
-    else : idt1=-1
-
-
+    keysect,keyname = _key(key)
 
     fig = plt.figure()
     fig.set_size_inches(10, 5)
@@ -665,22 +512,22 @@ def Var(hub,
                 print('WARNING: plotvar should be coded with a linecollection...')
 
         # Plot mean an median
-        ax.plot(time, V['mean'], c='orange', label='mean')
-        ax.plot(time, V['median'], c='orange', ls='--', label='median')
-        ax.plot(time, V['max'], c='r', lw=0.4, label='maxmin')
-        ax.plot(time, V['min'], c='r', lw=0.4)
+        ax.plot(time, V['mean'][idt0:idt1],   c='orange', label='mean')
+        ax.plot(time, V['median'][idt0:idt1], c='orange', ls='--', label='median')
+        ax.plot(time, V['max'][idt0:idt1],    c='r', lw=0.4, label='maxmin')
+        ax.plot(time, V['min'][idt0:idt1],    c='r', lw=0.4)
 
         for j in np.arange(0.5, 5, 0.2):
-            ax.fill_between(time, V['mean'] - j * V['stdv'],
-                                 V['mean'] + j * V['stdv'], alpha=0.02, color='blue')
-        ax.fill_between(time, V['mean'],
-                             V['mean'], alpha=0.5, color='blue', label=r'$\mu \pm 5 \sigma$')
+            ax.fill_between(time, V['mean'][idt0:idt1] - j * V['stdv'][idt0:idt1],
+                                 V['mean'][idt0:idt1] + j * V['stdv'][idt0:idt1], alpha=0.02, color='blue')
+        ax.fill_between(time, V['mean'][idt0:idt1],
+                             V['mean'][idt0:idt1], alpha=0.5, color='blue', label=r'$\mu \pm 5 \sigma$')
 
         ax.set_xlim([time[0], time[-1]])
-        ax.set_ylim([np.nanmin(V['min']), np.nanmax(V['max'])])
+        ax.set_ylim([np.nanmin(V['min'][idt0:idt1]), np.nanmax(V['max'][idt0:idt1])])
 
-        ax.fill_between(time, V['mean'] - V['stdv'],
-                             V['mean'] + V['stdv'], alpha=0.4, color='r', label=r'$\mu \pm \sigma$')
+        ax.fill_between(time, V['mean'][idt0:idt1] - V['stdv'][idt0:idt1],
+                             V['mean'][idt0:idt1] + V['stdv'][idt0:idt1], alpha=0.4, color='r', label=r'$\mu \pm \sigma$')
 
 
     if log is True: ax.set_yscale('log')
@@ -692,12 +539,7 @@ def Var(hub,
     plt.show()
 
 
-
-
-
-
-
-def Sankey(hub,t=0,idx=0,Region=0,_phy=False,_mon=False):
+def Sankey(hub,t=0,idx=0,Region=0,figPhy=False,figMoney=False):
     '''Physical and monetary Sankey diagrams'''
 
 
@@ -798,6 +640,7 @@ def Sankey(hub,t=0,idx=0,Region=0,_phy=False,_mon=False):
     if t: ntindex=np.argmin(np.abs(time-t))
     else : ntindex=0
 
+
     for _ in range(1):
         ###############################################################
         ### PHYSICAL FLUXES ###########################################
@@ -831,7 +674,7 @@ def Sankey(hub,t=0,idx=0,Region=0,_phy=False,_mon=False):
                                     pad=50, 
                                     thickness=5))
 
-        if not _phy:
+        if not figPhy:
             figPhy = go.Figure(data)
             figPhy.update_layout(
                 hovermode = 'x',
@@ -839,10 +682,11 @@ def Sankey(hub,t=0,idx=0,Region=0,_phy=False,_mon=False):
                 font=dict(size = 10, color = 'white'),
                 paper_bgcolor='#5B5958'
             )
-            figPhy.show()
+            #figPhy.show()
         else :
             figPhy.data[0].link.value=TDm['value']
-            figPhy=_mon
+            figPhy.update_layout(title=f"Physical exchanges between sectors, t={R['time']['value'][ntindex,0,0,0,0]:.2f}")
+
 
     ###############################################################
     #### MONETARY FLUXES ##########################################
@@ -885,7 +729,7 @@ def Sankey(hub,t=0,idx=0,Region=0,_phy=False,_mon=False):
 
 
         # plot
-        if not _mon:
+        if not figMoney:
             figMoney = go.Figure(data)
             figMoney.update_layout(
                 hovermode = 'x',
@@ -893,10 +737,10 @@ def Sankey(hub,t=0,idx=0,Region=0,_phy=False,_mon=False):
                 font=dict(size = 10, color = 'white'),
                 paper_bgcolor='#5B5958'
             )
-            figMoney.show()
+            #figMoney.show()
         else :
-            _mon.data[0].link.value=TDm['value']
-            figMoney=_mon
+            figMoney.data[0].link.value=TD['value']
+            figMoney.update_layout(title=f"Monetary exchanges between sectors, t={R['time']['value'][ntindex,0,0,0,0]:.2f}")
     return figPhy,figMoney
 
 
@@ -913,18 +757,8 @@ def cycles_characteristics(hub,
     '''
     Plot frequency and harmonicity for each cycle found in the system
 
-    xaxis='omega',
-    yaxis='employment',
-    ref='employment',
-   type1 and type2 should be in 't_mean_cycle':
-                                'period_T':,
-                                'medval': ,
-                                'stdval':,
-                                'minval':,
-                                'maxval':  ,
-                                'frequency':,
-                                'Coeffs':
-                                'Harmonicity': }
+    xaxis='omega',yaxis='employment',ref='employment',
+    type1 and type2 should be in ['t_mean_cycle','period_T','medval','stdval','minval','maxval','frequency','Coeffs','Harmonicity']
     '''
     if not hub.dmisc['run']:
         raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
@@ -937,7 +771,6 @@ def cycles_characteristics(hub,
     fig = plt.figure()
     ax1 = plt.subplot(111)
 
-
     xsector=xaxis[1] if type(xaxis) is list else 0
     ysector=yaxis[1] if type(xaxis) is list else 0
     xaxis=xaxis[0] if type(xaxis) is list else xaxis
@@ -946,7 +779,6 @@ def cycles_characteristics(hub,
     AllX = []
     AllY = []
     AllC1 = []
-    AllC2 = []
     R = hub.get_dparam()
     cycs = R[ref]['cycles_bykey']
 
@@ -974,17 +806,19 @@ def cycles_characteristics(hub,
     plt.show()
 
 
-
 def repartition(hub ,
                 keys : list ,
                 sector = '' ,
                 sign= '+',
                 ref = '',
                 refsign = '+',
+                removetranspose=False,
                 title= '',
                 idx=0,
                 region=0,
-                removetranspose=False):
+                tini=False,
+                tend=False,
+                ):
     """
     Temporal visualisation of a composition.
     Recommended use on stock-flow consistency and budget repartition.
@@ -1008,9 +842,8 @@ def repartition(hub ,
 
     Same as repartition, but will take matrices as inputs
     """
-    if not hub.dmisc['run']:
-        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
-        hub.run()
+    hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
+
 
 
     ### SIGNS HANDING
@@ -1048,19 +881,19 @@ def repartition(hub ,
 
             # if the entry is non-zero
             if np.max(np.abs(R[k]['value'][:,idx,region,sectindex,enum2]))!=0:
-                dicvals[entryname]=  sign[enum]*R[k]['value'][:,idx,region,sectindex,enum2]
+                dicvals[entryname]=  sign[enum]*R[k]['value'][idt0:idt1,idx,region,sectindex,enum2]
 
             if (removetranspose and R[k]['size'][1]!='__ONE__'):
                 entrynameT=R[k]['symbol'][:-1] + '_{' + sectname2[1:] +'-' +sectname + '}$'
 
                 # If the entry is non-zero
                 if np.max(np.abs(R[k]['value'][:, idx,region,enum2,sectindex]))!=0:
-                    dicvals[entrynameT] = -sign[enum] * R[k]['value'][:, idx,region,enum2,sectindex]
+                    dicvals[entrynameT] = -sign[enum] * R[k]['value'][idt0:idt1, idx,region,enum2,sectindex]
 
     color = list(plt.cm.turbo(np.linspace(0,1,len(keys)+1)))
     dicvalpos = { k : np.maximum(v,0) for k,v in dicvals.items()}
     dicvalneg = { k : np.minimum(v,0) for k,v in dicvals.items()}
-    time = R['time']['value'][:,0,0,0,0]
+    time = R['time']['value'][idt0:idt1,0,0,0,0]
 
     plt.figure()
     fig=plt.gcf()
@@ -1197,7 +1030,6 @@ def plot3D(hub, x, y, z, color, cmap='jet', index=0,Region=0, title=''):
     # plt.legend()
     plt.title(title)
     plt.show()
-
 
 
 def __slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0,Region=0):

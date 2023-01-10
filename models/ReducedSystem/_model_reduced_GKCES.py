@@ -1,32 +1,13 @@
 # -*- coding: utf-8 -*-
-"""
-ABSTRACT: This is a 3 sector model : bank, household, and production.
-* Everything is stock-flow consistent, but capital is not created by real products
-* The model is driven by offer
-* Negociation by philips is impacted by the profit
-* Loans from banks are limited by solvability
+'''3-dimensional reduced Goodwin-Keen dynamics with CES production function'''
 
-We added substituability between K and L, with an optimization of profit
+_DESCRIPTION="""
 
-LINKTOARTICLE : Goodwin, Richard, 1967. ‘A growth cycle’, in:
-    Carl Feinstein, editor, Socialism, capitalism
-    and economic growth. Cambridge, UK: Cambridge University Press.
-
-Created on Wed Jul 21 15:11:15 2021
-
-@author: Paul Valcke
 """
 
 import numpy as np
-
-# ---------------------------
-# user-defined function order (optional)
-
-
-# ---------------------------
-# user-defined model
-# contains parameters and functions of various types
-
+from pygemmes._models import Funcs, importmodel,mergemodel
+from pygemmes._models import Operators as O
 
 _LOGICS = {
     'differential': {
@@ -60,10 +41,6 @@ _LOGICS = {
             'func': lambda k0, k1, k2, pi: k0 + k1 * np.exp(k2 * pi),
             'com': 'Relative GDP investment through relative profit',
         },
-        #'inflation': {
-        #    'func': lambda mu, CESexp, omega: CESexp*(mu*omega-1),
-        #    'com': 'Markup dynamics',
-        #},
         'nu': {
             'func': lambda A,omega, b, CESexp : (A*((1-omega)/b)**(-1/CESexp))**(-1),
             'com': 'endogenous optimized'
@@ -77,10 +54,7 @@ _LOGICS = {
     'size': {},
 }
 
-
-# ---------------------------
-# List of presets for specific interesting simulations
-
+_SUPPLEMENTS={}
 _PRESETS = {'default': {
     'fields': {
         'dt':0.01,

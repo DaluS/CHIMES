@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
+'''Goodwin with a CES production function'''
+
+_DESCRIPTION="""
 DESCRIPTION :
 
     This is a small modificaiton of Goodwin : the Leontiev optimised function has been

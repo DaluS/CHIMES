@@ -6,8 +6,8 @@ import importlib
 
 from ._def_fields import _DFIELDS, _complete_DFIELDS
 from ._def_functions import Funcs
+from ._def_Operators import Operators
 from .._utilities import _utils
-
 import inspect
 
 from .._config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS,_MODEL_NAME_CONVENTION,_MODELS_SHOWDETAILS,_MODEL_FOLDER_HIDDEN
@@ -15,12 +15,6 @@ from .._config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS,_MODEL_NAME
 from copy import deepcopy
 
 import pandas as pd
-pd.set_option('display.max_rows', None)
-pd.set_option('display.max_columns', None)
-pd.set_option('display.width', 1000)
-pd.set_option('display.colheader_justify', 'center')
-pd.set_option('display.precision', 2)
-
 
 
 # ####################################################
@@ -60,8 +54,6 @@ def _get_DMODEL(model=False,from_user=_FROM_USER):
     if model is not False:
         _df = {k:v for k,v in _df.items() if v == model}
 
-
-
     # CREATE A DICTIONNARY CONTAINING EVERYTHING THEY HAVE
     _DMODEL = {}
     for k0, v0 in _df.items():
@@ -75,26 +67,22 @@ def _get_DMODEL(model=False,from_user=_FROM_USER):
                 'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
                 'file': foo.__file__,
                 'description': foo.__doc__,
-                'presets': {k0: dict(v0) for k0, v0 in foo._PRESETS.items()},
+                #'presets': {k0: dict(v0) for k0, v0 in foo._PRESETS.items()},
                 'name': v0,
                 'address': k0,
             }
+            ### ADD Presets 
+            try : _DMODEL[v0]['presets']={k0: dict(v0) for k0, v0 in foo._PRESETS.items()}
+            except BaseException: _DMODEL[v0]['presets']={}
             ### ADD Supplements
-            try : 
-                _DMODEL[v0]['supplements']=foo._SUPPLEMENTS
-            except BaseException:
-                _DMODEL[v0]['supplements']={}
+            try :  _DMODEL[v0]['supplements']=foo._SUPPLEMENTS
+            except BaseException: _DMODEL[v0]['supplements']={}
         
             ### ADD Long Description 
-            try :
-                _DMODEL[v0]['longDescription']= foo._DESCRIPTION
-            except BaseException:
-                _DMODEL[v0]['longDescription']= foo.__doc__
+            try : _DMODEL[v0]['longDescription']= foo._DESCRIPTION
+            except BaseException: _DMODEL[v0]['longDescription']= foo.__doc__
         except BaseException as Err:
             print(f'''Model {v0} could not be loaded from folder {k0} ! \n you might have a commma "," at the end of one of your dictionnaries. Error message :\n {Err}\n''')
-
-
-
     return path_models, _DMODEL
 
 

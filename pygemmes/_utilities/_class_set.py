@@ -41,12 +41,13 @@ def load_model(model=None, verb=None, from_user=None):
         - the absolute path to an abitrary model file
     """
 
-
     # LOAD THE FILE AND THE LIBRARY ###########################################
-    _class_check_2.model_name(model, from_user, verb=verb)
+    #_class_check_2.model_name(model, from_user, verb=verb)
+
     dmodel = load_dmodel(model, from_user=None)
     dfields = load_complete_DFIELDS(dmodel, verb=verb)
     _class_check_2.dmodel(dmodel)
+
 
     # CREATE DPARAM ###########################################################
     dparam = logics_into_dparam(dmodel)
@@ -303,6 +304,7 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None, dfields=None):
             kargs = inspect.getfullargspec(dparam[key]['func']).args
         else:
             kargs = inspect.getfullargspec(dfields[key]['func']).args
+        
 
         # check if any parameter is unknown
         for kk in kargs:
@@ -365,6 +367,8 @@ def set_args_auxilliary(dparam, verb=False):
     for k0 in lfunc:
         sour = inspect.getsource(dparam[k0]['func']).replace(
             '    ', '').split('\n')[0]
+
+        
         # Extract kargs and exp (for lambda only)
         if sour.replace(' ', '').count("'func':lambda") == 1:
             # clean-up source
@@ -373,8 +377,10 @@ def set_args_auxilliary(dparam, verb=False):
             # separate keyword args from expression
             kargs, exp = sour.split(':')[:2]
 
+            #print(k0,lfunc)
+
             # store exp for lambda only
-            dparam[k0]['source_exp'] = exp.strip()
+            dparam[k0]['source_exp'] = exp.strip().split('#')[0].split('}')[0][:-1]
         else:
             kargs = sour[sour.index('(') + 1:sour.index(')')]
             dparam[k0]['source_exp'] = dparam[k0]['func'].__name__

@@ -1,36 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-#####################################################################################
- _______            ______  ________  ____    ____  ____    ____  ________   ______
-|_   __ \         .' ___  ||_   __  ||_   \  /   _||_   \  /   _||_   __  |.' ____  \
-  | |__) |_   __ / .'   \_|  | |_ \_|  |   \/   |    |   \/   |    | |_ \_|| (___ \_|
-  |  ___/[ \ [  ]| |   ____  |  _| _   | |\  /| |    | |\  /| |    |  _| _  _.____`.
- _| |_    \ '/ / \ `.___]  |_| |__/ | _| |_\/_| |_  _| |_\/_| |_  _| |__/ || \____) |
-|_____| [\_:  /   `._____.'|________||_____||_____||_____||_____||________| \______.'
-         \__.'
-#####################################################################################
+pyIDEE
 
-Welcome in Pygemmes, a modular library to prototype and study dynamical systems !
+* Version 0.9
+* Last update 2023/01/03
+* Developped at the environmental justice program https://environmentaljustice.georgetown.edu/#
+* Contact : Paul Valcke pv229@georgetown.edu
+
+Welcome in PyIDEE, a modular library to prototype and study dynamical systems !
 This library is oriented toward generation of macroeconomic complexity models
-You can find the files on https://github.com/DaluS/GEMMES
-This library has been coded mostly by Didier Vezinet and Paul Valcke,
-at the environmental justice program https://environmentaljustice.georgetown.edu/#
-You can contact me at pv229@georgetown.edu
+
 If you find bugs, want some new extensions, or help us improve the library, please create a new issue on github
 If this is the first time you open this library, please look at the tutorial file in doc/tutorial.py or better, and execute it line by line.
-
-TO EXPLORE :
-pgm.get_available_ then tab to see what is available
-    examples :
-    * pgm.get_available_fields()
-    * pgm.get_available_models()
-    * pgm.get_available_plots()
-pgm.Hub() to load a model
 """
-# Checked December 2022
-
-# Here we decide what the user will see
-
 from ._models import get_available_models, get_available_functions
 from ._toolbox import *
 from ._core import Hub
@@ -39,32 +21,11 @@ from . import _plots as plots
 # MESSAGE LOGO ########################################
 from ._config import __PRINTLOGO, __PRINTINTRO
 import os
-if __PRINTLOGO:
-    print("""
-#####################################################################################
- _______            ______  ________  ____    ____  ____    ____  ________   ______    
-|_   __ \         .' ___  ||_   __  ||_   \  /   _||_   \  /   _||_   __  |.' ____  \   
-  | |__) |_   __ / .'   \_|  | |_ \_|  |   \/   |    |   \/   |    | |_ \_|| (___ \_|  
-  |  ___/[ \ [  ]| |   ____  |  _| _   | |\  /| |    | |\  /| |    |  _| _  _.____`.   
- _| |_    \ '/ / \ `.___]  |_| |__/ | _| |_\/_| |_  _| |_\/_| |_  _| |__/ || \____) |  
-|_____| [\_:  /   `._____.'|________||_____||_____||_____||_____||________| \______.'  
-         \__.'                           
-#####################################################################################                                                                                                                                   
-""")
+
 if __PRINTINTRO:
+    print(__doc__)
     __Add2 = os.path.dirname(os.path.realpath(__file__))+"\_config.py"
     __Add3 = os.path.dirname(os.path.realpath(__file__)) + "\doc\TUTORIALS\TUTORIAL.ipynb"
     print(
-f"""Welcome in Pygemmes, a modular library to prototype and study dynamical systems !
-This library is oriented toward generation of macroeconomic complexity models 
-You can find the files on https://github.com/DaluS/GEMMES
-This library has been coded mostly by Didier Vezinet and Paul Valcke,
-at the environmental justice program https://environmentaljustice.georgetown.edu/#
-You can contact me at pv229@georgetown.edu 
-If you find bugs, want some new extensions, or help us improve the library, please create a new issue on github
-If this is the first time you open this library, please look at the tutorial file in doc/tutorial.py and execute it line by line. 
-The ipythonNotebook is at :\n \t{__Add3}
-If you want to customize pygemmes (advancer users) like removing this message, edit :\n \t{__Add2}
-\nHave fun !
-######################################################################################################
-"""   )
+f"""The ipythonNotebook is at : {__Add3}
+If you want to customize pyIDEE (advancer users) like removing this message, edit : {__Add2}""")

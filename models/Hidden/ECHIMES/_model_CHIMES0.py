@@ -1,17 +1,10 @@
-'''
-Numerical core for multisectoral models
-'''
-
-
-
-from pygemmes._models import Funcs, importmodel,mergemodel
-import numpy as np
+'''Numerical core for multisectoral models'''
 
 _DESCRIPTION = """
 # **E**CONOMIC **C**ORE for **H**OLISTIC **I**NTERDISCIPLINARY **M**ODEL assessing **E**COLOGICAL **S**USTAINABILITY
 * **Article :** https://www.overleaf.com/project/62fbdce83176c9784e52236c    
-* **Author :** Paul Valcke
-* **Coder :** Paul Valcke
+* **Author  :** Paul Valcke
+* **Coder   :** Paul Valcke
 
 ## Description
 The goal of **E-CHIMES** is:
@@ -30,48 +23,15 @@ It integrates :
 ## What should be done ?
 * Check u and i mechanism
 """
-
-
-
-# ######################## OPERATORS ####################################
-'''
-Those are operators that can be used to do multisectoral operations : 
-coupling, transposition, sums... 
-'''
-def sprod(X,Y):
-    ''' Scalar product between vector X and Y.
-    Z=sprod(X,Y) so Z_i=\sum X_i Y_i'''
-    return np.matmul(np.moveaxis(X,-1,-2),Y)
-def ssum(X):
-    ''' Scalar product between vector X and Y.
-    Z=ssum(X) so Z_i=\sum X_i'''
-    return np.matmul(np.moveaxis(X,-1,-2),X*0+1)
-def ssum2(X):
-    '''
-    Z_i=ssum_j(X_{ij}) so Z_i=\sum_j X_{ij}'''
-    return np.sum(X, axis=-1)[...,np.newaxis]
-def transpose(X):
-    '''Transposition of X :
-    Y=transpose(X)  Y_ij=X_ji'''
-    return np.moveaxis(X, -1, -2)
-def matmul(M,V):
-    '''Matrix product Z=matmul(M,V) Z_i = \sum_j M_{ij} V_j'''
-    return np.matmul(M,V)
-def distXY(x,y):
-    '''x and y vector of position, z=distXY(x,y) is the matrix of distance
-     between each particle of position x,y :
-     z_ij= \sqrt{ (x_i-x_j)^2 + (y_i-y_j)^2}'''
-    return np.sqrt((x - transpose(x)) ** 2 + (y - transpose(y)) ** 2)
-def Identity(X):
-    '''generate an identity matrix of the same size a matrix X'''
-    return np.eye(np.shape(X)[-1])
-# ########################################################################
+from pygemmes._models import Funcs, importmodel,mergemodel
+from pygemmes._models import Operators as O
+import numpy as np
 
 def dotD( MtransactI, MtransactY, wL, rD, pC):
     return rD \
          + wL -pC \
-         + ssum2(MtransactI - transpose(MtransactI)) \
-         + ssum2(MtransactY - transpose(MtransactY))
+         + O.ssum2(MtransactI - O.transpose(MtransactI)) \
+         + O.ssum2(MtransactY - O.transpose(MtransactY))
 
 _LOGICS = {
     'size': {
@@ -90,7 +50,7 @@ _LOGICS = {
             'size': ['Nprod'],
         },
         'Dh': {
-            'func': lambda W, p, C: -W + sprod(p, C),
+            'func': lambda W, p, C: -W + O.sprod(p, C),
             'com': '',
             'definition': 'debt of households',
             'units': '$',
@@ -176,7 +136,7 @@ _LOGICS = {
             'size': ['Nprod'],
         },
         'Mgamma': {
-            'func': lambda Gamma,p : Gamma*transpose(p)/p,
+            'func': lambda Gamma,p : Gamma*O.transpose(p)/p,
             'definition': 'weight of intermediate consumption from j',
             'units': '',
             'com': 'Matrix version',
@@ -184,7 +144,7 @@ _LOGICS = {
             'size': ['Nprod','Nprod'],
         },
         'Mxi': {
-            'func': lambda Xi, p,nu,delta: nu*delta*Xi * transpose(p) / p,
+            'func': lambda Xi, p,nu,delta: nu*delta*Xi * O.transpose(p) / p,
             'definition': 'weight of capital destruction from j',
             'units': '',
             'com': 'Matrix version',
@@ -193,7 +153,7 @@ _LOGICS = {
         },
 
         'c': {
-            'func': lambda omega, Mgamma, Mxi, p: p * (omega + ssum2(Mgamma) + ssum2(Mxi)),
+            'func': lambda omega, Mgamma, Mxi, p: p * (omega + O.ssum2(Mgamma) + O.ssum2(Mxi)),
             'com': 'sum of components',
             'size': ['Nprod'],
             'units': '$.Units^{-1}',
@@ -222,14 +182,14 @@ _LOGICS = {
             'symbol': '$i^{\dot{V}}$'
         },
         'basket': {
-            'func': lambda p, C: p * C / sprod(p, C),
+            'func': lambda p, C: p * C / O.sprod(p, C),
             'com': 'cannot be non-auxilliary',
             'definition': 'weight in consumption basket',
             'size': ['Nprod'],
             'units': '',
         },
         'ibasket': {
-            'func': lambda inflation, basket: sprod(inflation, basket),
+            'func': lambda inflation, basket: O.sprod(inflation, basket),
             'com': 'deduced from the basket',
             'definition': 'basket of good inflation',
             'units': 'y^{-1}',
@@ -247,7 +207,7 @@ _LOGICS = {
               'size': ['Nprod'],
               },
         'Ir': {
-            'func': lambda I,Xi,p: I/matmul(Xi,p),
+            'func': lambda I,Xi,p: I/O.matmul(Xi,p),
             'com': 'deduced from monetary investment',
             'units': 'Units.y^{-1}',
             'size': ['Nprod'],
@@ -259,7 +219,7 @@ _LOGICS = {
             'units': 'Units.y^{-1}',
             'size': ['Nprod'],
         },
-        'dotV': { 'func': lambda Y, Gamma, Ir, C, Xi: Y - matmul(transpose(Gamma), Y) - C - matmul(transpose(Xi), Ir),
+        'dotV': { 'func': lambda Y, Gamma, Ir, C, Xi: Y - O.matmul(O.transpose(Gamma), Y) - C - O.matmul(O.transpose(Xi), Ir),
             'com': 'stock-flow',
             'definition': 'temporal variation of inventory',
             'units': 'Units.y^{-1}',
@@ -277,7 +237,7 @@ _LOGICS = {
         
         # Matrix approach
         'Minter': {
-            'func': lambda Y, Gamma:  transpose(Gamma*Y) ,
+            'func': lambda Y, Gamma: O.transpose(Gamma*Y) ,
             'definition': 'Physical from i to j through intermediary consumption',
             'com': 'matrix expansion',
             'units': '$.y^{-1}',
@@ -285,7 +245,7 @@ _LOGICS = {
             'symbol': r'$^\mathcal{R}\mathcal{M}^Y$'
         },
         'Minvest': {
-            'func': lambda Ir, Xi:  transpose(Xi* Ir),
+            'func': lambda Ir, Xi:  O.transpose(Xi* Ir),
             'definition': 'Physical from i to j through investment',
             'com': 'matrix expansion',
             'units': '$.y^{-1}',
@@ -293,7 +253,7 @@ _LOGICS = {
             'symbol': r'$^\mathcal{R}\mathcal{M}^{I}$'
         },
         'MtransactY': {
-            'func': lambda p, Y, Gamma: Y * Gamma * transpose(p),
+            'func': lambda p, Y, Gamma: Y * Gamma * O.transpose(p),
             'definition': 'Money from i to j through intermediary consumption',
             'com': 'matrix expansion',
             'units': '$.y^{-1}',
@@ -301,7 +261,7 @@ _LOGICS = {
             'symbol': r'($^{\$}\mathcal{M}^{Y})$'
         },
         'MtransactI': {
-            'func': lambda I, Xi, p: I * Xi * transpose(p) / (matmul(Xi, p)),
+            'func': lambda I, Xi, p: I * Xi * O.transpose(p) / (O.matmul(Xi, p)),
             'definition': 'Money from i to j through investment',
             'com': 'matrix expansion',
             'units': '$.y^{-1}',
@@ -325,7 +285,7 @@ _LOGICS = {
             'size': ['Nprod'],
         },
         'I': {
-            'func': lambda p, Y, kappa, Mxi: p * Y * (kappa + ssum2(Mxi)),
+            'func': lambda p, Y, kappa, Mxi: p * Y * (kappa + O.ssum2(Mxi)),
             'com': 'explicit monetary flux',
             'definition': 'monetary investment',
             'units': '$.y^{-1}',
@@ -350,7 +310,7 @@ _LOGICS = {
 
         ### LABOR-SIDE THEORY
         'W': {
-            'func': lambda w, L, r, Dh: sprod(w, L) - r * Dh,
+            'func': lambda w, L, r, Dh: O.sprod(w, L) - r * Dh,
             'definition': 'Total income of household',
             'com': 'no shareholding, no bank possession',
             'units': '$.y^{-1}',
@@ -362,7 +322,7 @@ _LOGICS = {
             'units': '$.y^{-1}',
         },
         'employmentAGG': {
-            'func': lambda employment: ssum(employment),
+            'func': lambda employment: O.ssum(employment),
             'com': 'Calculation with L',
             'units': '',
             'symbol': r'$\Lambda$'
@@ -383,7 +343,7 @@ _LOGICS = {
             'size': ['Nprod'],
         },
         'pi': {
-            'func': lambda omega, Mgamma, Mxi, r, D, p, Y: 1 - omega - ssum2(Mgamma) - ssum2(Mxi) - r * D / (p * Y),
+            'func': lambda omega, Mgamma, Mxi, r, D, p, Y: 1 - omega - O.ssum2(Mgamma) - O.ssum2(Mxi) - r * D / (p * Y),
             'com': 'explicit form',
             'size': ['Nprod'],
             'units': '',
@@ -403,7 +363,7 @@ _LOGICS = {
             'units': 'y^{-1}',
         },
         'ROC': {
-            'func': lambda pi, nu,Xi,p: pi/(nu*matmul(Xi,p)/p),
+            'func': lambda pi, nu,Xi,p: pi/(nu*O.matmul(Xi,p)/p),
             'definition': 'return on capital',
             'com': 'raw definition',
             'size': ['Nprod'],
@@ -417,7 +377,7 @@ _LOGICS = {
             'symbol': r'$\lambda$'
         },
         'gamma': {
-            'func': lambda Gamma, p: matmul(Gamma, p) / p,
+            'func': lambda Gamma, p: O.matmul(Gamma, p) / p,
             'definition': 'share of intermediary consumption',
             'com': 'raw definition',
             'units': '',
@@ -425,7 +385,7 @@ _LOGICS = {
             'size': ['Nprod'],
         },
         'xi': {
-            'func': lambda delta, nu, b, p, Xi: (delta * nu / b) * matmul(Xi, p) / p,
+            'func': lambda delta, nu, b, p, Xi: (delta * nu / b) * O.matmul(Xi, p) / p,
             'definition': 'relative capex weight',
             'com': 'explicit calculation',
             'units': '',
@@ -514,7 +474,7 @@ _LOGICS = {
     },
 }
 
-########################################################################################
+############################ SUPPLEMENTS ################################################
 '''
 Specific parts of code that are accessible
 '''
@@ -525,7 +485,8 @@ _SUPPLEMENTS= {'Test':funcs}
 
 
 
-########################################################################################
+############################ PRESETS #####################################################
+
 dictMONOGOODWIN={
 # Numerical structural
 'Tmax'  : 50,

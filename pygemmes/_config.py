@@ -16,8 +16,8 @@ __PRINTLOGO = True  #! Print the logo
 __PRINTINTRO = True #! Print tutorial text
 
 # pgm.get_...
-_FIELDS_EXPLOREMODEL = False #! get_available_fields will check existing models
-_MODELS_SHOWDETAILS = False  #! Show docstring of each model 
+_FIELDS_EXPLOREMODEL =True #! get_available_fields will check existing models
+_MODELS_SHOWDETAILS = True  #! Show docstring of each model 
 
 
 # ################## MODELS FILES LOCATION AND NAME ###########################

@@ -21,6 +21,12 @@ from ._utilities import _solvers
 from ._utilities import _comparesubarray
 from ._plots._plots import _DPLOT
 
+from IPython.display import display,HTML,Markdown
+def pprint(ldf):
+    '''Print with newline in dataframe'''
+    try : ldf = ldf.style.set_properties(**{'text-align': 'left'})
+    except BaseException: pass
+    return display(HTML(ldf.to_html().replace("\\n","<br>")))
 
 
 class Hub():
@@ -37,7 +43,7 @@ class Hub():
 
     INPUTS :
     * model : STRING containing the model name
-    * from_user : BOOLEAN if you want to use your file (True) or the one provided in pygemmes (False)
+    * from_user : [Desactivated] BOOLEAN if you want to use your file (True) or the one provided in pygemmes (False)
     * preset : DICTIONNARY name of the preset in the actual dictionnary of preset
     * dpreset : DICTOFDICTOFDIC a dictionnary of preset one can use (see model creation)
     * verb : BOOLEAN True for print in terminal
@@ -46,12 +52,6 @@ class Hub():
 
     A number of pre-defined models are available from the library,
         see pgm.get_available_models() to get a list
-
-    All pre-defined model files are copied into your $HOME/.pygemmes/
-        folder so you can:
-            - edit them to change some parameters
-            - create new model files that will be accessible to pygemmes
-    You can use them using `from_user=True'
     """
 
     def __init__(
@@ -89,45 +89,40 @@ class Hub():
         self.__dmisc['dmulti']['scalar']= []
         self.__dmisc['dmulti']['vector'] = []
         self.__dmisc['dmulti']['matrix'] = []
+
         for k,v in self.dparam.items():
             size = v.get('size',[_DEFAULTSIZE,_DEFAULTSIZE])
-            if size== [_DEFAULTSIZE,_DEFAULTSIZE]:
-                self.__dmisc['dmulti']['scalar'].append(k)
-            elif size[1]==_DEFAULTSIZE:
-                self.__dmisc['dmulti']['vector'].append(k)
-            else:
-                self.__dmisc['dmulti']['matrix'].append(k)
+            if size== [_DEFAULTSIZE,_DEFAULTSIZE]: self.__dmisc['dmulti']['scalar'].append(k)
+            elif size[1]==_DEFAULTSIZE:            self.__dmisc['dmulti']['vector'].append(k)
+            else:                                  self.__dmisc['dmulti']['matrix'].append(k)
+        
         if len(self.__dmisc['dmulti']['vector']+self.__dmisc['dmulti']['matrix']):
             self.dmisc['multisectoral'] = True
         else:
             self.dmisc['multisectoral'] = False
 
         # update from preset if relevant ######################################
-        if dpresets is not None:
-            self.set_dpreset(dpresets,verb=False)
-        if preset is not None:
-            self.set_preset(preset, verb=False)
-        else:
-            self.reset()
+        if dpresets is not None: self.set_dpreset(dpresets,verb=False)
+        if preset is not None:   self.set_preset(preset, verb=False)
+        else:                    self.reset()
 
-    # ##############################
+
     # %% Setting parameters
-    # ##############################
     def set_dpreset(self,
                     input,
                     preset_name=None,
                     verb=_VERB):
         """
         change the dictionnary of presets that you can load directly
-        The structure is the same as in model files !
+        The structure is the same as in model files ! See __EMPTY__ or TUTORIAL file 
 
         Input must be : a dictionnary with
-         { name1 : {fields : {key1:values,
-                              key1:values,} ,
+`       { name1 : {fields : {key1:values,
+                            key1:values,} ,
                    com: 'Message',
                    plots : {'plotname1':[{kwargs1},{kwargs2}...],
                             'plotname2':[{kwargs1},{kwargs2}...]}
-         },
+        },`
 
          if preset_name is a name in this dpreset,
           then it loads the preset
@@ -149,8 +144,7 @@ class Hub():
             print('OVERRIDE presets in dpreset')
         self.__dmodel['presets']=input
 
-        if preset_name:
-            self.set_preset(preset_name)
+        if preset_name: self.set_preset(preset_name)
 
     def set_preset(self,
                    input,verb=_VERB):
@@ -162,7 +156,6 @@ class Hub():
 
         if input not in self.__dmodel['presets'].keys():
             raise Exception(f"{input} is not a valid preset name ! the preset name must be in {list(self.__dmodel['presets'].keys())}")
-            return f"{input} is not a valid preset name ! the preset name must be in {list(self.__dmodel['presets'].keys())}"
         else :
             self.__dmodel['preset']=input
             self.set_dparam(self,verb=verb,**self.__dmodel['presets'][input]['fields'])
@@ -272,7 +265,7 @@ class Hub():
         ignored=[]
         for k,v in dimtochange.items():
             if ( v==Rdim[k]['value'] or v==Rdim.get('list',[])):
-                if verb : print(f'{k} asked to be changed but the value {v} is already the one in the system')
+                #if verb : print(f'{k} asked to be changed but the value {v} is already the one in the system')
                 ignored.append(k)
         for k in ignored :
             wrongfields.append(k)
@@ -280,10 +273,9 @@ class Hub():
 
         if verb:
             print('')
-            print('### Identified keys to be changed ###')
-            print(f'   Dimensions : {list(dimtochange.keys())}')
-            print(f'   Fields : {list(fieldtochange.keys())}')
-            print(f'   Ignored :{wrongfields}')
+            if len(list(dimtochange.keys()))   :print(f'Changing Dimensions: {list(dimtochange.keys())}')
+            if len(list(fieldtochange.keys())) :print(f'Changing Fields: {list(fieldtochange.keys())}')
+            if len(list(wrongfields))          :print(f'Changes Ignored:{wrongfields}')
 
         #### SEND IT TO THE PIPE ###################
         self._set_dimensions(verb,**dimtochange)
@@ -333,6 +325,8 @@ class Hub():
         self.__dargs=_class_set.get_dargs_by_reference(self.__dparam,
                                                        dfunc_order=self.__dmisc['dfunc_order'])
 
+
+    def _set_fields_2(self,verb=_VERB
 
     def _set_fields(self,verb=_VERB, **kwargs):
         # Get list of variables that might need a reshape
@@ -499,19 +493,18 @@ class Hub():
             fullinfos['value']=[fullinfos['value']]
         fullinfos['value']=np.array(fullinfos['value'])
 
-
-        newval=np.copy(OLDVAL).astype(np.float)
+        newval=np.copy(OLDVAL).astype(float)
         # transform scalar keys into non-scalar if needed
         lens = [int(np.prod(np.shape(v))) for k,v in fullinfos.items()]
         check= [ v!=np.amax(lens) for v in lens if v!=1]
         if np.sum(check): # If there are multiple sizes
-            raise Exception(f'INCONSISTENCY IN {name} dimensions !')
+            raise Exception(f'INCONSISTENCY IN {name} dimensions !\n lens={lens} ')
         else :
             lmax = np.amax(lens)
             for ii in range(lmax):
 
                 minidict = {k: v[min(ii,len(v)-1)] if int(np.prod(np.shape(v)))>=1
-                      else v  for k,v in fullinfos.items()}
+                        else v  for k,v in fullinfos.items()}
 
 
                 # Complete the regions ###############
@@ -579,7 +572,6 @@ class Hub():
             return list(self.__dmodel['presets'].keys())
         if returnas==dict:
             return {k:v['com'] for k,v in self.__dmodel['presets'].items() }
-
 
     def get_dparam(self, condition=None,returnas=dict,verb=False, **kwdargs):
        """ Return a copy of the input parameters dict that you can filter
@@ -690,10 +682,6 @@ class Hub():
        return self.__dmisc
 
 
-    # ##############################
-    # reset
-    # ##############################
-
    # ##############################
    # run simulation
    # ##############################
@@ -801,78 +789,41 @@ class Hub():
            self.__dmisc['run'] = False
            raise err
 
+
     def reinterpolate_dparam(self, N=100):
-       """
-       If the system has run, takes dparam and reinterpolate all values.
-       Typical use is to have lighter plots
+        """
+        If the system has run, takes dparam and reinterpolate all values.
+        Typical use is to have lighter plots
 
-       DO NOT WORK WELL WITH GRID
-       NEED A RESET BEFORE A RUN TO REALLOCATE SPACE
+        NEED A RESET BEFORE A RUN TO REALLOCATE SPACE
 
-       Parameters
-       ----------
-       Npoints : TYPE, optional
-           DESCRIPTION. The default is 100.
-
-        'reinterpolate_dparam IS DEPRECIATED, WILL BE ADAPTED TO MULTISECTORIALITY SOON'
-       """
-       P = self.__dparam
-       t = P['time']['value']
-       for k in self.__dmisc['dfunc_order']['statevar']+self.__dmisc['dfunc_order']['differential']:
-           v = P[k]['value']
-           prevshape= np.shape(v)
-           v2 =v.reshape(P['nt']['value'],-1)
-           #print(np.shape(v2))
-           newval = np.zeros([N,np.shape(v2)[1]])
-           newt = np.linspace(t[0,0,0,0], t[-1,0,0,0], N)
-           for i in range(np.shape(newval)[1]):
-               newval[:, i] = np.interp(newt[:,0], t[:, 0,0,0,0], v2[:, i])
-           newshape =[N]+list(prevshape[1:])
-           self.__dparam[k]['value'] = newval.reshape(newshape)
+        Parameters
+        ----------
+        Npoints : TYPE, optional
+            DESCRIPTION. The default is 100.
+        """
+        P = self.__dparam
+        t = P['time']['value']
+        for k in self.__dmisc['dfunc_order']['statevar']+self.__dmisc['dfunc_order']['differential']:
+            v = P[k]['value']
+            prevshape= np.shape(v)
+            v2 =v.reshape(P['nt']['value'],-1)
+            #print(np.shape(v2))
+            newval = np.zeros([N,np.shape(v2)[1]])
+            newt = np.linspace(t[0,0,0,0], t[-1,0,0,0], N)
+            for i in range(np.shape(newval)[1]):
+                newval[:, i] = np.interp(newt[:,0], t[:, 0,0,0,0], v2[:, i])
+            newshape =[N]+list(prevshape[1:])
+            self.__dparam[k]['value'] = newval.reshape(newshape)
+        
 
     # ##############################
     #  Introspection
     # ##############################
     def __repr__(self, verb=None):
         """ This is automatically called when only the instance is entered """
-
-        if verb is None:
-           verb = True
-        
-        col0 = [
-           'model',
-           'preset',
-           'param (fix + func)',
-           'differential',
-           'statevar',
-           'run',
-           'source',
-        ]
-        
-        ar0 = [
-           self.__dmodel['name'],
-           self.__dmodel['preset'],
-           '{} + {}'.format(
-               len(self.get_dparam(returnas=list, eqtype=None))-1,
-               len(self.get_dparam(returnas=list, eqtype='parameter'))-1,
-           ),
-           len(self.get_dparam(returnas=list, eqtype='differential'))-1,
-           len(self.get_dparam(returnas=list, eqtype='statevar')),
-           self.__dmisc['run'],
-           self.__dmodel['file'],
-        ]
-
-        '''
-        if verb is True:
-           return _utils._get_summary(
-               lar=[ar0],
-               lcol=[col0],
-               verb=False,
-               returnas=str,
-           )
-        else:
-           return col0, ar0
-        '''
+        self.__short()
+        return ' '
 
     def __short(self):
         _FLAGS = ['run', 'cycles', 'derivative','multisectoral','solver']
@@ -904,12 +855,12 @@ class Hub():
 
         print(20 * '#', 'Dimensions'.center(18), 20 * '#')
         sub= self.get_dparam(returnas=dict,eqtype=['size'],)
-        for k in list(sub.keys())+['nx','nr']:
+        for k in list(sub.keys()):
            v = Vals[k]
            print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
 
 
-    def get_summary(self, idx=0, Region=0,removesector=()):
+    def get_summary(self, display=False):
         """
         INTROSPECTION TOOL :
         Print a str summary of the model, with
@@ -925,46 +876,82 @@ class Hub():
         * region : name or index of the region you want to plot
         """
 
-        _FLAGS = ['run', 'cycles', 'derivative','multisectoral','solver']
-        _ORDERS = ['statevar', 'differential', 'parameters']
+        df0= self.get_fieldsproperties()
+        dfp = self.get_dataframe(eqtype=None,t0=0,t1=0,)
+        dfd = self.get_dataframe(eqtype='differential',t0=0,t1=0,)
+        dfs = self.get_dataframe(eqtype='statevar'    ,t0=0,t1=0,)
 
-        Vals = self.__dparam
-
-        print(60 * '#')
-        print(20 * '#', 'SUMMARY'.center(18), 20 * '#')
-        print(60 * '#')
-
-        self.__short()
-
-        print('\n')
-        print(60 * '#')
-        print(20 * '#', 'fields'.center(18), 20 * '#')
-        if self.__dparam['nr']['value']!=1:
-            print(20 * '#', str('Region :'+str(self.__dparam['nr']['list'][Region])).center(18), 20 * '#')
-        if self.__dparam['nx']['value'] != 1:
-            print(20 * '#', str('Parr. sys numb:'+str(self.__dparam['nx'].get('list',np.arange(self.__dparam['nx']['value']))[idx])).center(18), 20 * '#')
-        print(60 * '#')
-        # parameters
-        col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx,filtersector=removesector)
-        # SCALAR ODE
-        col3, ar3 = _class_utility._get_summary_functions_vector(
-           self, idx=idx,Region=Region, eqtype=['differential'],filtersector=removesector)
-        # SCALAR Statevar
-        col4, ar4 = _class_utility._get_summary_functions_vector(
-           self, idx=idx,Region=Region, eqtype=['statevar'],filtersector=removesector)
+        print('please do: ')
+        return [df0,dfp.transpose(),dfd.transpose(),dfs.transpose()]
 
 
+    def get_fieldsproperties(self):
+        categories=['eqtype','source_exp','definition','com','group','units','symbol','isneeded']
+        R=self.get_dparam()
+        Rpandas= {k0:{k:R[k0][k] for k,v in R[k0].items() if k in categories} for k0 in R.keys()}
+        AllFields=pd.DataFrame(Rpandas,index=categories).transpose()
+        return AllFields.replace(np.nan,'')
+        
 
-        # ----------
-        # format output
-        _utils._get_summary(
-           lar =[ ar2,  ar3,  ar4 ],
-           lcol=[ col2, col3, col4],
-           verb=True,
-           returnas=False,)
+    def get_dataframe(self,eqtype=False,t0=False,t1=False): 
+        R0=self.get_dparam()
+        if eqtype==False: R= R0
+        else: R= self.get_dparam(eqtype=eqtype)
 
-        # Print matrices
-        _class_utility._print_matrix(self,idx=idx,Region=Region)
+        time = R0['time']['value'][:,0,0,0,0]
+        if np.isnan(time[1]): 
+            idt0=0
+            idt1=1
+        else:
+            if type(t0) in [int,float] : idt0=np.argmin(np.abs(time-t0))
+            else : idt0=0
+
+            if type(t0) in [int,float]: idt1=np.argmin(np.abs(time-t1))+1
+            else : idt1=-1
+
+
+        SectsX= R0['nx']['list']
+        SectsR= R0['nr']['list']
+        Time = R0['time']['value'][idt0:idt1,0,0,0,0]
+        Onedict={ 'field':  [],
+                'value': []    ,
+                'time': [],
+                'parrallel': [],
+                'region': [],
+                'Multi1':[],
+                'Multi2':[],
+                    }
+        Bigdict={}
+        for k in R.keys():
+            if R[k].get('eqtype',None) not in ['parameter','parameters',None,'size']:
+                GRID = np.meshgrid( 
+                                    R0[R[k]['size'][1]].get('list',['mono']),
+                                    R0[R[k]['size'][0]].get('list',['mono']),
+                                    SectsR,
+                                    SectsX,
+                                    Time
+                                    )
+            else : 
+                GRID = np.meshgrid( 
+                                    R0[R[k]['size'][1]].get('list',['mono']),
+                                    R0[R[k]['size'][0]].get('list',['mono']),
+                                    SectsR,
+                                    SectsX,
+                                    [0.]
+                                    )
+            Val = R[k]['value'][idt0:idt1,...] if R[k].get('eqtype',None) not in ['parameter','parameters',None,'size'] else R[k]['value']
+            if type(Val) in [float,int]: 
+                Val=np.array([Val])
+            Val= Val.reshape(-1)
+            Onedict['field'    ].extend([k for i in GRID[-1].reshape(-1)])
+            Onedict['value'    ].extend(Val)
+            Onedict['time'     ].extend(GRID[-1].reshape(-1))
+            Onedict['parrallel'].extend(GRID[-2].reshape(-1))
+            Onedict['region'   ].extend(GRID[-3].reshape(-1))
+            Onedict['Multi1'   ].extend(GRID[-4].reshape(-1))
+            Onedict['Multi2'   ].extend(GRID[-5].reshape(-1))
+        df=pd.DataFrame(Onedict).set_index(['parrallel','region','field','Multi1','Multi2','time'],drop=True).unstack().transpose()    
+        return df
 
     def get_equations_description(self):
         '''

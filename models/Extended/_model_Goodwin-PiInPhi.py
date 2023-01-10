@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
+'''Goodwin with profit impacting Philips curve'''
+
+_DESCRIPTION="""
 DESCRIPTION :
 
     This is a small modificaiton of Goodwin, with a slightly different wage

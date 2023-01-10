@@ -36,7 +36,6 @@ def solve(
         dmisc=dmisc,
     )
 
-
     # -------------
     # dispatch to relevant solver to solve ode using dydt_func
     _eRK4_homemade(
@@ -48,9 +47,6 @@ def solve(
         nt=dparam['nt']['value'],
         dverb=dverb,
     )
-
-    #for k0 in lstate:
-    #    dparam[k0]['value'][...] = dparam[k0]['func'](**dargs[k0])
 
     return solver
 
@@ -109,7 +105,7 @@ def _eRK4_homemade(
                         y=y,)
 
         # dispatch to store result of ode
-        for k0 in lode: dparam[k0]['value'][ii, ...] = y[k0]
+        for k0 in lode:   dparam[k0]['value'][ii, ...] = y[k0]
         for k0 in lstate: dparam[k0]['value'][ii, ...]= state[k0]
     for k0 in lode: dparam[k0]['value'][0, ...] = y0[k0]
 

@@ -1,8 +1,6 @@
-'''
-FULL ECHIMES !
-THIS FILE IS THE COMBINATION OF ALL MODULES
-'''
+'''FULL ECHIMES ! THIS FILE IS THE COMBINATION OF ALL MODULES'''
 
+_DESCRIPTION = ''' '''
 from pygemmes._models import Funcs, importmodel,mergemodel
 
 ############ ELEMENTS THAT CAN BE ADDED #############################

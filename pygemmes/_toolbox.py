@@ -33,7 +33,7 @@ def get_available_plots():
     dic={i[0]: {'documentation': i[1].__doc__,
                 'signature': inspect.signature(i[1])}  for i in all_functions}
     plotdf=pd.DataFrame(dic)
-    return plotdf.transpose()
+    return plotdf.transpose().style.set_properties(**{'text-align': 'left'})
 
 
 def get_available_fields(exploreModels=_FIELDS_EXPLOREMODEL):
@@ -81,7 +81,7 @@ def get_available_fields(exploreModels=_FIELDS_EXPLOREMODEL):
             'In model': str(v0['inmodel'])}
               for k0, v0 in dparam_sub.items() if v0['group'] != 'Numerical'}
     modeldf=pd.DataFrame(dic)
-    return modeldf.transpose()
+    return modeldf.transpose().style.set_properties(**{'text-align': 'left'})
 
 
 def _GenerateIndividualSensitivity(key, mu, sigma, disttype='normal', dictpreset={}, N=10):

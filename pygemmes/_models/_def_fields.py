@@ -26,9 +26,7 @@ This file contains :
     __FILLDEFAULTVALUES Flag to fill the defaultfields
 """
 import numpy as np
-
 from .._config import __DEFAULTFIELDS
-
 
 # #############################################################################
 # #############################################################################
@@ -50,7 +48,7 @@ _LIBRARY = {
             'units': 'y',
         },
         'dt': {
-            'value': 0.01,
+            'value': 0.1,
             'units': 'y',
             'definition': 'solver timestep',
         },
@@ -70,7 +68,12 @@ _LIBRARY = {
             'definition': 'Number of regions interconnected',
             'eqtype':'size',
         },
-
+        'Nprod': {
+            'value':1,
+            'list': ['MONO'],
+            'definition': 'Name of productive sectors',
+            'eqtype':'size',
+        },
         ############################################################
         # DANGER ZONE DO NOT MODIFY IF YOU ARE NOT SURE ############
         '__ONE__': {
@@ -99,12 +102,6 @@ _LIBRARY = {
     },
 
     'ECHIMES': {
-        'Nprod': {
-            'value':1,
-            'list': ['MONO'],
-            'definition': 'Name of productive sectors',
-            'eqtype':'size',
-        },
         'w0': {
             'definition': 'wage indicator',
             'units': '$.Humans^{-1}.y^{-1}',
@@ -131,6 +128,12 @@ _LIBRARY = {
             'size': ['Nprod', 'Nprod'],
             'units':'',
             'definition': 'intermediate consumption coefficients'
+        },
+        'Xi': {
+            'value': 1,
+            'size': ['Nprod', 'Nprod'],
+            'units':'',
+            'definition': 'capital recipe creation',
         },
         'Mgamma': {
             'value': 0,
@@ -327,11 +330,6 @@ _LIBRARY = {
             'definition': 'Wage value',
             'units': '$.Humans^{-1}.y^{-1}'
         },
-        'Omega': {
-            'value': 1,
-            'definition': 'Individual purchasing power',
-            'units': 'Units.y^{-1}.Humans^{-1}',
-            'symbol': r'$\Omega$', },
         'employment': {
             'value': .97,
             'definition': 'employment rate',
@@ -357,32 +355,17 @@ _LIBRARY = {
             'definition': 'Rate of productivity increase',
             'units': 'y^{-1}',
         },
+        'beta': {
+            'value': 0,
+            'definition': 'productivity increase dependency to g',
+            'units': '',
+        },
         'Nmax': {
             'value': 12,
             'definition': 'Saturating population',
             'units': 'Humans',
         },
     },
-
-
-    'Recipies': {
-        'gamma': {
-            'value': 0.1,
-            'definition': 'Input-output production recipy',
-            'units': '',
-        },
-        'Xi': {
-            'value': 0.1,
-            'definition': 'Input-output capital recipy',
-            'units': '',
-        },
-        'rho': {
-            'value': 0.1,
-            'definition': 'Capital consumption recipy',
-            'units': 'y^{-1}',
-        },
-    },
-
 
     'Production': {
         'A': {
@@ -392,7 +375,7 @@ _LIBRARY = {
         },
         'nu': {
             'value': 3,
-            'definition': 'Kapital to output ratio',
+            'definition': 'Capital to output ratio',
             'units': '',
             'symbol': r'$\nu$',
         },
@@ -409,28 +392,28 @@ _LIBRARY = {
             'units': '',
         },
         'cesLcarac': {
-            'func': lambda A=0, K=0, a=1, b=0.5, CESexp=100: A*(K/a) * (2*(1-b))**(1/CESexp),
+            'value': 1,
             'definition': 'Typical Labor from capital',
             'com': 'Extracted from YCES',
             'units': 'Humans',
             'eqtype': 'param',
         },
         'cesYcarac': {
-            'func': lambda K=0, A=0, b=0.5, CESexp=100: K*A*(2*b)**(-1/CESexp),
+            'value':1,
             'definition': 'Typical Y from capital',
             'com':  'Extracted from YCES',
             'units': 'Units.y^{-1}',
             'eqtype': 'param',
         },
         'omegacarac': {
-            'func': lambda w=0, cesLcarac=0, p=1, cesYcarac=1: w*cesLcarac/(p*cesYcarac),
+            'value':1,
             'definition': 'Typical omega without substituability',
             'com':  'Extracted from YCES',
             'units': '',
             'eqtype': 'param',
         },
         'l': {
-            'func': lambda omegacarac=0.5, CESexp=100: (omegacarac**(-CESexp/(1+CESexp)) - 1)**(1/CESexp),
+            'value':1,
             'definition': 'ratio btwn effective workers and typical worker',
             'com': 'deduced from Pi optimisation',
             'units': '',
@@ -442,11 +425,11 @@ _LIBRARY = {
         'K': {
             'value': 2.7,
             'units': 'Units',
-            'definition': 'Capital',
+            'definition': 'Capital in real units',
         },
         'Y': {
             'value': 1,
-            'definition': 'GDP in output quantity',
+            'definition': 'GDP in real units',
             'units': 'Units.y^{-1}',
         },
         'Y0': {
@@ -456,7 +439,7 @@ _LIBRARY = {
         },
         'GDP': {
             'value': 1,
-            'definition': 'GDP in output quantity',
+            'definition': 'nominal GDP ',
             'units': '$.y^{-1}',
         },
         'V': {
@@ -574,22 +557,9 @@ _LIBRARY = {
             'definition': 'exponent in expo phillips',
             'units': '',
         },
-
-        # Additional parameter
-        'zphi': {
-            'value': 0.1,
-            'definition': 'nonlinearity on profit in negociation',
-            'com': '',
-            'units': ''
-        }
     },
 
     'Speculation': {
-        's': {
-            'value': 0,
-            'definition': 'share of GDP going to financial market',
-            'units': ''
-        },
         'Speculation': {
             'value': 0,
             'definition': 'flux of money going from firm to finance',
@@ -650,7 +620,7 @@ _LIBRARY = {
     'Investment': {
         'I': {
             'value': 0,
-            'definition': 'Investment in money',
+            'definition': 'Investment in nominal value',
             'units': '$.y^{-1}',
         },
         'Ir': {
@@ -699,12 +669,6 @@ _LIBRARY = {
             'definition': 'Maximum value of kappa (affine)',
             'units': '',
         },
-        'zsolv': {
-            'value': 0.1,
-            'definition': 'nonlinearity solvability investment',
-            'com': '',
-            'units': ''
-        }
     },
 
 
@@ -734,18 +698,6 @@ _LIBRARY = {
             'definition': 'capital compared to debt',
             'units': ''
         },
-        'M': {
-            'value': 1,
-            'definition': 'amount of money in the system',
-            'units': '$'},
-        'm': {
-            'value': 1,
-            'definition': 'money per unit of GDP',
-            'units': 'y'},
-        'v': {
-            'value': 1,
-            'definition': 'money circulation speed',
-            'units': 'y^{-1}'},
     },
 
 
@@ -778,20 +730,11 @@ _LIBRARY = {
             'definition': 'inflation rate on inventory',
             'units': 'y^{-1}',
         },
-        'chiY': {
-            'value': 1,
-            'definition': 'inflation sensibility on dot{V}/Y',
-            'units': ''}
     },
 
 
     'Consumption': {
         # VARIABLES
-        'G': {'value': 0,
-              'definition': 'Purchased good flow',
-              'units': 'Units.y^{-1}',
-              'symbol': r'$C$',
-              },
         'H': {'value': 1,
               'definition': 'Household possessions',
               'units': 'Units',
@@ -806,20 +749,10 @@ _LIBRARY = {
                    'definition': 'possessions deterioration rate',
                    'units': 'y^{-1}',
                    'symbol': r'$\delta^h$', },
-        'fC': {'value': 1,
-               'definition': 'rate for consumption optimisation',
-               'units': 'y^{-1}',
-               'symbol': r'$f$', },
         'Omega0': {'value': 1,
                    'definition': 'Purchasing power of inflexion',
                    'units': 'Units.Humans^{-1}.y^{-1}',
                    },
-        'x': {'value': 1,
-              'definition': 'Inflexion effectiveness',
-              'Units': None},
-        'h': {'value': 1,
-              'definition': 'saturated p per person',
-              'units': None},
     },
 
 
@@ -843,11 +776,6 @@ _LIBRARY = {
             'value':  0,
             'definition': 'Damage function',
             'units': '',
-        },
-        'deltaD': {
-            'value':  0,
-            'definition': 'Climate induced destruction rate',
-            'units': 'Units.y^{-1}',
         },
         'pi1': {
             'value': 0,
@@ -945,11 +873,6 @@ _LIBRARY = {
         'deltapbackstop': {
             'value': -0.005,
             'definition': 'growth rate of backstop price',
-            'units': '',
-        },
-        'deltapcarbon': {
-            'value': 0,
-            'definition': 'Growth rate of carbon price',
             'units': '',
         },
         'conv10to15': {
@@ -1068,123 +991,11 @@ _LIBRARY = {
         },
         'F': {
             'value': 3.6,
-            'com': 'Radiative Forcing',
-            'units': None,
-        },
-    },
-
-
-    'GK-Improvements': {
-        'B': {
-            'value': 0,
-            'definition': 'Capital in a buffer before being productive',
-            'units': 'Units',
-        },
-        'lamb0': {
-            'value': .95,
-            'definition': 'Characteristic employement',
-            'units': '',
-        },
-        'tauK': {
-            'value': 0.01,
-            'definition': 'typical time for capital to be effective',
-            'units': 'y',
-        },
-        'taulamb': {
-            'value': 0.01,
-            'definition': 'typical time for capital to be effective',
-            'units': '',
-        },
-        'flamb': {
-            'value': 3.6,
-            'definition': 'employement perception rate adjustment',
-            'units': 'y^{-1}',
-        },
-        'beta': {
-            'value': 0.1,
-            'definition': 'Endogenous technical progress from growth',
-            'units': '',
-        },
-        'zpi': {
-            'value': 1,
-            'definition': 'Influence of profit on salary negociation',
-            'units': '',
-        },
-        'zsolv': {
-            'value': 3.6,
-            'definition': 'Influence of solvability on investment',
+            'definition': 'Radiative Forcing',
             'units': '',
         },
     },
-
 }
-
-# ############## UNUSED DEPRECIATED ############################
-"""
-    'Ressources': {
-        'K_R': {
-            'value': 1.,
-            'definition': 'Kapital for ressource extraction',
-            'units': 'Units',
-        },
-        'D_R': {
-            'value': 1.,
-            'definition': 'Debt of ressource sector',
-            'units': '$',
-        },
-        'p_R': {
-            'value': 1.,
-            'definition': 'price of ressources',
-            'units': '$.Units^{-1}',
-        },
-        'kappa_R': {
-            'value': 1.,
-            'definition': 'Investment func for ressource sector',
-            'units': '',
-        },
-        'pi_R': {
-            'value': 1.,
-            'definition': 'relative profit of ressource sector',
-            'units': '',
-        },
-        'Pi_R': {
-            'value': 1.,
-            'definition': 'Absolute profit for ressource sector',
-            'units': '$.Units^{-1}',
-        },
-        'R': {
-            'value': 1.,
-            'definition': 'Available ressources',
-            'units': 'Units',
-        },
-        'Y_R': {
-            'value': 1.,
-            'definition': 'Flux of extracted ressources',
-            'units': 'Units.y^{-1}',
-        },
-        'I_R': {
-            'value': 1.,
-            'definition': 'Investment (real) for ressources',
-            'units': 'Units.y^{-1}',
-        },
-        'Kstar': {
-            'value': 1.,
-            'definition': "Equivalent capital for services",
-            'units': 'Units',
-        },
-        'd_R': {
-            'value': 1.,
-            'definition': 'debt ratio ressources',
-            'units': 'y',
-        },
-        'inflation_R': {
-            'value': 1.,
-            'definition': 'inflation for ressources',
-            'units': 'y^{-1}',
-        },
-    },
-"""
-
 
 # #############################################################################
 # #############################################################################
