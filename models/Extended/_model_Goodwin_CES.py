@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 '''Goodwin with a CES production function'''
 
 _DESCRIPTION="""

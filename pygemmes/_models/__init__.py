@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 # Check December 2022
 
 import os

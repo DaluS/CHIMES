@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 '''This is a 3-Layer CLimate model, that gives temperature anomaly.'''
 
 _DESCRIPTION = """

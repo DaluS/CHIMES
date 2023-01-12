@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """Goodwin-Keen model: debt dynamics with residual consumption"""
 
 _DESCRIPTION = """

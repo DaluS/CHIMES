@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 DESCRIPTION : This is a Goodwin model with possibility to get loans at the bank, and have a price dynamics.
 TYPICAL BEHAVIOR : Convergence toward solow point ( good equilibrium) or debt crisis

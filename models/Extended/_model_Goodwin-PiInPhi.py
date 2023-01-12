@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 '''Goodwin with profit impacting Philips curve'''
 
 _DESCRIPTION="""

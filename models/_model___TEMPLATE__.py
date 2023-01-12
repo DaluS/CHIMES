@@ -1,8 +1,8 @@
-# -*- coding: utf-8 -*-
-"""Template to write your model"""
+
+"""Template to write your model. This is the short description"""
 
 _DESCRIPTION = """
-Template to write your model 
+Template to write your model. This can be written with markdown formalism
 
 * **Name :**
 * **Article :** 

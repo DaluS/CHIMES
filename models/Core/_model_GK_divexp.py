@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """Goodwin-Keen with diverging philips and exponential kappa"""
 
 _DESCRIPTION = """

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 ABSTRACT : This is a mine-depleting model
 

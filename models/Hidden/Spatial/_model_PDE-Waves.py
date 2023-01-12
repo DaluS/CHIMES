@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 Wave propagation with :
     * propagation speed 'c'

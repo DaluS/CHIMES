@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 '''Goodwin-Keen with Endogenous technical progress'''
 
 _DESCRIPTION="""

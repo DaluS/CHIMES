@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 Created on Mon Jul 26 16:16:01 2021
 @author: Paul Valcke

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 Canonical Monosectorial Gemmes model, with no climate.
 

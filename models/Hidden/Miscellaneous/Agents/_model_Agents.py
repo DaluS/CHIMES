@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 DESCRIPTION : This is a model of "agents" to show how we can incorporte it into pygemmes
 

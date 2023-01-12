@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 ABSTRACT : This is a Goodwin-Keen model coupled with a 3-layer climate model, damages function and abattement of the emissions.
 

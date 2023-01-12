@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 Two pendulums one on the other. This is creating a chaotic movement.
 This set of equation assume m1=m2 and l1=l2

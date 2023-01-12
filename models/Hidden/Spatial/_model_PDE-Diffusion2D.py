@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 A simple 1D diffusion :
 

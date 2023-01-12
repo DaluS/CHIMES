@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 '''3-dimensional reduced Goodwin-Keen dynamics'''
 
 

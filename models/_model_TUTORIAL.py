@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 '''Tutorial on how to write a model. Read the file !'''
 
 

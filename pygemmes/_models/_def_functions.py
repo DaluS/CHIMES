@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 Contains all the functions that can be share between models.
 To use them write first :

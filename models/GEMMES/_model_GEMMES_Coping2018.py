@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """GEMMES 2018 : GK + Climate """
 
 _DESCRIPTION ="""

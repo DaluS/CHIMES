@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 '''2-dimensional reduced Goodwin dynamics'''
 
 _DESCRIPTION ="""

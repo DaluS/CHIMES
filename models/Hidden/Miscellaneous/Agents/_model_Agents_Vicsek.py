@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 This is a collective movement agent-based model : https://en.wikipedia.org/wiki/Vicsek_model
 

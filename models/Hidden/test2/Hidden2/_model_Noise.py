@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 ABSTRACT :
     It is just as extremely simple model with stochastic noise to show that we can do that as all

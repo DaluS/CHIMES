@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 ABSTRACT: This is the simplest economic post-keynesian model.
 TYPICAL BEHAVIOR : metastable oscillations around a solow point

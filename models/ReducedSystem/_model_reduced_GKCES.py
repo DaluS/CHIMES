@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 '''3-dimensional reduced Goodwin-Keen dynamics with CES production function'''
 
 _DESCRIPTION="""

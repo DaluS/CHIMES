@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 ABSTRACT : This is a goodwin model with has a component of its production based on a depleting mining sector
 I'd also put scenarios on the intensity curve (a society that goes toward less resource extraction) for publication-friendly content.

@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 ABSTRACT: This is a 3 sector model : bank, household, and production.
 * Everything is stock-flow consistent, but capital is not created by real products

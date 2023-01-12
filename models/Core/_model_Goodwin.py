@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 '''Goodwin model: Stock-flow consistency core '''
 
 _DESCRIPTION = """

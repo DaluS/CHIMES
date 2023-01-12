@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 
 """
 This file contains the default fields (units, dimension, symbol...) for all

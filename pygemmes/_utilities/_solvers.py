@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 # Checked December 2022
 
 # built-in
