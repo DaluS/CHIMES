@@ -194,7 +194,7 @@ _LOGICS['statevar']['L']['units'] = 'Humans'
 _LOGICS['statevar']['phillips']['units'] = 'y^{-1}'
 _LOGICS['statevar']['I']['units'] = '$.y^{-1}'
 _LOGICS['statevar']['pi']['units'] = ''
-_LOGICS['statevar']['lambda']['units'] = ''
+_LOGICS['statevar']['employment']['units'] = ''
 _LOGICS['statevar']['omega']['units'] = ''
 _LOGICS['statevar']['GDP']['units'] = '$.y^{-1}'
 _LOGICS['statevar']['c']['units'] = ''
@@ -341,7 +341,7 @@ df0 = {
     'Eind': 51.79,
     'emissionreductionrate': 0.03,
     'Y': 59.74,
-    'lambda': 0.675,
+    'employment': 0.675,
     'omega': 0.578,
     'Dy': 0,
     'climate_sens': 3.1,
@@ -355,7 +355,7 @@ df0 = {
 }
 
 # second order initial conditions calculation
-df0['L'] = df0['lambda'] * df['N']
+df0['L'] = df0['employment'] * df['N']
 df0['Abattement'] = 1./(1. + ((1. - df0['emissionreductionrate'])*df0['Y'] *
                               df['convexitycost'])/(0.001*df0['Eind']*df['pbackstop'] *
                                                     df0['emissionreductionrate']**df['convexitycost']*(1. - df0['Dy'])))
@@ -378,7 +378,7 @@ plots = {
     'nyaxis': [
         {
             'x': 'time',
-            'y': [['lambda', 'omega'],
+            'y': [['employment', 'omega'],
                   ['d'],
                   ['g'],
                   ['kappa', 'pi'],
@@ -408,7 +408,7 @@ plots = {
         },
         {
             'x': 'time',
-            'y': [['lambda', 'omega'],
+            'y': [['employment', 'omega'],
                   ['d'],
                   ['g'],
                   ['T'],
@@ -419,7 +419,7 @@ plots = {
         }
     ],
     'phasespace': [],
-    '3D': [{'x': 'lambda',
+    '3D': [{'x': 'employment',
             'y': 'omega',
             'z': 'd',
             'cinf': 'pi',

@@ -318,7 +318,7 @@ def functions(dparam=None, verb=None):
 
         # Replace lamb by lambda
         if 'lamb' in kargs:
-            kargs[kargs.index('lamb')] = 'lambda'
+            kargs[kargs.index('lamb')] = 'employment'
 
         # check if any parameter is unknown
         lkok = ['itself'] + list(dparam.keys())
@@ -399,11 +399,6 @@ def check_source(lfunc=None, dparam=None):
                 sour.count(':') >= 1
                 and (
                     sour.replace(' ', '').count("'func':lambda") == 1
-                    # and sour.count(':') == 2 # Comment for remote lambda expression
-                    # and 'lambda' in sour.split(':')[1] #Comment for remote lambda
-                    # and sour.count('\n') == 1
-                    # Comment because comment at end of the line or no ',' when in a remote file
-                    # and sour.endswith(',\n')
                 )
                 or (
                     sour.replace(' ', '').count("'func':lambda") == 0
@@ -414,7 +409,7 @@ def check_source(lfunc=None, dparam=None):
             if not c0:
                 msg = (
                     f"Non-valid function for {k0}: "
-                    "Should be either 'lambda' (one-liner) or a 'def():'"
+                    "Should be either a lambda (one-liner) or a 'def():'"
                 )
                 raise Exception(msg)
 

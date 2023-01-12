@@ -65,7 +65,7 @@ _LOGICS = {
             'func': lambda Y, gamma, C, Xi, Ir: Y-gamma*Y-C-Xi*Ir,
             'com': "Stock-flow Inventory evolution"},
         # HOUSEHOLD INTERMEDIARY CHARACTERISTICS
-        'lambda': {
+        'employment': {
             'func': lambda L, N:  L/N,
             'com': 'employement rate'},
         'omega': {

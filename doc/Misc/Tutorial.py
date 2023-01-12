@@ -288,7 +288,7 @@ preset= {
         'plots': {
             'timetrace': [{}],
             'nyaxis': [{'x': 'time',
-                        'y': [['lambda', 'omega'],
+                        'y': [['employment', 'omega'],
                               ['d'],
                               ['kappa', 'pi'],
                               ],
@@ -302,11 +302,11 @@ preset= {
                         'idx':0,
                         'title':'',
                         'lw':1}],
-            'phasespace': [{'x': 'lambda',
+            'phasespace': [{'x': 'employment',
                             'y': 'omega',
                             'color': 'd',
                             'idx': 0}],
-            '3D': [{'x': 'lambda',
+            '3D': [{'x': 'employment',
                     'y': 'omega',
                     'z': 'd',
                     'cinf': 'pi',
@@ -319,8 +319,8 @@ preset= {
                          'color': 'k'},  # optional
                         ],
             'cycles_characteristics': [{'xaxis': 'omega',
-                                        'yaxis': 'lambda',
-                                        'ref': 'lambda'}
+                                        'yaxis': 'employment',
+                                        'ref': 'employment'}
                                        ]
         },
     }
@@ -339,7 +339,7 @@ This is an example on how someone can do more complex analysis
 hub = pgm.Hub('Reduced_GK', preset='default')
 
 BasinDomain = {
-    'lambda': {'mu': 0.5,
+    'employment': {'mu': 0.5,
                'sigma': 0.99,
                'type': 'uniform'},
     'omega': {'mu': 0.5,
@@ -360,7 +360,7 @@ hub.reinterpolate_dparam(N=1000)
 
 # Point we are trying to reach
 finalpoint = {
-    'lambda': 0.967297870750419,
+    'employment': 0.967297870750419,
     'omega': 0.84547946985534,
     'd': -0.0771062162051694,
 }
@@ -380,7 +380,7 @@ ax.set_zlabel('d')
 t = R['time']['value'][:, 0]
 
 # All the final points
-ax.scatter(finalpoint['lambda'],
+ax.scatter(finalpoint['employment'],
            finalpoint['omega'],
            finalpoint['d'],
            s=50,
@@ -388,7 +388,7 @@ ax.scatter(finalpoint['lambda'],
 
 # Scatter plot
 R = hub.get_dparam(key=[k for k in finalpoint]+['time'], returnas=dict)
-scat = ax.scatter(R['lambda']['value'][0, ConvergeRate > 0.001],
+scat = ax.scatter(R['employment']['value'][0, ConvergeRate > 0.001],
                   R['omega']['value'][0, ConvergeRate > 0.001],
                   R['d']['value'][0, ConvergeRate > 0.001],
                   c=ConvergeRate[ConvergeRate > 0.001],
@@ -400,7 +400,7 @@ plt.axis('tight')
 
 for i in range(len(ConvergeRate)):
     if ConvergeRate[i]:
-        ax.plot(R['lambda']['value'][:, i],
+        ax.plot(R['employment']['value'][:, i],
                 R['omega']['value'][:, i],
                 R['d']['value'][:, i], c='k', lw=0.1)
 

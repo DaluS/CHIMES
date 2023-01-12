@@ -29,25 +29,22 @@ _LOGICS=mergemodel(_LOGICS_GK,_LOGICS2)
 
 _SUPPLEMENTS = {}
 _PRESETS = {
-    'Fred': {
-        'fields': {'philinConst': -0.55465958,
-                  'philinSlope': 0.60171221, 
-                  'k0': -0.04619561,
-                  'k1': 1.04679933,
-                  'k2': 0,
-                  'nu': 4.04271601,
-                  'r': 0.01294320,
-                  'Delta': .30653839,
-                  'delta': 0.03487562,
-                  'D': 0.53/4.04271601,
-                  'w': 0.68,
-                  'K': 1.,
-                  'p': 1.,
-                  'a': 1.,
-                  'N': 0.92/4.04271601,
-                  'eta': 0,
-                  'mu': 1, },
+    'test': {
+        'fields': {},
         'com': '',
-        'plots': {},
+        'plots': {'XYZ': [{ 'x': 'employment',
+                            'y': 'omega',
+                            'z': 'd',
+                            'color': 'time',
+                            'idx': 0,
+                            'title': ''}],
+                 'plotbyunits': [],
+                 'plotnyaxis': [{'x': 'time',
+                           'y': [['employment', 'omega'],
+                                 ['d'],['pi','kappa'],['inflation']
+                                 ],
+                            'idx':0,
+                            'title':'',
+                            'lw':1}],},
     },
 }

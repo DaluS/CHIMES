@@ -404,22 +404,9 @@ def get_dargs_by_reference(dparam, dfunc_order=None):
                 dparam[k0]['args']['ode']
                 + dparam[k0]['args']['statevar']
             )
-            if k1 != 'lambda'
         }
         for k0 in dfunc_order['statevar'] + dfunc_order['ode']
     }
-
-    # Handle the lambda exception here to avoid test at every time step
-    # if lambda exists and is a function
-    c0 = (
-        'lambda' in dparam.keys()
-        and dparam['lambda'].get('func') is not None
-    )
-    # then handle the exception
-    for k0, v0 in dargs.items():
-        if c0 and 'lambda' in dparam[k0]['kargs']:
-            dargs[k0]['lamb'] = dparam['lambda']['value']
-
     return dargs
 
 
@@ -503,7 +490,7 @@ def _check_func_get_source(lfunc=None, dparam=None):
                 and (
                     sour.replace(' ', '').count("'func':lambda") == 1
                     # and sour.count(':') == 2 # Comment for remote lambda expression
-                    # and 'lambda' in sour.split(':')[1] #Comment for remote lambda
+                    # and 'employment' in sour.split(':')[1] #Comment for remote lambda
                     # and sour.count('\n') == 1
                     # Comment because comment at end of the line or no ',' when in a remote file
                     # and sour.endswith(',\n')
@@ -517,7 +504,7 @@ def _check_func_get_source(lfunc=None, dparam=None):
             if not c0:
                 msg = (
                     f"Non-valid function for {k0}: "
-                    "Should be either 'lambda' (one-liner) or a 'def():'"
+                    "Should be either lambda (one-liner) or a 'def():'"
                 )
                 raise Exception(msg)
 
@@ -525,7 +512,7 @@ def _check_func_get_source(lfunc=None, dparam=None):
             if sour.replace(' ', '').count("'func':lambda") == 1:
                 # clean-up source
                 sour = sour.strip().replace(',\n', '').replace('\n', '')
-                sour = sour[sour.index('lambda') + len('lambda'):]
+                sour = sour[sour.index("lambda") + len("lambda"):]
                 # separate keyword args from expression
                 kargs, exp = sour.split(':')[:2]
 
@@ -574,12 +561,6 @@ def _check_func(dparam=None, verb=None):
     for k0 in lfunc:
         v0 = dparam[k0]
         kargs = inspect.getfullargspec(v0['func']).args
-
-        #print(k0, kargs,)
-
-        # Replace lamb by lambda
-        if 'lamb' in kargs:
-            kargs[kargs.index('lamb')] = 'lambda'
 
         # check if any parameter is unknown
         lkok = ['itself'] + list(dparam.keys())
@@ -829,7 +810,7 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None, dmulti=None):
         defaults = len(kargs)*[0]
         # update using fixed param (eqtype = None)
         for k1 in dparam[k0]['args'][None]:
-            key = 'lamb' if k1 == 'lambda' else k1
+            key = k1
 
             defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
             ind = [ii for ii, vv in enumerate(
@@ -842,7 +823,7 @@ def _update_func_default_kwdargs(lfunc=None, dparam=None, dmulti=None):
 
         # update using param
         for k1 in dparam[k0]['args']['param']:
-            key = 'lamb' if k1 == 'lambda' else k1
+            key =  k1
             defaults[dparam[k0]['kargs'].index(k1)] = dparam[k1]['value']
             ind = [ii for ii, vv in enumerate(kargs) if key in vv]
             if len(ind) != 1:

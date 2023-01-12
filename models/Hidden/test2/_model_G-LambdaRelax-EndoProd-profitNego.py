@@ -28,9 +28,9 @@ _LOGICS = deepcopy(_LOGICS0)
 _LOGICS['statevar']['lamb0'] = Funcs.Definitions.lamb
 
 # We remove lambda from statevar as there is now inertia in it, We place it in 'ode'
-_LOGICS['statevar'].pop('lambda', None)
-_LOGICS['ode']['lambda'] = Funcs.Phillips.lambdarelax
-_LOGICS['ode']['lambda']['initial'] = .91
+_LOGICS['statevar'].pop('employment', None)
+_LOGICS['ode']['employment'] = Funcs.Phillips.lambdarelax
+_LOGICS['ode']['employment']['initial'] = .91
 _LOGICS['param']['taulamb'] = {'value': 0.01,
                                'definition': 'typical time for employement to impact salary nego'}
 
@@ -63,7 +63,7 @@ _PRESETS = {
             'delta': .005,
             'phinull': 0.1,
 
-            'lambda': 0.9166,
+            'employment': 0.9166,
             'taulamb': [0.2, 0.3, 0.4],
 
             'beta': 0,
@@ -76,19 +76,19 @@ _PRESETS = {
         'plots': {
             'timetrace': [{}],
             'plotnyaxis': [{'x': 'time',
-                           'y': [['lambda', 'lamb0'],
+                           'y': [['employment', 'lamb0'],
                                  ['omega'],
                                  ],
                             'idx':0,
                             'title':'',
                             'lw':1}],
-            'phasespace': [{'x': 'lambda',
+            'phasespace': [{'x': 'employment',
                             'y': 'omega',
                             'color': 'time',
                             'idx': 0}],
             'plot3D': [{'x': 'lamb0',
                         'y': 'omega',
-                        'z': 'lambda',
+                        'z': 'employment',
                         'cinf': 'time',
                         'cmap': 'jet',
                         'index': 0,

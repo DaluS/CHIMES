@@ -56,8 +56,9 @@ _LOGICS= {
         'GDP':{'func': lambda Y,p:Y*p},
 
         'inflation' :{'func': lambda c,p, eta,mu : eta*(mu*c/p -1) },
+        
         'kappa'     :{'func': lambda pi, k0, k1: k0 + k1 * pi},
-        'phillips'  :{'func': lambda employment, philinConst, philinSlope: philinConst + philinSlope * employment,},
+        'phillips'  :{'func': lambda employment, philinConst, philinSlope: philinConst + philinSlope * employment,},    
     },
 
     'parameter': {
@@ -70,25 +71,37 @@ _LOGICS= {
 
 _SUPPLEMENTS = {}
 _PRESETS = {
-    'Fred': {
-        'fields': {'philinConst': -0.55465958,
-                  'philinSlope': 0.60171221, 
-                  'k0': -0.04619561,
-                  'k1': 1.04679933,
-                  'k2': 0,
-                  'nu': 4.04271601,
-                  'r': 0.01294320,
-                  'Delta': .30653839,
-                  'delta': 0.03487562,
-                  'D': 0.53/4.04271601,
-                  'w': 0.68,
-                  'K': 1.,
-                  'p': 1.,
-                  'a': 1.,
-                  'N': 0.92/4.04271601,
-                  'eta': 0,
-                  'mu': 1, },
-        'com': '',
-        'plots': {},
+    'default': {
+        'fields': {
+            'dt': 0.01,
+            'a': 1,
+            'N': 1,
+            'K': 2.9,
+            'D': 0,
+            'w': .5*1.2,
+            'alpha': 0.02,
+            'n': 0.025,
+            'nu': 3,
+            'delta': .005,
+            'phinull': 0.1,
+            'alpha': 0.02,
+            'Delta': 0,
+        },
+        'com': 'Basic',
+        'plots': {'XYZ': [{'x': 'employment',
+                        'y': 'omega',
+                        'z': 'd',
+                        'color': 'time',
+                        'idx': 0,
+                        'title': ''}],
+                 'plotbyunits': [],
+                 'plotnyaxis': [{'x': 'time',
+                           'y': [['employment', 'omega'],
+                                 ['d'],['pi','kappa'],['inflation']
+                                 ],
+                            'idx':0,
+                            'title':'',
+                            'lw':1}],
+        },
     },
 }

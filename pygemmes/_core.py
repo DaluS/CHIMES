@@ -110,7 +110,7 @@ class Hub():
     # %% Setting parameters
     def set_dpreset(self,
                     input,
-                    preset_name=None,
+                    preset=None,
                     verb=_VERB):
         """
         change the dictionnary of presets that you can load directly
@@ -144,7 +144,7 @@ class Hub():
             print('OVERRIDE presets in dpreset')
         self.__dmodel['presets']=input
 
-        if preset_name: self.set_preset(preset_name)
+        if preset: self.set_preset(preset)
 
     def set_preset(self,
                    input,verb=_VERB):
@@ -325,8 +325,6 @@ class Hub():
         self.__dargs=_class_set.get_dargs_by_reference(self.__dparam,
                                                        dfunc_order=self.__dmisc['dfunc_order'])
 
-
-    def _set_fields_2(self,verb=_VERB
 
     def _set_fields(self,verb=_VERB, **kwargs):
         # Get list of variables that might need a reshape

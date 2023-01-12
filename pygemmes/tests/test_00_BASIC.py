@@ -62,32 +62,18 @@ class Test00_Get():
         pgm.get_available_plots()
 
     def test02_run_all_models(self):
+        """ Run all model, all presets, and their plots"""
         dmodel = pgm.get_available_models(Return=dict)
         for k in dmodel.keys():
-            if k!='__EMPTY__':
-                for v in [None]+dmodel['Presets'][k]:
-                    print(k,v)
-                    hub=pgm.Hub(k,preset=v)
-                    hub.set_dparam('Tmax',1)
-                    hub.set_dparam('dt',0.01)
-                    hub.run()
+            if k not in ['__EMPTY__']:
+                for v in [None]+dmodel[k]['Preset']:
+                    hub=pgm.Hub(k,preset=v,verb=False)
+                    hub.set_dparam(**{'Tmax':1,'dt':0.01},verb=False)
+                    hub.run(verb=False)
                     if v:
                         hub.plot_preset()
 
-    def test03_generate_distribution(self):
-        out =pgm.generate_dic_distribution(
-                                      { 'alpha': {'mu': .02,
-                                                  'sigma': .2,
-                                                  'type': 'normal'},
-                                        'k2': {'mu': 20,
-                                               'sigma': .2,
-                                               'type': 'log'},
-                                        'mu': {'mu': 1.3,
-                                               'sigma': .2,
-                                               'type': 'uniform'},
-                                            })
-
-    def test04_all_plots(self):
+    def test03_all_plots(self):
         hub=pgm.Hub('GK')
         hub.set_dparam(**{'Tmax':100,'dt':0.1})
         hub.run()
@@ -201,9 +187,8 @@ class Test00_Get():
                                    'log':[True,False],
                                    'title':'', 
                                    })
-        #pgm.plots.repartition()
 
-        pgm.plots.XY(hub,**{    'x':'employment',
+        pgm.plots.XY (hub,**{    'x':'employment',
                             'y':'omega',
                             'color':'d', 
                             'scaled':True,
@@ -213,7 +198,7 @@ class Test00_Get():
                             'tend':False, 
                             'title':'', 
                             })
-        pgm.plots.XY(hub,**{    'x':'employment',
+        pgm.plots.XY (hub,**{    'x':'employment',
                             'y':'omega',
                             'color':'d', 
                             'scaled':False,
@@ -223,7 +208,7 @@ class Test00_Get():
                             'tend':False, 
                             'title':'', 
                             })
-        pgm.plots.XY(hub,**{    'x':'employment',
+        pgm.plots.XY (hub,**{    'x':'employment',
                             'y':'omega',
                             'color':'d', 
                             'scaled':False,
@@ -242,7 +227,7 @@ class Test00_Get():
                             'tini':False, 
                             'tend':False, 
                             'title':''},)
-        pgm.plots.XYZ(hub,*{   'x':'employment',
+        pgm.plots.XYZ(hub,**{   'x':'employment',
                             'y':'omega',
                             'z':'d', 
                             'color':'time', 
@@ -252,7 +237,17 @@ class Test00_Get():
                             'tend':20, 
                             'title':''},)
 
-    def test05_set_params(self):
+        #pgm.plots.plotbyunits(hub,**{})
+
+        #pgm.plots.cycles_characteristics(hub,**{})
+
+        #pgm.plots.plotnyaxis(hub,**{ })
+
+        #pgm.plots.Sankey()
+
+        #pgm.plots.repartition()
+
+    def test04_set_params(self):
         hub=pgm.Hub('GK')
         dpreset = {'test': {'fields': {'philinConst': -0.55465958},
                            'com': '',
@@ -308,7 +303,7 @@ class Test00_Get():
                                                                                        'value':[0.5,0.22]}})
 
                                                                             
-    def test06_network(self):
+    def test05_network(self):
         hub=pgm.GK()
         hub.get_network()
         hub.get_Network(params=True)                    # state,differential,parameters
@@ -316,7 +311,7 @@ class Test00_Get():
         hub.get_Network(filters=('Pi',))                # remove the variable Pi and its connexions
         hub.get_Network(filters=('Pi',),redirect=True) 
 
-    def test07_description(self):
+    def test06_description(self):
         hub=pgm.GK()
         hub.get_equations_description()
         hub.get_summary()
@@ -328,12 +323,36 @@ class Test00_Get():
     crit='units',
     eqtype=['differential', 'statevar'])
 
-    def test08_distributions(self):
-        import numpy as np
-        print(np.linspace(0,0.1,3))
+    def test07_distributions(self):
+        SensitivityDic = {
+            'alpha': {'mu': .02,
+                    'sigma': .12,
+                    'type': 'log'},
+            'k2': {'mu': 20,
+                'sigma': .12,
+                'type': 'log'},
+            'mu': {'mu': 1.3,
+                'sigma': .12,
+                'type': 'log'},
+        }
+        presetCoupled = pgm.generate_dic_distribution(SensitivityDic,
+                                                    N=100)
+        presetCoupled['nx']=100
+
         hub=pgm.Hub('GK',verb=False)
-        hub.set_dparam(**{
-            'nx':3,
-            'alpha':np.linspace(0,0.1,3),})
-        hub.run()
+        hub.set_dparam(**presetCoupled)
+        hub.run(N=100)
+        hub.calculate_StatSensitivity()
         pgm.plots.Var(hub,'employment',mode='sensitivity')
+
+    def test08_generate_interface(self):
+        pass 
+
+    def test09_cycles_analysis(self):
+        pass 
+
+    def test10_special_plots(self):
+        # Sankey
+
+        # Repartition
+        pass

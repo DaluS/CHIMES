@@ -69,7 +69,7 @@ _PRESETS = {'Fred': {
                   'Tmax': 2000/4,
                   'dt':0.1   },
     'com': 'Calibration of the US economy by Fred',
-    'plots':{'3D': [{'x':'employment',
+    'plots':{'XYZ': [{'x':'employment',
                     'y':'omega',
                     'z':'d',
                     'color':'time'},

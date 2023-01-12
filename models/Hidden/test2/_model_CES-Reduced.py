@@ -33,7 +33,7 @@ def omegap(eta=0, phillips=0, alpha=0, omega=0):
 
 _LOGICS = {
     'ode': {
-        'lambda': {
+        'employment': {
             'func': lambda itself=0, g=0, alpha=0, beta=0, kappa=0, nu=1, omegap=0, omega=0.5, delta=0, eta=1: itself * (kappa/nu - alpha - beta-delta - omegap/omega * (eta*(1-omega))**(-1)),
             'com': ''
         },
@@ -81,7 +81,7 @@ _LOGICS = {
 
 _PRESETS = {'default': {
     'fields': {
-        'lambda': 0.95,
+        'employment': 0.95,
         'omega': 0.85,
         'd': 2,
         'alpha': 0.02,

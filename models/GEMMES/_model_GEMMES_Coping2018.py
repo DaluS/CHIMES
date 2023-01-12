@@ -364,13 +364,12 @@ plots = {
             'lw':1
         }
     ],
-    'phasespace': [],
-    '3D': [{'x': 'employment',
+    'XY': [],
+    'XYZ': [{'x': 'employment',
             'y': 'omega',
             'z': 'd',
             'color': 'sigmaEm',
-            'cmap': 'jet',
-            'index': 0,
+            'idx': 0,
             'title': ''
             }
            ],

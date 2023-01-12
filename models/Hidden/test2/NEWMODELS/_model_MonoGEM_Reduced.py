@@ -53,7 +53,7 @@ _LOGICS = {
                  'com': "Stock-flow Inventory evolution"},
 
         # HOUSEHOLD INTERMEDIARY CHARACTERISTICS
-        'lambda': {'func': lambda L=0, N=1: L/N,
+        'employment': {'func': lambda L=0, N=1: L/N,
                    'com': 'employement rate'},
         'omega': {'func': lambda w=0, L=0, p=1, Y=1: w*L/(p*Y),
                   'com': 'wage share'},

@@ -66,7 +66,7 @@ _LOGICS_MONOGEM = {
 
         # HOUSEHOLD INTERMEDIARY CHARACTERISTICS
         'pi': Funcs.Definitions.pi,
-        'lambda': Funcs.Definitions.lamb,
+        'employment': Funcs.Definitions.lamb,
         'omega': Funcs.Definitions.omega,
         'GDP': Funcs.Definitions.GDPmonosec,
         'd': Funcs.Definitions.d,

@@ -11,7 +11,6 @@ from .._config import _PATH_HERE
 import os
 
 def find_auxiliary(hub):
-
     R = hub.get_dparam()
     kargs = {k: [j.replace('itself', k)
                  for j in R[k]['kargs']
@@ -71,7 +70,7 @@ def show(net, name, local=True):
     write_html(net,name, local)
     webbrowser.open(name)
 
-from IPython.display import IFrame
+#from IPython.display import IFrame
 def write_html(self, name, local=True, notebook=False):
     """
     This method gets the data structures supporting the nodes, edges,
@@ -83,7 +82,7 @@ def write_html(self, name, local=True, notebook=False):
 
     with open(name, "w+") as out:
         out.write(self.html)
-        return IFrame(name, width=self.width, height="600px")
+        #return IFrame(name, width=self.width, height="600px")
     '''
     if notebook:
         if os.path.exists("lib"):
@@ -215,7 +214,7 @@ def Network_pyvis(hub,
         Title = ''
         Title += 'Units        :' + v['units']+'<br>'
         Title += 'Equation     :'+f'{key}=' + v.get('source_exp', 'f()').replace(
-            'itself', key).replace('lamb', 'lambda')+'<br>'
+            'itself', key+'<br>'
         Title += 'definition   :' + v['definition']+'<br>'
         Title += 'Comment      :' + v['com']+'<br>'
         Title += 'Dependencies :'+'<br>'
@@ -236,7 +235,7 @@ def Network_pyvis(hub,
         v = R[key]
         Title = f"""
 Units        :{v['units']}<br>
-Equation     :d{key}/dt={v['source_exp'].replace('itself', key).replace('lamb','lambda')}<br>
+Equation     :d{key}/dt={v['source_exp'].replace('itself', key)}<br>
 definition   :{v['definition']}<br>
 Comment      :{v['com']}<br>
 Dependencies :<br>
