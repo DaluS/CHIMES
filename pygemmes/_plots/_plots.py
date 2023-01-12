@@ -224,8 +224,9 @@ def plotnyaxis(hub,  y=[[]],x='time', log=False, idx=0,Region=0,tini=False,tend=
     '''
     hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
 
-    if type(log) is bool:
-        log = [log for l in len(y)]
+ 
+    if type(log) is not list:
+        log = [log for l in range(len(y))]
 
     ### INITIALIZE FIGURE
     fig = plt.figure()
@@ -373,9 +374,9 @@ def XYZ(hub,x,y,z,
         tini=False ,
         tend=False ,
         title=''):
-    '''
-    Plot a 3D curve, with a fourth field as the color of the curve
-    '''
+    '''Plot a 3D curve, with a fourth field as the color of the curve'''
+    
+    print('idx',idx,'region',Region,'tini',tini,'tend',tend)
     hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
 
 
@@ -927,36 +928,14 @@ def phasespace(hub, x, y, color='time', idx=0,Region=0):
         print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS VALUES')
         hub.run()
 
-
-
-
-    allvars = hub.get_dparam(returnas=dict)
-    yval = allvars[y]['value'][:, idx,Region,ysect,0]
-    xval = allvars[x]['value'][:, idx,Region,xsect,0]
-    t = allvars[color]['value'][:, idx,Region,colorsect,0]
-
-    points = np.array([xval, yval]).T.reshape(-1, 1, 2)
-    segments = np.concatenate([points[:-1], points[1:]], axis=1)
-
-    norm = plt.Normalize(t.min(), t.max())
-    lc = LineCollection(segments, cmap='viridis', norm=norm)
-    lc.set_array(t)
-    lc.set_linewidth(2)
-
-    fig = plt.figure()
-    fig.set_size_inches(10, 7)
-    ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
-    line = ax.add_collection(lc)
-    fig.colorbar(line, ax=ax, label=allvars[color]['symbol'][:-1]+'_{'+colorname+'}$')
-    plt.xlabel(allvars[x]['symbol'][:-1]+'_{'+xname+'}$')
-    plt.ylabel(allvars[y]['symbol'][:-1]+'_{'+yname+'}$')
-    plt.xlim([np.nanmin(xval), np.nanmax(xval)])
-    plt.ylim([np.nanmin(yval), np.nanmax(yval)])
-    plt.axis('scaled')
-    plt.title('Phasespace ' + x + '-' + y + ' for model : '
-              + hub.dmodel['name'] + '| system number' + str(idx))
-
-    plt.show()
+    XY(hub,x,y,
+       color='time',
+       scaled=False,
+       idx=0,
+       Region=0,
+       tini=False ,
+       tend=False ,
+       title='')
 
 
 def plot3D(hub, x, y, z, color, cmap='jet', index=0,Region=0, title=''):
@@ -964,73 +943,15 @@ def plot3D(hub, x, y, z, color, cmap='jet', index=0,Region=0, title=''):
     Depreciated, use XYZ instead
     '''
     print('Depreciated, use XYZ instead')
-    if not hub.dmisc['run']:
-        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
-        hub.run()
+    XYZ(hub,x,y,z,
+        color,
+        idx=0,
+        Region=Region,
+        tini=False ,
+        tend=False ,
+        title=title)
 
-    R=hub.get_dparam()
-    if type(x) is list :
-        xsect=R[R[x[0]]['size'][0]]['list'].index(x[1])
-        xname=x[1]
-        x=x[0]
-    else :
-        xsect=0
-        xname=''
-    if type(y) is list :
-        ysect=R[R[y[0]]['size'][0]]['list'].index(y[1])
-        yname=y[1]
-        y=y[0]
-    else :
-        ysect=0
-        yname =''
-    if type(z) is list :
-        zsect=R[R[z[0]]['size'][0]]['list'].index(z[1])
-        zname=z[1]
-        z=z[0]
-    else :
-        zsect=0
-        zname =''
-    if type(color) is list :
-        colorsect=R[R[color[0]]['size'][0]]['list'].index(color[1])
-        colorname=color[1]
-        color=color[0]
-    else :
-        colorsect=0
-        colorname =''
-
-    vx = R[x]['value'][:, index,Region,xsect,0]
-    vy = R[y]['value'][:, index,Region,ysect,0]
-    vz = R[z]['value'][:, index,Region,zsect,0]
-    vc = R[color]['value'][:, index,Region,colorsect,0]
-
-    points = np.array([vx, vy, vz]).T.reshape(-1, 1, 3)
-    segments = np.concatenate([points[:-1], points[1:]], axis=1)
-    norm = plt.Normalize(vc.min(), vc.max())
-
-    fig = plt.figure()
-    fig.set_size_inches(10, 10)
-    ax = plt.axes(projection='3d')
-    ax.plot(vx,
-            vy,
-            vz, lw=0.01, c='k')
-    lc = Line3DCollection(segments, cmap=cmap, norm=norm)
-    lc.set_array(vc)
-    lc.set_linewidth(2)
-    line = ax.add_collection(lc)
-
-    cbar = fig.colorbar(lc, ax=ax)
-    cbar.ax.set_ylabel(R[color]['symbol'][:-1]+'_{'+xname+'}$' if xname else R[color]['symbol'])
-    ax.set_xlabel(R[x]['symbol'][:-1]+'_{'+xname+'}$' if xname else R[x]['symbol'])
-    ax.set_ylabel(R[y]['symbol'][:-1]+'_{'+yname+'}$' if yname else R[y]['symbol'])
-    ax.set_zlabel(R[z]['symbol'][:-1]+'_{'+zname+'}$' if zname else R[z]['symbol'])
-
-    #print(R[x]['symbol'][:-1]+'_{'+xname+'}$')
-
-    plt.tight_layout()
-    # plt.legend()
-    plt.title(title)
-    plt.show()
-
+    
 
 def __slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0,Region=0):
     '''

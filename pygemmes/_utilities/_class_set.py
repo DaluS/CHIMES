@@ -373,7 +373,7 @@ def set_args_auxilliary(dparam, verb=False):
         if sour.replace(' ', '').count("'func':lambda") == 1:
             # clean-up source
             sour = sour.strip().replace(',\n', '').replace('\n', '')
-            sour = sour[sour.index('lambda') + len('lambda'):]
+            sour = sour[sour.index("lambda") + len("lambda"):]
             # separate keyword args from expression
             kargs, exp = sour.split(':')[:2]
 
