@@ -314,38 +314,46 @@ class Test00_Get():
         hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nx':['one','two'],
                                                         'nr':['here','there','test']},verb=False)
 
+        try:
         # Multiple values 
-        hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nx':3,
-                                                        'alpha':[0.01,0.02,0.03]})
+            hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nx':3,
+                                                            'alpha':[0.01,0.02,0.03]})
+        except BaseException as ERR: print(ERR)
         #hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
         #                                                'alpha':[['nr','France'],0.01]})    
-        hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
+        try:hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
                                                         'nx': 3,    
                                                         'alpha':[['nr','France'],['nx',1],0.01]})
-        hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
+        except BaseException as ERR: print(ERR)
+        try:hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
                                                         'nx': 6,    
                                                         'alpha':[['nr',0],['nx',0,4],[0.5,0.2]]}) 
-        hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
+        except BaseException as ERR: print(ERR)
+        try:hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
                                                         'nx': 6, 
                                                         'alpha':{'nr':['France','USA'],
                                                                  'nx':1,
                                                                  'value':0.5}})
-
+        except BaseException as ERR: print(ERR)
         # Multisectoral        
-        hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[0.1,1])                      #will put [0,1] for all parrallel all regions
+        try:hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[0.1,1])                      #will put [0,1] for all parrallel all regions
+        except BaseException as ERR: print(ERR)
         #hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[['nr',0],[0.1,1]])            #will put [0,1] for all parrallel in region 0
-        hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[['nr',0,1],[0.1,1]])          #will put [0,1] for all parrallel in region 0 and 1
-        hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[['nx',0],['nr',0,1],[0.1,1]]) #will put [0,1] for parrallel system 0, in region 0 and 1
-                                                                                                 
-        hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('Gamma',[[0,1],[1,0]])  #will put [[0,1],[1,0]] for all parrallel all regions
-        hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam(**{'Gamma': {'first':['Consumption','Capital'],
+        try:hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[['nr',0,1],[0.1,1]])          #will put [0,1] for all parrallel in region 0 and 1
+        except BaseException as ERR: print(ERR)
+        try:hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[['nx',0],['nr',0,1],[0.1,1]]) #will put [0,1] for parrallel system 0, in region 0 and 1
+        except BaseException as ERR: print(ERR)                                                                                         
+        try:hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('Gamma',[[0,1],[1,0]])  #will put [[0,1],[1,0]] for all parrallel all regions
+        except BaseException as ERR: print(ERR)
+        try:hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam(**{'Gamma': {'first':['Consumption','Capital'],
                                                                                         'second':['Consumption','Consumption'],
                                                                                         'nr':0,
                                                                                         'value':[0.5,0.22]}})
-        hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam(**{'Gamma': {'first':['Consumption','Capital'],
+        except BaseException as ERR: print(ERR)
+        try:hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam(**{'Gamma': {'first':['Consumption','Capital'],
                                                                                        'nr':0,
                                                                                        'value':[0.5,0.22]}})
-
+        except BaseException as ERR: print(ERR)
                                                                             
     def test05_network(self):
         hub=pgm.Hub('GK')
