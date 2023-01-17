@@ -1,10 +1,5 @@
-
-
-# %% Importations ###########
-
 # built-in
 import copy
-
 
 # Common
 import numpy as np
@@ -19,14 +14,8 @@ from ._utilities import _class_set
 from ._utilities import _Network
 from ._utilities import _solvers
 from ._utilities import _comparesubarray
+from ._utilities import pprint
 from ._plots._plots import _DPLOT
-
-from IPython.display import display,HTML,Markdown
-def pprint(ldf):
-    '''Print with newline in dataframe'''
-    try : ldf = ldf.style.set_properties(**{'text-align': 'left'})
-    except BaseException: pass
-    return display(HTML(ldf.to_html().replace("\\n","<br>")))
 
 
 class Hub():
@@ -117,15 +106,15 @@ class Hub():
         The structure is the same as in model files ! See __EMPTY__ or TUTORIAL file 
 
         Input must be : a dictionnary with
-`       { name1 : {fields : {key1:values,
+        { name1 : {fields : {key1:values,
                             key1:values,} ,
-                   com: 'Message',
-                   plots : {'plotname1':[{kwargs1},{kwargs2}...],
+                    com: 'Message',
+                    plots : {'plotname1':[{kwargs1},{kwargs2}...],
                             'plotname2':[{kwargs1},{kwargs2}...]}
-        },`
+        },
 
-         if preset_name is a name in this dpreset,
-          then it loads the preset
+        if preset_name is a name in this dpreset,
+        then it loads the preset
         """
 
         if type(input)!=dict:
@@ -768,6 +757,7 @@ class Hub():
        dverb = _class_checks._run_verb_check(verb=verb)
 
        # reset variables
+       self.set_dparam(**{})
        self.reset()
 
        # start time loop
@@ -858,7 +848,7 @@ class Hub():
            print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
 
 
-    def get_summary(self, display=False):
+    def get_summary(self,minimal=True):
         """
         INTROSPECTION TOOL :
         Print a str summary of the model, with
@@ -875,12 +865,21 @@ class Hub():
         """
 
         df0= self.get_fieldsproperties()
-        dfp = self.get_dataframe(eqtype=None,t0=0,t1=0,)
-        dfd = self.get_dataframe(eqtype='differential',t0=0,t1=0,)
-        dfs = self.get_dataframe(eqtype='statevar'    ,t0=0,t1=0,)
+        if not minimal:
+            dfp = self.get_dataframe(eqtype=None,t0=0,t1=0,)
+            dfd = self.get_dataframe(eqtype='differential',t0=0,t1=0,)
+            dfs = self.get_dataframe(eqtype='statevar'    ,t0=0,t1=0,)
 
-        print('please do: ')
-        return [df0,dfp.transpose(),dfd.transpose(),dfs.transpose()]
+        if minimal:
+            dfm = self.get_dataframe(eqtype=None,t0=0,t1=0,)
+            R=self.dparam()
+
+        SUMMARY=[df0,dfp.transpose(),dfd.transpose(),dfs.transpose()]
+        #display(df0)
+        #display(dfp.transpose())
+        #display(dfd.transpose())
+        #display(dfs.transpose())
+        return SUMMARY
 
 
     def get_fieldsproperties(self):
