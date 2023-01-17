@@ -237,16 +237,58 @@ class Test00_Get():
                             'tend':20, 
                             'title':''},)
 
-        #pgm.plots.plotbyunits(hub,**{})
+        pgm.plots.plotbyunits(hub,**{'filters_key' :('p'),
+                                    'filters_units':('Units'),
+                                    'filters_sector':(),
+                                    'separate_variables':{'':['employment','omega']},
+                                    'idx':0,
+                                    'Region':0,
+                                    'title':'',
+                                    'lw':2})
 
         #pgm.plots.cycles_characteristics(hub,**{})
 
-        #pgm.plots.plotnyaxis(hub,**{ })
+        pgm.plots.plotnyaxis(hub,**{'x': 'time',
+                                    'y': [['employment', 'employment'],
+                                            ['omega'],
+                                            ],
+                                        'idx':0,
+                                        'title':'',
+                                        'lw':1})
+
+
 
         hub=pgm.Hub('CHIMES')
         pgm.plots.Sankey()
-
-        #pgm.plots.repartition()
+        
+        R=hub.get_dparam()
+        for sector in R['Nprod']['list'] :
+            pgm.plots.plotnyaxis(hub, y=[[['inflation', sector],
+                                        ['inflationMarkup', sector],
+                                        ['inflationdotV', sector], ],
+                                        [['dotV',sector]],
+                                        [['c',sector],
+                                        ['p',sector]],
+                                        [['pi',sector],
+                                        ['kappa',sector]],
+                                        [['employment',sector],
+                                        ['u',sector],
+                                        ]],)
+            pgm.plots.repartition(hub,
+                                ['pi','omega','Mxi','Mgamma','rd','reloverinvest','reldotv'],
+                                sign= [1,1,1,1,1,1,-1],
+                                sector=sector,
+                                title=f'Expected relative budget $\pi$ for sector {sector}')
+            pgm.plots.repartition(hub,['Minter','Minvest','C','dotV'],
+                                ref='Y',
+                                sector=sector,
+                                title=f'Physical Fluxes for sector {sector}')
+            pgm.plots.repartition(hub,['MtransactY','MtransactI','wL','pC','rD'],
+                                sign=[1, 1, 1, -1, 1],
+                                ref='dotD',
+                                sector=sector,
+                                title=f'Monetary Fluxes for sector {sector}',
+                                removetranspose=True)
 
     def test04_set_params(self):
         hub=pgm.Hub('GK')
@@ -290,7 +332,7 @@ class Test00_Get():
 
         # Multisectoral        
         hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[0.1,1])                      #will put [0,1] for all parrallel all regions
-        hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[['nr',0],[0.1,1]])            #will put [0,1] for all parrallel in region 0
+        #hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[['nr',0],[0.1,1]])            #will put [0,1] for all parrallel in region 0
         hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[['nr',0,1],[0.1,1]])          #will put [0,1] for all parrallel in region 0 and 1
         hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[['nx',0],['nr',0,1],[0.1,1]]) #will put [0,1] for parrallel system 0, in region 0 and 1
                                                                                                  
