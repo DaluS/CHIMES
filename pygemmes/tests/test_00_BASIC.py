@@ -67,6 +67,7 @@ class Test00_Get():
         for k in dmodel.keys():
             if k not in ['__EMPTY__']:
                 for v in [None]+dmodel[k]['Preset']:
+                    print(k,v)
                     hub=pgm.Hub(k,preset=v,verb=False)
                     hub.set_dparam(**{'Tmax':1,'dt':0.01},verb=False)
                     hub.run(verb=False)
@@ -298,7 +299,7 @@ class Test00_Get():
         hub.set_dpreset(dpreset,preset='test')
         
         hub=pgm.Hub('GK')
-        hub.set_preset('test')
+        hub.set_preset('default')
 
         # Monosectoral 
         hub=pgm.Hub('GK',verb=False); hub.set_dparam('a',1           ,verb=False)
@@ -355,7 +356,7 @@ class Test00_Get():
         hub.get_Network(filters=('Pi',),redirect=True) 
 
     def test06_description(self):
-        hub=pgm.GK()
+        hub=pgm.Hub('GK')
         hub.get_equations_description()
         hub.get_summary()
         _=hub.dmodel

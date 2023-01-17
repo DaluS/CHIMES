@@ -102,6 +102,7 @@ _PRESETS = {
     },
     'many-orbits': {
         'fields': {
+            'nx':5,
             'dt': 0.01,
             'a': 1,
             'N': 1,
