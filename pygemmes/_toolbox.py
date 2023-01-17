@@ -23,7 +23,7 @@ __all__ = [
 ]
 
 def get_available_plots():
-    # Check 2022
+    # Check 01 2023
     '''
     Print all the plots routines with their docstring and dependencies
     '''
@@ -81,7 +81,7 @@ def get_available_fields(exploreModels=_FIELDS_EXPLOREMODEL):
             'In model': str(v0['inmodel'])}
               for k0, v0 in dparam_sub.items() if v0['group'] != 'Numerical'}
     modeldf=pd.DataFrame(dic)
-    return modeldf.transpose().style.set_properties(**{'text-align': 'left'})
+    return modeldf.transpose()#.style.set_properties(**{'text-align': 'left'})
 
 
 def _GenerateIndividualSensitivity(key, mu, sigma, disttype='normal', dictpreset={}, N=10):

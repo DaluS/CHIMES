@@ -243,7 +243,8 @@ class Test00_Get():
 
         #pgm.plots.plotnyaxis(hub,**{ })
 
-        #pgm.plots.Sankey()
+        hub=pgm.Hub('CHIMES')
+        pgm.plots.Sankey()
 
         #pgm.plots.repartition()
 

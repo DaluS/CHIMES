@@ -91,6 +91,30 @@ def _get_DMODEL(model=False,from_user=_FROM_USER):
 # Generic function to get the list of available models
 # ####################################################
 
+def get_available_model_documentation(model):
+    '''
+    Gives a more detailed description of the model you are asking for  
+    '''
+    df = get_available_models(FULL=True) 
+    mess = '## Model: '+df.loc[model].loc['name']
+    mess+='\n'
+    #mess+= df.loc[model].loc['description']    
+    mess+=df.loc[model].loc['description']
+    mess+='\n'
+    mess+=df.loc[model].loc['address']
+    mess+='\n'
+    if df.loc[model].loc['description'] != df.loc[model].loc['longDescription']:
+        mess+=df.loc[model].loc['longDescription']
+    mess+='\n'
+    mess+='# Presets'
+    mess+='\n'
+    mess+=str(pd.DataFrame(pd.DataFrame(df.loc[model].loc['presets']).transpose()['com']))
+    mess+='\n'
+    mess+='# Supplements'
+    mess+='\n'
+    mess+= str(df.loc[model].loc['supplements'])
+    return mess
+
 def get_available_models(
     model=None,
     details=_MODELS_SHOWDETAILS,
@@ -134,18 +158,18 @@ def get_available_models(
         if k0 in model
     }
 
+    ## Choosing what infos is in
     dic={v0['name']: {'Folder': v0['address'][len(_PATH_MODELS)+1:-len(_MODEL_NAME_CONVENTION)-len(v0['name'])-1],
                       'Preset': v0['presets'],}for k0, v0 in dmod.items()}
     if details: 
         dic={v0['name']: {'Folder': v0['address'][len(_PATH_MODELS)+1:-len(_MODEL_NAME_CONVENTION)-len(v0['name'])-1],
                       'Preset': v0['presets'],
-                      'Documentation': v0['description']}for k0, v0 in dmod.items()}       
+                      'Short Documentation': v0['description']}for k0, v0 in dmod.items()}       
     if FULL:
         dic = _DMODEL
     modeldf=pd.DataFrame(dic)
 
-
-
+    # format
     if Return is list: 
         return model
     if Return is dict:

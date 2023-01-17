@@ -376,7 +376,6 @@ def XYZ(hub,x,y,z,
         title=''):
     '''Plot a 3D curve, with a fourth field as the color of the curve'''
     
-    print('idx',idx,'region',Region,'tini',tini,'tend',tend)
     hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
 
 

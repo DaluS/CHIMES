@@ -10,6 +10,9 @@ import numpy as np
 # #############################################################################
 
 
+
+
+
 def _getcharray(ar, col=None, sep='  ', line='-', just='l', msg=True):
 
     c0 = ar is None or len(ar) == 0

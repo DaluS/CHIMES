@@ -171,3 +171,38 @@ pgm.plots.plotnyaxis(hub, y=[[['inflation', sector],
                              [['employmentlocal',sector],
                               ['u',sector],
                               ]],)
+
+
+hub=pgm.Hub('ECHIMES',preset='Bisectoral',verb=False)
+hub.set_dparam('Tmax',80)
+hub.run()
+hub.plot(separate_variables={'':['v','u','u0'],'Units.y^{-1}':['dotV'],'y^{-1}':['philips','ROC','ibasket']},filters_key=('pAGG','VAGG','KAGGpass,gAGG'))
+
+
+for sector in sectors :
+    pgm.plots.plotnyaxis(hub, y=[[['inflation', sector],
+                                  ['inflationMarkup', sector],
+                                  ['inflationdotV', sector], ],
+                                 [['dotV',sector]],
+                                 [['c',sector],
+                                  ['p',sector]],
+                                 [['pi',sector],
+                                  ['kappa',sector]],
+                                 [['employment',sector],
+                                  ['u',sector],
+                                  ]],)
+    pgm.plots.repartition(hub,
+                          ['pi','omega','Mxi','Mgamma','rd'],
+                          sign= [1,1,1,1,1],
+                          sector=sector,
+                          title=f'Expected relative budget $\pi$ for sector {sector}')
+    pgm.plots.repartition(hub,['Minter','Minvest','C','dotV'],
+                          ref='Y',
+                          sector=sector,
+                          title=f'Physical Fluxes for sector {sector}')
+    pgm.plots.repartition(hub,['MtransactY','MtransactI','wL','pC','rD'],
+                          sign=[1, 1, 1, -1, 1],
+                          ref='dotD',
+                          sector=sector,
+                          title=f'Monetary Fluxes for sector {sector}',
+                          removetranspose=True)

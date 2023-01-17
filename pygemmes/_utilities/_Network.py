@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 """
 Created on Mon Feb  7 09:46:30 2022
 
@@ -11,6 +11,7 @@ from .._config import _PATH_HERE
 import os
 
 def find_auxiliary(hub):
+
     R = hub.get_dparam()
     kargs = {k: [j.replace('itself', k)
                  for j in R[k]['kargs']
@@ -70,7 +71,6 @@ def show(net, name, local=True):
     write_html(net,name, local)
     webbrowser.open(name)
 
-#from IPython.display import IFrame
 def write_html(self, name, local=True, notebook=False):
     """
     This method gets the data structures supporting the nodes, edges,
@@ -82,30 +82,7 @@ def write_html(self, name, local=True, notebook=False):
 
     with open(name, "w+") as out:
         out.write(self.html)
-        #return IFrame(name, width=self.width, height="600px")
-    '''
-    if notebook:
-        if os.path.exists("lib"):
-            shutil.rmtree(f"lib")
-            shutil.copytree(f"{os.path.dirname(__file__)}/templates/lib", "lib")
-        with open(name, "w+") as out:
-            out.write(self.html)
-        
-    else:
-        if local:
-            tempdir = "."
-        else:
-            tempdir = tempfile.mkdtemp()
-        # with tempfile.mkdtemp() as tempdir:
-        if os.path.exists(f"{tempdir}/lib"):
-            shutil.rmtree(f"{tempdir}/lib")
-        shutil.copytree(f"{os.path.dirname(__file__)}/templates/lib", f"{tempdir}/lib")
 
-        print(f"{tempdir}/{name}")
-        with open(f"{tempdir}[2:]/{name}", "w+") as out:
-            out.write(self.html)
-            webbrowser.open(f"{tempdir}/{name}")
-    '''
 
 def Network_pyvis(hub,
                   filters = (),
@@ -214,7 +191,7 @@ def Network_pyvis(hub,
         Title = ''
         Title += 'Units        :' + v['units']+'<br>'
         Title += 'Equation     :'+f'{key}=' + v.get('source_exp', 'f()').replace(
-            'itself', key+'<br>'
+            'itself', key)+'<br>'
         Title += 'definition   :' + v['definition']+'<br>'
         Title += 'Comment      :' + v['com']+'<br>'
         Title += 'Dependencies :'+'<br>'
