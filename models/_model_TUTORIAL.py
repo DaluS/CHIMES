@@ -1,26 +1,31 @@
-# -*- coding: utf-8 -*-
-"""
-THIS DOCSTRING IS THE DESCRIPTION OF THE MODEL.
+
+'''Tutorial on how to write a model. Read the file !'''
+
+
+_DESCRIPTION ="""
+The first line is the short description of the model 
+
+THIS DOCSTRING IS THE LONG DESCRIPTION OF THE MODEL.
 PUT EVERYTHING YOU WANT THE USER TO KNOW BEFORE HE LOADS THE MODEL.
 
-Typically :
-* Model name
-* what is does : logistic crisis, climate damage, multiple sectors, regions...
-* What are the hypotheses :
-* Main properties : Cycles, equilibrium, phase-change...
+* **Name :**
+* **Article :** 
+* **Author  :** 
+* **Coder   :** 
 
-@URL:
-@author: Paul Valcke
+* **Supplements description :** 
+
 TODO:
-    - EVERYTHING you want to change
-    - ...
+* EVERYTHING you want to change
+* ...
 """
 
 # ######################## PRELIMINARY ELEMENTS #########################
 '''pygemmes model are python files. you can do operations with them an within them.
 If you need other libraries of functions from python, you can get them here'''
-# import numpy as np (if you need exponential, pi, log, of matrix products...)
+import numpy as np #(if you need exponential, pi, log, of matrix products...)
 from pygemmes._models import Funcs, importmodel,mergemodel
+from pygemmes._models import Operators as O
 
 # ######################## LOGICS #######################################
 '''
@@ -63,25 +68,14 @@ _LOGICS = { 'size'        : {},
 
 # Advanced possibilites : You can import other model files and merge them
 #_LOGICS_GOODWIN,_PRESETS0= importmodel('Goodwin')
-#_LOGICS = mergemodel(_LOGICS, _LOGICS_GOODWIN, verb=True) # rename _LOGICS_MERGED into _LOGICS if you want to really do it !
+#_LOGICS = mergemodel(_LOGICS, _LOGICS_GOODWIN, verb=True) 
 
-# ####################### PRESETS #######################################
-'''
-_PRESETS Must be a dict 
+_SUPPLEMENTS={}
 _PRESETS = {
-    'presetname1': {
-        'fields': {},
-        'com': '',
-        'plots': {},
-    },
-}
-    [...]
-'''
-
-_PRESETS = {
-    'presetname1': {
-        'fields': {},
-        'com': '',
-        'plots': {},
+    'presetname1': {           # Name of the preset
+        'fields': {'Tmax':50,  # Dictionnary of all changed values
+                   'dt':0.1},  
+        'com': 'description of the preset',
+        'plots': {},           # All the plots you want to print  
     },
 }

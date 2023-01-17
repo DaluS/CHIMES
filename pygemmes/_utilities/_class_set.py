@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 Created on Mon Mar 21 12:53:27 2022
 
@@ -41,12 +41,13 @@ def load_model(model=None, verb=None, from_user=None):
         - the absolute path to an abitrary model file
     """
 
-
     # LOAD THE FILE AND THE LIBRARY ###########################################
-    _class_check_2.model_name(model, from_user, verb=verb)
+    #_class_check_2.model_name(model, from_user, verb=verb)
+
     dmodel = load_dmodel(model, from_user=None)
     dfields = load_complete_DFIELDS(dmodel, verb=verb)
     _class_check_2.dmodel(dmodel)
+
 
     # CREATE DPARAM ###########################################################
     dparam = logics_into_dparam(dmodel)
@@ -78,7 +79,7 @@ def load_dmodel(model, from_user=False):
     Load the model from its file
     """
 
-    path_models,_DMODEL = _models._get_DMODEL()
+    path_models,_DMODEL = _models._get_DMODEL(model)
 
     if model not in _DMODEL.keys():
         modellist = "".join(['* '+str(f)+"\n" for f in list(_DMODEL.keys())])
@@ -173,6 +174,9 @@ def logics_into_dparam(dmodel):
         if len(dparam[k0].get('size',[_DEFAULTSIZE]))<2 :
             dparam[k0]['size']=[dparam[k0].get('size',[_DEFAULTSIZE])[0],
                                 _DEFAULTSIZE ]
+
+
+        
     return dparam
 
 
@@ -249,6 +253,7 @@ def extract_parameters(dparam, dfields, verb=None):
                 lfunc_new += lf
         else:
             keepon = False
+        
 
     # %% c) if a key is unknown form dfields but exit in model, add it
     if len(lpar_new + lfunc_new) > 0:
@@ -290,8 +295,7 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None, dfields=None):
     Subroutine of extract_parameters using inspection
     '''
     lpar_add, lfunc_add = [], []
-    lkok = ['itself'] + lpar + lfunc
-
+    lkok = lpar + lfunc
     ERRORS=[]
     for k0 in lfunc:
         key =  k0
@@ -300,7 +304,7 @@ def _extract_par_from_func(lfunc=None, lpar=None, dparam=None, dfields=None):
             kargs = inspect.getfullargspec(dparam[key]['func']).args
         else:
             kargs = inspect.getfullargspec(dfields[key]['func']).args
-
+        
 
         # check if any parameter is unknown
         for kk in kargs:
@@ -363,16 +367,20 @@ def set_args_auxilliary(dparam, verb=False):
     for k0 in lfunc:
         sour = inspect.getsource(dparam[k0]['func']).replace(
             '    ', '').split('\n')[0]
+
+        
         # Extract kargs and exp (for lambda only)
         if sour.replace(' ', '').count("'func':lambda") == 1:
             # clean-up source
             sour = sour.strip().replace(',\n', '').replace('\n', '')
-            sour = sour[sour.index('lambda') + len('lambda'):]
+            sour = sour[sour.index("lambda") + len("lambda"):]
             # separate keyword args from expression
             kargs, exp = sour.split(':')[:2]
 
+            #print(k0,lfunc)
+
             # store exp for lambda only
-            dparam[k0]['source_exp'] = exp.strip()
+            dparam[k0]['source_exp'] = exp.strip().split('#')[0].split('}')[0][:-1]
         else:
             kargs = sour[sour.index('(') + 1:sour.index(')')]
             dparam[k0]['source_exp'] = dparam[k0]['func'].__name__
@@ -547,6 +555,8 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
 
         if dparam[k0]['eqtype'] not in ['parameter']:
             dparam[k0]['value'] = np.full(shape, np.nan)
+        if dparam[k0]['eqtype']=='differential':
+            dparam[k0]['initial']=np.full(shape[1:], dparam[k0]['initial'])
 
     for k0 in lpar:
         sizes = [ dparam[f]['value'] for f in  dparam[k0]['size']]
@@ -566,7 +576,7 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
                     change=True
                     break
             if change:
-                print(dparam[k0]['value'])
+                #print(dparam[k0]['value'])
                 dparam[k0]['value']= dparam[k0]['value'][0,0,0,0]
 
 

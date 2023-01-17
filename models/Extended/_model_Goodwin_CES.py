@@ -1,5 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
+
+'''Goodwin with a CES production function'''
+
+_DESCRIPTION="""
 DESCRIPTION :
 
     This is a small modificaiton of Goodwin : the Leontiev optimised function has been
@@ -99,22 +101,21 @@ _PRESETS = {
         'plots': {
             'timetrace': [{}],
             'plotnyaxis': [{'x': 'time',
-                           'y': [['lambda', 'lamb0'],
+                           'y': [['employment', 'employment'],
                                  ['omega'],
                                  ],
                             'idx':0,
                             'title':'',
                             'lw':1}],
-            'phasespace': [{'x': 'lambda',
+            'XY': [{'x': 'employment',
                             'y': 'omega',
                             'color': 'time',
                             'idx': 0}],
-            'plot3D': [{'x': 'lamb0',
+            'XYZ': [{'x': 'employment',
                         'y': 'omega',
-                        'z': 'lambda',
-                        'cinf': 'time',
-                        'cmap': 'jet',
-                        'index': 0,
+                        'z': 'pi',
+                        'color': 'time',
+                        'idx': 0,
                         'title': ''}],
             'plotbyunits': [],
         },

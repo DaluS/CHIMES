@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 DESCRIPTION :
 
@@ -52,17 +52,17 @@ _PRESETS = {
         'plots': {
             'timetrace': [{}],
             'nyaxis': [{'x': 'time',
-                           'y': [['lambda', 'omega'],
+                           'y': [['employment', 'omega'],
                                  ['K'],
                                  ],
                             'idx':0,
                             'title':'',
                             'lw':1}],
-            'phasespace': [{'x': 'lambda',
+            'phasespace': [{'x': 'employment',
                             'y': 'omega',
                             'color': 'time',
                             'idx': 0}],
-            '3D': [{'x': 'lambda',
+            '3D': [{'x': 'employment',
                         'y': 'omega',
                         'z': 'time',
                         'cinf': 'pi',

@@ -1,48 +1,42 @@
-# -*- coding: utf-8 -*-
 
-# Here we decide what the user will see
+
 from ._core import Hub
-from ._models import get_available_models  # get_dfields_overview
-from ._utilities._solvers import get_available_solvers
-from ._utilities._saveload import get_available_output, load
+from ._models import get_available_models  
 from ._models import _DFIELDS
 from ._utilities import _utils
 from . import _plots as plots
 import inspect
+import pandas as pd
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 from ._config import _FIELDS_EXPLOREMODEL
-from ._config import _FIELDS_SHOWLIST
 
+# FULLY CHECKED DECEMBER 2022 
 # #############################################################################
 
 __all__ = [
     'get_available_fields',
     'get_available_plots',
-    'get_available_output',
-    'generate_preset_from_model_preset',
     'generate_dic_distribution'
 ]
 
-
-
 def get_available_plots():
-    # Check 09/27/22
+    # Check 01 2023
     '''
     Print all the plots routines with their docstring and dependencies
     '''
     all_functions = inspect.getmembers(plots, inspect.isfunction)
 
-    for i in all_functions:
-        print(f"##### {i[0]} {'#'*(30-len(i[0]))}####################")
-        print( inspect.signature(i[1]))
-        print(i[1].__doc__)
+    dic={i[0]: {'documentation': i[1].__doc__,
+                'signature': inspect.signature(i[1])}  for i in all_functions}
+    plotdf=pd.DataFrame(dic)
+    return plotdf.transpose().style.set_properties(**{'text-align': 'left'})
 
 
-def get_available_fields(returnas=False,exploreModels=_FIELDS_EXPLOREMODEL,showModels=_FIELDS_SHOWLIST):
-    # Check 09/27/22
+def get_available_fields(exploreModels=_FIELDS_EXPLOREMODEL):
+    # Check 2022
     '''
     Will load the library of fields, then all available models,
     and will print the ensemble of fields with their properties and the models they are in.
@@ -58,13 +52,14 @@ def get_available_fields(returnas=False,exploreModels=_FIELDS_EXPLOREMODEL,showM
     dparam_sub = _DFIELDS
     for key, val in dparam_sub.items():
         dparam_sub[key]['inmodel'] = []
-    models = get_available_models(returnas=list,verb=False)
+    models = get_available_models(Return=list,verb=False)
 
-    if exploreModels+showModels:
+
+
+    if exploreModels:
         fieldsnotinDfields = []
         if exploreModels:
             for model in models:
-                #print(model)
                 hub = Hub(model, verb=False)
                 params = hub.get_dparam(returnas=dict)
                 for key in params.keys():
@@ -77,105 +72,15 @@ def get_available_fields(returnas=False,exploreModels=_FIELDS_EXPLOREMODEL,showM
 
     print(f'{len(dparam_sub)} fields in the library \n')
 
-    # ------------------
-    # get column headers
-    col2 = [
-        'Field', 'definition', 'group', 'value', 'units', 'In model'
-
-    ]
-
-    # ------------------
-    # get values
-    ar2 = [
-        [k0,
-         v0['definition'],
-         v0['group'],
-         v0['value'],
-         v0['units'],
-         str(v0['inmodel']) if showModels else (len(v0['inmodel']) if len(v0['inmodel']) else '')
-         ]
-        for k0, v0 in dparam_sub.items() if v0['group'] != 'Numerical'
-    ]
-
-    return _utils._get_summary(
-        lar=[ar2],
-        lcol=[col2],
-        verb=True,
-        returnas=returnas,
-    )
-
-
-def generate_preset_from_model_preset(targetmodel,
-                                      outputmodel,
-                                      targetpreset=False,
-                                      targetdpreset=False,
-                                      returnas='hub'):
-    '''
-    Open targetmodel, with or without preset/dpreset, and then gives all necessary
-    values to outputmodel so that, if they solve the same equations on different approaches,
-    they give the same result
-
-    Please note that if they have different mechanism inside with different
-    parameters, you have to manually set them so that they have the same behavior.
-
-
-    Parameters
-    ----------
-    targetmodel : model name of the model we will copy the value
-        DESCRIPTION.
-    targetpreset : the preset name for targetmodel. Optional
-        DESCRIPTION. The default is False.
-    targetdpreset : the dictionnary preset for targetpreset
-        DESCRIPTION. The default is False.
-    outputmodel : the name of the model we will use after
-        DESCRIPTION.
-    returnas : (dict,'hub','dpreset') gives different type of output depending of the situation :
-        * dict is a dict of field : value
-        * hub is outputmodel loaded with the preset
-        * dpreset is a dictionnary with this preset inside
-        The default is 'hub'.
-
-    Returns
-    -------
-    None.
-
-    '''
-    # LOADING TARGET
-    # IF PRESET AND PRESET FILE GIVEN
-    if targetpreset and targetdpreset:
-        hub = Hub(targetmodel, preset=targetpreset,
-                  dpresets=targetdpreset, verb=False)
-
-    # ELIF PRESET NAME GIVEN
-    elif targetpreset:
-        hub = Hub(targetmodel, preset=targetpreset, verb=False)
-
-    # ELSE USE OF BASIC VALUES
-    else:
-        hub = Hub(targetmodel, verb=False)
-
-    hub_output = Hub(outputmodel, verb=False)
-
-    # COPY OF THE PARAMETERS INTO A NEW DICTIONNARY
-    FieldToLoad = hub_output.get_dparam(returnas=dict, eqtype=[None, 'ode'])
-    # group=('Numerical',),)
-    R = hub.get_dparam(returnas=dict)
-    tdic = {}
-    for k, v in FieldToLoad.items():
-        val = R[k]['value']
-        if 'initial' in v.keys():
-            tdic[k] = val[0][0]
-        else:
-            tdic[k] = val
-    _DPRESETS = {'Copy'+targetmodel: {'fields': tdic, }, }
-
-    if returnas == dict:
-        return tdic
-    if returnas == 'hub':
-        return Hub(outputmodel, preset='Copy'+targetmodel,
-                   dpresets=_DPRESETS, verb=False)
-    if returnas == 'preset':
-        return _DPRESETS
+    dic = {k0:{
+            'definition':v0['definition'], 
+            'group':v0['group'],
+            'value':v0['value'], 
+            'units':v0['units'], 
+            'In model': str(v0['inmodel'])}
+              for k0, v0 in dparam_sub.items() if v0['group'] != 'Numerical'}
+    modeldf=pd.DataFrame(dic)
+    return modeldf.transpose()#.style.set_properties(**{'text-align': 'left'})
 
 
 def _GenerateIndividualSensitivity(key, mu, sigma, disttype='normal', dictpreset={}, N=10):

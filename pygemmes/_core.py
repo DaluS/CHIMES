@@ -1,14 +1,9 @@
-# -*- coding: utf-8 -*-
-
-# %% Importations ###########
-
 # built-in
 import copy
 
-
 # Common
 import numpy as np
-
+import pandas as pd
 
 # Library-specific
 from ._config import _FROM_USER
@@ -17,10 +12,10 @@ from ._config import _VERB
 from ._utilities import _utils, _class_checks, _class_utility, _cn
 from ._utilities import _class_set
 from ._utilities import _Network
-from ._utilities import _solvers, _saveload
+from ._utilities import _solvers
 from ._utilities import _comparesubarray
+from ._utilities import pprint
 from ._plots._plots import _DPLOT
-
 
 
 class Hub():
@@ -37,7 +32,7 @@ class Hub():
 
     INPUTS :
     * model : STRING containing the model name
-    * from_user : BOOLEAN if you want to use your file (True) or the one provided in pygemmes (False)
+    * from_user : [Desactivated] BOOLEAN if you want to use your file (True) or the one provided in pygemmes (False)
     * preset : DICTIONNARY name of the preset in the actual dictionnary of preset
     * dpreset : DICTOFDICTOFDIC a dictionnary of preset one can use (see model creation)
     * verb : BOOLEAN True for print in terminal
@@ -46,12 +41,6 @@ class Hub():
 
     A number of pre-defined models are available from the library,
         see pgm.get_available_models() to get a list
-
-    All pre-defined model files are copied into your $HOME/.pygemmes/
-        folder so you can:
-            - edit them to change some parameters
-            - create new model files that will be accessible to pygemmes
-    You can use them using `from_user=True'
     """
 
     def __init__(
@@ -62,7 +51,6 @@ class Hub():
         dpresets=None,
         verb=_VERB,
     ):
-
         # Initialize the hub main dictionnaries ###############################
         # Contains miscellaneous, practical informations
         self.__dmisc = {'run': False,        # Has a run been done
@@ -84,55 +72,49 @@ class Hub():
         )
 
 
-
         # Actualize the shape ##############################################
         self.__dmisc['dmulti']['NxNr'] = (self.__dparam['nx']['value'],
                                           self.__dparam['nr']['value'])
         self.__dmisc['dmulti']['scalar']= []
         self.__dmisc['dmulti']['vector'] = []
         self.__dmisc['dmulti']['matrix'] = []
+
         for k,v in self.dparam.items():
             size = v.get('size',[_DEFAULTSIZE,_DEFAULTSIZE])
-            if size== [_DEFAULTSIZE,_DEFAULTSIZE]:
-                self.__dmisc['dmulti']['scalar'].append(k)
-            elif size[1]==_DEFAULTSIZE:
-                self.__dmisc['dmulti']['vector'].append(k)
-            else:
-                self.__dmisc['dmulti']['matrix'].append(k)
+            if size== [_DEFAULTSIZE,_DEFAULTSIZE]: self.__dmisc['dmulti']['scalar'].append(k)
+            elif size[1]==_DEFAULTSIZE:            self.__dmisc['dmulti']['vector'].append(k)
+            else:                                  self.__dmisc['dmulti']['matrix'].append(k)
+        
         if len(self.__dmisc['dmulti']['vector']+self.__dmisc['dmulti']['matrix']):
             self.dmisc['multisectoral'] = True
         else:
             self.dmisc['multisectoral'] = False
 
         # update from preset if relevant ######################################
-        if dpresets is not None:
-            self.set_dpreset(dpresets,verb=False)
-        if preset is not None:
-            self.set_preset(preset, verb=False)
-        else:
-            self.reset()
+        if dpresets is not None: self.set_dpreset(dpresets,verb=False)
+        if preset is not None:   self.set_preset(preset, verb=False)
+        else:                    self.reset()
 
-    # ##############################
+
     # %% Setting parameters
-    # ##############################
     def set_dpreset(self,
                     input,
-                    preset_name=None,
+                    preset=None,
                     verb=_VERB):
         """
         change the dictionnary of presets that you can load directly
-        The structure is the same as in model files !
+        The structure is the same as in model files ! See __EMPTY__ or TUTORIAL file 
 
         Input must be : a dictionnary with
-         { name1 : {fields : {key1:values,
-                              key1:values,} ,
-                   com: 'Message',
-                   plots : {'plotname1':[{kwargs1},{kwargs2}...],
+        { name1 : {fields : {key1:values,
+                            key1:values,} ,
+                    com: 'Message',
+                    plots : {'plotname1':[{kwargs1},{kwargs2}...],
                             'plotname2':[{kwargs1},{kwargs2}...]}
-         },
+        },
 
-         if preset_name is a name in this dpreset,
-          then it loads the preset
+        if preset_name is a name in this dpreset,
+        then it loads the preset
         """
 
         if type(input)!=dict:
@@ -151,8 +133,7 @@ class Hub():
             print('OVERRIDE presets in dpreset')
         self.__dmodel['presets']=input
 
-        if preset_name:
-            self.set_preset(preset_name)
+        if preset: self.set_preset(preset)
 
     def set_preset(self,
                    input,verb=_VERB):
@@ -164,7 +145,6 @@ class Hub():
 
         if input not in self.__dmodel['presets'].keys():
             raise Exception(f"{input} is not a valid preset name ! the preset name must be in {list(self.__dmodel['presets'].keys())}")
-            return f"{input} is not a valid preset name ! the preset name must be in {list(self.__dmodel['presets'].keys())}"
         else :
             self.__dmodel['preset']=input
             self.set_dparam(self,verb=verb,**self.__dmodel['presets'][input]['fields'])
@@ -174,12 +154,12 @@ class Hub():
         Your best friend to change the fields values or sizes in the system.
         It can change :
             * dimensions ( duration of the simulated tine 'Tmax',
-                           duration of one timestep 'dt'
-                           number of system in parrallel 'nx',
-                           number of regions             'nr',
-                           number of sectors in a multisector object _nameofthedimension...
+                           duration of one timestep       'dt'
+                           number of system in parrallel  'nx',
+                           number of regions              'nr',
+                           number of sectors in a multisector object typically Nprod
                            )
-            * values of parameters and initial conditions, either for all systems/regions/sector, either indexwise
+            * values of parameters and initial conditions, either for all systems/regions/sector or indexwise
 
         if you want to change only one field, you can do "set_dparam(key,values)"
         if you want to change multiple fields at once you can do "set_dparam(**dict)" with dict={key:values},
@@ -196,7 +176,7 @@ class Hub():
         hub.set_dparam('Nprod',100)
         hub.set_dparam('Nprod',['Consumption','Capital','Mine','Energy','Food'])
 
-        CAUTION : if some specific values at certain indexes has been put, you cannot change the dimensions.
+        CAUTION : if some specific values at certain indexes has been put, it is dangerous to then change the dimensions.
         do all your dimensions changes before filling specific values.
 
         2) ### CHANGE FIELDS AND INITIAL CONDITIONS ##################
@@ -274,7 +254,7 @@ class Hub():
         ignored=[]
         for k,v in dimtochange.items():
             if ( v==Rdim[k]['value'] or v==Rdim.get('list',[])):
-                if verb : print(f'{k} asked to be changed but the value {v} is already the one in the system')
+                #if verb : print(f'{k} asked to be changed but the value {v} is already the one in the system')
                 ignored.append(k)
         for k in ignored :
             wrongfields.append(k)
@@ -282,10 +262,9 @@ class Hub():
 
         if verb:
             print('')
-            print('### Identified keys to be changed ###')
-            print(f'   Dimensions : {list(dimtochange.keys())}')
-            print(f'   Fields : {list(fieldtochange.keys())}')
-            print(f'   Ignored :{wrongfields}')
+            if len(list(dimtochange.keys()))   :print(f'Changing Dimensions: {list(dimtochange.keys())}')
+            if len(list(fieldtochange.keys())) :print(f'Changing Fields: {list(fieldtochange.keys())}')
+            if len(list(wrongfields))          :print(f'Changes Ignored:{wrongfields}')
 
         #### SEND IT TO THE PIPE ###################
         self._set_dimensions(verb,**dimtochange)
@@ -295,13 +274,15 @@ class Hub():
         '''
         Change the dimensions of the system
         '''
+
+    
         # we scan all fields that will need to have their values changed
         # Check if we can change value
         setofdimensions = set(['nr','nx','dt','Tini','Tmax']+list(self.get_dparam(eqtype=['size'])))
         diffparam = set(self.get_dparam(eqtype=['differential', None])) - set(['__ONE__','time']) - setofdimensions
         parametersandifferential = list(diffparam)
-        for kk in parametersandifferential:
 
+        for kk in parametersandifferential:
             V=self.__dparam[kk]
             dimname=['nx','nr']+V['size']
             direct = 'initial' if V.get('eqtype','') == 'differential' else 'value'
@@ -312,12 +293,11 @@ class Hub():
                 if dim in kwargs.keys() and not axis:
                     print(f'ISSUE : YOU CHANGE {dim} while {kk} has specific values on it')
                     break
-
-
+            
         # Put the values of the axis in the system
         for kk, vv in kwargs.items():
             # If its on multisectoral, put the value
-            if kk not in ['dt','nx','Tmax']:
+            if kk not in ['dt','Tmax']:
                 if type(vv) is list:
                     self.__dparam[kk]['value'] = len(vv)
                     self.__dparam[kk]['list'] = vv
@@ -332,6 +312,7 @@ class Hub():
 
         self.__dparam=_class_set.set_shapes_values(self.__dparam,
                                                    self.__dmisc['dfunc_order'])
+                                        
         self.__dargs=_class_set.get_dargs_by_reference(self.__dparam,
                                                        dfunc_order=self.__dmisc['dfunc_order'])
 
@@ -360,20 +341,28 @@ class Hub():
             if kk in kwargs.keys():
                 ### DECOMPOSE THE TYPE OF VARIABLE
                 v= kwargs[kk]
-                OLDVAL= np.copy(self.__dparam[kk][direct[kk]])
+                OLDVAL= oldvalue[kk]#np.copy(self.__dparam[kk]['value']) if direct[kk] == 'value'  else  np.copy(self.__dparam[kk]['value'][0,:,:,:,:])
+                #print(kk,np.shape(OLDVAL))
+                #print(kk,np.shape(OLDVAL),OLDVAL)
                 # THIS IS A LIST OF VALUE
                 if type(v) in [np.ndarray]:
-                    #print('nd')
-                    #if len(np.shape(v))==1:
                     newvalue[kk]=self._change_line(kk,v)
                 elif type(v) in [list]:
-                    #print('list')
-                    #print(v)
-                    if np.prod([type(vv) in [float,int] for vv in v]):
-                        newvalue[kk]=self._change_line(kk, v)
-                    elif np.shape(v)==np.shape(self.__dparam[kk]['value'][0,0,:,:]):
-                        newvalue[kk] = self._change_line(kk, v)
-                    else :
+                    Ok=False
+                    try:
+                        if np.prod([type(vv) in [float,int] for vv in v]):
+                            newvalue[kk]=self._change_line(kk, v)
+                        elif np.shape(v)==np.shape(self.__dparam[kk]['value'][0,0,:,:]):
+                            newvalue[kk] = self._change_line(kk, v)
+                        Ok=True
+                    except BaseException :
+                        pass
+                    if not Ok:
+                        #print(f'special type : {v}')
+                        # WHERE SHIT HIT THE FAN : WE DO THAT IN ANOTHER FUNCTION
+                        newvalue[kk] = self.__deep_set_dparam(OLDVAL,[],dimname,v,kk)
+                elif type(v) in [dict]:
+                        #print(f'special type : {v}')
                         # WHERE SHIT HIT THE FAN : WE DO THAT IN ANOTHER FUNCTION
                         newvalue[kk] = self.__deep_set_dparam(OLDVAL,[],dimname,v,kk)
                 # IF IT IS JUST A VALUE
@@ -436,13 +425,15 @@ class Hub():
           'values' : NP nan construction, with value changes}
         if personal dimensions exists, then added  
         '''
-
+        #print(inpt,name,OLDVAL)
         fullinfos = {}
         #################################
         # if it's a dict, it is easier to translate
         if type(inpt) is dict:
-            for k, v in inpt.dict():
-                fullinfos[k] = v
+            for k, v in inpt.items():
+                #print(k,v,type(v))
+                fullinfos[k] = v if type(v)==list else [v]
+            
         #################################
         # if it's a list, we decompose it
         elif type(inpt) is list:
@@ -454,14 +445,17 @@ class Hub():
 
                 # check if the first elements are indexes for sector
                 if type(inpt[0]) is list: # Check if its a list of sector
-                    fullinfos['first']= inpt[0]
+                    if inpt[0][0] in ['nx','nr']:
+                        fullinfos[inpt[0][0]]=inpt[0][1:]
+                    else:
+                        fullinfos['first']= inpt[0]
                     fullinfos = self.__decompose_scalist(fullinfos, inpt[1:])
                 elif inpt[0] in self.__dparam[self.__dparam[name]['size']]['list']: # Check if it's a sector name
                     fullinfos['first'] = [inpt[0]]
                     fullinfos = self.__decompose_scalist(fullinfos, inpt[1:])
                 else: # If nothing detected, treated as any other axis
                     fullinfos = self.__decompose_scalist(fullinfos, inpt)
-
+                #print(fullinfos)
             elif name in self.dmisc['dmulti']['matrix']:
                 # FIRST AXIS
                 Found0,Found1 = False,False
@@ -483,8 +477,8 @@ class Hub():
                 if Found1 : fullinfos = self.__decompose_scalist(fullinfos, inpt[2:])
         else :
             raise Exception(f'We have no idea what category of size {name} is')
-
-
+        #print(fullinfos) 
+        #print(name,inpt,fullinfos)
         # Transform region name into numbers #
         for k in fullinfos.keys(): # For each axis
             if k not in ['value','first','second']:
@@ -501,20 +495,20 @@ class Hub():
             fullinfos['value']=[fullinfos['value']]
         fullinfos['value']=np.array(fullinfos['value'])
 
-
-        newval=np.copy(OLDVAL).astype(np.float)
+        newval=np.copy(OLDVAL).astype(float)
         # transform scalar keys into non-scalar if needed
         lens = [int(np.prod(np.shape(v))) for k,v in fullinfos.items()]
         check= [ v!=np.amax(lens) for v in lens if v!=1]
         if np.sum(check): # If there are multiple sizes
-            raise Exception(f'INCONSISTENCY IN {name} dimensions !')
+            raise Exception(f'INCONSISTENCY IN {name} dimensions !\n lens={lens} ')
         else :
             lmax = np.amax(lens)
+            '''
             for ii in range(lmax):
 
                 minidict = {k: v[min(ii,len(v)-1)] if int(np.prod(np.shape(v)))>=1
-                      else v  for k,v in fullinfos.items()}
-
+                        else v  for k,v in fullinfos.items()}
+                #print(ii,minidict)
 
                 # Complete the regions ###############
                 dimx=['nx','nr']
@@ -525,13 +519,55 @@ class Hub():
                 for ii,idx in enumerate(dimx):
                     if idx not in minidict.keys():
                         minidict[idx]=np.arange(self.__dparam[self.__dparam[name]['size'][ii]]['value'])[:]
-
                 # Inject the value ####################
                 newval[ minidict['nx'],
                         minidict['nr'],
                         minidict['first'],
                         minidict['second']] = minidict['value']
+            '''
+            ### NEW TEST
+            '''           
+            nx,nr,d1,d2,val = np.meshgrid(list(fullinfos.get('nx'    ,np.arange(self.__dparam['nx']['value']))),
+                                            list(fullinfos.get('nr'    ,np.arange(self.__dparam['nr']['value']))),
+                                            list(fullinfos.get('first' ,np.arange(self.__dparam[self.__dparam[name]['size'][0]]['value'])[:])),
+                                            list(fullinfos.get('second',np.arange(self.__dparam[self.__dparam[name]['size'][1]]['value'])[:])),
+                                            fullinfos['value'],
+                                            )
+            '''
+            #print(fullinfos)
+            #p#rint(fullinfos.keys())
+            #print('nx' not in fullinfos.keys())
+            #print(np.arange(self.__dparam['nx']['value']))
+            nx0 =np.arange(self.__dparam['nx']['value']) if 'nx' not in fullinfos.keys() else [0]
+            nr0 =np.arange(self.__dparam['nr']['value']) if 'nr' not in fullinfos.keys() else [0]
+            d10 =np.arange(self.__dparam[self.__dparam[name]['size'][0]]['value'])[:] if 'first' not in fullinfos.keys() else [0]
+            d20 =np.arange(self.__dparam[self.__dparam[name]['size'][1]]['value'])[:] if 'second' not in fullinfos.keys() else [0]
+            #print(nx0,nr0,d10,d20)
+            nx,nr,d1,d2 = np.meshgrid(nx0,
+                                          nr0,
+                                          d10,
+                                          d20
+                                            )
+            nx=nx.reshape(-1)
+            nr=nr.reshape(-1)
+            d1=d1.reshape(-1)
+            d2=d2.reshape(-1)
+            for ii in range(len(nx)):
+                #print(  fullinfos.get('nx',nx[ii]),
+                #        fullinfos.get('nr',nr[ii]),
+                #        fullinfos.get('first',d1[ii]),
+                #        fullinfos.get('second',d2[ii]),fullinfos['value'] )
+                newval[ fullinfos.get('nx',nx[ii]),
+                        fullinfos.get('nr',nr[ii]),
+                        fullinfos.get('first',d1[ii]),
+                        fullinfos.get('second',d2[ii])] = fullinfos['value']
 
+            #print('val',val.reshape(-1))
+            #for i in range(len(nx)): 
+            #    newval[ nx[i],
+            #            nr[i],
+            #            d1[i],
+            #            d2[i]] = val[i] 
 
         return newval
 
@@ -581,7 +617,6 @@ class Hub():
             return list(self.__dmodel['presets'].keys())
         if returnas==dict:
             return {k:v['com'] for k,v in self.__dmodel['presets'].items() }
-
 
     def get_dparam(self, condition=None,returnas=dict,verb=False, **kwdargs):
        """ Return a copy of the input parameters dict that you can filter
@@ -692,10 +727,6 @@ class Hub():
        return self.__dmisc
 
 
-    # ##############################
-    # reset
-    # ##############################
-
    # ##############################
    # run simulation
    # ##############################
@@ -744,9 +775,9 @@ class Hub():
                    self.__dparam[k0]['func'](**kwdargs)
                )
 
-           except BaseException:
+           except BaseException as Err:
                #print(k0)
-               ERROR+=f'You have a problem on your object sizes for {k0} (shape of kwargs:)\n {[(k,np.shape(v)) for k,v in kwdargs.items()]} \n'
+               ERROR+=f'You have a problem on your object sizes for {k0} (shape of kwargs:)\n {[(k,np.shape(v)) for k,v in kwdargs.items()]} \n {Err}\n'
        if len(ERROR):
            raise Exception('\n'+ERROR+'ALLOCATION CANNOT BE DONE,CHECK YOUR MODEL FILE !')
 
@@ -784,6 +815,7 @@ class Hub():
        dverb = _class_checks._run_verb_check(verb=verb)
 
        # reset variables
+       self.set_dparam(**{})
        self.reset()
 
        # start time loop
@@ -803,78 +835,41 @@ class Hub():
            self.__dmisc['run'] = False
            raise err
 
+
     def reinterpolate_dparam(self, N=100):
-       """
-       If the system has run, takes dparam and reinterpolate all values.
-       Typical use is to have lighter plots
+        """
+        If the system has run, takes dparam and reinterpolate all values.
+        Typical use is to have lighter plots
 
-       DO NOT WORK WELL WITH GRID
-       NEED A RESET BEFORE A RUN TO REALLOCATE SPACE
+        NEED A RESET BEFORE A RUN TO REALLOCATE SPACE
 
-       Parameters
-       ----------
-       Npoints : TYPE, optional
-           DESCRIPTION. The default is 100.
-
-        'reinterpolate_dparam IS DEPRECIATED, WILL BE ADAPTED TO MULTISECTORIALITY SOON'
-       """
-       P = self.__dparam
-       t = P['time']['value']
-       for k in self.__dmisc['dfunc_order']['statevar']+self.__dmisc['dfunc_order']['differential']:
-           v = P[k]['value']
-           prevshape= np.shape(v)
-           v2 =v.reshape(P['nt']['value'],-1)
-           #print(np.shape(v2))
-           newval = np.zeros([N,np.shape(v2)[1]])
-           newt = np.linspace(t[0,0,0,0], t[-1,0,0,0], N)
-           for i in range(np.shape(newval)[1]):
-               newval[:, i] = np.interp(newt[:,0], t[:, 0,0,0,0], v2[:, i])
-           newshape =[N]+list(prevshape[1:])
-           self.__dparam[k]['value'] = newval.reshape(newshape)
+        Parameters
+        ----------
+        Npoints : TYPE, optional
+            DESCRIPTION. The default is 100.
+        """
+        P = self.__dparam
+        t = P['time']['value']
+        for k in self.__dmisc['dfunc_order']['statevar']+self.__dmisc['dfunc_order']['differential']:
+            v = P[k]['value']
+            prevshape= np.shape(v)
+            v2 =v.reshape(P['nt']['value'],-1)
+            #print(np.shape(v2))
+            newval = np.zeros([N,np.shape(v2)[1]])
+            newt = np.linspace(t[0,0,0,0], t[-1,0,0,0], N)
+            for i in range(np.shape(newval)[1]):
+                newval[:, i] = np.interp(newt[:,0], t[:, 0,0,0,0], v2[:, i])
+            newshape =[N]+list(prevshape[1:])
+            self.__dparam[k]['value'] = newval.reshape(newshape)
+        
 
     # ##############################
     #  Introspection
     # ##############################
     def __repr__(self, verb=None):
         """ This is automatically called when only the instance is entered """
-
-        if verb is None:
-           verb = True
-        
-        col0 = [
-           'model',
-           'preset',
-           'param (fix + func)',
-           'differential',
-           'statevar',
-           'run',
-           'source',
-        ]
-        
-        ar0 = [
-           self.__dmodel['name'],
-           self.__dmodel['preset'],
-           '{} + {}'.format(
-               len(self.get_dparam(returnas=list, eqtype=None))-1,
-               len(self.get_dparam(returnas=list, eqtype='parameter'))-1,
-           ),
-           len(self.get_dparam(returnas=list, eqtype='differential'))-1,
-           len(self.get_dparam(returnas=list, eqtype='statevar')),
-           self.__dmisc['run'],
-           self.__dmodel['file'],
-        ]
-
-        '''
-        if verb is True:
-           return _utils._get_summary(
-               lar=[ar0],
-               lcol=[col0],
-               verb=False,
-               returnas=str,
-           )
-        else:
-           return col0, ar0
-        '''
+        self.__short()
+        return ' '
 
     def __short(self):
         _FLAGS = ['run', 'cycles', 'derivative','multisectoral','solver']
@@ -906,12 +901,11 @@ class Hub():
 
         print(20 * '#', 'Dimensions'.center(18), 20 * '#')
         sub= self.get_dparam(returnas=dict,eqtype=['size'],)
-        for k in list(sub.keys())+['nx','nr']:
+        for k in list(sub.keys()):
            v = Vals[k]
            print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
 
-
-    def get_summary(self, idx=0, Region=0,removesector=()):
+    def get_summary(self,minimal=True):
         """
         INTROSPECTION TOOL :
         Print a str summary of the model, with
@@ -927,46 +921,89 @@ class Hub():
         * region : name or index of the region you want to plot
         """
 
-        _FLAGS = ['run', 'cycles', 'derivative','multisectoral','solver']
-        _ORDERS = ['statevar', 'differential', 'parameters']
+        df0= self.get_fieldsproperties()
+        if not minimal:
+            dfp = self.get_dataframe(eqtype=None,t0=0,t1=0,)
+            dfd = self.get_dataframe(eqtype='differential',t0=0,t1=0,)
+            dfs = self.get_dataframe(eqtype='statevar'    ,t0=0,t1=0,)
 
-        Vals = self.__dparam
+        if minimal:
+            dfm = self.get_dataframe(eqtype=None,t0=0,t1=0,)
+            R=self.dparam()
 
-        print(60 * '#')
-        print(20 * '#', 'SUMMARY'.center(18), 20 * '#')
-        print(60 * '#')
+        SUMMARY=[df0,dfp.transpose(),dfd.transpose(),dfs.transpose()]
+        #display(df0)
+        #display(dfp.transpose())
+        #display(dfd.transpose())
+        #display(dfs.transpose())
+        return SUMMARY
 
-        self.__short()
+    def get_fieldsproperties(self):
+        categories=['eqtype','source_exp','definition','com','group','units','symbol','isneeded']
+        R=self.get_dparam()
+        Rpandas= {k0:{k:R[k0][k] for k,v in R[k0].items() if k in categories} for k0 in R.keys()}
+        AllFields=pd.DataFrame(Rpandas,index=categories).transpose()
+        return AllFields.replace(np.nan,'')
+        
+    def get_dataframe(self,eqtype=False,t0=False,t1=False): 
+        R0=self.get_dparam()
+        if eqtype==False: R= R0
+        else: R= self.get_dparam(eqtype=eqtype)
 
-        print('\n')
-        print(60 * '#')
-        print(20 * '#', 'fields'.center(18), 20 * '#')
-        if self.__dparam['nr']['value']!=1:
-            print(20 * '#', str('Region :'+str(self.__dparam['nr']['list'][Region])).center(18), 20 * '#')
-        if self.__dparam['nx']['value'] != 1:
-            print(20 * '#', str('Parr. sys numb:'+str(self.__dparam['nx'].get('list',np.arange(self.__dparam['nx']['value']))[idx])).center(18), 20 * '#')
-        print(60 * '#')
-        # parameters
-        col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx,filtersector=removesector)
-        # SCALAR ODE
-        col3, ar3 = _class_utility._get_summary_functions_vector(
-           self, idx=idx,Region=Region, eqtype=['differential'],filtersector=removesector)
-        # SCALAR Statevar
-        col4, ar4 = _class_utility._get_summary_functions_vector(
-           self, idx=idx,Region=Region, eqtype=['statevar'],filtersector=removesector)
+        time = R0['time']['value'][:,0,0,0,0]
+        if np.isnan(time[1]): 
+            idt0=0
+            idt1=1
+        else:
+            if type(t0) in [int,float] : idt0=np.argmin(np.abs(time-t0))
+            else : idt0=0
+
+            if type(t0) in [int,float]: idt1=np.argmin(np.abs(time-t1))+1
+            else : idt1=-1
 
 
-
-        # ----------
-        # format output
-        _utils._get_summary(
-           lar =[ ar2,  ar3,  ar4 ],
-           lcol=[ col2, col3, col4],
-           verb=True,
-           returnas=False,)
-
-        # Print matrices
-        _class_utility._print_matrix(self,idx=idx,Region=Region)
+        SectsX= R0['nx']['list']
+        SectsR= R0['nr']['list']
+        Time = R0['time']['value'][idt0:idt1,0,0,0,0]
+        Onedict={ 'field':  [],
+                'value': []    ,
+                'time': [],
+                'parrallel': [],
+                'region': [],
+                'Multi1':[],
+                'Multi2':[],
+                    }
+        Bigdict={}
+        for k in R.keys():
+            if R[k].get('eqtype',None) not in ['parameter','parameters',None,'size']:
+                GRID = np.meshgrid( 
+                                    R0[R[k]['size'][1]].get('list',['mono']),
+                                    R0[R[k]['size'][0]].get('list',['mono']),
+                                    SectsR,
+                                    SectsX,
+                                    Time
+                                    )
+            else : 
+                GRID = np.meshgrid( 
+                                    R0[R[k]['size'][1]].get('list',['mono']),
+                                    R0[R[k]['size'][0]].get('list',['mono']),
+                                    SectsR,
+                                    SectsX,
+                                    [0.]
+                                    )
+            Val = R[k]['value'][idt0:idt1,...] if R[k].get('eqtype',None) not in ['parameter','parameters',None,'size'] else R[k]['value']
+            if type(Val) in [float,int]: 
+                Val=np.array([Val])
+            Val= Val.reshape(-1)
+            Onedict['field'    ].extend([k for i in GRID[-1].reshape(-1)])
+            Onedict['value'    ].extend(Val)
+            Onedict['time'     ].extend(GRID[-1].reshape(-1))
+            Onedict['parrallel'].extend(GRID[-2].reshape(-1))
+            Onedict['region'   ].extend(GRID[-3].reshape(-1))
+            Onedict['Multi1'   ].extend(GRID[-4].reshape(-1))
+            Onedict['Multi2'   ].extend(GRID[-5].reshape(-1))
+        df=pd.DataFrame(Onedict).set_index(['parrallel','region','field','Multi1','Multi2','time'],drop=True).unstack().transpose()    
+        return df
 
     def get_equations_description(self):
         '''
@@ -1010,7 +1047,7 @@ class Hub():
                     filters=(),
                     auxilliary=False,
                     redirect=False,
-                    screensize=1080,
+                    screensize=600,
                     custom=True,
                     params=False):
         """
@@ -1353,59 +1390,6 @@ idx                : is the same for parrallel systems
         }
         return dout
 
-    @classmethod
-    def _from_dict(cls, dout=None, model_file=None):
-        """ Create an instance from a dict """
-
-
-        # --------------
-        # check inputs
-        c0 = (
-            isinstance(dout, dict)
-            and sorted(dout.keys()) == ['dargs', 'dmisc', 'dmodel', 'dparam']
-            and all([isinstance(dd, dict) for dd in dout.values()])
-        )
-        if not c0:
-            msg = (
-                "Arg dout must be a dict of the form:\n"
-                "{'dargs': dict, 'dmisc': dict, 'dparams': dict}\n"
-                f"You provided:\n{dout}"
-            )
-            raise Exception(msg)
-
-        # -------------
-        # rebuild all functions from source, if necessary
-        c0 = any([
-            v0.get('source_kargs') is not None
-            and not hasattr(v0.get('func'), '__call__')
-            for k0, v0 in dout['dparam'].items()
-        ])
-        if c0:
-            _saveload.rebuild_func_from_source(dout, model_file=model_file)
-
-        # -------------------
-        # create instance
-        #print(cls['dmodel']['name'])
-        obj = cls('__EMPTY__',verb=False)
-        obj.__dmodel = dict(dout['dmodel'])
-        obj.__dparam = {k0: dict(v0) for k0, v0 in dout['dparam'].items()}
-        obj.__dmisc = dict(dout['dmisc'])
-        obj.__dargs = dict(dout['dargs'])
-
-        # update default args for functions
-        #_class_checks._update_func_default_kwdargs(
-        #    lfunc=obj.get_dparam(returnas=list, eqtype=(None,)),
-        #    dparam=obj.__dparam,
-        #    dmulti=obj.__dmisc['dmulti'],
-        #)
-
-        # re-pass dargs by reference
-        #obj.__dargs = _class_checks.get_dargs_by_reference(
-        #    obj.__dparam,
-        #    dfunc_order=obj.__dmisc['dfunc_order'],
-        #)
-
-        return obj
 
     def __calculate_variation_rate(self, epsilon=0.0001):
         '''
@@ -1469,60 +1453,3 @@ idx                : is the same for parrallel systems
                                             for k2 in R[k]['partial_derivatives'].keys()}
         self.__dmisc['derivative'] = True
 
-
-
-    # ##############################
-    #       saving methods
-    # ##############################
-
-    def save(self, path=None, name=None, fmt=None, verb=None, returnas=None):
-        """ Save the instance
-
-        Saved files are stored in path/fullname.ext
-        The extension (ext) depends on the format (fmt) chosen for saving
-        The file full name (fullname) is the concatenation of a base default
-        name and a user-defined name.
-            ex.: Output_MODELNAME_USERDEFINEDNAME.ext
-        where MODELNAME is the model's name
-
-        By default path is set to 'output/', but the user can overload it
-
-        """
-
-        return _saveload.save(
-            self,
-            path=path,
-            name=name,
-            fmt=fmt,
-            verb=verb,
-            returnas=returnas,
-        )
-
-    # ##############################
-    #       replication methods
-    # ##############################
-
-    def copy(self):
-        """ Return a copy of the instance """
-
-        dout = self._to_dict()
-        return self.__class__._from_dict(dout=dout)
-
-    # ##############################
-    #       comparison methods
-    # ##############################
-
-    def __eq__(
-        self,
-        other,
-        atol=None,
-        rtol=None,
-        verb=None,
-        return_dfail=None,    ):
-        """ Automatically called when testing obj1 == obj2 """
-        return _class_utility._equal(
-            self, other,
-            atol=atol,
-            rtol=rtol,
-            verb=verb,
-            return_dfail=return_dfail)

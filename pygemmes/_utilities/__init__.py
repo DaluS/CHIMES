@@ -25,7 +25,27 @@ def _comparesubarray(M):
 
         Mrshp=M.reshape(-1,dimensions[ii])
         Dimtocompare = Mrshp.shape[0]
-        Sameaxis.append(np.bool(np.prod([np.array_equal(Mrshp[0,:],
+
+        Sameaxis.append(np.prod([np.array_equal(Mrshp[0,:],
                                                Mrshp[jj,:])
-                                for jj in range(Dimtocompare)])))
+                                for jj in range(Dimtocompare)])>0)
     return Sameaxis
+
+def in_notebook():
+    try:
+        from IPython import get_ipython
+        if 'IPKernelApp' not in get_ipython().config: return False
+    except ImportError:    return False
+    except AttributeError: return False
+    return True
+
+
+def pprint(ldf):
+    if in_notebook():
+        from IPython.display import display,HTML,Markdown
+        '''Print with newline in dataframe'''
+        try : ldf = ldf.style.set_properties(**{'text-align': 'left'})
+        except BaseException: pass
+        return display(HTML(ldf.to_html().replace("\\n","<br>")))
+    else:
+        return print(ldf)
