@@ -555,6 +555,8 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
 
         if dparam[k0]['eqtype'] not in ['parameter']:
             dparam[k0]['value'] = np.full(shape, np.nan)
+        if dparam[k0]['eqtype']=='differential':
+            dparam[k0]['initial']=np.full(shape[1:], dparam[k0]['initial'])
 
     for k0 in lpar:
         sizes = [ dparam[f]['value'] for f in  dparam[k0]['size']]
@@ -574,7 +576,7 @@ def set_shapes_values(dparam, dfunc_order, verb=True):
                     change=True
                     break
             if change:
-                print(dparam[k0]['value'])
+                #print(dparam[k0]['value'])
                 dparam[k0]['value']= dparam[k0]['value'][0,0,0,0]
 
 

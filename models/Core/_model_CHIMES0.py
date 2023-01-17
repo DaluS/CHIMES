@@ -588,6 +588,9 @@ preset_basis2['z'] = [1,1]
 #preset_basis2['Tmax'] = 50
 
 
+withregion = preset_basis2.copy()
+withregion['nr']=['USA','France','China']
+
 preset_TRI = {
 'Tmax':50,
 'dt':0.1,
@@ -703,6 +706,11 @@ _PRESETS = {
     'SimpleTri': {
         'fields': preset_TRI,
         'com': 'Trisectoral',
+        'plots': {},
+    },
+    'WithRegions': {
+        'fields': withregion,
+        'com': 'more dimensions',
         'plots': {},
     },
     'SimpleN': {

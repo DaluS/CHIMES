@@ -154,12 +154,12 @@ class Hub():
         Your best friend to change the fields values or sizes in the system.
         It can change :
             * dimensions ( duration of the simulated tine 'Tmax',
-                           duration of one timestep 'dt'
-                           number of system in parrallel 'nx',
-                           number of regions             'nr',
-                           number of sectors in a multisector object _nameofthedimension...
+                           duration of one timestep       'dt'
+                           number of system in parrallel  'nx',
+                           number of regions              'nr',
+                           number of sectors in a multisector object typically Nprod
                            )
-            * values of parameters and initial conditions, either for all systems/regions/sector, either indexwise
+            * values of parameters and initial conditions, either for all systems/regions/sector or indexwise
 
         if you want to change only one field, you can do "set_dparam(key,values)"
         if you want to change multiple fields at once you can do "set_dparam(**dict)" with dict={key:values},
@@ -176,7 +176,7 @@ class Hub():
         hub.set_dparam('Nprod',100)
         hub.set_dparam('Nprod',['Consumption','Capital','Mine','Energy','Food'])
 
-        CAUTION : if some specific values at certain indexes has been put, you cannot change the dimensions.
+        CAUTION : if some specific values at certain indexes has been put, it is dangerous to then change the dimensions.
         do all your dimensions changes before filling specific values.
 
         2) ### CHANGE FIELDS AND INITIAL CONDITIONS ##################
@@ -274,13 +274,15 @@ class Hub():
         '''
         Change the dimensions of the system
         '''
+
+    
         # we scan all fields that will need to have their values changed
         # Check if we can change value
         setofdimensions = set(['nr','nx','dt','Tini','Tmax']+list(self.get_dparam(eqtype=['size'])))
         diffparam = set(self.get_dparam(eqtype=['differential', None])) - set(['__ONE__','time']) - setofdimensions
         parametersandifferential = list(diffparam)
-        for kk in parametersandifferential:
 
+        for kk in parametersandifferential:
             V=self.__dparam[kk]
             dimname=['nx','nr']+V['size']
             direct = 'initial' if V.get('eqtype','') == 'differential' else 'value'
@@ -291,12 +293,11 @@ class Hub():
                 if dim in kwargs.keys() and not axis:
                     print(f'ISSUE : YOU CHANGE {dim} while {kk} has specific values on it')
                     break
-
-
+            
         # Put the values of the axis in the system
         for kk, vv in kwargs.items():
             # If its on multisectoral, put the value
-            if kk not in ['dt','nx','Tmax']:
+            if kk not in ['dt','Tmax']:
                 if type(vv) is list:
                     self.__dparam[kk]['value'] = len(vv)
                     self.__dparam[kk]['list'] = vv
@@ -311,6 +312,7 @@ class Hub():
 
         self.__dparam=_class_set.set_shapes_values(self.__dparam,
                                                    self.__dmisc['dfunc_order'])
+                                        
         self.__dargs=_class_set.get_dargs_by_reference(self.__dparam,
                                                        dfunc_order=self.__dmisc['dfunc_order'])
 
@@ -339,20 +341,28 @@ class Hub():
             if kk in kwargs.keys():
                 ### DECOMPOSE THE TYPE OF VARIABLE
                 v= kwargs[kk]
-                OLDVAL= np.copy(self.__dparam[kk][direct[kk]])
+                OLDVAL= oldvalue[kk]#np.copy(self.__dparam[kk]['value']) if direct[kk] == 'value'  else  np.copy(self.__dparam[kk]['value'][0,:,:,:,:])
+                #print(kk,np.shape(OLDVAL))
+                #print(kk,np.shape(OLDVAL),OLDVAL)
                 # THIS IS A LIST OF VALUE
                 if type(v) in [np.ndarray]:
-                    #print('nd')
-                    #if len(np.shape(v))==1:
                     newvalue[kk]=self._change_line(kk,v)
                 elif type(v) in [list]:
-                    #print('list')
-                    #print(v)
-                    if np.prod([type(vv) in [float,int] for vv in v]):
-                        newvalue[kk]=self._change_line(kk, v)
-                    elif np.shape(v)==np.shape(self.__dparam[kk]['value'][0,0,:,:]):
-                        newvalue[kk] = self._change_line(kk, v)
-                    else :
+                    Ok=False
+                    try:
+                        if np.prod([type(vv) in [float,int] for vv in v]):
+                            newvalue[kk]=self._change_line(kk, v)
+                        elif np.shape(v)==np.shape(self.__dparam[kk]['value'][0,0,:,:]):
+                            newvalue[kk] = self._change_line(kk, v)
+                        Ok=True
+                    except BaseException :
+                        pass
+                    if not Ok:
+                        #print(f'special type : {v}')
+                        # WHERE SHIT HIT THE FAN : WE DO THAT IN ANOTHER FUNCTION
+                        newvalue[kk] = self.__deep_set_dparam(OLDVAL,[],dimname,v,kk)
+                elif type(v) in [dict]:
+                        #print(f'special type : {v}')
                         # WHERE SHIT HIT THE FAN : WE DO THAT IN ANOTHER FUNCTION
                         newvalue[kk] = self.__deep_set_dparam(OLDVAL,[],dimname,v,kk)
                 # IF IT IS JUST A VALUE
@@ -415,13 +425,15 @@ class Hub():
           'values' : NP nan construction, with value changes}
         if personal dimensions exists, then added  
         '''
-
+        #print(inpt,name,OLDVAL)
         fullinfos = {}
         #################################
         # if it's a dict, it is easier to translate
         if type(inpt) is dict:
-            for k, v in inpt.dict():
-                fullinfos[k] = v
+            for k, v in inpt.items():
+                #print(k,v,type(v))
+                fullinfos[k] = v if type(v)==list else [v]
+            
         #################################
         # if it's a list, we decompose it
         elif type(inpt) is list:
@@ -433,14 +445,17 @@ class Hub():
 
                 # check if the first elements are indexes for sector
                 if type(inpt[0]) is list: # Check if its a list of sector
-                    fullinfos['first']= inpt[0]
+                    if inpt[0][0] in ['nx','nr']:
+                        fullinfos[inpt[0][0]]=inpt[0][1:]
+                    else:
+                        fullinfos['first']= inpt[0]
                     fullinfos = self.__decompose_scalist(fullinfos, inpt[1:])
                 elif inpt[0] in self.__dparam[self.__dparam[name]['size']]['list']: # Check if it's a sector name
                     fullinfos['first'] = [inpt[0]]
                     fullinfos = self.__decompose_scalist(fullinfos, inpt[1:])
                 else: # If nothing detected, treated as any other axis
                     fullinfos = self.__decompose_scalist(fullinfos, inpt)
-
+                #print(fullinfos)
             elif name in self.dmisc['dmulti']['matrix']:
                 # FIRST AXIS
                 Found0,Found1 = False,False
@@ -462,8 +477,8 @@ class Hub():
                 if Found1 : fullinfos = self.__decompose_scalist(fullinfos, inpt[2:])
         else :
             raise Exception(f'We have no idea what category of size {name} is')
-
-
+        #print(fullinfos) 
+        #print(name,inpt,fullinfos)
         # Transform region name into numbers #
         for k in fullinfos.keys(): # For each axis
             if k not in ['value','first','second']:
@@ -488,11 +503,12 @@ class Hub():
             raise Exception(f'INCONSISTENCY IN {name} dimensions !\n lens={lens} ')
         else :
             lmax = np.amax(lens)
+            '''
             for ii in range(lmax):
 
                 minidict = {k: v[min(ii,len(v)-1)] if int(np.prod(np.shape(v)))>=1
                         else v  for k,v in fullinfos.items()}
-
+                #print(ii,minidict)
 
                 # Complete the regions ###############
                 dimx=['nx','nr']
@@ -503,13 +519,55 @@ class Hub():
                 for ii,idx in enumerate(dimx):
                     if idx not in minidict.keys():
                         minidict[idx]=np.arange(self.__dparam[self.__dparam[name]['size'][ii]]['value'])[:]
-
                 # Inject the value ####################
                 newval[ minidict['nx'],
                         minidict['nr'],
                         minidict['first'],
                         minidict['second']] = minidict['value']
+            '''
+            ### NEW TEST
+            '''           
+            nx,nr,d1,d2,val = np.meshgrid(list(fullinfos.get('nx'    ,np.arange(self.__dparam['nx']['value']))),
+                                            list(fullinfos.get('nr'    ,np.arange(self.__dparam['nr']['value']))),
+                                            list(fullinfos.get('first' ,np.arange(self.__dparam[self.__dparam[name]['size'][0]]['value'])[:])),
+                                            list(fullinfos.get('second',np.arange(self.__dparam[self.__dparam[name]['size'][1]]['value'])[:])),
+                                            fullinfos['value'],
+                                            )
+            '''
+            #print(fullinfos)
+            #p#rint(fullinfos.keys())
+            #print('nx' not in fullinfos.keys())
+            #print(np.arange(self.__dparam['nx']['value']))
+            nx0 =np.arange(self.__dparam['nx']['value']) if 'nx' not in fullinfos.keys() else [0]
+            nr0 =np.arange(self.__dparam['nr']['value']) if 'nr' not in fullinfos.keys() else [0]
+            d10 =np.arange(self.__dparam[self.__dparam[name]['size'][0]]['value'])[:] if 'first' not in fullinfos.keys() else [0]
+            d20 =np.arange(self.__dparam[self.__dparam[name]['size'][1]]['value'])[:] if 'second' not in fullinfos.keys() else [0]
+            #print(nx0,nr0,d10,d20)
+            nx,nr,d1,d2 = np.meshgrid(nx0,
+                                          nr0,
+                                          d10,
+                                          d20
+                                            )
+            nx=nx.reshape(-1)
+            nr=nr.reshape(-1)
+            d1=d1.reshape(-1)
+            d2=d2.reshape(-1)
+            for ii in range(len(nx)):
+                #print(  fullinfos.get('nx',nx[ii]),
+                #        fullinfos.get('nr',nr[ii]),
+                #        fullinfos.get('first',d1[ii]),
+                #        fullinfos.get('second',d2[ii]),fullinfos['value'] )
+                newval[ fullinfos.get('nx',nx[ii]),
+                        fullinfos.get('nr',nr[ii]),
+                        fullinfos.get('first',d1[ii]),
+                        fullinfos.get('second',d2[ii])] = fullinfos['value']
 
+            #print('val',val.reshape(-1))
+            #for i in range(len(nx)): 
+            #    newval[ nx[i],
+            #            nr[i],
+            #            d1[i],
+            #            d2[i]] = val[i] 
 
         return newval
 
@@ -847,7 +905,6 @@ class Hub():
            v = Vals[k]
            print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
 
-
     def get_summary(self,minimal=True):
         """
         INTROSPECTION TOOL :
@@ -881,7 +938,6 @@ class Hub():
         #display(dfs.transpose())
         return SUMMARY
 
-
     def get_fieldsproperties(self):
         categories=['eqtype','source_exp','definition','com','group','units','symbol','isneeded']
         R=self.get_dparam()
@@ -889,7 +945,6 @@ class Hub():
         AllFields=pd.DataFrame(Rpandas,index=categories).transpose()
         return AllFields.replace(np.nan,'')
         
-
     def get_dataframe(self,eqtype=False,t0=False,t1=False): 
         R0=self.get_dparam()
         if eqtype==False: R= R0

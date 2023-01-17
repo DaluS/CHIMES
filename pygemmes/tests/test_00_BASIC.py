@@ -289,17 +289,17 @@ class Test00_Get():
                                                                  'value':0.5}})
 
         # Multisectoral        
-        hub=pgm.Hub('CHIMES',preset='SimpleBi',verb=False);hub.set_dparam('p',[0.1,1])                      #will put [0,1] for all parrallel all regions
-        hub=pgm.Hub('CHIMES',preset='SimpleBi',verb=False);hub.set_dparam('p',[['nr',0],[0.1,1]])            #will put [0,1] for all parrallel in region 0
-        hub=pgm.Hub('CHIMES',preset='SimpleBi',verb=False);hub.set_dparam('p',[['nr',0,1],[0.1,1]])          #will put [0,1] for all parrallel in region 0 and 1
-        hub=pgm.Hub('CHIMES',preset='SimpleBi',verb=False);hub.set_dparam('p',[['nx',0],['nr',0,1],[0.1,1]]) #will put [0,1] for parrallel system 0, in region 0 and 1
+        hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[0.1,1])                      #will put [0,1] for all parrallel all regions
+        hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[['nr',0],[0.1,1]])            #will put [0,1] for all parrallel in region 0
+        hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[['nr',0,1],[0.1,1]])          #will put [0,1] for all parrallel in region 0 and 1
+        hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[['nx',0],['nr',0,1],[0.1,1]]) #will put [0,1] for parrallel system 0, in region 0 and 1
                                                                                                  
-        hub=pgm.Hub('CHIMES',preset='SimpleBi',verb=False);hub.set_dparam('Gamma',[[0,1],[1,0]])  #will put [[0,1],[1,0]] for all parrallel all regions
-        hub=pgm.Hub('CHIMES',preset='SimpleBi',verb=False);hub.set_dparam(**{'Gamma': {'first':['Consumption','Capital'],
+        hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('Gamma',[[0,1],[1,0]])  #will put [[0,1],[1,0]] for all parrallel all regions
+        hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam(**{'Gamma': {'first':['Consumption','Capital'],
                                                                                         'second':['Consumption','Consumption'],
                                                                                         'nr':0,
                                                                                         'value':[0.5,0.22]}})
-        hub=pgm.Hub('CHIMES',preset='SimpleBi',verb=False);hub.set_dparam(**{'Gamma': {'first':['Consumption','Capital'],
+        hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam(**{'Gamma': {'first':['Consumption','Capital'],
                                                                                        'nr':0,
                                                                                        'value':[0.5,0.22]}})
 

@@ -29,7 +29,6 @@ def get_available_plots():
     '''
     all_functions = inspect.getmembers(plots, inspect.isfunction)
 
-    
     dic={i[0]: {'documentation': i[1].__doc__,
                 'signature': inspect.signature(i[1])}  for i in all_functions}
     plotdf=pd.DataFrame(dic)
