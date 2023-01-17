@@ -260,7 +260,7 @@ class Test00_Get():
 
         hub=pgm.Hub('CHIMES')
         pgm.plots.Sankey()
-        
+
         R=hub.get_dparam()
         for sector in R['Nprod']['list'] :
             pgm.plots.plotnyaxis(hub, y=[[['inflation', sector],
@@ -347,7 +347,7 @@ class Test00_Get():
 
                                                                             
     def test05_network(self):
-        hub=pgm.GK()
+        hub=pgm.Hub('GK')
         hub.get_network()
         hub.get_Network(params=True)                    # state,differential,parameters
         hub.get_Network(auxilliary=False,params=True)   # remove auxilliary statevar and differential
