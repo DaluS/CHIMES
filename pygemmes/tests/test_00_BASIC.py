@@ -260,7 +260,7 @@ class Test00_Get():
 
 
         hub=pgm.Hub('CHIMES0')
-        pgm.plots.Sankey()
+        pgm.plots.Sankey(hub)
 
         R=hub.get_dparam()
         for sector in R['Nprod']['list'] :

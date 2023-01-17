@@ -922,14 +922,11 @@ class Hub():
         """
 
         df0= self.get_fieldsproperties()
-        if not minimal:
-            dfp = self.get_dataframe(eqtype=None,t0=0,t1=0,)
-            dfd = self.get_dataframe(eqtype='differential',t0=0,t1=0,)
-            dfs = self.get_dataframe(eqtype='statevar'    ,t0=0,t1=0,)
 
-        if minimal:
-            dfm = self.get_dataframe(eqtype=None,t0=0,t1=0,)
-            R=self.dparam()
+        dfp = self.get_dataframe(eqtype=None,t0=0,t1=0,)
+        dfd = self.get_dataframe(eqtype='differential',t0=0,t1=0,)
+        dfs = self.get_dataframe(eqtype='statevar'    ,t0=0,t1=0,)
+
 
         SUMMARY=[df0,dfp.transpose(),dfd.transpose(),dfs.transpose()]
         #display(df0)
