@@ -901,7 +901,7 @@ def repartition(hub ,
     ax=plt.gca()
     if len(ref):
         name = R[ref]['symbol'][:-1]+'_{'+sectname+'}$'
-        ax.plot(time,refsign*R[ref]['value'][:,idx,Region,sectindex,0],c='r',ls='--',lw=2,label=name)
+        ax.plot(time,refsign*R[ref]['value'][idt0:idt1,idx,Region,sectindex,0],c='r',ls='--',lw=2,label=name)
     ax.stackplot(time,dicvalpos.values(),labels=dicvals.keys(),colors=color)
     ax.legend(loc='upper left')
     ax.stackplot(time, dicvalneg.values(),lw=3,colors=color)
