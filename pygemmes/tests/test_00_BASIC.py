@@ -46,7 +46,7 @@ class Test00_Get():
     def setup(self):
         pass
 
-    def teardown(self):
+    def teardown_method(self):
         pass
 
     @classmethod
@@ -71,8 +71,8 @@ class Test00_Get():
                     hub=pgm.Hub(k,preset=v,verb=False)
                     hub.set_dparam(**{'Tmax':1,'dt':0.01},verb=False)
                     hub.run(verb=False)
-                    if v:
-                        hub.plot_preset()
+                    #if v:
+                    #    hub.plot_preset()
 
     def test03_all_plots(self):
         hub=pgm.Hub('GK')
@@ -259,7 +259,7 @@ class Test00_Get():
 
 
 
-        hub=pgm.Hub('CHIMES')
+        hub=pgm.Hub('CHIMES0')
         pgm.plots.Sankey()
 
         R=hub.get_dparam()
@@ -349,7 +349,7 @@ class Test00_Get():
                                                                             
     def test05_network(self):
         hub=pgm.Hub('GK')
-        hub.get_network()
+        hub.get_Network()
         hub.get_Network(params=True)                    # state,differential,parameters
         hub.get_Network(auxilliary=False,params=True)   # remove auxilliary statevar and differential
         hub.get_Network(filters=('Pi',))                # remove the variable Pi and its connexions
