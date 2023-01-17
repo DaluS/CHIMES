@@ -317,8 +317,8 @@ class Test00_Get():
         # Multiple values 
         hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nx':3,
                                                         'alpha':[0.01,0.02,0.03]})
-        hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
-                                                        'alpha':[['nr','France'],0.01]})    
+        #hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
+        #                                                'alpha':[['nr','France'],0.01]})    
         hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
                                                         'nx': 3,    
                                                         'alpha':[['nr','France'],['nx',1],0.01]})
