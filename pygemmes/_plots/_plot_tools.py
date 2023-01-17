@@ -61,7 +61,7 @@ def _multiline(xs, ys, c, ax=None, **kwargs):
 
 def _indexes(hub,idx,Region,tini,tend):
     R=hub.dparam
-    print('idx',idx,'region',Region,'tini',tini,'tend',tend)
+    #print('idx',idx,'region',Region,'tini',tini,'tend',tend)
     # RUN
     if not hub.dmisc['run']:
         print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')

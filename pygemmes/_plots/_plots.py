@@ -815,7 +815,7 @@ def repartition(hub ,
                 removetranspose=False,
                 title= '',
                 idx=0,
-                region=0,
+                Region=0,
                 tini=False,
                 tend=False,
                 ):
@@ -880,15 +880,15 @@ def repartition(hub ,
             entryname =  R[k]['symbol'][:-1]+'_{'+sectname+sectname2+'}$'   # Name in the dictionnary
 
             # if the entry is non-zero
-            if np.max(np.abs(R[k]['value'][:,idx,region,sectindex,enum2]))!=0:
-                dicvals[entryname]=  sign[enum]*R[k]['value'][idt0:idt1,idx,region,sectindex,enum2]
+            if np.max(np.abs(R[k]['value'][:,idx,Region,sectindex,enum2]))!=0:
+                dicvals[entryname]=  sign[enum]*R[k]['value'][idt0:idt1,idx,Region,sectindex,enum2]
 
             if (removetranspose and R[k]['size'][1]!='__ONE__'):
                 entrynameT=R[k]['symbol'][:-1] + '_{' + sectname2[1:] +'-' +sectname + '}$'
 
                 # If the entry is non-zero
-                if np.max(np.abs(R[k]['value'][:, idx,region,enum2,sectindex]))!=0:
-                    dicvals[entrynameT] = -sign[enum] * R[k]['value'][idt0:idt1, idx,region,enum2,sectindex]
+                if np.max(np.abs(R[k]['value'][:, idx,Region,enum2,sectindex]))!=0:
+                    dicvals[entrynameT] = -sign[enum] * R[k]['value'][idt0:idt1, idx,Region,enum2,sectindex]
 
     color = list(plt.cm.turbo(np.linspace(0,1,len(keys)+1)))
     dicvalpos = { k : np.maximum(v,0) for k,v in dicvals.items()}
