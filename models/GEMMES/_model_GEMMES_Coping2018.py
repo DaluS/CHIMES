@@ -1,5 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
+
+"""GEMMES 2018 : GK + Climate """
+
+_DESCRIPTION ="""
 ABSTRACT : This is the model Coping from Bovari 2018: Coping with Collapse: A Stock-Flow Consistent Monetary Macrodynamics of Glabal Warming
 TYPICAL BEHAVIOR : BAU and TRANSITION converges toward the good equilibrium, BAU_DAM toward the bad.
 LINKTOARTICLE : DOI: 10.1016/j.ecolecon.2018.01.034
@@ -8,28 +10,18 @@ LINKTOARTICLE : DOI: 10.1016/j.ecolecon.2018.01.034
 TODO:
  - regler l'inflation pour qu'elle soit comme Coping 2. ACTUELLEMENT PHILIPS SANS INFLATION
  - verefier unite
-
 """
 
 # ######################## PRELIMINARY ELEMENTS #########################
 import numpy as np
-from pygemmes._models import Funcs, importmodel
+from pygemmes._models import Funcs, importmodel,mergemodel
+from pygemmes._models import Operators as O
 _LOGICS,_PRESETS0= importmodel('GK')
 _LOGICSCLIM,_PRESETSCLIM= importmodel('Climate_3Layers')
 
 ###############################################################################
 Tini = 2015
 
-
-# add the logics of climate module to the model logics
-for category, dic in _LOGICSCLIM.items():
-    for k, v in dic.items():
-        _LOGICS[category][k] = v
-
-# remove unused variables and params
-del _LOGICS['statevar']['Ir']
-
-# add plenty of stuff
 _LOGICS_COPING2018 = {
     # ode
     'differential': {
@@ -163,10 +155,9 @@ _LOGICS_COPING2018 = {
     'size': {},
 }
 
-# add Coping logics
-for category, dic in _LOGICS_COPING2018.items():
-    for k, v in dic.items():
-        _LOGICS[category][k] = v
+_LOGICS=mergemodel(_LOGICS,_LOGICSCLIM)
+_LOGICS=mergemodel(_LOGICS,_LOGICS_COPING2018)
+del _LOGICS['statevar']['Ir']
 
 
 # UNITS #######################################################################
@@ -215,52 +206,7 @@ _LOGICS['statevar']['carbontax']['units'] = '$.y^{-1}'
 
 
 _LOGICS['statevar']['F']['units'] = 'W.L^{-2}'
-"""
-_LOGICS['parameter']['rhoAtmo'] = {'units': 'W L^{-2} Tc^{-1}'}
-_LOGICS['parameter']['gammaAtmo'] = {'units': 'W L^{-2} Tc^{-1}'}
-_LOGICS['parameter']['Capacity'] = {'units': 'y W L^{-2} Tc^{-1}'}
-_LOGICS['parameter']['Capacity0'] = {'units': 'y W L^{-2} Tc^{-1}'}
-_LOGICS['parameter']['F2CO2'] = {'units': 'W L^{-2}'}
-_LOGICS['parameter']['Tini'] = {'units': 'y'}
-_LOGICS['parameter']['Tmax'] = {'units': 'y'}
-_LOGICS['parameter']['dt'] = {'units': 'y'}
-_LOGICS['parameter']['nx'] = {'units': 'y'}
-_LOGICS['parameter']['alpha'] = {'units': 'y^{-1}'}
-_LOGICS['parameter']['n'] = {'units': 'y^{-1}'}
-_LOGICS['parameter']['Nmax'] = {'units': 'Humans'}
-_LOGICS['parameter']['phi12'] = {'units': 'y^{-1}'}
-_LOGICS['parameter']['CUP'] = {'units': 'C'}
-_LOGICS['parameter']['CAT'] = {'units': 'C'}
-_LOGICS['parameter']['phi23'] = {'units': 'y^{-1}'}
-_LOGICS['parameter']['CLO'] = {'units': 'C'}
-_LOGICS['parameter']['deltapbackstop'] = {'units': 'y^{-1}'}
-_LOGICS['parameter']['apc'] = {'units': 'y^{-1}'}
-_LOGICS['parameter']['bpc'] = {'units': 'y^{-2}'}
-_LOGICS['parameter']['deltagsigmaEm'] = {'units': 'y^{-1}'}
-_LOGICS['parameter']['deltaEland'] = {'units': 'y^{-1}'}
-_LOGICS['parameter']['philinConst'] = {'units': 'y^{-1}'}
-_LOGICS['parameter']['philinSlope'] = {'units': 'y^{-1}'}
-_LOGICS['parameter']['r'] = {'units': 'y^{-1}'}
-_LOGICS['parameter']['kappalinConst'] = {'units': ''}
-_LOGICS['parameter']['kappalinSlope'] = {'units': ''}
-_LOGICS['parameter']['kappalinMin'] = {'units': ''}
-_LOGICS['parameter']['kappalinMax'] = {'units': ''}
-_LOGICS['parameter']['mu'] = {'units': ''}
-_LOGICS['parameter']['eta'] = {'units': 'y^{-1}'}
-_LOGICS['parameter']['divlinSlope'] = {'units': '$.y^{-1}'}
-_LOGICS['parameter']['divlinconst'] = {'units': '$.y^{-1}'}
-_LOGICS['parameter']['divlinMin'] = {'units': '$.y^{-1}'}
-_LOGICS['parameter']['divlinMax'] = {'units': '$.y^{-1}'}
-_LOGICS['parameter']['pi1'] = {'units': 'Tc^{-1}'}
-_LOGICS['parameter']['pi2'] = {'units': 'Tc^{-2}'}
-_LOGICS['parameter']['pi3'] = {'units': 'Tc^{-zeta3}'}
-_LOGICS['parameter']['zeta3'] = {'units': ''}
-_LOGICS['parameter']['fk'] = {'units': ''}
-_LOGICS['parameter']['delta'] = {'units': 'y^{-1}'}
-_LOGICS['parameter']['nu'] = {'units': 'y'}
-_LOGICS['parameter']['convexitycost'] = {'units': ''}
-_LOGICS['parameter']['conv10to15'] = {'units': ''}
-"""
+
 ###############################################################################
 
 # Dictionnary of fields for preset
@@ -418,13 +364,12 @@ plots = {
             'lw':1
         }
     ],
-    'phasespace': [],
-    '3D': [{'x': 'employment',
+    'XY': [],
+    'XYZ': [{'x': 'employment',
             'y': 'omega',
             'z': 'd',
             'color': 'sigmaEm',
-            'cmap': 'jet',
-            'index': 0,
+            'idx': 0,
             'title': ''
             }
            ],

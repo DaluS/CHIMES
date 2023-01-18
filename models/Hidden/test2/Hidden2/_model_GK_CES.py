@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 DESCRIPTION :
 
@@ -74,19 +74,19 @@ _PRESETS = {
         'plots': {
             'timetrace': [{}],
             'nyaxis': [{'x': 'time',
-                           'y': [['lambda', 'lamb0'],
+                           'y': [['employment', 'lamb0'],
                                  ['omega'],
                                  ],
                             'idx':0,
                             'title':'',
                             'lw':1}],
-            'phasespace': [{'x': 'lambda',
+            'phasespace': [{'x': 'employment',
                             'y': 'omega',
                             'color': 'time',
                             'idx': 0}],
             '3D': [{'x': 'lamb0',
                         'y': 'omega',
-                        'z': 'lambda',
+                        'z': 'employment',
                         'cinf': 'time',
                         'cmap': 'jet',
                         'index': 0,

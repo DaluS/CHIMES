@@ -59,13 +59,37 @@ def filter_kargs(hub, filters,redirect):
     return kargs,filters
 
 
+
+import webbrowser
+def show(net, name, local=True):
+    """
+    Writes a static HTML file and saves it locally before opening.
+
+    :param: name: the name of the html file to save as
+    :type name: str
+    """
+    write_html(net,name, local)
+    webbrowser.open(name)
+
+def write_html(self, name, local=True, notebook=False):
+    """
+    This method gets the data structures supporting the nodes, edges,
+    and options and updates the template to write the HTML holding
+    the visualization.
+    :type name_html: str
+    """
+    self.html = self.generate_html(notebook=notebook)
+
+    with open(name, "w+") as out:
+        out.write(self.html)
+
+
 def Network_pyvis(hub,
                   filters = (),
                   auxilliary=False,
-                  screensize=1080,
+                  screensize=600,
                   custom=False,
                   redirect=False,
-                  smoothtype='dynamic',
                   plot_params=True):
     '''
     Generate an HTML file showing you interactively how are variables linked with their adequate units
@@ -132,7 +156,9 @@ def Network_pyvis(hub,
 
 
     net = Network(directed=True, height=screensize, width=screensize,
-                  heading=hub.dmodel['name']+f' Logical network, hidden:{filters}')
+                  heading=hub.dmodel['name']+f' Logical network, hidden:{filters}',
+                  notebook=True
+                  )
 
 
     if plot_params:
@@ -165,7 +191,7 @@ def Network_pyvis(hub,
         Title = ''
         Title += 'Units        :' + v['units']+'<br>'
         Title += 'Equation     :'+f'{key}=' + v.get('source_exp', 'f()').replace(
-            'itself', key).replace('lamb', 'lambda')+'<br>'
+            'itself', key)+'<br>'
         Title += 'definition   :' + v['definition']+'<br>'
         Title += 'Comment      :' + v['com']+'<br>'
         Title += 'Dependencies :'+'<br>'
@@ -186,7 +212,7 @@ def Network_pyvis(hub,
         v = R[key]
         Title = f"""
 Units        :{v['units']}<br>
-Equation     :d{key}/dt={v['source_exp'].replace('itself', key).replace('lamb','lambda')}<br>
+Equation     :d{key}/dt={v['source_exp'].replace('itself', key)}<br>
 definition   :{v['definition']}<br>
 Comment      :{v['com']}<br>
 Dependencies :<br>
@@ -238,5 +264,8 @@ Dependencies :<br>
     # net.prep_notebook()
 
     address = os.path.join(_PATH_HERE[:-9],'doc',hub.dmodel['name']+'.html').replace('/','\\')
-    #print(address)
-    net.show(address)
+    print(address)
+    show(net,address)
+    #net.save_graph(address)
+    #f = open('network.html', "r")
+    

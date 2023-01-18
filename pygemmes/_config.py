@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 Created on Mon Mar 21 13:43:06 2022
 
@@ -11,30 +11,29 @@ import numpy as np
 import os
 
 # ################# LOGS AND PRINTS IN THE SYSTEM #############################
-_VERB = True         # Print by default when actions are done
-__PRINTLOGO = True  # Print the logo
-__PRINTINTRO = True # Print tutorial text
+_VERB = True        #! Print by default when actions are done
+__PRINTLOGO = True  #! Print the logo
+__PRINTINTRO = True #! Print tutorial text
 
 # pgm.get_...
-_FIELDS_EXPLOREMODEL = False # get_available_fields will check existing models
-_FIELDS_SHOWLIST = False     # get_available_fields will show in which model it is used
+_FIELDS_EXPLOREMODEL =True #! get_available_fields will check existing models
+_MODELS_SHOWDETAILS = True  #! Show docstring of each model 
 
-_MODELS_SHOWDETAILS = False
 
 # ################## MODELS FILES LOCATION AND NAME ###########################
 # FLAG FOR MODEL LOCATION : False if in the library, true in documents
 
 _FROM_USER = False                 # Location of nodel files (NOT CHECKED)
 _MODEL_NAME_CONVENTION = '_model_' # The convention for pygemmes to know where models are
-_MODEL_FOLDER = 'models'          # Files in the local library
+_MODEL_FOLDER = 'models'           # Files in the local library
 _MODEL_FOLDER_HIDDEN = 'Hidden'
-# ####################### SOLVER BY DEFAULT ###################################
-_SOLVER = 'eRK4-homemade'
+
 
 # ################# MODELS FILE CONTENT #######################################
 # ELEMENTS IN A MODEL
 _LMODEL_ATTR = ['_LOGICS', # Contains all the fields
                 'presets'] # Contains specific values and plot to try
+
 
 # FIELDS THAT MUST BE OBTAINED WHEM LOADING A MODEL
 _DMODEL_KEYS = {
@@ -72,6 +71,7 @@ _LEXTRAKEYS = [
     'analysis',  # Contains all analysys (time derivative, cycles...)
     'size'       # Name of the dimension in the multisectoriality
 ]
+
 
 # ############################ DEF_FIELDS #####################################
 _DEFAULTSIZE = '__ONE__'

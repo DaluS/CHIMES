@@ -1,20 +1,25 @@
-# -*- coding: utf-8 -*-
-"""
-ABSTRACT : This is a 3-Layer CLimate model, that gives temperature anomaly.
 
+'''This is a 3-Layer CLimate model, that gives temperature anomaly.'''
+
+_DESCRIPTION = """
+* **Article :** 
+* **Author  :** 
+* **Coder   :** Paul Valcke
+
+## Description
 It takes carbon emissions as an input, and let them evolves in three layers ( upper ocean, lower ocean, atmosphere)
 The atmosphere concentration is driving radiative forcing, changing temperature of atmosphere
 Atmosphere is changing its temperature and exchanging energy with ocean
 
-TYPICAL BEHAVIOR :
-LINKTOARTICLE :
-
-@author: Paul Valcke
+Should be called in an economic model. Typically : 
+* Input as "Emission"
+* Output as "T"
 """
 
 # ######################## PRELIMINARY ELEMENTS #########################
 import numpy as np
 from pygemmes._models import Funcs, importmodel,mergemodel
+from pygemmes._models import Operators as O
 
 # ######################## LOGICS #######################################
 _LOGICS = {
@@ -37,7 +42,7 @@ _LOGICS = {
     'size': {},
 }
 
-
+_SUPPLEMENTS={}
 
 # ####################### PRESETS #######################################
 _PRESETS = {'default': {

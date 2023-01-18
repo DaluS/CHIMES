@@ -1,5 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
+
+'''Goodwin with profit impacting Philips curve'''
+
+_DESCRIPTION="""
 DESCRIPTION :
 
     This is a small modificaiton of Goodwin, with a slightly different wage
@@ -31,6 +33,7 @@ _PRESETS = {
     'zpi': {
         'fields': {
             'dt': 0.01,
+            'nx':4,
             'a': 1,
             'N': 1,
             'K': 2.9,
@@ -55,16 +58,15 @@ _PRESETS = {
                             'idx':0,
                             'title':'',
                             'lw':1}],
-            'phasespace': [{'x': 'employment',
+            'XY': [{'x': 'employment',
                             'y': 'omega',
                             'color': 'time',
                             'idx': 0}],
-            'plot3D': [{'x': 'employment',
+            'XYZ': [{'x': 'employment',
                         'y': 'omega',
                         'z': 'time',
-                        'cinf': 'pi',
-                        'cmap': 'jet',
-                        'index': 0,
+                        'color': 'pi',
+                        'idx': 0,
                         'title': ''}],
             'plotbyunits': [],
         },

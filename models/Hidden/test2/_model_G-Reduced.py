@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 ABSTRACT: This is the simplest economic post-keynesian model.
 TYPICAL BEHAVIOR : metastable oscillations around a solow point
@@ -30,7 +30,7 @@ def omega(itself=0, phillips=0):
 
 _LOGICS = {
     'ode': {
-        'lambda': {
+        'employment': {
             'func': lambda itself=0, g=0, alpha=0, beta=0: itself * (g - alpha - beta),
             'com': 'reduced 2variables dynamical expression'
         },
@@ -63,7 +63,7 @@ _LOGICS = {
 _PRESETS = {
     'smallcycle': {
         'fields': {
-            'lambda': .97,
+            'employment': .97,
             'omega': .85,
         },
         'com': (
@@ -72,7 +72,7 @@ _PRESETS = {
     },
     'bigcycle': {
         'fields': {
-            'lambda': .99,
+            'employment': .99,
             'omega': .85,
         },
         'com': (

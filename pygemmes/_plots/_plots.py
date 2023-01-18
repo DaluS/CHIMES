@@ -1,28 +1,27 @@
-# -*- coding: utf-8 -*-
+
 """
 Created on Mon Jul 26 16:16:01 2021
 @author: Paul Valcke
 
 """
 
-from ._plot_timetraces import plot_timetraces
+#from ._plot_timetraces import plot_timetraces
 from ._plot_tools import _multiline
+from ._plot_tools import _indexes,_key
 
 import copy
 import numpy as np
 
 import matplotlib.pyplot as plt
-import matplotlib
+import matplotlib 
 from matplotlib.collections import LineCollection
 from matplotlib.patches import Rectangle
-
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
-
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.gridspec import GridSpec
-
-
-__USETEX=False
+import plotly.graph_objects as go
+import pandas as pd
+import matplotlib as mpl
 
 _LS = [
     (0, ()),
@@ -50,29 +49,18 @@ SIZEFONT = 25
 LEGENDSIZE = 20
 LEGENDHANDLELENGTH = 2
 
-if __USETEX:
-    plt.rc('text', usetex=True)
-    plt.rc('font', family='serif', size=SIZEFONT)
-    plt.rcParams.update({'figure.autolayout': True})
-    plt.rcParams['text.latex.preamble'] = [r"\usepackage{amsmath} \usepackage{libertine}"]
-    ticksfontProperties = {'family': 'sans-serif', 'sans-serif': ['Helvetica'], 'weight': 'medium',}
-plt.rcParams.update(params)
-
-
-
-
-
 __all__ = [
-    #'slices_wholelogic',
-    #'plot_variation_rate',
-    'plot_timetraces',
     'plotnyaxis',
     'phasespace',
     'plot3D',
+    'XY',
+    'XYZ',
+    'Sankey',
     'plotbyunits',
     'Var',
     'cycles_characteristics',
-    'repartition'
+    'repartition',
+    'convergence'
 ]
 
 # ############################################################################
@@ -86,6 +74,8 @@ def plotbyunits(hub,
                lw=1,
                idx=0,
                Region=0,
+               tini=False,
+               tend=False,
                title=''):
     '''
     generate one subfigure per set of units existing.
@@ -103,16 +93,12 @@ def plotbyunits(hub,
     Region             : is, if there a multiple regions, the one you want to plot
     idx                : is the same for parrallel systems
 
-
-
     separate_variable : is a dictionnary, which will create a new plot with variables fron the unit selected
     (exemple: you have pi, epsilon and x which share the same units 'y', if you do separate_variables={'y':'x'}
     another figure will be added with x only on it, and pi and epsilon on the other one)
-
     '''
-    if not hub.dmisc['run']:
-        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
-        hub.run()
+
+    hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
 
     ### FILTERING THE KEYS
     grpfield = hub.get_dparam_as_reverse_dict(crit='units', eqtype=['differential', 'statevar'])
@@ -142,13 +128,13 @@ def plotbyunits(hub,
     Nlin = Nax // Ncol + Nax % Ncol
     allvars = [item for sublist in groupsoffields.values() for item in sublist]
     fig = plt.figure()
-    fig.set_size_inches(10*Ncol, 3*Nlin)
+    fig.set_size_inches(5*Ncol, 3*Nlin)
     dax = {key: plt.subplot(Nlin, Ncol, i+1)
            for i, key in enumerate(groupsoffields.keys())}
 
     # GETTING THE DATA
     R = hub.get_dparam(keys=[allvars], returnas=dict)
-    vx = R['time']['value'][:, idx,Region,0,0]
+    vx = R['time']['value'][idt0:idt1, idx,Region,0,0]
     vy = {}
     sectorname={}
     index = 0
@@ -161,9 +147,9 @@ def plotbyunits(hub,
             if not ismulti[ii]:
                 if ('' not in filters_sector and type(filters_sector)==tuple or
                     '' in filters_sector and type(filters_sector)==list):
-                    vy[key][yyy]=R[yyy]['value'][:, idx,Region,0,0]
+                    vy[key][yyy]=R[yyy]['value'][idt0:idt1, idx,Region,0,0]
                 else :
-                    vy[key][yyy] = R[yyy]['value'][:, idx, Region, 0, 0]
+                    vy[key][yyy] = R[yyy]['value'][idt0:idt1, idx, Region, 0, 0]
             else:
                 sectors = R[R[yyy]['size'][0]]['list']
                 if type(filters_sector)==tuple:
@@ -172,7 +158,7 @@ def plotbyunits(hub,
                     sectors=[ (jj,x) for jj,x in enumerate(sectors) if x in filters_sector]
 
                 for jj,s in sectors:
-                    vy[key][yyy+'_'+str(s)]=R[yyy]['value'][:, idx,Region,jj,0]
+                    vy[key][yyy+'_'+str(s)]=R[yyy]['value'][idt0:idt1, idx,Region,jj,0]
                     sectorname[key][jj]=s
 
         ## AXIS MAKEUP BEAUTY
@@ -208,7 +194,7 @@ def plotbyunits(hub,
                           label=symb ,
                           ls=_LS[j % (len(_LS)-1)],
                           lw=lw)
-            mini=np.amin((mini,np.amin(vy[key][key2])))
+            mini=np.nanmin((mini,np.nanmin(vy[key][key2])))
         if j >= 0:
             dax[key].legend(ncol=1+j//4)
         index += 1
@@ -223,7 +209,7 @@ def plotbyunits(hub,
     plt.show()
 
 
-def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2):
+def plotnyaxis(hub,  y=[[]],x='time', log=False, idx=0,Region=0,tini=False,tend=False, title='', lw=2):
     '''
     x must be a variable name (x axis organisation)
     y must be a list of list of variables names (each list is a shared axis)
@@ -237,14 +223,11 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
                      title='',
                      lw=2)
     '''
-    if not hub.dmisc['run']:
-        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
-        hub.run()
+    hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
 
-    if type(log) in [str,bool]:
-        log=[log for l in y]
-    if len(log)!=len(y):
-        raise Exception(f'The length of the log list ({len(log)}) does not correspond to the length of the axes ({len(y)})!')
+ 
+    if type(log) is not list:
+        log = [log for l in range(len(y))]
 
     ### INITIALIZE FIGURE
     fig = plt.figure()
@@ -255,7 +238,7 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
     R = hub.get_dparam(keys=[allvarname], returnas=dict)
     p = {}  # dictionnary of curves
     # Prepare x axis
-    vx = R[x]['value'][:, idx,Region,0,0]
+    vx = R[x]['value'][idt0:idt1, idx,Region,0,0]
     units = r'$(  '+R[x]['units']+'  )$'
     ax.set_xlabel(R[x]['symbol']+units)
     ax.set_xlim(vx[0], vx[-1])
@@ -275,7 +258,7 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
         for yyy in vlist:
             ### Monosectorial entry
             if type(yyy) is str:
-                vy[ii][yyy]= R[yyy]['value'][:, idx,Region,0,0]
+                vy[ii][yyy]= R[yyy]['value'][idt0:idt1, idx,Region,0,0]
                 symbolist.append( R[yyy]['symbol'])
                 name=yyy
             ### Multisectorial entry
@@ -288,14 +271,14 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
                     sectorname= str(yyy[1])
                     sectornumber= yyy[1]
 
-                vy[ii][name+sectorname]=R[name]['value'][:, idx,Region,sectornumber,0]
+                vy[ii][name+sectorname]=R[name]['value'][idt0:idt1, idx,Region,sectornumber,0]
                 symbolist.append(R[yyy[0]]['symbol'][:-1]+'_{'+sectorname+'}$')
 
         units = r'$(' + R[name]['units'].replace('$', '\$') + ')$'
 
         ## Work on the limit
-        ymin = np.amin([np.amin(v) for v in vy[ii].values()])
-        ymax = np.amax([np.amax(v) for v in vy[ii].values()])
+        ymin = np.nanmin([np.nanmin(v) for v in vy[ii].values()])
+        ymax = np.nanmax([np.nanmax(v) for v in vy[ii].values()])
         dax[ii].set_ylim(ymin, ymax)
 
         ## Work on the colors
@@ -331,52 +314,33 @@ def plotnyaxis(hub,  y=[[]],x='time', idx=0,Region=0, log=False, title='', lw=2)
     plt.show()
 
 
-def phasespace(hub, x, y, color='time', idx=0,Region=0):
+def XY(hub,x,y,
+       color='time',
+       scaled=False,
+       idx=0,
+       Region=0,
+       tini=False ,
+       tend=False ,
+       title=''
+       ):
     '''
-    Plot of the trajectory of the system in a 2dimensional phase-space
-
-    Parameters
-    ----------
-    sol : hub after a run
-    x   : key for the variable on x axis, The default is 'omega'.
-    y   : key for the variable on y axis, The default is 'lambda'.
-    idx : number of the system taken to be plot, The default is 0
-
-    EXAMPLE :
-    pgm.plots.phasespace(hub,'employment',['pi','Capital'],color=['omega','Consumption'])
+    plot 'x' in function of 'y', the curve color being the value of 'color'.
     '''
-    if not hub.dmisc['run']:
-        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
-        hub.run()
+    hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
 
 
+    ### INPUT TRANSLATION ############# 
     R=hub.dparam
-    if type(x) is list :
-        xsect=R[R[x[0]]['size'][0]]['list'].index(x[1])
-        xname=x[1]
-        x=x[0]
-    else :
-        xsect=0
-        xname=''
-    if type(y) is list :
-        ysect=R[R[y[0]]['size'][0]]['list'].index(y[1])
-        yname=y[1]
-        y=y[0]
-    else :
-        ysect=0
-        yname =''
-    if type(color) is list :
-        colorsect=R[R[color[0]]['size'][0]]['list'].index(color[1])
-        colorname=color[1]
-        color=color[0]
-    else :
-        colorsect=0
-        colorname =''
+    xsect,xname = _key(x)
+    ysect,yname = _key(y)
+    csect,cname = _key(color)
 
+
+    ### PLOT #################
     allvars = hub.get_dparam(returnas=dict)
-    yval = allvars[y]['value'][:, idx,Region,ysect,0]
-    xval = allvars[x]['value'][:, idx,Region,xsect,0]
-    t = allvars[color]['value'][:, idx,Region,colorsect,0]
+    t = allvars[color]['value'][idt0:idt1, idx,Region,csect,0]    
+    yval = allvars[y]['value'][idt0:idt1, idx,Region,ysect,0]
+    xval = allvars[x]['value'][idt0:idt1, idx,Region,xsect,0]
 
     points = np.array([xval, yval]).T.reshape(-1, 1, 2)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
@@ -386,87 +350,60 @@ def phasespace(hub, x, y, color='time', idx=0,Region=0):
     lc.set_array(t)
     lc.set_linewidth(2)
 
+
     fig = plt.figure()
     fig.set_size_inches(10, 7)
     ax = fig.add_axes([0.1, 0.1, 0.8, 0.8])
     line = ax.add_collection(lc)
-    fig.colorbar(line, ax=ax, label=allvars[color]['symbol'][:-1]+'_{'+colorname+'}$')
+
+    ### BEAUTY
+    fig.colorbar(line, ax=ax, label=allvars[color]['symbol'][:-1]+'_{'+cname+'}$')
     plt.xlabel(allvars[x]['symbol'][:-1]+'_{'+xname+'}$')
     plt.ylabel(allvars[y]['symbol'][:-1]+'_{'+yname+'}$')
-    plt.xlim([np.amin(xval), np.amax(xval)])
-    plt.ylim([np.amin(yval), np.amax(yval)])
-    plt.axis('scaled')
-    plt.title('Phasespace ' + x + '-' + y + ' for model : '
-              + hub.dmodel['name'] + '| system number' + str(idx))
-
+    plt.xlim([np.nanmin(xval), np.nanmax(xval)])
+    plt.ylim([np.nanmin(yval), np.nanmax(yval)])
+    if scaled:
+        plt.axis('scaled')
+    plt.title(title)
     plt.show()
 
 
-def plot3D(hub, x, y, z, color, cmap='jet', index=0,Region=0, title=''):
-    '''
-    Plot a 3D curve, with a fourth information on the colour of the curve
+def XYZ(hub,x,y,z,
+        color='time',
+        idx=0,
+        Region=0,
+        tini=False ,
+        tend=False ,
+        title=''):
+    '''Plot a 3D curve, with a fourth field as the color of the curve'''
+    
+    hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
 
-    x,y,z,cinf are names of your variables
-    cmap your colormap
-    title is your graph title
 
-    example, with two sectors 'Capital','Consumption'
-    pgm.plots.plot3D(hub,'employment',
-                         ['pi','Capital'],
-                         ['rd','Capital'],
-                         color=['omega','Consumption'])
+    ### INPUT TRANSLATION ############# 
+    R=hub.dparam
 
-    '''
-    if not hub.dmisc['run']:
-        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
-        hub.run()
+    xsect,xname = _key(x)
+    ysect,yname = _key(y)
+    zsect,zname = _key(z)
+    csect,cname = _key(color)
 
-    R=hub.get_dparam()
-    if type(x) is list :
-        xsect=R[R[x[0]]['size'][0]]['list'].index(x[1])
-        xname=x[1]
-        x=x[0]
-    else :
-        xsect=0
-        xname=''
-    if type(y) is list :
-        ysect=R[R[y[0]]['size'][0]]['list'].index(y[1])
-        yname=y[1]
-        y=y[0]
-    else :
-        ysect=0
-        yname =''
-    if type(z) is list :
-        zsect=R[R[z[0]]['size'][0]]['list'].index(z[1])
-        zname=z[1]
-        z=z[0]
-    else :
-        zsect=0
-        zname =''
-    if type(color) is list :
-        colorsect=R[R[color[0]]['size'][0]]['list'].index(color[1])
-        colorname=color[1]
-        color=color[0]
-    else :
-        colorsect=0
-        colorname =''
-
-    vx = R[x]['value'][:, index,Region,xsect,0]
-    vy = R[y]['value'][:, index,Region,ysect,0]
-    vz = R[z]['value'][:, index,Region,zsect,0]
-    vc = R[color]['value'][:, index,Region,colorsect,0]
+    vx = R[x]['value'][idt0:idt1, idx,Region,xsect,0]
+    vy = R[y]['value'][idt0:idt1, idx,Region,ysect,0]
+    vz = R[z]['value'][idt0:idt1, idx,Region,zsect,0]
+    vc = R[color]['value'][idt0:idt1, idx,Region,csect,0]
 
     points = np.array([vx, vy, vz]).T.reshape(-1, 1, 3)
     segments = np.concatenate([points[:-1], points[1:]], axis=1)
     norm = plt.Normalize(vc.min(), vc.max())
 
     fig = plt.figure()
-    fig.set_size_inches(10, 10)
+    fig.set_size_inches(10,5)
     ax = plt.axes(projection='3d')
     ax.plot(vx,
             vy,
             vz, lw=0.01, c='k')
-    lc = Line3DCollection(segments, cmap=cmap, norm=norm)
+    lc = Line3DCollection(segments, cmap='jet', norm=norm)
     lc.set_array(vc)
     lc.set_linewidth(2)
     line = ax.add_collection(lc)
@@ -485,18 +422,24 @@ def plot3D(hub, x, y, z, color, cmap='jet', index=0,Region=0, title=''):
     plt.show()
 
 
-def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
+def Var(hub, 
+        key, 
+        mode=False, 
+        log=False,
+        idx=0,
+        Region=0, 
+        tini=False,
+        tend=False,
+        title=''):
     '''
-    Just one variable plot, with possibly cycles analysis to be shown
+    One variable plot, with possibly cycles analysis and sensitivity if asked
     if you put [key,sectorname] it will load the specific sector
     if mode = 'sensitivity' the system will show statistical variance between parrallel run of nx
     if mode = 'cycles' the system will show cycles within the evolution of the variable with their characteristics
     '''
 
     ### CHECKS
-    if not hub.dmisc['run']:
-        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
-        hub.run()
+    hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
     if (mode=='sensitivity' and not hub.dmisc.get('sensitivity',False)):
         print('the system is calculating statsensitivity...')
         hub.calculate_StatSensitivity()
@@ -506,14 +449,8 @@ def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
         hub.calculate_Cycles()
         print('done')
 
-    R=hub.get_dparam()
-    if type(key) is list :
-        keysect=R[R[key[0]]['size'][0]]['list'].index(key[1])
-        keyname=key[1]
-        key=key[0]
-    else :
-        keysect=0
-        keyname =0
+    R=hub.dparam
+    keysect,keyname = _key(key)
 
     fig = plt.figure()
     fig.set_size_inches(10, 5)
@@ -521,8 +458,8 @@ def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
 
     # PLOT OF THE BASE
     allvars = hub.get_dparam(returnas=dict)
-    y = allvars[key]['value'][:, idx,Region,keysect,0]
-    t = allvars['time']['value'][:,idx,Region,0,0]
+    y = allvars[key]['value'][idt0:idt1, idx,Region,keysect,0]
+    t = allvars['time']['value'][idt0:idt1,idx,Region,0,0]
 
     if mode in [False,'cycles']:
         plt.plot(t, y, lw=2, ls='-', c='k')
@@ -537,8 +474,8 @@ def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
         tmcycles = cyclvar['t_mean_cycle']
 
         # Plot of each period by a rectangle
-        miny = np.amin(y)
-        maxy = np.amax(y)
+        miny = np.nanmin(y)
+        maxy = np.nanmax(y)
 
         for car in cyclvar['period_T_intervals'][::2]:
             ax.add_patch(
@@ -562,7 +499,7 @@ def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
         plt.legend()
 
     if mode == 'sensitivity':
-        time = hub.dparam['time']['value'][:, idx,Region,keysect,0]
+        time = hub.dparam['time']['value'][idt0:idt1, idx,Region,keysect,0]
 
         V = hub.dparam[key]['sensitivity'][Region][keyname]
 
@@ -570,28 +507,28 @@ def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
         ## Plot all trajectory
 
         for jj in range(len(allvars[key]['value'][0, :,0,0,0])):
-            ax.plot(time, hub.dparam[key]['value'][:, jj,Region,0,0]
+            ax.plot(time, hub.dparam[key]['value'][idt0:idt1, jj,Region,0,0]
                          , c='k', ls='--', lw=0.5)
             if jj==30:
                 print('WARNING: plotvar should be coded with a linecollection...')
 
         # Plot mean an median
-        ax.plot(time, V['mean'], c='orange', label='mean')
-        ax.plot(time, V['median'], c='orange', ls='--', label='median')
-        ax.plot(time, V['max'], c='r', lw=0.4, label='maxmin')
-        ax.plot(time, V['min'], c='r', lw=0.4)
+        ax.plot(time, V['mean'][idt0:idt1],   c='orange', label='mean')
+        ax.plot(time, V['median'][idt0:idt1], c='orange', ls='--', label='median')
+        ax.plot(time, V['max'][idt0:idt1],    c='r', lw=0.4, label='maxmin')
+        ax.plot(time, V['min'][idt0:idt1],    c='r', lw=0.4)
 
         for j in np.arange(0.5, 5, 0.2):
-            ax.fill_between(time, V['mean'] - j * V['stdv'],
-                                 V['mean'] + j * V['stdv'], alpha=0.02, color='blue')
-        ax.fill_between(time, V['mean'],
-                             V['mean'], alpha=0.5, color='blue', label=r'$\mu \pm 5 \sigma$')
+            ax.fill_between(time, V['mean'][idt0:idt1] - j * V['stdv'][idt0:idt1],
+                                 V['mean'][idt0:idt1] + j * V['stdv'][idt0:idt1], alpha=0.02, color='blue')
+        ax.fill_between(time, V['mean'][idt0:idt1],
+                             V['mean'][idt0:idt1], alpha=0.5, color='blue', label=r'$\mu \pm 5 \sigma$')
 
         ax.set_xlim([time[0], time[-1]])
-        ax.set_ylim([np.amin(V['min']), np.amax(V['max'])])
+        ax.set_ylim([np.nanmin(V['min'][idt0:idt1]), np.nanmax(V['max'][idt0:idt1])])
 
-        ax.fill_between(time, V['mean'] - V['stdv'],
-                             V['mean'] + V['stdv'], alpha=0.4, color='r', label=r'$\mu \pm \sigma$')
+        ax.fill_between(time, V['mean'][idt0:idt1] - V['stdv'][idt0:idt1],
+                             V['mean'][idt0:idt1] + V['stdv'][idt0:idt1], alpha=0.4, color='r', label=r'$\mu \pm \sigma$')
 
 
     if log is True: ax.set_yscale('log')
@@ -601,6 +538,212 @@ def Var(hub, key, idx=0,Region=0, mode=False, log=False,title=''):
     plt.xlabel('time (y)')
     if mode: ax.legend()
     plt.show()
+
+
+def Sankey(hub,t=0,idx=0,Region=0,figPhy=False,figMoney=False):
+    '''Physical and monetary Sankey diagrams'''
+
+
+    def Add_Matrix(X,TDi):
+        R=hub.get_dparam()
+        d0=R[X]
+        values = d0['value'][ntindex,idx,Region,:,:].reshape(-1)
+        names = R[d0['size'][0]]['list']
+        sectintdex=np.arange(len(names))
+
+        XX,YY=np.meshgrid(sectintdex+1,sectintdex+1)
+        XX=XX.astype(int).reshape(-1)-1
+        YY=YY.astype(int).reshape(-1)-1
+    
+        TDi['source'].extend(YY)
+        TDi['target'].extend(XX)
+        TDi['types'].extend([X for i in range(len(XX))])
+        TDi['value'].extend(values)
+        TDi['colors'].extend([len(set(TDi['types']))-1 for j in range(len(XX))])
+        TDi['label'] = names
+
+        #print('MATRIX',X)
+        #print(values)
+        #for k,v in TDi.items(): print(k,len(v),v)
+        
+        return TDi
+        
+    def Add_Vector(TD,Vecid,stype,slabel,switch):
+        V=R[Vecid]['value'][ntindex,idx,Region,:,0]        # Values we add 
+        if slabel not in TD['label']:
+            TD['label'].append(slabel)
+            plus= 1
+        else :
+            plus=0
+        V1 = np.arange(0,len(V))
+        V2 = [np.amax(TD['target']+TD['source'])+plus]*len(V)
+        TD['target'].extend(V1 if switch else V2) 
+        TD['source'].extend(V2 if switch else V1)
+        TD['value'].extend(V)
+        TD['types'].extend([stype for i in range(len(V))])
+        TD['colors'].extend([len(set(TD['colors'])) for ii in range(len(V))])
+        return TD
+
+    def Add_scalar(TD,name,source,target,type,newcolor=False):
+        if source in TD['label']:
+            sourceindex = TD['label'].index(source)
+        else : 
+            print(source,'adding')
+            sourceindex = len(TD['label'])
+            TD['label'].append(source)
+
+        if target in TD['label']:
+            targetindex = TD['label'].index(target)
+        else : 
+            targetindex = len(TD['label'])
+            TD['label'].append(target)
+
+        TD['source'].append(sourceindex)
+        TD['target'].append(targetindex)
+        TD['value'].append(R[name]['value'][ntindex,idx,Region,0,0])
+        TD['types'].append(type)
+        TD['colors'].append(TD['colors'][-1]+1 if newcolor else TD['colors'][-1])
+        return TD    
+
+    if hub.dmodel['name'] not in ['ECHIMES','CHIMES0']:
+        print('CAREFUL IT CAN ONLY WORKS ON ECHIMES RELATED MODELS')
+
+    c = ['rgba(255,  0,255, 0.8)', # Colors 
+        'rgba(  0,255,255, 0.8)' ,
+        'rgba(255,255,  0, 0.8)' ,
+        'rgba(127,255,127, 0.8)' ,
+        'rgba(0,0,0, 0.8)'       ,
+        'rgba(127,255,255, 0.8)' ,
+        'rgba(255,127,255, 0.8)']
+
+    R=hub.get_dparam()
+    ##################### TRANSLATING INPUT #################
+    # idx input
+    if type(idx)==int: pass 
+    elif type(idx)==str:
+        try : idx=hub.dparam['nx']['list'].index(idx)
+        except BaseException:
+            liste=hub.dparam['nx']['list']
+            raise Exception(f'the parrallel system cannot be found !\n you gave {idx} in {liste}')
+    else: raise Exception(f'the parrallel index cannot be understood ! you gave {idx}')
+
+    # Region input 
+    if type(Region)==int: pass 
+    elif type(Region)==str:
+        try : Region=hub.dparam['nr']['list'].index(Region)
+        except BaseException:
+            liste=hub.dparam['nr']['list']
+            raise Exception(f'the region system cannot be found !\n you gave {idx} in {liste}')
+    else: raise Exception(f'the region index cannot be understood ! you gave {idx}')
+
+    # time input
+    time = R['time']['value'][:,idx,Region,0,0]
+    if t: ntindex=np.argmin(np.abs(time-t))
+    else : ntindex=0
+
+
+    for _ in range(1):
+        ###############################################################
+        ### PHYSICAL FLUXES ###########################################
+        TDm={           'label' :[], # names of target/sources
+                        'target':[], # Where the flux ends
+                        'source':[], # Where the flux starts
+                        'value' :[], # Flux intensity
+                        'types' :[], # Flux category 
+                        'colors':[]}
+
+        ### MATRICES
+        for X in ['Minvest','Minter']: TDm=Add_Matrix(X,TDm)
+
+        ### ADDING VECTORS
+        TDm = Add_Vector(TDm,'C','Consumption','Household',False)
+        
+        ### INVERSE VECTORS
+        for i,v in enumerate(TDm['value']):
+            if v<0:
+                TDm['target'][i],TDm['source'][i] = TDm['source'][i],TDm['target'][i]
+                TDm['value'][i]*=-1
+
+        TDm['colors']= [c[i] for i in TDm['colors']]
+
+
+        data = go.Sankey(link = dict(source = np.array(TDm['source']).reshape(-1), 
+                                    target = np.array(TDm['target']).reshape(-1), 
+                                    value = np.array(TDm['value']).reshape(-1),
+                                    color=TDm['colors']), 
+                        node = dict(label = TDm['label'],
+                                    pad=50, 
+                                    thickness=5))
+
+        if not figPhy:
+            figPhy = go.Figure(data)
+            figPhy.update_layout(
+                hovermode = 'x',
+                title=f"Physical exchanges between sectors, t={R['time']['value'][ntindex,0,0,0,0]:.2f}",
+                font=dict(size = 10, color = 'white'),
+                paper_bgcolor='#5B5958'
+            )
+            #figPhy.show()
+        else :
+            figPhy.data[0].link.value=TDm['value']
+            figPhy.update_layout(title=f"Physical exchanges between sectors, t={R['time']['value'][ntindex,0,0,0,0]:.2f}")
+
+
+    ###############################################################
+    #### MONETARY FLUXES ##########################################
+    for _ in range(1):
+        Matrices=['MtransactI','MtransactY']
+
+        ### INITIAL LISTS TO FILL
+        TD={            'label' :[], # names of target/sources
+                        'target':[], # Where the flux ends
+                        'source':[], # Where the flux starts
+                        'value' :[], # Flux intensity
+                        'types' :[], # Flux category 
+                        'colors':[]}
+
+        ### MATRICES
+        for X in Matrices: TD=Add_Matrix(X,TD)
+
+        ### ADDING VECTORS
+        TD = Add_Vector(TD,'pC','Consumption','Household',True)
+        TD = Add_Vector(TD,'wL','Wages','Household',False)
+        TD = Add_Vector(TD,'rD','Interests','Banks',False)
+
+        ### Adding scalar
+        TD = Add_scalar(TD,'rDh','Household','Banks','Interests',False)
+        TD['colors']= [c[i] for i in TD['colors']]
+
+        for i,v in enumerate(TD['value']):
+            if v<0:
+                TD['target'][i],TD['source'][i] = TD['source'][i],TD['target'][i]
+                TD['value'][i]*=-1
+
+        data = go.Sankey(link = dict(source = np.array(TD['source']).reshape(-1), 
+                                    target = np.array(TD['target']).reshape(-1), 
+                                    value = np.array(TD['value']).reshape(-1),
+                                    color=TD['colors']), 
+                        node= dict( label = TD['label'],
+                                    pad=50, 
+                                    thickness=5))
+
+
+
+        # plot
+        if not figMoney:
+            figMoney = go.Figure(data)
+            figMoney.update_layout(
+                hovermode = 'x',
+                title=f"Monetary exchanges between sectors, t={R['time']['value'][ntindex,0,0,0,0]:.2f}",
+                font=dict(size = 10, color = 'white'),
+                paper_bgcolor='#5B5958'
+            )
+            #figMoney.show()
+        else :
+            figMoney.data[0].link.value=TD['value']
+            figMoney.update_layout(title=f"Monetary exchanges between sectors, t={R['time']['value'][ntindex,0,0,0,0]:.2f}")
+    return figPhy,figMoney
+
 
 # #################################### TOOLBOX PLOTS ########################################
 
@@ -615,18 +758,8 @@ def cycles_characteristics(hub,
     '''
     Plot frequency and harmonicity for each cycle found in the system
 
-    xaxis='omega',
-    yaxis='employment',
-    ref='employment',
-   type1 and type2 should be in 't_mean_cycle':
-                                'period_T':,
-                                'medval': ,
-                                'stdval':,
-                                'minval':,
-                                'maxval':  ,
-                                'frequency':,
-                                'Coeffs':
-                                'Harmonicity': }
+    xaxis='omega',yaxis='employment',ref='employment',
+    type1 and type2 should be in ['t_mean_cycle','period_T','medval','stdval','minval','maxval','frequency','Coeffs','Harmonicity']
     '''
     if not hub.dmisc['run']:
         raise Exception('NO RUN DONE YET, RUN BEFORE DOING A PLOT')
@@ -639,7 +772,6 @@ def cycles_characteristics(hub,
     fig = plt.figure()
     ax1 = plt.subplot(111)
 
-
     xsector=xaxis[1] if type(xaxis) is list else 0
     ysector=yaxis[1] if type(xaxis) is list else 0
     xaxis=xaxis[0] if type(xaxis) is list else xaxis
@@ -648,7 +780,6 @@ def cycles_characteristics(hub,
     AllX = []
     AllY = []
     AllC1 = []
-    AllC2 = []
     R = hub.get_dparam()
     cycs = R[ref]['cycles_bykey']
 
@@ -676,27 +807,44 @@ def cycles_characteristics(hub,
     plt.show()
 
 
-
-
 def repartition(hub ,
                 keys : list ,
                 sector = '' ,
                 sign= '+',
                 ref = '',
                 refsign = '+',
+                removetranspose=False,
                 title= '',
                 idx=0,
-                region=0,):
+                Region=0,
+                tini=False,
+                tend=False,
+                ):
     """
+    Temporal visualisation of a composition.
+    Recommended use on stock-flow consistency and budget repartition.
+
+    Variables :
+    * hub
+    * keys : list of fields considered in the decomposition
+    * sector : the sector you want to verify. Monosectoral is ''
+    * sign : either '+','-' or a list of ['+','-'], to apply for each key. Must be a list of same length.
+    * ref : the reference level to compare to the components. Typically in the case of debt stock-flow, ref is dotD.
+    * title : title,
+    * idx : number of the system in parrallel
+    * region : number or id of the system considered
+    * removetranspose : if there is a matrix of transaction (from i to j), add negatively the transpose of the matrix terms
+
     Will create a substack of the different component you put in.
 
     Example on a multisectoral :
     repartition(hub,['pi','rd','xi','gamma','omega'],sector='Consumption')
     repartition(hub,['pi','rd','xi','gamma','omega'],sector='Capital')
+
+    Same as repartition, but will take matrices as inputs
     """
-    if not hub.dmisc['run']:
-        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS')
-        hub.run()
+    hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
+
 
 
     ### SIGNS HANDING
@@ -712,7 +860,7 @@ def repartition(hub ,
 
 
     R=hub.get_dparam()
-    # Sector names
+    # Sector names ##################################################
     if sector in ['',False,None]:
         sectindex = 0
         sectname = ''
@@ -724,11 +872,29 @@ def repartition(hub ,
         sectindex = R[R[keys[0]]['size'][0] ]['list'].index(sectname)
 
 
-    dicvals = { R[k]['symbol'][:-1]+'_{'+sectname+'}$': sign[enum]*R[k]['value'][:,idx,region,sectindex,0] for enum, k in enumerate(keys)}
-    color = list(plt.cm.jet(np.linspace(0,1,len(keys)+1)))
+    dicvals= {} # Dictonnary of entries #############################
+    for enum,k in enumerate(keys):                                          # For each entry
+        Nsects = R[R[k]['size'][1]].get('list',[''])                        # We check if it has components
+        for enum2, sect2name in enumerate(Nsects):                          # Decomposition for matrices
+
+            sectname2 = '-'+sect2name if len(Nsects)>1 else ''              # Name of matrix sector
+            entryname =  R[k]['symbol'][:-1]+'_{'+sectname+sectname2+'}$'   # Name in the dictionnary
+
+            # if the entry is non-zero
+            if np.max(np.abs(R[k]['value'][:,idx,Region,sectindex,enum2]))!=0:
+                dicvals[entryname]=  sign[enum]*R[k]['value'][idt0:idt1,idx,Region,sectindex,enum2]
+
+            if (removetranspose and R[k]['size'][1]!='__ONE__'):
+                entrynameT=R[k]['symbol'][:-1] + '_{' + sectname2[1:] +'-' +sectname + '}$'
+
+                # If the entry is non-zero
+                if np.max(np.abs(R[k]['value'][:, idx,Region,enum2,sectindex]))!=0:
+                    dicvals[entrynameT] = -sign[enum] * R[k]['value'][idt0:idt1, idx,Region,enum2,sectindex]
+
+    color = list(plt.cm.turbo(np.linspace(0,1,len(keys)+1)))
     dicvalpos = { k : np.maximum(v,0) for k,v in dicvals.items()}
     dicvalneg = { k : np.minimum(v,0) for k,v in dicvals.items()}
-    time = R['time']['value'][:,0,0,0,0]
+    time = R['time']['value'][idt0:idt1,0,0,0,0]
 
     plt.figure()
     fig=plt.gcf()
@@ -736,7 +902,7 @@ def repartition(hub ,
     ax=plt.gca()
     if len(ref):
         name = R[ref]['symbol'][:-1]+'_{'+sectname+'}$'
-        ax.plot(time,refsign*R[ref]['value'][:,idx,region,sectindex,0],c='k',lw=1,label=name)
+        ax.plot(time,refsign*R[ref]['value'][idt0:idt1,idx,Region,sectindex,0],c='r',ls='--',lw=2,label=name)
     ax.stackplot(time,dicvalpos.values(),labels=dicvals.keys(),colors=color)
     ax.legend(loc='upper left')
     ax.stackplot(time, dicvalneg.values(),lw=3,colors=color)
@@ -747,8 +913,104 @@ def repartition(hub ,
     plt.tight_layout()
     plt.show()
 
+
+def convergence(hub,finalpoint):
+
+    if len(finalpoint.keys())!=3:
+        raise Exception('Use three dimension for your phasespace !')
+
+    # Plot of everything ####################
+    ConvergeRate = hub.calculate_ConvergeRate(finalpoint)
+    #ConvergeRate/=np.amax(ConvergeRate)
+    R=hub.get_dparam()
+    keys = list(finalpoint.keys())
+
+    fig = plt.figure()
+    #fig.set_size_inches(10,5)
+    ax = plt.axes(projection='3d')
+    cmap = mpl.cm.jet_r
+
+    # All the final points
+    ax.scatter(finalpoint[keys[0]],
+            finalpoint[keys[1]],
+            finalpoint[keys[2]],
+            s=50,
+            c='k')
+
+    # Scatter plot
+    R = hub.get_dparam(key=[k for k in finalpoint]+['time'], returnas=dict)
+    scat = ax.scatter(R[keys[0]]['value'][0, ConvergeRate > 0.01],
+                      R[keys[1]]['value'][0, ConvergeRate > 0.01],
+                      R[keys[2]]['value'][0, ConvergeRate > 0.01],
+                    c=ConvergeRate[ConvergeRate > 0.01],
+                    cmap=cmap,
+                    norm=mpl.colors.LogNorm(vmin=np.amin(ConvergeRate[ConvergeRate > 0.01])))
+    scat2 = ax.scatter(R[keys[0]]['value'][0, ConvergeRate < 0.001],
+                       R[keys[1]]['value'][0, ConvergeRate < 0.001],
+                       R[keys[2]]['value'][0, ConvergeRate < 0.001],
+                    c='r')
+                    #cmap=cmap,
+                    #norm=mpl.colors.LogNorm(vmin=10**(-3)))
+    plt.axis('tight')
+
+    # Add trajectory of converging points
+    for i in range(len(ConvergeRate)):
+        if ConvergeRate[i]>0:
+            plt.plot(R[keys[0]]['value'][:, i,0,0,0],
+                     R[keys[1]]['value'][:, i,0,0,0],
+                     R[keys[2]]['value'][:, i,0,0,0]
+                    ,c='k',lw=0.1)
+
+    ax.set_xlabel(R[keys[0]]['symbol'])
+    ax.set_ylabel(R[keys[1]]['symbol'])
+    ax.set_zlabel(R[keys[2]]['symbol'])
+    cbar = fig.colorbar(scat)
+    cbar.ax.set_ylabel(r'$f_{carac}^{stab} (y^{-1})$')
+    plt.show()
+    '''
+    lc1 = _multiline(AllX, AllY, AllZ, ax=ax,color='k', lw=0.1)
+    # Add colobar
+    '''
+# #############################################################
+
 # %% DEPRECIATED ##################################################################
 ###################################################################################
+
+
+def phasespace(hub, x, y, color='time', idx=0,Region=0):
+    '''
+    Depreciated, use XY instead
+    '''
+    print('plot phasespace is depreciated, use XY instead')
+
+    if not hub.dmisc['run']:
+        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS VALUES')
+        hub.run()
+
+    XY(hub,x,y,
+       color='time',
+       scaled=False,
+       idx=0,
+       Region=0,
+       tini=False ,
+       tend=False ,
+       title='')
+
+
+def plot3D(hub, x, y, z, color, cmap='jet', index=0,Region=0, title=''):
+    '''
+    Depreciated, use XYZ instead
+    '''
+    print('Depreciated, use XYZ instead')
+    XYZ(hub,x,y,z,
+        color,
+        idx=0,
+        Region=Region,
+        tini=False ,
+        tend=False ,
+        title=title)
+
+    
 
 def __slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0,Region=0):
     '''
@@ -878,7 +1140,7 @@ def __plot_variation_rate(hub, varlist, title='', idx=0):
 
         # Ylim management
         sort = np.sort(R[key]['time_log_derivate'][1:-1, idx])[int(0.05*len(t)):-int(0.05*len(t))]
-        ax0[key].set_ylim([1.3*np.amin(sort), 1.3*np.amax(sort)])
+        ax0[key].set_ylim([1.3*np.nanmin(sort), 1.3*np.nanmax(sort)])
         # Left side axis management
         ax02[key].set_ylabel(R[key]['symbol'])
         ax02[key].spines['left'].set_position(('outward',  80))
@@ -931,20 +1193,23 @@ def __plot_variation_rate(hub, varlist, title='', idx=0):
     plt.show()
 
 
-# #############################################################
-
-
 _DPLOT = {
     #'Slice_logic': __slices_wholelogic,
     #'variation_rate': plot_variation_rate,
-    'timetrace': plot_timetraces,
+    #'timetrace': plot_timetraces,
     'nyaxis': plotnyaxis,
     'phasespace': phasespace,
+    'XY' : XY,
+    'XYZ' : XYZ,
     '3D': plot3D,
+    'sankey': Sankey,
     'byunits': plotbyunits,
     'Onevariable': Var,
     'cycles_characteristics': cycles_characteristics,
-    'repartition':repartition}
+    'repartition':repartition,
+    'convergence':convergence}
 
 
 
+
+# %%

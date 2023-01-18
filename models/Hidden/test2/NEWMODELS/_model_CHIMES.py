@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 Canonical Monosectorial Gemmes model, with no climate.
 
@@ -65,7 +65,7 @@ _LOGICS = {
             'func': lambda Y=0, gamma=0, C=0, Xi=0, Ir=0: Y-gamma*Y-C-Xi*Ir,
             'com': "Stock-flow Inventory evolution"},
         # HOUSEHOLD INTERMEDIARY CHARACTERISTICS
-        'lambda': {
+        'employment': {
             'func': lambda L=0, N=1:  L/N,
             'com': 'employement rate'},
         'omega': {

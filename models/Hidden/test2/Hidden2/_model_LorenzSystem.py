@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 """
 DESCRIPTION : This is the equation for the Famous Lorenz attractor : three differential equations,
 that create a chaotic system oscillating in itself.

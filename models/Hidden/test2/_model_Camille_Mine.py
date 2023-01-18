@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+
 """
 DESCRIPTION : Elements of the mining sectors in Camille's model for bisectorial
 TYPICAL BEHAVIOR :

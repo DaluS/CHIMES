@@ -1,5 +1,11 @@
-# -*- coding: utf-8 -*-
-"""
+
+'''Goodwin model: Stock-flow consistency core '''
+
+_DESCRIPTION = """
+* **Article :** 
+* **Author  :** Goodwin
+* **Coder   :** Paul Valcke
+
 This is a basic Goodwin model :
     * Two sectors
     * Exogenous technical progress, exogenous population
@@ -14,8 +20,7 @@ The interesting things :
     * Economic cycles (on employment and wage share) are an emergent property
     * trajectories are closed in the phasespace (employment, omega) employment - wageshare
 
-Link : https://en.wikipedia.org/wiki/Goodwin_model_(economics) (notations differs)
-
+It is written with a price p=1 for homogeneity issues
 
 @author: Paul Valcke
 """
@@ -27,60 +32,30 @@ from pygemmes._models import Funcs, importmodel,mergemodel
 # ######################## LOGICS #######################################
 _LOGICS = {
     'differential': {
-        # Exogenous entries in the model
-        'a': Funcs.Productivity.exogenous,
-        'N': Funcs.Population.exp,
-
-        # Stock-flow consistency
-        'K': Funcs.Kappa.kfromIr,
-
-        # Price Dynamics
-        'w': {
-            'func': lambda phillips, w : w * phillips,
-            'com': 'Phillips impact (no negociation)'
-        }
+        'a': {'func': lambda a,alpha    : a*alpha },
+        'N': {'func': lambda N,n        : N*n },
+        'K': {'func': lambda K,Ir,delta : Ir-delta*K },
+        'w': {'func': lambda w,phillips : w*phillips },
     },
 
     # Intermediary relevant functions
     'statevar': {
-        # Production function and its employement
-        'Y': Funcs.ProductionWorkers.Leontiev_Optimised.Yfnu,
-        'L': Funcs.ProductionWorkers.Leontiev_Optimised.Lfa,
+        'pi' :   {'func': lambda p,Y,Pi : Pi /(p*Y) },
+        'omega' :{'func': lambda p,Y,w,L: w*L/(p*Y) },
+        'employment' :{'func': lambda L,N: L/N },
+        'g' :{'func': lambda Ir,K,delta: Ir/K-delta },      
+        
+        'Y' :{'func': lambda K,nu: K/nu },
+        'Pi':{'func': lambda p,Y,w,L: p*Y-w*L},
+        'C' :{'func': lambda Y,Ir: Y-Ir },
+        'Ir':{'func': lambda Pi: Pi },
+        'L' :{'func': lambda Y,a: Y/a },
 
-        # Parametric behavior functions
-        'phillips': Funcs.Phillips.div,
-        'I': Funcs.Kappa.ifromnobank,
-        'Ir': Funcs.Kappa.irfromI,
-        'C': {'func':  lambda w,L,p : w*L/p,
-              'units': 'Units.y^{-1}'},
-        'W': {
-            'func': lambda w,  L,: w*L,
-            'definition': 'Total income of household',
-            'com': 'no shareholding, no bank possession',
-            'units': '$.y^{-1}',
-            'symbol': r'$\mathcal{W}$'
-        },
-
-        # Intermediary variables with their definitions
-        'pi': Funcs.Definitions.pi,
-        'employment': Funcs.Definitions.employment,
-        'omega': Funcs.Definitions.omega,
-        'GDP': Funcs.Definitions.GDPmonosec,
-
-        # Costs per unit produced
-        'c': Funcs.Inflation.costonlylabor,
-
-        # Stock-Flow consistency
-        'Pi': {
-            'func':  lambda  GDP, w, L: GDP - w * L,
-            'com': 'Profit for production-Salary', },
-
-        # Auxilliary for practical purpose
-        'g': {
-            'func':  lambda  I, K, delta: (I - K * delta)/K,
-            'com': 'relative growth rate'},
+        'phillips'  :{'func': lambda employment, philinConst, philinSlope: philinConst + philinSlope * employment,},
     },
-    'parameter': {},
+    'parameter': {
+        'p': {'value':1},
+    },
     'size': {},
 }
 
@@ -88,21 +63,19 @@ _LOGICS = {
 _PRESETS = {
     'default': {
         'fields': {
-            'dt': 0.011,
-            'a': 1.01,
-            'N': 1.01,
-            'K': 2.91,
-            'D': 0.01,
-            'w': .5*1.19,
-            'alpha': 0.021,
-            'n': 0.0251,
-            'nu': 31,
-            'delta': .0051,
-            'phinull': 0.11,
+            'dt': 0.01,
+            'a': 1,
+            'N': 1,
+            'K': 2,
+            'D': 0,
+            'w': .6,
+            'alpha': 0.02,
+            'n': 0.025,
+            'nu': 3,
+            'delta': .005,
+            'phinull': 0.1,
         },
-        'com': (
-            'This is a run that should give simple '
-            'convergent oscillations'),
+        'com': '',
         'plots': {
             'timetrace': [{}],
             'nyaxis': [{'x': 'time',
@@ -112,22 +85,22 @@ _PRESETS = {
                         'idx':0,
                         'title':'',
                         'lw':1}],
-            'phasespace': [{'x': 'employment',
+            'XY': [{'x': 'employment',
                             'y': 'omega',
                             'color': 'time',
                             'idx': 0}],
-            '3D': [{'x': 'employment',
+            'XYZ': [{'x': 'employment',
                     'y': 'omega',
                     'z': 'time',
                     'color': 'pi',
-                    'cmap': 'jet',
-                    'index': 0,
+                    'idx': 0,
                     'title': ''}],
             'byunits': [],
         },
     },
     'many-orbits': {
         'fields': {
+            'nx':5,
             'dt': 0.01,
             'a': 1,
             'N': 1,

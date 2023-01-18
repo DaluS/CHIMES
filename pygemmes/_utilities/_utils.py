@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+
 
 
 import numpy as np
@@ -8,6 +8,9 @@ import numpy as np
 # #############################################################################
 #                       Pretty printing
 # #############################################################################
+
+
+
 
 
 def _getcharray(ar, col=None, sep='  ', line='-', just='l', msg=True):

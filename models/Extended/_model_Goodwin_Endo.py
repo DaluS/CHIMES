@@ -53,7 +53,7 @@ _GE_LOGICS = {
     }
 }
 
-_LOGICS = mergemodel(_LOGICS, _GE_LOGICS, verb=True) 
+_LOGICS = mergemodel(_LOGICS, _GE_LOGICS, verb=False) 
 
 
 
@@ -102,6 +102,7 @@ _PRESETS = {
     },
     'many-orbits': {
         'fields': {
+            'nx':5,
             'dt': 0.01,
             'a': 1,
             'N': 1,
