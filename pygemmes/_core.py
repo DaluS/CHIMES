@@ -923,9 +923,12 @@ class Hub():
 
         df0= self.get_fieldsproperties()
 
+        if self.dmisc['run']==True: firstlast=True
+        else:                       firstlast=False
+
         dfp = self.get_dataframe(eqtype=None,t0=0,t1=0,)
-        dfd = self.get_dataframe(eqtype='differential',t0=0,t1=0,)
-        dfs = self.get_dataframe(eqtype='statevar'    ,t0=0,t1=0,)
+        dfd = self.get_dataframe(eqtype='differential',firstlast=True)
+        dfs = self.get_dataframe(eqtype='statevar'    ,firstlast=True)
 
 
         SUMMARY=[df0,dfp.transpose(),dfd.transpose(),dfs.transpose()]
@@ -939,14 +942,20 @@ class Hub():
         categories=['eqtype','source_exp','definition','com','group','units','symbol','isneeded']
         R=self.get_dparam()
         Rpandas= {k0:{k:R[k0][k] for k,v in R[k0].items() if k in categories} for k0 in R.keys()}
+        for k0 in Rpandas.keys():
+            if Rpandas[k0].get('eqtype',False)=='differential':
+                Rpandas[k0]['source_exp']='d'+k0+'/dt='+Rpandas[k0]['source_exp']
+            elif Rpandas[k0].get('eqtype',False)=='statevar':
+                Rpandas[k0]['source_exp']=k0+'='+Rpandas[k0]['source_exp']    
         AllFields=pd.DataFrame(Rpandas,index=categories).transpose()
         return AllFields.replace(np.nan,'')
         
-    def get_dataframe(self,eqtype=False,t0=False,t1=False): 
+    def get_dataframe(self,eqtype=False,t0=False,t1=False,firstlast=False): 
         R0=self.get_dparam()
         if eqtype==False: R= R0
         else: R= self.get_dparam(eqtype=eqtype)
 
+        ### Time ids
         time = R0['time']['value'][:,0,0,0,0]
         if np.isnan(time[1]): 
             idt0=0
@@ -955,13 +964,20 @@ class Hub():
             if type(t0) in [int,float] : idt0=np.argmin(np.abs(time-t0))
             else : idt0=0
 
-            if type(t0) in [int,float]: idt1=np.argmin(np.abs(time-t1))+1
+            #print(type(t1),t1)
+            if type(t1) in [int,float]: 
+                idt1=np.argmin(np.abs(time-t1))+1
             else : idt1=-1
-
+        if firstlast:
+            TimeId= np.array([0,-1])
+        else:
+            if idt1==-1: idt1=len(time)-1
+            TimeId= np.arange(idt0,idt1)
 
         SectsX= R0['nx']['list']
         SectsR= R0['nr']['list']
-        Time = R0['time']['value'][idt0:idt1,0,0,0,0]
+        Time = R0['time']['value'][TimeId,0,0,0,0]
+
         Onedict={ 'field':  [],
                 'value': []    ,
                 'time': [],
@@ -980,7 +996,7 @@ class Hub():
                                     SectsX,
                                     Time
                                     )
-            else : 
+            elif R0[k]['group']!='Numerical' : 
                 GRID = np.meshgrid( 
                                     R0[R[k]['size'][1]].get('list',['mono']),
                                     R0[R[k]['size'][0]].get('list',['mono']),
@@ -988,7 +1004,15 @@ class Hub():
                                     SectsX,
                                     [0.]
                                     )
-            Val = R[k]['value'][idt0:idt1,...] if R[k].get('eqtype',None) not in ['parameter','parameters',None,'size'] else R[k]['value']
+            else: 
+                GRID = np.meshgrid( 
+                                    [''],
+                                    [''],
+                                    [''],
+                                    [''],
+                                    [0.]
+                                    )
+            Val = R[k]['value'][TimeId,...] if R[k].get('eqtype',None) not in ['parameter','parameters',None,'size'] else R[k]['value']
             if type(Val) in [float,int]: 
                 Val=np.array([Val])
             Val= Val.reshape(-1)
@@ -999,8 +1023,29 @@ class Hub():
             Onedict['region'   ].extend(GRID[-3].reshape(-1))
             Onedict['Multi1'   ].extend(GRID[-4].reshape(-1))
             Onedict['Multi2'   ].extend(GRID[-5].reshape(-1))
-        df=pd.DataFrame(Onedict).set_index(['parrallel','region','field','Multi1','Multi2','time'],drop=True).unstack().transpose()    
-        return df
+
+        drop= {'parrallel': True if len(set(Onedict['parrallel']))==1 else False ,
+                'region': True if len(set(Onedict['region']))==1 else False ,
+                'Multi1': True if len(set(Onedict['Multi1']))==1 else False,
+                'Multi2': True if len(set(Onedict['Multi2']))==1 else False,
+                'time':  True if len(set(Onedict['time']))==1 else False,}
+        newdict = {k:v for k,v in Onedict.items() if not drop.get(k,False)}
+        newindex=[k for k,v in drop.items() if not v]
+        #print(drop)
+        if len(newindex):
+            #print('newindex',newindex)
+            #print('drop',drop)
+            #print('newdict',newdict.keys())
+            #print()
+            df= pd.DataFrame(newdict)
+            df=df.set_index(newindex,drop=True)
+            #try:
+            #    df=df.unstack()
+            #except BaseException:
+            #    print('could not unstack !')
+        else: 
+            df=pd.DataFrame(newdict)
+        return df.transpose()
 
     def get_equations_description(self):
         '''
@@ -1303,7 +1348,7 @@ idx                : is the same for parrallel systems
                 self.__dparam[ke]['sensitivity'].append(d)
         self.__dmisc['sensitivity'] = True
 
-    def calculate_ConvergeRate(self, finalpoint,Region=0,idx=0):
+    def calculate_ConvergeRate(self, finalpoint,Region=0):
         '''
         Will calculate how the evolution of the distance of each trajectory to
         the final point.
@@ -1326,12 +1371,13 @@ idx                : is the same for parrallel systems
                 sector[k]=v[1]
                 finalpoint[k]=v[0]
 
-        Coords = [R[k]['value'][idx,Region,sector[k],0]-finalpoint[k] for k in finalpoint.keys()]
+
+        Coords = [R[k]['value'][:,:,Region,sector[k],0]-finalpoint[k] for k in finalpoint.keys()]
         dist = np.linalg.norm(Coords, axis=0)
-        t = R['time']['value'][:, 0]
+        t = R['time']['value'][:, 0,0,0,0]
 
         # Fit using an exponential ############
-        Nsys = self.dmisc['dmulti']['shape'][0]
+        Nsys = np.shape(dist)[1]
         ConvergeRate = np.zeros(Nsys)
         for i in range(Nsys):
             if (np.isnan(np.sum(dist[:, i])) or np.isinf(np.sum(dist[:, i]))):
@@ -1386,6 +1432,8 @@ idx                : is the same for parrallel systems
             'dargs': copy.deepcopy(self.__dargs),
         }
         return dout
+
+
 
 
     def __calculate_variation_rate(self, epsilon=0.0001):
@@ -1450,3 +1498,5 @@ idx                : is the same for parrallel systems
                                             for k2 in R[k]['partial_derivatives'].keys()}
         self.__dmisc['derivative'] = True
 
+
+# %%

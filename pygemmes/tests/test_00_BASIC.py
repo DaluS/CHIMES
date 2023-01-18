@@ -3,6 +3,7 @@ import os
 import sys
 import itertools as itt     # for iterating on parameters combinations
 
+import matplotlib.pyplot as plt
 
 _PATH_HERE = os.path.abspath(os.path.dirname(__file__))
 _PATH_PCK = os.path.dirname(os.path.dirname(_PATH_HERE))
@@ -43,7 +44,7 @@ class Test00_Get():
         pass
 
     @classmethod
-    def setup(self):
+    def setup_method(self):
         pass
 
     def teardown_method(self):
@@ -88,6 +89,7 @@ class Test00_Get():
                 'tini':False, 
                 'tend':False, 
                 'title':''})
+        plt.close('all')
         pgm.plots.Var(hub,**{'key':'employment',
                 'mode':'sensitivity',  #
                 'log':False,
@@ -96,6 +98,7 @@ class Test00_Get():
                 'tini':False, 
                 'tend':False, 
                 'title':''})
+        plt.close('all')
         pgm.plots.Var(hub,**{'key':'employment',
                 'mode':'sensitivity', 
                 'log':True, #
@@ -104,6 +107,7 @@ class Test00_Get():
                 'tini':False, 
                 'tend':False, 
                 'title':''})
+        plt.close('all')
         pgm.plots.Var(hub,**{'key':'employment',
                 'mode':'cycles', #
                 'log':False,
@@ -112,6 +116,7 @@ class Test00_Get():
                 'tini':False, 
                 'tend':False, 
                 'title':''})
+        plt.close('all')
         pgm.plots.Var(hub,**{'key':'employment',
                 'mode':False, 
                 'log':False,
@@ -120,6 +125,7 @@ class Test00_Get():
                 'tini':10, #
                 'tend':20, #
                 'title':''})
+        plt.close('all')
         pgm.plots.Var(hub,**{'key':'employment',
                 'mode':False, 
                 'log':False,
@@ -128,7 +134,7 @@ class Test00_Get():
                 'tini':10, #
                 'tend':20, #
                 'title':'Hello'})
-
+        plt.close('all')
 
         pgm.plots.cycles_characteristics(hub,**{'xaxis':'omega', 
                                               'yaxis':'employment', 
@@ -137,6 +143,7 @@ class Test00_Get():
                                               'normalize':False, 
                                               'Region':0, 
                                               'title':''})
+        plt.close('all')
         pgm.plots.plotbyunits(hub,**{'filters_key':(),
                                'filters_units':(),
                                'filters_sector':(),
@@ -147,6 +154,7 @@ class Test00_Get():
                                'tini':False, 
                                'tend':False, 
                                'title':''})
+        plt.close('all')
         pgm.plots.plotbyunits(hub,**{'filters_key':(),
                                'filters_units':(),
                                'filters_sector':(),
@@ -157,6 +165,7 @@ class Test00_Get():
                                'tini':10, 
                                'tend':15, 
                                'title':''})
+        plt.close('all')
         pgm.plots.plotbyunits(hub,**{'filters_key':('pi','Pi'),
                                'filters_units':('y^{-1}'),
                                'filters_sector':(),
@@ -167,6 +176,7 @@ class Test00_Get():
                                'tini':10, 
                                'tend':15, 
                                'title':''})
+        plt.close('all')
         pgm.plots.plotnyaxis(hub,**{'y':[['pi','omega'],['d']],
                                    'x':'time', 
                                    'idx':0,
@@ -174,6 +184,7 @@ class Test00_Get():
                                    'log':False,# []
                                    'title':'', 
                                    })
+        plt.close('all')
         pgm.plots.plotnyaxis(hub,**{'y':[['omega'],['employment']],
                                    'x':'time', 
                                    'idx':0,
@@ -181,6 +192,7 @@ class Test00_Get():
                                    'log':True,
                                    'title':'', 
                                    })
+        plt.close('all')
         pgm.plots.plotnyaxis(hub,**{   'y':[['omega'],['employment']],
                                    'x':'time', 
                                    'idx':0,
@@ -188,6 +200,7 @@ class Test00_Get():
                                    'log':[True,False],
                                    'title':'', 
                                    })
+        plt.close('all')
 
         pgm.plots.XY (hub,**{    'x':'employment',
                             'y':'omega',
@@ -199,6 +212,7 @@ class Test00_Get():
                             'tend':False, 
                             'title':'', 
                             })
+        plt.close('all')
         pgm.plots.XY (hub,**{    'x':'employment',
                             'y':'omega',
                             'color':'d', 
@@ -209,6 +223,7 @@ class Test00_Get():
                             'tend':False, 
                             'title':'', 
                             })
+        plt.close('all')
         pgm.plots.XY (hub,**{    'x':'employment',
                             'y':'omega',
                             'color':'d', 
@@ -219,6 +234,7 @@ class Test00_Get():
                             'tend':15, 
                             'title':'', 
                             })
+        plt.close('all')
         pgm.plots.XYZ(hub,**{   'x':'employment',
                             'y':'omega',
                             'z':'d', 
@@ -228,6 +244,7 @@ class Test00_Get():
                             'tini':False, 
                             'tend':False, 
                             'title':''},)
+        plt.close('all')
         pgm.plots.XYZ(hub,**{   'x':'employment',
                             'y':'omega',
                             'z':'d', 
@@ -237,6 +254,7 @@ class Test00_Get():
                             'tini':10, 
                             'tend':20, 
                             'title':''},)
+        plt.close('all')
 
         pgm.plots.plotbyunits(hub,**{'filters_key' :('p'),
                                     'filters_units':('Units'),
@@ -246,6 +264,7 @@ class Test00_Get():
                                     'Region':0,
                                     'title':'',
                                     'lw':2})
+        plt.close('all')
 
         #pgm.plots.cycles_characteristics(hub,**{})
 
@@ -256,6 +275,7 @@ class Test00_Get():
                                         'idx':0,
                                         'title':'',
                                         'lw':1})
+        plt.close('all')
 
 
 

@@ -5,7 +5,7 @@ with open("README", 'r') as f:
 
 setup(
     name='PyGEMMES',
-    version='0.1',
+    version='0.9',
     description='A dynamical system library',
     license="MIT",
     long_description=long_description,
@@ -30,5 +30,5 @@ setup(
     author_email='pv229@georgetown.edu',
     url="https://environmentaljustice.georgetown.edu/#",
     packages=['PyGEMMES'],  #same as name
-    install_requires=['numpy','scipy','pyvis','matplotlib'], #external packages as dependencies
+    install_requires=['numpy','scipy','pyvis','matplotlib','pandas','plotly'], #external packages as dependencies
 )

@@ -13,7 +13,7 @@ import copy
 import numpy as np
 
 import matplotlib.pyplot as plt
-import matplotlib
+import matplotlib 
 from matplotlib.collections import LineCollection
 from matplotlib.patches import Rectangle
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
@@ -21,7 +21,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.gridspec import GridSpec
 import plotly.graph_objects as go
 import pandas as pd
-
+import matplotlib as mpl
 
 _LS = [
     (0, ()),
@@ -59,7 +59,8 @@ __all__ = [
     'plotbyunits',
     'Var',
     'cycles_characteristics',
-    'repartition'
+    'repartition',
+    'convergence'
 ]
 
 # ############################################################################
@@ -913,6 +914,65 @@ def repartition(hub ,
     plt.show()
 
 
+def convergence(hub,finalpoint):
+
+    if len(finalpoint.keys())!=3:
+        raise Exception('Use three dimension for your phasespace !')
+
+    # Plot of everything ####################
+    ConvergeRate = hub.calculate_ConvergeRate(finalpoint)
+    #ConvergeRate/=np.amax(ConvergeRate)
+    R=hub.get_dparam()
+    keys = list(finalpoint.keys())
+
+    fig = plt.figure()
+    #fig.set_size_inches(10,5)
+    ax = plt.axes(projection='3d')
+    cmap = mpl.cm.jet_r
+
+    # All the final points
+    ax.scatter(finalpoint[keys[0]],
+            finalpoint[keys[1]],
+            finalpoint[keys[2]],
+            s=50,
+            c='k')
+
+    # Scatter plot
+    R = hub.get_dparam(key=[k for k in finalpoint]+['time'], returnas=dict)
+    scat = ax.scatter(R[keys[0]]['value'][0, ConvergeRate > 0.01],
+                      R[keys[1]]['value'][0, ConvergeRate > 0.01],
+                      R[keys[2]]['value'][0, ConvergeRate > 0.01],
+                    c=ConvergeRate[ConvergeRate > 0.01],
+                    cmap=cmap,
+                    norm=mpl.colors.LogNorm(vmin=np.amin(ConvergeRate[ConvergeRate > 0.01])))
+    scat2 = ax.scatter(R[keys[0]]['value'][0, ConvergeRate < 0.001],
+                       R[keys[1]]['value'][0, ConvergeRate < 0.001],
+                       R[keys[2]]['value'][0, ConvergeRate < 0.001],
+                    c='r')
+                    #cmap=cmap,
+                    #norm=mpl.colors.LogNorm(vmin=10**(-3)))
+    plt.axis('tight')
+
+    # Add trajectory of converging points
+    for i in range(len(ConvergeRate)):
+        if ConvergeRate[i]>0:
+            plt.plot(R[keys[0]]['value'][:, i,0,0,0],
+                     R[keys[1]]['value'][:, i,0,0,0],
+                     R[keys[2]]['value'][:, i,0,0,0]
+                    ,c='k',lw=0.1)
+
+    ax.set_xlabel(R[keys[0]]['symbol'])
+    ax.set_ylabel(R[keys[1]]['symbol'])
+    ax.set_zlabel(R[keys[2]]['symbol'])
+    cbar = fig.colorbar(scat)
+    cbar.ax.set_ylabel(r'$f_{carac}^{stab} (y^{-1})$')
+    plt.show()
+    '''
+    lc1 = _multiline(AllX, AllY, AllZ, ax=ax,color='k', lw=0.1)
+    # Add colobar
+    '''
+# #############################################################
+
 # %% DEPRECIATED ##################################################################
 ###################################################################################
 
@@ -1133,9 +1193,6 @@ def __plot_variation_rate(hub, varlist, title='', idx=0):
     plt.show()
 
 
-# #############################################################
-
-
 _DPLOT = {
     #'Slice_logic': __slices_wholelogic,
     #'variation_rate': plot_variation_rate,
@@ -1149,7 +1206,10 @@ _DPLOT = {
     'byunits': plotbyunits,
     'Onevariable': Var,
     'cycles_characteristics': cycles_characteristics,
-    'repartition':repartition}
+    'repartition':repartition,
+    'convergence':convergence}
 
 
 
+
+# %%

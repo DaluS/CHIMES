@@ -73,6 +73,9 @@ _SUPPLEMENTS = {}
 _PRESETS = {
     'default': {
         'fields': {
+            'k0':-.2,
+            'k1':1.2,
+            'eta':0,
             'dt': 0.01,
             'a': 1,
             'N': 1,

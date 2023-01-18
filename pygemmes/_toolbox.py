@@ -157,5 +157,6 @@ def generate_dic_distribution(InputDic, dictpreset={}, N=10):
                                                     disttype=val['type'],
                                                     dictpreset=dictpreset,
                                                     N=N)
+        dictpreset['nx']=N
     return dictpreset
 

@@ -53,7 +53,7 @@ _GE_LOGICS = {
     }
 }
 
-_LOGICS = mergemodel(_LOGICS, _GE_LOGICS, verb=True) 
+_LOGICS = mergemodel(_LOGICS, _GE_LOGICS, verb=False) 
 
 
 

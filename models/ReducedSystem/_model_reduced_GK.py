@@ -30,11 +30,13 @@ _LOGICS = {
         'd': {         'func': lambda d, kappa, pi, g, inflation,Delta:  kappa - pi + pi*Delta  - d*(g+inflation),}
     },
     'statevar': {
-        'phillips': {'func': lambda employment, philinConst, philinSlope: philinConst + philinSlope * employment,
+        'phillips': {'func': lambda phi0, phi1, employment: (-phi0 + phi1 / (1 - employment)**2),
+        #lambda employment, philinConst, philinSlope: philinConst + philinSlope * employment,
                      'com': 'Linear Philips'},
         'g':  {'func': lambda kappa, nu, delta: kappa / nu - delta,},
         'pi': {'func': lambda omega, r, d: 1. - omega - r * d},
-        'kappa': {'func': lambda pi, k0, k1: k0 + k1 * pi,
+        'kappa': {'func': lambda k0, k1, k2, pi: k0 + k1 * np.exp(k2 * pi),
+        #lambda pi, k0, k1: k0 + k1 * pi,
                   'com': 'Linear kappa'},
         'inflation': {
             'func': lambda mu, eta, omega: eta*(mu*omega-1),
