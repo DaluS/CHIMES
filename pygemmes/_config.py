@@ -82,12 +82,12 @@ __DEFAULTFIELDS = {
         'allowed': None,
     },
     'definition': {
-        'default': 'No definition',
+        'default': '',
         'type': str,
         'allowed': None,
     },
     'com': {
-        'default': 'No comment',
+        'default': '',
         'type': str,
         'allowed': None,
     },

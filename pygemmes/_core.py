@@ -786,7 +786,6 @@ class Hub():
        self.__dmisc['cycles'] = False
        self.__dmisc['sensitivity'] = False
 
-
     def run(
            self,
            N=False,
@@ -835,7 +834,6 @@ class Hub():
            self.__dmisc['run'] = False
            raise err
 
-
     def reinterpolate_dparam(self, N=100):
         """
         If the system has run, takes dparam and reinterpolate all values.
@@ -862,7 +860,6 @@ class Hub():
             newshape =[N]+list(prevshape[1:])
             self.__dparam[k]['value'] = newval.reshape(newshape)
         
-
     # ##############################
     #  Introspection
     # ##############################
@@ -939,7 +936,7 @@ class Hub():
         return SUMMARY
 
     def get_fieldsproperties(self):
-        categories=['eqtype','source_exp','definition','com','group','units','symbol','isneeded']
+        categories=['definition','units','source_exp','com','group','symbol','isneeded','size','eqtype']
         R=self.get_dparam()
         Rpandas= {k0:{k:R[k0][k] for k,v in R[k0].items() if k in categories} for k0 in R.keys()}
         for k0 in Rpandas.keys():

@@ -50,7 +50,6 @@ def solve(
 
     return solver
 
-
 def get_func_dydt(
     dparam=None,
     dmisc=None,
@@ -103,6 +102,9 @@ def _eRK4_homemade(
         y,state = _rk4( dydt_func=dydt_func,
                         dt=dparam['dt']['value'],
                         y=y,)
+        #y,state = _rk1( dydt_func=dydt_func,
+        #                dt=dparam['dt']['value'],
+        #                y=y,)
 
         # dispatch to store result of ode
         for k0 in lode:   dparam[k0]['value'][ii, ...] = y[k0]
@@ -124,3 +126,7 @@ def _rk4(dydt_func=None, dt=None, y=None):
                     + 2*dy2_on_dt[k]
                     + 2*dy3_on_dt[k]
                     +   dy4_on_dt[k]) * dt/6  for k in y.keys()},state
+
+def _rk1(dydt_func=None, dt=None, y=None):
+    dy1_on_dt,state = dydt_func( y); 
+    return {k: y[k] + dy1_on_dt[k] * dt  for k in y.keys()},state

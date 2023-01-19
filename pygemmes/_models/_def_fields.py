@@ -221,7 +221,42 @@ _LIBRARY = {
             'size': ['Nprod'],
             'symbol': r'$\dot{V}$'
         },
-
+        'Kdelta': {
+            'value': 0,
+            'func': lambda K,delta : delta*K, 
+            'definition': 'physical degraded of capital',
+            'units': 'Units.y^{-1}',
+            'size': ['Nprod'],
+            'symbol': r'$(delta K)$'
+        },
+        'gamma': {
+            'value':0,
+            'definition': 'share of intermediary consumption',
+            'units': '',
+            'symbol': r'$\gamma$',
+            'size': ['Nprod'],
+        },
+        'reldotv': {
+            'value':0,
+            'definition': 'relative budget weight of inventory change',
+            'units': '',
+            'size': ['Nprod'],
+            'symbol': r'$\dot{v}$',
+        },
+        'reloverinvest': {
+            'value':0,
+            'units': '',
+            'symbol': r'$(\kappa-\pi)$',
+            'size': ['Nprod'],
+            'definition': 'relative overinstment of the budget',
+        },
+        'xi': {
+            'value':0,
+            'definition': 'relative capex weight',
+            'units': '',
+            'size': ['Nprod'],
+            'symbol': r'$\xi$',
+        },
         'wL': {
             'value':0,
             'com': 'wage bill per sector',
@@ -255,10 +290,21 @@ _LIBRARY = {
         'W': {
             'value': 0,
             'definition': 'Total income of household',
-            'com': 'no shareholding, no bank possession',
             'units': '$.y^{-1}',
             'symbol': r'$\mathcal{W}$'
         },
+        'Shareholding': {
+            'value': 0,
+            'definition': 'flow of profits to households',
+            'units': '$.y^{-1}',
+        },
+        'Delta': {
+            'value':0,
+            'definition': 'proportion of profits as shareholding',
+            'units':'',
+            'symbol': r'$\Delta^{\pi}$'
+        },
+
         'rDh': {
             'value': 0,
             'definition': 'bank interests for household',
@@ -303,6 +349,13 @@ _LIBRARY = {
             'value':1,
             'definition': 'target markup for productive sector',
             'size': ['Nprod']
+        },
+
+        'employmentAGG': {
+            'value':0.9,
+            'definition': 'Agregated employment',
+            'units': '',
+            'symbol': r'$\Lambda$'
         },
     },
 
@@ -707,6 +760,18 @@ _LIBRARY = {
             'value': 0,
             'definition': 'inflation rate',
             'units': 'y^{-1}',
+        },
+        'inflationMarkup': {
+            'value': 0,
+            'definition': 'cost-pushed inflation',
+            'units': 'y^{-1}',
+            'symbol': '$i^{\mu}$'
+        },
+        'inflationdotV': {
+            'value': 0,
+            'definition': 'inventory-pushed inflation',
+            'units': 'y^{-1}',
+            'symbol': '$i^{\dot{V}}$'
         },
         'p': {
             'value': 1,

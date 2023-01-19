@@ -39,13 +39,13 @@ _LS = [
 
 matplotlib.rc('xtick', labelsize=15)
 matplotlib.rc('ytick', labelsize=15)
-plt.rcParams.update({'font.size': 15})
-params = {'legend.fontsize': 10,
-          'legend.handlelength': 2,
+plt.rcParams.update({'font.size': 10})
+params = {'legend.fontsize': 6,
+          'legend.handlelength': 0,
           'legend.borderpad':0,
           'legend.labelspacing':0.0}
 SIZETICKS = 20
-SIZEFONT = 25
+SIZEFONT = 10
 LEGENDSIZE = 20
 LEGENDHANDLELENGTH = 2
 
@@ -209,7 +209,7 @@ def plotbyunits(hub,
     plt.show()
 
 
-def plotnyaxis(hub,  y=[[]],x='time', log=False, idx=0,Region=0,tini=False,tend=False, title='', lw=2):
+def plotnyaxis(hub,  y=[[]],x='time', log=False, idx=0,Region=0,tini=False,tend=False, title='', lw=2,loc='best'):
     '''
     x must be a variable name (x axis organisation)
     y must be a list of list of variables names (each list is a shared axis)
@@ -297,7 +297,7 @@ def plotnyaxis(hub,  y=[[]],x='time', log=False, idx=0,Region=0,tini=False,tend=
 
         if units == '$()$': units=''
         ylabel = r''.join([xx+', ' for xx in symbolist])[:-2] + units
-
+        ylabel=''
         dax[ii].set_ylabel(ylabel,labelpad=-40 if side=='right' else 0)#,loc='bottom', rotation=0
         dax[ii].spines[side].set_position(('outward', np.amax((0, 60*(ii//2)))))
         if side == 'left':
@@ -308,7 +308,7 @@ def plotnyaxis(hub,  y=[[]],x='time', log=False, idx=0,Region=0,tini=False,tend=
 
         if log[ii]:
             dax[ii].set_yscale('log')
-    dax[ii].legend(handles=p.values(), loc='best')
+    dax[ii].legend(handles=p.values(),loc=loc,labelspacing=0.0)
     plt.title(title)
     plt.tight_layout()
     plt.show()
@@ -898,7 +898,7 @@ def repartition(hub ,
 
     plt.figure()
     fig=plt.gcf()
-    fig.set_size_inches(15, 10 )
+    #fig.set_size_inches(15, 10 )
     ax=plt.gca()
     if len(ref):
         name = R[ref]['symbol'][:-1]+'_{'+sectname+'}$'
