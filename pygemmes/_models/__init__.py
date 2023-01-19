@@ -281,3 +281,52 @@ def mergemodel(Recipient,dictoadd,override=True,verb=False):
             else: ### IF FIELD DOES NOT
                 Recipient[category][k] = v
     return Recipient
+
+
+def filldimensions(Dimensions,fieldtype,_LOGICS,DIM):
+    '''Add sizes to fields (for multisectorality), and can complete a default category.
+
+    Dimensions = { 
+        'scalar': ['r', 'phinull', 'N', 'employmentAGG', 'w0', 'W',
+                'alpha', 'a0', 'Nprod', 'Phillips', 'rDh', 'gammai',
+                'n', 'ibasket', 'Dh'],
+        'matrix': [ 'Gamma','Xi','Mgamma','Mxi','Minter',
+                    'Minvest','MtransactY','MtransactI']
+        #'vector': will be deduced by filldimensions 
+    }
+    DIM= {'scalar':['__ONE__'],
+        'vector':['Nprod'],
+        'matrix':['Nprod','Nprod']  }
+
+    _LOGICS=filldimensions(Dimensions,'vector',_LOGICS,DIM)'''
+    
+    if fieldtype=='scalar': t1,t2 = ['vector','matrix']
+    if fieldtype=='vector': t1,t2 = ['scalar','matrix']
+    if fieldtype=='matrix': t1,t2 = ['vector','scalar']
+
+    ### COMPLETING THE MISSING DIMENSION
+    Allfields = []
+    for k0 in _LOGICS.keys(): Allfields.extend([k for k in _LOGICS[k0]])
+    Dimensions[fieldtype] = list( set(Allfields)-
+                                  set(Dimensions[t1])-
+                                  set(Dimensions[t2]) )
+
+    ### COMPLETING _LOGICS WITH VARIABLES EXISTING INSIDE
+    Added = []
+    for cat, liste in Dimensions.items():
+        for cat2, dicte in _LOGICS.items():
+            for var, prop in dicte.items():
+                #print(cat,cat2,var)
+                if var in liste:
+                    prop['size']=DIM[cat]
+                    Added.append(var)
+
+    ### COMPLETING PARAMETERS NOT DEFINED BEFORE IN _LOGICS
+    Ds = []
+    for V in Dimensions.values():Ds.extend(V)
+    for var in list(set(Ds)-set(Added)):
+        for cat, liste in Dimensions.items():
+            if var in liste:
+                _LOGICS['parameter'][var]={'size':DIM[cat]}
+
+    return _LOGICS
