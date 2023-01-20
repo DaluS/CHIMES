@@ -380,7 +380,7 @@ def set_args_auxilliary(dparam, verb=False):
             #print(k0,lfunc)
 
             # store exp for lambda only
-            dparam[k0]['source_exp'] = exp.strip().split('#')[0].split('}')[0][:-1]
+            dparam[k0]['source_exp'] = exp.strip().split('#')[0].split('}')[0][:]
         else:
             kargs = sour[sour.index('(') + 1:sour.index(')')]
             dparam[k0]['source_exp'] = dparam[k0]['func'].__name__

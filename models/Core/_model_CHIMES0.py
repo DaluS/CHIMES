@@ -102,14 +102,13 @@ _LOGICS = {
 
         'basket'        :{'func': lambda p, C: p * C / O.sprod(p, C),},
         'ibasket'       :{'func': lambda inflation, basket: O.sprod(inflation, basket),},
-
         'L': {'func': lambda Y,a : Y/a,},
 
         ### PHYSICAL FLUXES
         'Y'             :{'func': lambda nu, K: K / nu,},
         'Ir'            :{'func': lambda I,Xi,p: I/O.matmul(Xi,p),},
-        #'C'             :{'func': lambda W,Cpond,p: Cpond*W/p,},
-        'C'             :{'func': lambda Y,Ir,Xi,Gamma :  Y - O.matmul(O.transpose(Gamma), Y) - O.matmul(O.transpose(Xi), Ir),
+        'C'             :{'func': lambda W,Cpond,p: Cpond*W/p,},
+        #'C'             :{'func': lambda Y,Ir,Xi,Gamma :  Y - O.matmul(O.transpose(Gamma), Y) - O.matmul(O.transpose(Xi), Ir),
                           'com': 'GOODWIN-KEEN CONSUMPTION'},
         'dotV'          :{'func': dotV},
         'Kdelta'        :{'func': lambda K,delta : delta*K,},
@@ -118,8 +117,6 @@ _LOGICS = {
                           'units': 'Units.y^{-1}',
                           'symbol': '$(\Gamma Y)$'},
         
-
-
         # Matrix approach
         'Minter'        :{'func': lambda Y, Gamma: O.transpose(Gamma*Y)},
         'Minvest'       :{'func': lambda Ir, Xi:  O.transpose(Xi* Ir)},
@@ -146,11 +143,11 @@ _LOGICS = {
                           'com': 'LINEAR',},
         #'Phillips'      :{'func': lambda employmentAGG, phi0, phi1: -phi0 + phi1 / (1 - employmentAGG) ** 2},
         'kappa'         :{'func': lambda pi, k0: k0 * pi,
-            'com': 'LINEAR KAPPA FUNCTION'},
-
+                          'com': 'LINEAR KAPPA FUNCTION'},
+        #'kappa'        :{'func': lambda pi, k0, k1, k2: k0 + k1 * np.exp(k2 * pi),
+        #                 'com': 'exponential param curve'},
+        
         ### PROFITS AND INVESTMENTS
-
-
         'g'             :{'func': lambda Ir,K,delta : Ir/K - delta },
         'employment'    :{'func': lambda L,N        : L/N},
         'reldotv'       :{'func': lambda dotV, Y, p, c: (c - p) * dotV / (p * Y)}, #'com': 'calculated as inventorycost on production',
