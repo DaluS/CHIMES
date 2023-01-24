@@ -330,8 +330,8 @@ _LIBRARY = {
             'definition': 'local wage ponderation',
             'size': ['Nprod']
         },
-        'b': {'value': 1,
-              'definition': 'local productivity ponderation',
+        'b': {'value': 0.5,
+              'definition': 'capital intensity of production',
               'size': ['Nprod']
               },
         'nu0': {

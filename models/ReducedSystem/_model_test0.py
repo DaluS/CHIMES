@@ -23,16 +23,17 @@ from pygemmes._models import Operators as O
 
 _LOGICS = {
     'differential': {
-        'employment': {'func' : lambda employment, alpha,n,delta,omega,nu: employment*( (1-omega)/nu - alpha - n - delta)},
-        'omega'     : {'func' : lambda omega, phillips,alpha: omega*(phillips-alpha),},
-        #'omega'     : {'func' : lambda omega, employment, phi0, phi1, alpha: omega*((-phi0 + phi1 / (1 - employment)**2)-alpha),}, 
+        'y': {'func' : lambda y,time: y*np.sin(time),
+              'initial': 1,
+    },
     },
     'statevar': { 
-        'phillips': Funcs.Phillips.div,
+        'top': {'func' :lambda time: np.sin(time)}
     },
     'parameter': {},
     'size': {},
 }
+
 
 _SUPPLEMENTS={}
 _PRESETS = {}

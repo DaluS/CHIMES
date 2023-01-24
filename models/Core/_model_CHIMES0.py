@@ -42,8 +42,8 @@ _LOGICS = {
     ###################################################################
     'differential': {
         ### MONETARY STOCK-FLOW CONSISTENCY
-        'D'             :{'func': lambda dotD : dotD},
-        'Dh'            :{'func': lambda W, p, C: -W + O.sprod(p, C)},
+        'D'             :{'func': lambda dotD : dotD},                  
+        'Dh'            :{'func': lambda W, p, C: -W + O.sprod(p, C)},  
 
         ### PHYSICAL STOCK-FLOW CONSISTENCY
         'V'             :{'func': lambda dotV: dotV},
@@ -54,37 +54,37 @@ _LOGICS = {
         'w0'            :{'func': lambda Phillips, w0, gammai, ibasket: w0 * (Phillips + gammai * ibasket)},
 
         ### BEHAVIOR
-        'u0'            :{'func': lambda u0, sigma, V, dotV: -sigma * (1 - u0) * (dotV / V),
-                          'com': 'On dotV/V',},
-            #'func': lambda u0, sigma, Y, dotV: -sigma * (1 - u0) * (dotV / Y),
-            #'func': lambda u0, sigma, v0: -sigma * (1 - u0) * (1-1/v0),
-            #'func': lambda u: 0,
+        #'u0'            :{'func': lambda u0, sigma, V, dotV: -sigma * (1 - u0) * (dotV / V),
+        #                  'com': 'On dotV/V',},
+        #'func': lambda u0, sigma, Y, dotV: -sigma * (1 - u0) * (dotV / Y),
+        #'func': lambda u0, sigma, v0: -sigma * (1 - u0) * (1-1/v0),
+        #'func': lambda u: 0,
 
         ### EXOGENOUS SCALING
-        'a0'            :{'func': lambda a0, alpha: a0 * alpha,},
+        'a0'            :{'func': lambda a0, alpha: a0 * alpha,
+                          'definition': 'Capital unit per worker'},
         'N'             :{'func': lambda N, n: N * n},
     },
     'statevar': {
         ### BY-SECTOR PRODUCTIVITY AND WAGE
         'w'             :{'func': lambda w0,z: w0*z,},
-        'a'             :{'func': lambda a0, b,nu,u : u*a0*b/nu},
+        'a'             :{'func': lambda a0,apond : a0*apond},
 
         ### PROFITS AND COSTS
-        'xi'            :{'func': lambda delta, nu, b, Mxi: (delta * nu / b) *  O.ssum2(Mxi)},
-        'omega'         :{'func': lambda a, w, p:  w / (p* a)},
+        'xi'            :{'func': lambda delta, nu, Mxi: (delta * nu)*O.ssum2(Mxi)},
+        'omega'         :{'func': lambda L,Y,w,p:  w*L / (p* Y)},
         'gamma'         :{'func': lambda Mgamma:  O.ssum2(Mgamma)},
         'rd'            :{'func': lambda r,D,p,Y    : r*D/(p*Y)},
         'pi'            :{'func': lambda omega, gamma, xi, rd: 1 - omega - gamma - xi - rd,},
         
-        'ROC'           :{'func': lambda pi, nu,Mxi,p : pi / (nu*O.matmul(Mxi,p)/p)},
+        'ROC'           :{'func': lambda pi, nu,Xi,p : pi / (nu*O.matmul(Xi,p)/p)},
         'c'             :{'func': lambda omega, gamma, xi, p: p * (omega + gamma + xi)},
         'mu'            :{'func': lambda p,c: p/c,
                           'units': ''},
 
         ### USE AND ACCESSIBILITY
-        'u'             :{'func': lambda u0: u0,
-                          'com' : 'just u0'},
-        'nu'            :{'func': lambda nu0, u: nu0/u},
+        #'u'             :{'func': lambda u0: u0,
+        #                  'com' : 'just u0'},
 
         ### COST COMPONENTS
         
@@ -100,16 +100,14 @@ _LOGICS = {
         'inflationdotV' :{'func': lambda chi, dotV, Y: - chi *( dotV / Y),
                           'com': 'dotV/Y'},
 
-        'basket'        :{'func': lambda p, C: p * C / O.sprod(p, C),},
-        'ibasket'       :{'func': lambda inflation, basket: O.sprod(inflation, basket),},
-        'L': {'func': lambda Y,a : Y/a,},
+        'basket'        :{'func': lambda p, C: p * C / O.sprod(p, C)},
+        'ibasket'       :{'func': lambda inflation, basket: O.sprod(inflation, basket)},
+        'L'             : {'func': lambda K,a : K/a},
 
         ### PHYSICAL FLUXES
         'Y'             :{'func': lambda nu, K: K / nu,},
         'Ir'            :{'func': lambda I,Xi,p: I/O.matmul(Xi,p),},
         'C'             :{'func': lambda W,Cpond,p: Cpond*W/p,},
-        #'C'             :{'func': lambda Y,Ir,Xi,Gamma :  Y - O.matmul(O.transpose(Gamma), Y) - O.matmul(O.transpose(Xi), Ir),
-                          'com': 'GOODWIN-KEEN CONSUMPTION'},
         'dotV'          :{'func': dotV},
         'Kdelta'        :{'func': lambda K,delta : delta*K,},
         'GammaY'        :{'func': lambda Gamma,Y : O.matmul(O.transpose(Gamma), Y),
@@ -142,8 +140,8 @@ _LOGICS = {
         'Phillips'      :{'func': lambda employmentAGG, philinConst, philinSlope: philinConst + philinSlope * employmentAGG,
                           'com': 'LINEAR',},
         #'Phillips'      :{'func': lambda employmentAGG, phi0, phi1: -phi0 + phi1 / (1 - employmentAGG) ** 2},
-        'kappa'         :{'func': lambda pi, k0: k0 * pi,
-                          'com': 'LINEAR KAPPA FUNCTION'},
+        'kappa'         :{'func': lambda pi, k0, k1 : k0 +k1 * pi,
+                          'com': 'AFFINE KAPPA FUNCTION'},
         #'kappa'        :{'func': lambda pi, k0, k1, k2: k0 + k1 * np.exp(k2 * pi),
         #                 'com': 'exponential param curve'},
         
@@ -153,11 +151,32 @@ _LOGICS = {
         'reldotv'       :{'func': lambda dotV, Y, p, c: (c - p) * dotV / (p * Y)}, #'com': 'calculated as inventorycost on production',
         'reloverinvest' :{'func': lambda kappa, pi: pi - kappa}, #'com': 'difference between kappa and pi',
     },
-    'parameter': {},
+    'parameter': {
+        'apond': {'value':1,
+                  'definition': 'sector-ponderation of production'},
+        'CESexp':{'value':1000},
+        'b': {'value':0.5},
+    },
 }
 
+################################ TRANSFORMING INTO CES ###################
+_LOGICS['statevar']['Yc'] = {'func': lambda K,b,CESexp,A : A*K*b**(-1/CESexp)}
+_LOGICS['statevar']['Lc'] = {'func': lambda b,CESexp,K,a0: K/a0 * (b/(1-b))**(-1/CESexp)}
+_LOGICS['statevar']['omegacarac'] = {
+                            'func': lambda w,a0,p,A,b,CESexp,gamma: (w/(A*a0*p*(1-gamma)))*((1-b)/b)**(1/CESexp),
+                            'symbol': '$\omega^c(1-\gamma)^{-1}$' }
+_LOGICS['statevar']['l'] = {'func': lambda omegacarac, CESexp: np.maximum(0.01,(omegacarac**(-CESexp/(1+CESexp)) - 1))**(1/CESexp),
+                            'com': 'ratio L/Lc'}
+_LOGICS['statevar']['Y' ] = {'func': lambda Yc,l,CESexp : Yc * (1 +l**(-CESexp) )**(-1/CESexp),
+                             'com' : 'CES PRODUCTION FUNCTION'}
+_LOGICS['statevar']['L'] = {'func': lambda l,Lc : l*Lc }
+_LOGICS['statevar']['nu']= {'func': lambda K,Y: K/Y}
 
+################################ TRANSFORMING TO GOODWIN-KEEN #############
+# To Activate Goodwin-Keen''
+#_LOGICS['statevar']['Cpond']= {'func': lambda kappa,Gamma,nu,delta,omega: (1-kappa-Gamma-delta*nu)/omega},
 
+#########################################################################
 Dimensions = { 
     'scalar': ['r', 'phinull', 'N', 'employmentAGG', 'w0', 'W',
                'alpha', 'a0', 'Nprod', 'Phillips', 'rDh', 'gammai',
@@ -170,121 +189,46 @@ DIM= {'scalar':['__ONE__'],
       'vector':['Nprod'],
       'matrix':['Nprod','Nprod']  }
 _LOGICS=filldimensions(Dimensions,'vector',_LOGICS,DIM)
+#########################################################################
 
+GOODWIN_PRESET= { 
+    ### Numerical values 
+    'Tmax':100,    'Tini':0,     'dt': 0.1, 
+    'Nprod': [''],     'nx': [''],     'nr': [''],
 
+    # Monosectoral initial 
+    'N':1,     'w0':0.75,     'a0':3, 
+    # Initial multisectoral
+    'D':0,     'Dh':0,     'V':1, 
+    'K':2,     'p':1, 
 
+    # Multisectoral ponderation
+    'z': 1,     # On wage 
+    'apond': 1, # On productivity
 
-########################### SUPPLEMENTS ################################################
-'''Specific parts of code that are accessible'''
-_SUPPLEMENTS= {}#{'Test':funcs}
+    # Characteristic frequencies
+    'alpha':0.025,     'n':0.02,    'delta':0.005, 
+    'eta': 0,     'mu0': 1,     'chi': 0, 
 
+    # Prices, inflation, negociation
+    'gammai':0,    
+    'r':0.03, 
+    #'phinull':0.1, 
+    'philinConst': -0.292,    'philinSlope':  0.469, 
+    'Delta': 0,             #shareholding 
 
+    # Kappa investment 
+    'k0':0,    'k1':1,
 
-############################ PRESETS #####################################################
+    # CES production function
+    'A': 1/3,    'CESexp':10000,    'b' :.5,
 
-dictMONOGOODWIN={
-# Numerical structural
-'Tmax'  : 50,
-'Nprod' : ['Mono'],
-'Tini'  : 0,
+    # MATRICES 
+    'Xi': 1,     'Gamma': 0.1, 
 
-# Population
-'n'     : 0.025, # MONOSECT
-'N'     : 1    , # MONOSECT
-
-# PRODUCTION-MATERIAL FLUXES #######
-'K'    : 2.7,
-'Gamma': 0.1,
-'Xi'   : 1,
-'nu'   : 3,
-'delta': 0.05,
-'b'    : 3,
-'a0'    : 1, # MONOSECT
-'alpha': 0.02, # MONOSECT
-'u'    : 1,
-
-# Inventory-related dynamics
-'V'     : 1,
-'sigma' : 0,  # use variation
-'chi'   : 0,  # inflation variation
-
-# investment
-'k0': 1.,
-
-# Debt-related
-'Dh'    : 0, # MONOSECT
-'D'     : 0,
-'r'     : 0.03, # MONOSECT
-
-# Wages-prices
-'w0'     : 0.6, # MONOSECT
-'p'     : 1,
-'z'     : 1,
-'mu0'   : 1.3,
-'eta'   : 0.0,
-'gammai': 0, # MONOSECT
-'phinull':0.1, # MONOSECT
-
-# Consumption theory
-'Cpond' : [1],
+    #'sigma': 1, 
+    'Cpond': 1, 
 }
-
-preset_basis = {
-'Tmax':50,
-'dt':0.1,
-'Nprod': ['Consumption','Capital'],
-'nx':1,
-
-'alpha' : 0.02,
-'n'     : 0.025,
-'phinull':0.1,
-
-'gammai':0,
-'r':0.03,
-'a':1,
-'N':1,
-'Dh':0,
-'w':0.8,
-
-'sigma':[1,5],
-'K': [2.,0.5],
-'D':[0,0],
-'u':[.95,.7],
-'p':[1.5,3],
-'V':[1,1],
-'z':[1,.3],
-'k0': 1.,
-
-'Cpond':[1,0],
-
-'mu0':[1.2,1.2],
-'delta':0.05,
-'deltah':0.05,
-'eta':0.3,
-'chi':[1,1],
-'b':3,
-'nu':3,
-
-## MATRICES
-'Gamma': [[0.05 ,0],
-          [0    ,0]],
-#'Xi': [['Consumption','Capital','Consumption','Capital'],
-#       ['Consumption','Capital','Capital','Consumption'],[0,.5,1,0]],
-'Xi': [[0.01,1],
-       [0.1,1]],
-'rho': np.eye(2),
-}
-
-preset_basis2=preset_basis.copy()
-preset_basis2['K'] = [2.3,0.5]
-preset_basis2['u'] = [1,1]
-preset_basis2['p'] = [1,1]
-preset_basis2['z'] = [1,1]
-#preset_basis2['Tmax'] = 50
-
-
-withregion = preset_basis2.copy()
-withregion['nr']=['USA','France','China']
 
 preset_TRI = {
 'Tmax':50,
@@ -298,7 +242,7 @@ preset_TRI = {
 
 'gammai':0,
 'r':0.03,
-'a':1,
+'a':3,
 'N':1,
 'Dh':0,
 'w':0.8,
@@ -317,8 +261,8 @@ preset_TRI = {
 'deltah':0.05,
 'eta':0.3,
 'chi':1,
-'b':3,
-'nu':3,
+'b':.5,
+'A':1/3,
 
 ## MATRICES
 'Gamma': [[0.0,0.1 ,0],
@@ -332,86 +276,82 @@ preset_TRI = {
 'rho': np.eye(3),
 }
 
-Nsect=4
-#A=np.diag([0.1 for i in range(Nsect-1)],1)
-#A[Nsect-2,Nsect-1]=0
+preset_basis = {
+    ### Numerical values 
+    'Tmax':100,    'Tini':0,     'dt': 0.1, 
+    'Nprod': [''],#['Consumption','Capital'],     
+    'nx': [''],     'nr': [''],
 
-A=np.diag([0.1 for i in range(Nsect-1)],-1)
-A[Nsect-1,Nsect-2]=0
+    # Monosectoral initial 
+    'N':1,     'w0':0.75,     'a0':3, 
+    'Dh':0,
+    # Monosectoral parameters
+    'alpha' : 0.02,
+    'n'     : 0.025,
+    'gammai':0,    
+    'r':0.03, 
+    'philinConst': -0.292,    'philinSlope':  0.469, 
 
-preset_N = {
-'Tmax':8,
-'dt':0.1,
-'Nprod': ['Consumption']+['Inter'+str(i) for i in range(Nsect-2)]+['Capital'],
-'nx':1,
+    # Multisectoral Initial condition
+    'p':[1,  ],#     1],  
+    'K':[2., ],#   0.5],
+    'D':[0,  ],#     0],
+    'V':[1000],#,  1000],
 
-'alpha' : 0.02,
-'n'     : 0.025,
-'phinull':0.1,
+    'b':.5,
+    'A':1/3,
+    'CESexp':10,
 
-'gammai':0,
-'r':0.03,
-'a':1,
-'N':4,
-'Dh':0,
-'w':0.8,
+    #'sigma':[1,5],
+    
+    #'u':[.95,.7],
 
-'sigma':5,
-'K': [4]+[0.4 for i in range(Nsect-2)]+[5],
-'D':0,
-'u':.95,
-'p':1,
-'V':1,
-'z':1,
-'k0': 1.,
-'Cpond':[1]+[0 for i in range(Nsect-1)],
-'mu0':1.3,
-'delta':0.05,
-'deltah':0.05,
-'eta':0.3,
-'chi':1,
-'b':3,
-'nu':3,
+    'z':[1],#,1],
+    'apond':[1],#,1],
+    'k0': 1.,
 
-## MATRICES
-'Gamma': A,
-'Xi':    [[0 for j in range(Nsect-1)]+[1] for i in range(Nsect)],
-'rho': np.eye(Nsect),
-}
+    'Cpond':[1],#,0],
 
-########################################################################################
+    'mu0':[1.5],#,1.2],
+    'delta':0.05,
+    'deltah':0.05,
+    'eta':0.1,
+    'chi':0,#[1],#1],
+
+
+    ## MATRICES
+    'Gamma': .05,# [[0.05 ,0],
+            #[0    ,0]],
+    #'Xi': [['Consumption','Capital','Consumption','Capital'],
+    #       ['Consumption','Capital','Capital','Consumption'],[0,.5,1,0]],
+    'Xi': 1,# [[0.01,1],
+        #[0.1,1]],
+    #'rho': np.eye(2),
+    }
+
+preset_basis2=preset_basis.copy()
+preset_basis2['K'] = [2]#.3,0.5]
+
+
 _PRESETS = {
     'Goodwin': {
-        'fields': dictMONOGOODWIN,
-        'com': ('A monosectoral system that behaves just as a Goodwin'),
-        'plots': {},
+        'fields': GOODWIN_PRESET,
+        'com': (''),
+        'plots': {'XY':[{'x':'omega',
+                         'y':'employment',
+                         'color':'time'}]},
     },
-    'Bisectoral': {
-        'fields': preset_basis,
-        'com': ('Two sectors : one producing consumption good, one for capital goods.'
-                'Converging run starting for VERY far from equilibrium'),
-        'plots': {},
+    'SimpleBi':{
+        'fields': preset_basis2,
+        'com':'',
+        'plots':{}
     },
-    'SimpleBi': {
-        'fields': preset_basis2, 
-        'com': ('Two sectors : one producing consumption good, one for capital goods.'
-                'Converging run starting close to equilibrium'),
-        'plots': {},
-    },
-    'SimpleTri': {
+    'SimpleTri':{
         'fields': preset_TRI,
-        'com': 'Trisectoral',
-        'plots': {},
-    },
-    'WithRegions': {
-        'fields': withregion,
-        'com': 'more dimensions',
-        'plots': {},
-    },
-    'SimpleN': {
-        'fields': preset_N,
-        'com': ('Two sectors : one producing consumption good, one for capital goods.'
-                'Converging run starting close to equilibrium'),
-        'plots': {},
-    },
+        'com':'',
+        'plots':{}
+    }
 }
+
+
+

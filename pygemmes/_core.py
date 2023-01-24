@@ -790,6 +790,7 @@ class Hub():
            self,
            N=False,
            verb=None,
+           ComputeStatevarEnd=False
     ):
        """ Run the simulation, with any of the solver existing in :
            - pgm.get_available_solvers(returnas=list)
@@ -822,8 +823,9 @@ class Hub():
            solver = _solvers.solve(
                dparam=self.__dparam,
                dmisc=self.__dmisc,
-               dargs=self.__dargs,
+               #dargs=self.__dargs,
                dverb=dverb,
+               ComputeStatevarEnd=ComputeStatevarEnd
            )
            self.__dmisc['run'] = True
            self.__dmisc['solver'] = solver
@@ -1137,6 +1139,8 @@ class Hub():
              idx=0,
              Region=0,
              title='',
+             tini=False,
+             tend=False,
              lw=2):
             '''
 generate one subfigure per set of units existing.
@@ -1154,17 +1158,19 @@ separate_variables : key is a unit (y , y^{-1}... and value are keys from that u
 Region             : is, if there a multiple regions, the one you want to plot
 idx                : is the same for parrallel systems
 '''
-
-            _DPLOT['byunits'](self,
-                             filters_key,
-                             filters_units,
-                             filters_sector,
-                             separate_variables,
-                             lw,
-                             idx ,
-                             Region ,
-                             title ,
-                              )
+            
+            _DPLOT['byunits'](hub=self,
+               filters_key=filters_key,
+               filters_units=filters_units,
+               filters_sector=filters_sector,
+               separate_variables=separate_variables,
+               lw=lw,
+               idx=idx,
+               Region=Region,
+               tini=tini,
+               tend=tend,
+               title=title)
+                
 
     # ##############################
     #       Deep analysis methods

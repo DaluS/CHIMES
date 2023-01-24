@@ -97,7 +97,6 @@ def plotbyunits(hub,
     (exemple: you have pi, epsilon and x which share the same units 'y', if you do separate_variables={'y':'x'}
     another figure will be added with x only on it, and pi and epsilon on the other one)
     '''
-
     hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
 
     ### FILTERING THE KEYS
@@ -914,7 +913,7 @@ def repartition(hub ,
     plt.show()
 
 
-def convergence(hub,finalpoint):
+def convergence(hub,finalpoint,showtrajectory=False):
 
     if len(finalpoint.keys())!=3:
         raise Exception('Use three dimension for your phasespace !')
@@ -939,10 +938,10 @@ def convergence(hub,finalpoint):
 
     # Scatter plot
     R = hub.get_dparam(key=[k for k in finalpoint]+['time'], returnas=dict)
-    scat = ax.scatter(R[keys[0]]['value'][0, ConvergeRate > 0.01],
-                      R[keys[1]]['value'][0, ConvergeRate > 0.01],
-                      R[keys[2]]['value'][0, ConvergeRate > 0.01],
-                    c=ConvergeRate[ConvergeRate > 0.01],
+    scat = ax.scatter(R[keys[0]]['value'][0, ConvergeRate > 0.0001],
+                      R[keys[1]]['value'][0, ConvergeRate > 0.0001],
+                      R[keys[2]]['value'][0, ConvergeRate > 0.0001],
+                    c=ConvergeRate[ConvergeRate > 0.0001],
                     cmap=cmap,
                     norm=mpl.colors.LogNorm(vmin=np.amin(ConvergeRate[ConvergeRate > 0.01])))
     scat2 = ax.scatter(R[keys[0]]['value'][0, ConvergeRate < 0.001],
@@ -954,12 +953,13 @@ def convergence(hub,finalpoint):
     plt.axis('tight')
 
     # Add trajectory of converging points
-    for i in range(len(ConvergeRate)):
-        if ConvergeRate[i]>0:
-            plt.plot(R[keys[0]]['value'][:, i,0,0,0],
-                     R[keys[1]]['value'][:, i,0,0,0],
-                     R[keys[2]]['value'][:, i,0,0,0]
-                    ,c='k',lw=0.1)
+    if showtrajectory:
+        for i in range(len(ConvergeRate)):
+            if ConvergeRate[i]>0:
+                plt.plot(R[keys[0]]['value'][:, i,0,0,0],
+                        R[keys[1]]['value'][:, i,0,0,0],
+                        R[keys[2]]['value'][:, i,0,0,0]
+                        ,c='k',lw=0.1)
 
     ax.set_xlabel(R[keys[0]]['symbol'])
     ax.set_ylabel(R[keys[1]]['symbol'])

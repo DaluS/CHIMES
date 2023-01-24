@@ -11,20 +11,13 @@ _LOGICS = {
     'size': {},
     ###################################################################
     'differential': {
-        'omega'         :{'func': lambda omega,Phillips,alpha: omega*(Phillips-alpha)},
-        'employment'    :{'func': lambda employment,nu,delta,alpha,beta,kappa : employment*(kappa/nu - delta - alpha - beta)},
-        #'debt'          :{'func': lambda debt, r,Delta,kappa,nu,delta,omega: debt*(r*(1-Delta)-kappa/nu+delta+(kappa-(1-omega*(1-Delta)))/debt)},
-        'debt'          :{'func': lambda debt, r,Delta,kappa,nu,delta,omega: debt*(r*(1-Delta)-kappa/nu+delta)+(kappa-(1-omega)*(1-Delta))},
+        'omega'         :{'func': lambda omega,employment,gamma,rho,alpha: omega*(gamma+rho*employment-alpha)},
+        'employment'    :{'func': lambda employment,nu,delta,alpha,beta,k0,k1,omega,r,debt : employment*((k0+k1*(1-omega-r*debt))/nu - delta - alpha - beta)},
+        'debt'          :{'func': lambda debt, r,Delta,k0,k1,nu,delta,omega: debt*(r*(1-Delta)-(k0+k1*(1-omega-r*debt))/nu+delta)+(k0+k1*(1-omega-r*debt))-(1-omega)*(1-Delta)},
+
     },
-    'statevar': {
-        'beta'          :{'func': lambda n:n},
-        'pi'            :{'func': lambda omega,r,debt: 1-omega-r*debt},
-        'kappa'         :{'func': lambda pi,k0,k1: k0+k1*pi },
-        'Phillips'      :{'func': lambda employment,gamma,rho: gamma+rho*employment},
-        },
     'parameter': {
-        'rho': {'value':0},
-    },
+        'rho': {'value':0},},
 }
 
 
@@ -45,12 +38,12 @@ _PRESETS = {
         'fields': 
         {
             'alpha': 0.01019082,
-            'n':  0.01568283,
-            'gamma': -0.5768167,
-            'rho':     0.624795,
-            'k0':    -0.0419826,
-            'k1':     0.9851812,
-            'nu':      3.844391,
+            'beta':  0.01568283,
+            'gamma':-0.5768167,
+            'rho':   0.624795,
+            'k0':   -0.0419826,
+            'k1':    0.9851812,
+            'nu':    3.844391,
             'r':     0.02083975,
             'delta': 0.04054871,
             'Delta':  0.2780477,

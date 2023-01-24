@@ -473,6 +473,7 @@ def _suggest_funct_order_by_group(eqtype=None, dparam=None):
                 keepon = False
             elif ntry == len(lf) - 1:
                 msg = f"No sorting order of func could be found for {eqtype}"
+                msg+= f"Sorted :{lfsort} \n remaining {list(set(lf)-set(lfsort))}"
                 raise Exception(msg)
 
     except Exception as err:
