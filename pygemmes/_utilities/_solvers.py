@@ -6,7 +6,7 @@ import time
 
 # common
 import numpy as np
-from copy import deepcopy
+from copy import copy,deepcopy
 
 # specific
 from . import _class_checks
@@ -93,7 +93,7 @@ def get_func_dydt(
         #print(f"t    { y['time'][0,0,0,0]:.5f}",
         #      f"y    { y['y']   [0,0,0,0]:.5f}",
         #      f"dydt {dydt['y'] [0,0,0,0]:.5f}" )
-        return np.copy(dydt),dbuffer
+        return copy(dydt),dbuffer
 
     return y0, func
 
@@ -145,7 +145,7 @@ def _rk4(dydt_func=None, dt=None, y=None):
                     + 2*dy2_on_dt[k]
                     + 2*dy3_on_dt[k]
                     +   dy4_on_dt[k]) * dt/6  for k in y.keys()}
-
+    '''
     print(f"t    { y['time'][0,0,0,0]:.5f}",
           f"y    { y['y']   [0,0,0,0]:.5f}",
           f"dydt {dy1_on_dt['y'][0,0,0,0]:.5f}" )
@@ -165,6 +165,7 @@ def _rk4(dydt_func=None, dt=None, y=None):
     print(f"t    { yend['time'][0,0,0,0]:.5f}",
           f"y    { yend['y']   [0,0,0,0]:.5f}")
     print('')
+    '''
     return yend,state
 
 def _rk1(dydt_func=None, dt=None, y=None):
