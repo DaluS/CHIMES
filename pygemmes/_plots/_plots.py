@@ -39,13 +39,13 @@ _LS = [
 
 matplotlib.rc('xtick', labelsize=15)
 matplotlib.rc('ytick', labelsize=15)
-plt.rcParams.update({'font.size': 15})
-params = {'legend.fontsize': 10,
-          'legend.handlelength': 2,
+plt.rcParams.update({'font.size': 10})
+params = {'legend.fontsize': 6,
+          'legend.handlelength': 0,
           'legend.borderpad':0,
           'legend.labelspacing':0.0}
 SIZETICKS = 20
-SIZEFONT = 25
+SIZEFONT = 10
 LEGENDSIZE = 20
 LEGENDHANDLELENGTH = 2
 
@@ -97,7 +97,6 @@ def plotbyunits(hub,
     (exemple: you have pi, epsilon and x which share the same units 'y', if you do separate_variables={'y':'x'}
     another figure will be added with x only on it, and pi and epsilon on the other one)
     '''
-
     hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
 
     ### FILTERING THE KEYS
@@ -192,7 +191,7 @@ def plotbyunits(hub,
                           vy[key][key2],
                           c=color[j,:],
                           label=symb ,
-                          ls=_LS[j % (len(_LS)-1)],
+                          #ls=_LS[j % (len(_LS)-1)],
                           lw=lw)
             mini=np.nanmin((mini,np.nanmin(vy[key][key2])))
         if j >= 0:
@@ -209,7 +208,7 @@ def plotbyunits(hub,
     plt.show()
 
 
-def plotnyaxis(hub,  y=[[]],x='time', log=False, idx=0,Region=0,tini=False,tend=False, title='', lw=2):
+def plotnyaxis(hub,  y=[[]],x='time', log=False, idx=0,Region=0,tini=False,tend=False, title='', lw=2,loc='best'):
     '''
     x must be a variable name (x axis organisation)
     y must be a list of list of variables names (each list is a shared axis)
@@ -297,7 +296,7 @@ def plotnyaxis(hub,  y=[[]],x='time', log=False, idx=0,Region=0,tini=False,tend=
 
         if units == '$()$': units=''
         ylabel = r''.join([xx+', ' for xx in symbolist])[:-2] + units
-
+        ylabel=''
         dax[ii].set_ylabel(ylabel,labelpad=-40 if side=='right' else 0)#,loc='bottom', rotation=0
         dax[ii].spines[side].set_position(('outward', np.amax((0, 60*(ii//2)))))
         if side == 'left':
@@ -308,7 +307,7 @@ def plotnyaxis(hub,  y=[[]],x='time', log=False, idx=0,Region=0,tini=False,tend=
 
         if log[ii]:
             dax[ii].set_yscale('log')
-    dax[ii].legend(handles=p.values(), loc='best')
+    dax[ii].legend(handles=p.values(),loc=loc,labelspacing=0.0)
     plt.title(title)
     plt.tight_layout()
     plt.show()
@@ -898,7 +897,7 @@ def repartition(hub ,
 
     plt.figure()
     fig=plt.gcf()
-    fig.set_size_inches(15, 10 )
+    #fig.set_size_inches(15, 10 )
     ax=plt.gca()
     if len(ref):
         name = R[ref]['symbol'][:-1]+'_{'+sectname+'}$'
@@ -914,7 +913,7 @@ def repartition(hub ,
     plt.show()
 
 
-def convergence(hub,finalpoint):
+def convergence(hub,finalpoint,showtrajectory=False):
 
     if len(finalpoint.keys())!=3:
         raise Exception('Use three dimension for your phasespace !')
@@ -934,15 +933,15 @@ def convergence(hub,finalpoint):
     ax.scatter(finalpoint[keys[0]],
             finalpoint[keys[1]],
             finalpoint[keys[2]],
-            s=50,
+            s=100,
             c='k')
 
     # Scatter plot
     R = hub.get_dparam(key=[k for k in finalpoint]+['time'], returnas=dict)
-    scat = ax.scatter(R[keys[0]]['value'][0, ConvergeRate > 0.01],
-                      R[keys[1]]['value'][0, ConvergeRate > 0.01],
-                      R[keys[2]]['value'][0, ConvergeRate > 0.01],
-                    c=ConvergeRate[ConvergeRate > 0.01],
+    scat = ax.scatter(R[keys[0]]['value'][0, ConvergeRate > 0.0001],
+                      R[keys[1]]['value'][0, ConvergeRate > 0.0001],
+                      R[keys[2]]['value'][0, ConvergeRate > 0.0001],
+                    c=ConvergeRate[ConvergeRate > 0.0001],
                     cmap=cmap,
                     norm=mpl.colors.LogNorm(vmin=np.amin(ConvergeRate[ConvergeRate > 0.01])))
     scat2 = ax.scatter(R[keys[0]]['value'][0, ConvergeRate < 0.001],
@@ -954,12 +953,13 @@ def convergence(hub,finalpoint):
     plt.axis('tight')
 
     # Add trajectory of converging points
-    for i in range(len(ConvergeRate)):
-        if ConvergeRate[i]>0:
-            plt.plot(R[keys[0]]['value'][:, i,0,0,0],
-                     R[keys[1]]['value'][:, i,0,0,0],
-                     R[keys[2]]['value'][:, i,0,0,0]
-                    ,c='k',lw=0.1)
+    if showtrajectory:
+        for i in range(len(ConvergeRate)):
+            if ConvergeRate[i]>0:
+                plt.plot(R[keys[0]]['value'][:, i,0,0,0],
+                        R[keys[1]]['value'][:, i,0,0,0],
+                        R[keys[2]]['value'][:, i,0,0,0]
+                        ,c='k',lw=0.1)
 
     ax.set_xlabel(R[keys[0]]['symbol'])
     ax.set_ylabel(R[keys[1]]['symbol'])

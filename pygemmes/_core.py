@@ -9,7 +9,7 @@ import pandas as pd
 from ._config import _FROM_USER
 from ._config import _DEFAULTSIZE
 from ._config import _VERB
-from ._utilities import _utils, _class_checks, _class_utility, _cn
+from ._utilities import _utils, _class_check, _class_utility, _cn
 from ._utilities import _class_set
 from ._utilities import _Network
 from ._utilities import _solvers
@@ -786,33 +786,32 @@ class Hub():
        self.__dmisc['cycles'] = False
        self.__dmisc['sensitivity'] = False
 
-
     def run(
            self,
            N=False,
            verb=None,
+           ComputeStatevarEnd=False
     ):
-       """ Run the simulation, with any of the solver existing in :
-           - pgm.get_available_solvers(returnas=list)
-           Verb will have the following behavior :
-           - none no print of the step
-           - 1 at every step
-           - any float (like 1.1) the iteration is written at any of these value
+       """
+Run the simulation, with any of the solver existing in :
+Compute each time step from the previous one using:
+- parameters
+- differentials (ode)
+- intermediary functions in specified func_order   
 
-       AFTER THE RUN
-       if you define N, the system will reinterpolate the temporal values on N samples
-       typically, N=Tmax will put 1 value per year
-
-       Compute each time step from the previous one using:
-           - parameters
-           - differentials (ode)
-           - intermediary functions in specified func_order
+## Verb will have the following behavior :
+- none no print of the step
+- 1 at every step
+- any float (like 1.1) the iteration is written at any of these value
+## ComputeStatevarEnd : if true will recompute all statevar at the end (do not work with noise or external call)
+## if you define N, the system will reinterpolate the temporal values on N samples
+typically, N=Tmax will put 1 value per year
        """
        if (_VERB == True and verb is None):
            verb = 1.1
 
        # check inputs
-       dverb = _class_checks._run_verb_check(verb=verb)
+       dverb = _class_check._run_verb_check(verb=verb)
 
        # reset variables
        self.set_dparam(**{})
@@ -825,6 +824,7 @@ class Hub():
                dmisc=self.__dmisc,
                #dargs=self.__dargs,
                dverb=dverb,
+               ComputeStatevarEnd=ComputeStatevarEnd
            )
            self.__dmisc['run'] = True
            self.__dmisc['solver'] = solver
@@ -835,18 +835,17 @@ class Hub():
            self.__dmisc['run'] = False
            raise err
 
-
     def reinterpolate_dparam(self, N=100):
         """
-        If the system has run, takes dparam and reinterpolate all values.
-        Typical use is to have lighter plots
+If the system has run, takes dparam and reinterpolate all values.
+Typical use is to have lighter plots
 
-        NEED A RESET BEFORE A RUN TO REALLOCATE SPACE
+NEED A RESET BEFORE A RUN TO REALLOCATE SPACE
 
-        Parameters
-        ----------
-        Npoints : TYPE, optional
-            DESCRIPTION. The default is 100.
+Parameters
+----------
+Npoints : TYPE, optional
+    DESCRIPTION. The default is 100.
         """
         P = self.__dparam
         t = P['time']['value']
@@ -854,7 +853,6 @@ class Hub():
             v = P[k]['value']
             prevshape= np.shape(v)
             v2 =v.reshape(P['nt']['value'],-1)
-            #print(np.shape(v2))
             newval = np.zeros([N,np.shape(v2)[1]])
             newt = np.linspace(t[0,0,0,0], t[-1,0,0,0], N)
             for i in range(np.shape(newval)[1]):
@@ -862,7 +860,6 @@ class Hub():
             newshape =[N]+list(prevshape[1:])
             self.__dparam[k]['value'] = newval.reshape(newshape)
         
-
     # ##############################
     #  Introspection
     # ##############################
@@ -905,7 +902,67 @@ class Hub():
            v = Vals[k]
            print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
 
-    def get_summary(self,minimal=True):
+
+    def get_summary(self, idx=0, Region=0,removesector=()):
+        """
+        INTROSPECTION TOOL :
+        Print a str summary of the model, with
+        * Model description
+        * Parameters, their properties and their values
+        * ODE, their properties and their values
+        * Statevar, their properties and their values
+        For more precise elements, you can do introspection using hub.get_dparam()
+        INPUT :
+        * idx = index of the model you want the value to be shown when there are multiple models in parrallel
+        * region : name or index of the region you want to plot
+        """
+
+        _FLAGS = ['run', 'cycles', 'derivative','multisectoral','solver']
+        _ORDERS = ['statevar', 'differential', 'parameters']
+
+        Vals = self.__dparam
+
+        print(60 * '#')
+        print(20 * '#', 'SUMMARY'.center(18), 20 * '#')
+        print(60 * '#')
+
+        self.__short()
+
+        print('\n')
+        print(60 * '#')
+        print(20 * '#', 'fields'.center(18), 20 * '#')
+        if self.__dparam['nr']['value']!=1:
+            print(20 * '#', str('Region :'+str(self.__dparam['nr']['list'][Region])).center(18), 20 * '#')
+        if self.__dparam['nx']['value'] != 1:
+            print(20 * '#', str('Parr. sys numb:'+str(self.__dparam['nx'].get('list',np.arange(self.__dparam['nx']['value']))[idx])).center(18), 20 * '#')
+        print(60 * '#')
+        # parameters
+        col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx,filtersector=removesector)
+        # SCALAR ODE
+        col3, ar3 = _class_utility._get_summary_functions_vector(
+           self, idx=idx,Region=Region, eqtype=['differential'],filtersector=removesector)
+        # SCALAR Statevar
+        col4, ar4 = _class_utility._get_summary_functions_vector(
+           self, idx=idx,Region=Region, eqtype=['statevar'],filtersector=removesector)
+
+
+        print(''.join([a.ljust(15) for a in col2]))
+        for a in ar2:
+            print(''.join([str(aa).ljust(15) for aa in a]))
+
+        # ----------
+        # format output
+        _utils._get_summary(
+           lar =[  ar3,  ar4 ],
+           lcol=[  col3, col4],
+           verb=True,
+           returnas=False,)
+
+        # Print matrices
+        _class_utility._print_matrix(self,idx=idx,Region=Region)
+
+
+    def get_new_summary(self,minimal=True):
         """
         INTROSPECTION TOOL :
         Print a str summary of the model, with
@@ -939,7 +996,7 @@ class Hub():
         return SUMMARY
 
     def get_fieldsproperties(self):
-        categories=['eqtype','source_exp','definition','com','group','units','symbol','isneeded']
+        categories=['definition','units','source_exp','com','group','symbol','isneeded','size','eqtype']
         R=self.get_dparam()
         Rpandas= {k0:{k:R[k0][k] for k,v in R[k0].items() if k in categories} for k0 in R.keys()}
         for k0 in Rpandas.keys():
@@ -1140,6 +1197,8 @@ class Hub():
              idx=0,
              Region=0,
              title='',
+             tini=False,
+             tend=False,
              lw=2):
             '''
 generate one subfigure per set of units existing.
@@ -1157,17 +1216,19 @@ separate_variables : key is a unit (y , y^{-1}... and value are keys from that u
 Region             : is, if there a multiple regions, the one you want to plot
 idx                : is the same for parrallel systems
 '''
-
-            _DPLOT['byunits'](self,
-                             filters_key,
-                             filters_units,
-                             filters_sector,
-                             separate_variables,
-                             lw,
-                             idx ,
-                             Region ,
-                             title ,
-                              )
+            
+            _DPLOT['byunits'](hub=self,
+               filters_key=filters_key,
+               filters_units=filters_units,
+               filters_sector=filters_sector,
+               separate_variables=separate_variables,
+               lw=lw,
+               idx=idx,
+               Region=Region,
+               tini=tini,
+               tend=tend,
+               title=title)
+                
 
     # ##############################
     #       Deep analysis methods
