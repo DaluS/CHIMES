@@ -57,32 +57,32 @@ def _get_DMODEL(model=False,from_user=_FROM_USER):
     # CREATE A DICTIONNARY CONTAINING EVERYTHING THEY HAVE
     _DMODEL = {}
     for k0, v0 in _df.items():
-        try :
-            pfe = os.path.join(path_models, k0 + '.py')
-            spec = importlib.util.spec_from_file_location(k0, pfe)
-            foo = importlib.util.module_from_spec(spec)
+        #try :
+        pfe = os.path.join(path_models, k0 + '.py')
+        spec = importlib.util.spec_from_file_location(k0, pfe)
+        foo = importlib.util.module_from_spec(spec)
 
-            spec.loader.exec_module(foo)
-            _DMODEL[v0] = {
-                'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
-                'file': foo.__file__,
-                'description': foo.__doc__,
-                #'presets': {k0: dict(v0) for k0, v0 in foo._PRESETS.items()},
-                'name': v0,
-                'address': k0,
-            }
-            ### ADD Presets 
-            try : _DMODEL[v0]['presets']={k0: dict(v0) for k0, v0 in foo._PRESETS.items()}
-            except BaseException: _DMODEL[v0]['presets']={}
-            ### ADD Supplements
-            try :  _DMODEL[v0]['supplements']=foo._SUPPLEMENTS
-            except BaseException: _DMODEL[v0]['supplements']={}
-        
-            ### ADD Long Description 
-            try : _DMODEL[v0]['longDescription']= foo._DESCRIPTION
-            except BaseException: _DMODEL[v0]['longDescription']= foo.__doc__
-        except BaseException as Err:
-            print(f'''Model {v0} could not be loaded from folder {k0} ! \n you might have a commma "," at the end of one of your dictionnaries. Error message :\n {Err}\n''')
+        spec.loader.exec_module(foo)
+        _DMODEL[v0] = {
+            'logics': {k0: dict(v0) for k0, v0 in foo._LOGICS.items()},
+            'file': foo.__file__,
+            'description': foo.__doc__,
+            #'presets': {k0: dict(v0) for k0, v0 in foo._PRESETS.items()},
+            'name': v0,
+            'address': k0,
+        }
+        ### ADD Presets 
+        try : _DMODEL[v0]['presets']={k0: dict(v0) for k0, v0 in foo._PRESETS.items()}
+        except BaseException: _DMODEL[v0]['presets']={}
+        ### ADD Supplements
+        try :  _DMODEL[v0]['supplements']=foo._SUPPLEMENTS
+        except BaseException: _DMODEL[v0]['supplements']={}
+    
+        ### ADD Long Description 
+        try : _DMODEL[v0]['longDescription']= foo._DESCRIPTION
+        except BaseException: _DMODEL[v0]['longDescription']= foo.__doc__
+        #except BaseException as Err:
+        #    print(f'''Model {v0} could not be loaded from folder {k0} ! \n you might have a commma "," at the end of one of your dictionnaries. Error message :\n {Err}\n''')
     return path_models, _DMODEL
 
 
@@ -284,8 +284,11 @@ def mergemodel(Recipient,dictoadd,override=True,verb=False):
 
 
 
-def filldimensions(Dimensions,fieldtype,_LOGICS,DIM=False):
+def filldimensions(_LOGICS,Dimensions,DIM=False):
     '''Add sizes to fields (for multisectorality), and can complete a default category.
+
+    * Dimensions : dictionnary with 'scalar','vector,'matrix' and the list of corresponding fields
+    * fieldtype
 
     Dimensions = { 
         'scalar': ['r', 'phinull', 'N', 'employmentAGG', 'w0', 'W',
@@ -299,30 +302,34 @@ def filldimensions(Dimensions,fieldtype,_LOGICS,DIM=False):
         'vector':['Nprod'],
         'matrix':['Nprod','Nprod']  }
 
-    _LOGICS=filldimensions(Dimensions,'vector',_LOGICS,DIM)'''
+    _LOGICS=filldimensions(Dimensions,'vector',_LOGICS,DIM)
+    '''
     
     if not DIM :
         DIM= {'scalar':['__ONE__'],
       'vector':['Nprod'],
       'matrix':['Nprod','Nprod']  }
     
-    if fieldtype=='scalar': t1,t2 = ['vector','matrix']
-    if fieldtype=='vector': t1,t2 = ['scalar','matrix']
-    if fieldtype=='matrix': t1,t2 = ['vector','scalar']
-
     ### COMPLETING THE MISSING DIMENSION
-    Allfields = []
-    for k0 in _LOGICS.keys(): Allfields.extend([k for k in _LOGICS[k0]])
-    Dimensions[fieldtype] = list( set(Allfields)-
-                                  set(Dimensions[t1])-
-                                  set(Dimensions[t2]) )
+    #print('')
+    #print('Input', Dimensions)
+    if len(list(Dimensions.keys()))<3:
+        t1,t2 = list(Dimensions.keys())[0],list(Dimensions.keys())[1]
+        t3 = list(set(['scalar','vector','matrix'])-set(t1)-set(t2))[0]
+        #print(t1,t2)
+        #print(t3)
+        Allfields = []
+        for k0 in _LOGICS.keys(): Allfields.extend([k for k in _LOGICS[k0]])
+        Dimensions[t3] = list( set(Allfields)     -
+                               set(Dimensions[t1])-
+                               set(Dimensions[t2]) )
 
+    #print(Dimensions)
     ### COMPLETING _LOGICS WITH VARIABLES EXISTING INSIDE
     Added = []
     for cat, liste in Dimensions.items():
         for cat2, dicte in _LOGICS.items():
             for var, prop in dicte.items():
-                #print(cat,cat2,var)
                 if var in liste:
                     prop['size']=DIM[cat]
                     Added.append(var)

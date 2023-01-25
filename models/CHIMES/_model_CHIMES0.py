@@ -139,12 +139,9 @@ _LOGICS = {
 
         'Phillips'      :{'func': lambda employmentAGG, philinConst, philinSlope: philinConst + philinSlope * employmentAGG,
                           'com': 'LINEAR',},
-        #'Phillips'      :{'func': lambda employmentAGG, phi0, phi1: -phi0 + phi1 / (1 - employmentAGG) ** 2},
         'kappa'         :{'func': lambda pi, k0, k1 : k0 +k1 * pi,
                           'com': 'AFFINE KAPPA FUNCTION'},
-        #'kappa'        :{'func': lambda pi, k0, k1, k2: k0 + k1 * np.exp(k2 * pi),
-        #                 'com': 'exponential param curve'},
-        
+
         ### PROFITS AND INVESTMENTS
         'g'             :{'func': lambda Ir,K,delta : Ir/K - delta },
         'employment'    :{'func': lambda L,N        : L/N},
@@ -159,24 +156,26 @@ _LOGICS = {
     },
 }
 
-################################ TRANSFORMING INTO CES ###################
-_LOGICS['statevar']['Yc'] = {'func': lambda K,b,CESexp,A : A*K*b**(-1/CESexp)}
-_LOGICS['statevar']['Lc'] = {'func': lambda b,CESexp,K,a0: K/a0 * (b/(1-b))**(-1/CESexp)}
-_LOGICS['statevar']['omegacarac'] = {
-                            'func': lambda w,a0,p,A,b,CESexp,gamma: (w/(A*a0*p*(1-gamma)))*((1-b)/b)**(1/CESexp),
-                            'symbol': '$\omega^c(1-\gamma)^{-1}$' }
-_LOGICS['statevar']['l'] = {'func': lambda omegacarac, CESexp: np.maximum(0.01,(omegacarac**(-CESexp/(1+CESexp)) - 1))**(1/CESexp),
-                            'com': 'ratio L/Lc'}
-_LOGICS['statevar']['Y' ] = {'func': lambda Yc,l,CESexp : Yc * (1 +l**(-CESexp) )**(-1/CESexp),
-                             'com' : 'CES PRODUCTION FUNCTION'}
-_LOGICS['statevar']['L'] = {'func': lambda l,Lc : l*Lc }
-_LOGICS['statevar']['nu']= {'func': lambda K,Y: K/Y}
+################################ KAPPA-PHILLIPS ##########################
+#_LOGICS['statevar']['kappa'] = {'func': lambda pi, k0, k1, k2: k0 + k1 * np.exp(k2 * pi),
+#                                'com': 'exponential param curve'},
+#_LOGICS['statevar']['Phillips'] = {'func': lambda employmentAGG, phi0, phi1: -phi0 + phi1 / (1 - employmentAGG) ** 2},
 
-################################ TRANSFORMING TO GOODWIN-KEEN #############
-# To Activate Goodwin-Keen''
+################################ TRANSFORMING INTO GOODWIN-KEEN ##########
 #_LOGICS['statevar']['Cpond']= {'func': lambda kappa,Gamma,nu,delta,omega: (1-kappa-Gamma-delta*nu)/omega},
 
-#########################################################################
+################################ ADDING UTILITY CONSUMPTION ##############
+
+
+################################ ADDING ACCESSIBILITY ####################
+
+
+################################ ADDING CES ##############################
+_LOGICS_CES,_PRESETS0= importmodel('CESprod')
+_LOGICS = mergemodel(_LOGICS, _LOGICS_CES, verb=False) 
+
+
+##########################################################################
 Dimensions = { 
     'scalar': ['r', 'phinull', 'N', 'employmentAGG', 'w0', 'W',
                'alpha', 'a0', 'Nprod', 'Phillips', 'rDh', 'gammai',
@@ -188,7 +187,7 @@ Dimensions = {
 DIM= {'scalar':['__ONE__'],
       'vector':['Nprod'],
       'matrix':['Nprod','Nprod']  }
-_LOGICS=filldimensions(Dimensions,'vector',_LOGICS,DIM)
+_LOGICS=filldimensions(_LOGICS,Dimensions,DIM)
 #########################################################################
 
 GOODWIN_PRESET= { 
@@ -229,6 +228,15 @@ GOODWIN_PRESET= {
     #'sigma': 1, 
     'Cpond': 1, 
 }
+
+GOODWIN_DOUBLE= GOODWIN_PRESET.copy()
+GOODWIN_DOUBLE['Nprod']=['One','Two']
+GOODWIN_DOUBLE['Gamma']=[[0.1,  0],
+                         [0  ,0.1]]
+GOODWIN_DOUBLE['Xi'   ]=[[1  ,  0],
+                         [0  ,1  ]]
+GOODWIN_DOUBLE['N']*=2
+
 
 preset_TRI = {
 'Tmax':50,
@@ -340,6 +348,11 @@ _PRESETS = {
         'plots': {'XY':[{'x':'omega',
                          'y':'employment',
                          'color':'time'}]},
+    },
+    '2Goodwin': {
+        'fields': GOODWIN_DOUBLE,
+        'com': (''),
+        'plots': {},
     },
     'SimpleBi':{
         'fields': preset_basis2,

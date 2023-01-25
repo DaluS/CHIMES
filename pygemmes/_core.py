@@ -9,7 +9,7 @@ import pandas as pd
 from ._config import _FROM_USER
 from ._config import _DEFAULTSIZE
 from ._config import _VERB
-from ._utilities import _utils, _class_checks, _class_utility, _cn
+from ._utilities import _utils, _class_check, _class_utility, _cn
 from ._utilities import _class_set
 from ._utilities import _Network
 from ._utilities import _solvers
@@ -792,27 +792,26 @@ class Hub():
            verb=None,
            ComputeStatevarEnd=False
     ):
-       """ Run the simulation, with any of the solver existing in :
-           - pgm.get_available_solvers(returnas=list)
-           Verb will have the following behavior :
-           - none no print of the step
-           - 1 at every step
-           - any float (like 1.1) the iteration is written at any of these value
+       """
+Run the simulation, with any of the solver existing in :
+Compute each time step from the previous one using:
+- parameters
+- differentials (ode)
+- intermediary functions in specified func_order   
 
-       AFTER THE RUN
-       if you define N, the system will reinterpolate the temporal values on N samples
-       typically, N=Tmax will put 1 value per year
-
-       Compute each time step from the previous one using:
-           - parameters
-           - differentials (ode)
-           - intermediary functions in specified func_order
+## Verb will have the following behavior :
+- none no print of the step
+- 1 at every step
+- any float (like 1.1) the iteration is written at any of these value
+## ComputeStatevarEnd : if true will recompute all statevar at the end (do not work with noise or external call)
+## if you define N, the system will reinterpolate the temporal values on N samples
+typically, N=Tmax will put 1 value per year
        """
        if (_VERB == True and verb is None):
            verb = 1.1
 
        # check inputs
-       dverb = _class_checks._run_verb_check(verb=verb)
+       dverb = _class_check._run_verb_check(verb=verb)
 
        # reset variables
        self.set_dparam(**{})
@@ -838,15 +837,15 @@ class Hub():
 
     def reinterpolate_dparam(self, N=100):
         """
-        If the system has run, takes dparam and reinterpolate all values.
-        Typical use is to have lighter plots
+If the system has run, takes dparam and reinterpolate all values.
+Typical use is to have lighter plots
 
-        NEED A RESET BEFORE A RUN TO REALLOCATE SPACE
+NEED A RESET BEFORE A RUN TO REALLOCATE SPACE
 
-        Parameters
-        ----------
-        Npoints : TYPE, optional
-            DESCRIPTION. The default is 100.
+Parameters
+----------
+Npoints : TYPE, optional
+    DESCRIPTION. The default is 100.
         """
         P = self.__dparam
         t = P['time']['value']
@@ -854,7 +853,6 @@ class Hub():
             v = P[k]['value']
             prevshape= np.shape(v)
             v2 =v.reshape(P['nt']['value'],-1)
-            #print(np.shape(v2))
             newval = np.zeros([N,np.shape(v2)[1]])
             newt = np.linspace(t[0,0,0,0], t[-1,0,0,0], N)
             for i in range(np.shape(newval)[1]):

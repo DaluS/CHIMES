@@ -429,7 +429,7 @@ _LIBRARY = {
         'nu': {
             'value': 3,
             'definition': 'Capital to output ratio',
-            'units': '',
+            'units': 'y',
             'symbol': r'$\nu$',
         },
         'b': {

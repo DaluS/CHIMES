@@ -3,18 +3,16 @@
 
 # built-in
 import time
+from copy import copy,deepcopy
 
 # common
 import numpy as np
-from copy import copy,deepcopy
 
 # specific
-from . import _class_checks
-
+from . import _class_check
 
 # #############################################################################
-# #############################################################################
-#                   Main entry point
+#                   Main entry point                ###########################
 # #############################################################################
 
 def solve(
@@ -24,7 +22,8 @@ def solve(
         dverb=None,
         ComputeStatevarEnd=False,
 ):
-    '''TEMPORAL SOLVER OF THE SYSTEM'''
+    '''TEMPORAL SOLVER OF THE SYSTEM. 
+    ComputeStatevarEnd : if true will recompute all statevar at the end (do not work with noise or external call) '''
 
 
     lode   = dmisc['dfunc_order']['differential'] # order of differential equations to be solver
@@ -48,7 +47,7 @@ def solve(
     t0 = time.time()
     for ii in range(1, dparam['nt']['value']):
         # print of wait
-        if dverb['verb'] > 0: t0 = _class_checks._print_or_wait(ii=ii, nt=dparam['nt']['value'], t0=t0, **dverb)
+        if dverb['verb'] > 0: t0 = _class_check._print_or_wait(ii=ii, nt=dparam['nt']['value'], t0=t0, **dverb)
 
         # compute ode variables from ii-1, using solver
         y,state = _rk4( dydt_func=dydt_func,
@@ -66,8 +65,6 @@ def solve(
         for k0 in lstate:
             dparam[k0]['value'][...] = dparam[k0]['func'](**{k:dparam[k]['value'][...] for k in dparam[k0]['kargs']})
 
-
-    #return solver
 
 def get_func_dydt(
     dparam=None, # Big dictionnary with values and dependencies
@@ -90,44 +87,9 @@ def get_func_dydt(
         for k0 in lstate: dbuffer[k0] = dparam[k0]['func'](**{k:dbuffer[k] for k in dparam[k0]['kargs']})
         for k0 in lode:   dydt[k0]    = dparam[k0]['func'](**{k:dbuffer[k] for k in dparam[k0]['kargs']})
 
-        #print(f"t    { y['time'][0,0,0,0]:.5f}",
-        #      f"y    { y['y']   [0,0,0,0]:.5f}",
-        #      f"dydt {dydt['y'] [0,0,0,0]:.5f}" )
         return copy(dydt),dbuffer
 
     return y0, func
-
-
-def _eRK4_homemade(
-    y0=None,
-    dydt_func=None,
-    dparam=None,
-    lode=None,
-    lstate=None,
-    nt=None,
-    dverb=None,
-):
-    """ Structure of the homemade rk4 solver, with time loop, intermediaries...
-    """
-
-    # initialize y
-    y =deepcopy(y0)
-
-    # start loop on time
-    t0 = time.time()
-    for ii in range(1, nt):
-        # print of wait
-        if dverb['verb'] > 0: t0 = _class_checks._print_or_wait(ii=ii, nt=nt, t0=t0, **dverb)
-
-        # compute ode variables from ii-1, using solver
-        y,state = _rk4( dydt_func=dydt_func,
-                        dt=dparam['dt']['value'],
-                        y=y,)
-
-        # dispatch to store result of ode
-        for k0 in lode:   dparam[k0]['value'][ii, ...] = y[k0]
-        for k0 in lstate: dparam[k0]['value'][ii, ...]= state[k0]
-
 
 
 def _rk4(dydt_func=None, dt=None, y=None):
@@ -136,7 +98,6 @@ def _rk4(dydt_func=None, dt=None, y=None):
         - y = array of all variables (all ode)
         - dt = fixed time step
     """
-
     dy1_on_dt,state = dydt_func( y)
     dy2_on_dt,_     = dydt_func({k: y[k] + dy1_on_dt[k] * dt / 2. for k in y.keys()})
     dy3_on_dt,_     = dydt_func({k: y[k] + dy2_on_dt[k] * dt / 2. for k in y.keys()})
@@ -145,27 +106,6 @@ def _rk4(dydt_func=None, dt=None, y=None):
                     + 2*dy2_on_dt[k]
                     + 2*dy3_on_dt[k]
                     +   dy4_on_dt[k]) * dt/6  for k in y.keys()}
-    '''
-    print(f"t    { y['time'][0,0,0,0]:.5f}",
-          f"y    { y['y']   [0,0,0,0]:.5f}",
-          f"dydt {dy1_on_dt['y'][0,0,0,0]:.5f}" )
-
-    print(f"t    { y['time'][0,0,0,0]+dt/2:.5f}",
-          f"y    { y['y']   [0,0,0,0]+dy1_on_dt['y'][0,0,0,0]*dt / 2. :.5f}",
-          f"dydt {dy2_on_dt['y'] [0,0,0,0]:.5f}" )
-
-    print(f"t    { y['time'][0,0,0,0]+dt/2:.5f}",
-          f"y    { y['y']   [0,0,0,0]+ dy2_on_dt['y'][0,0,0,0] * dt / 2.:.5f}",
-          f"dydt {dy3_on_dt['y'] [0,0,0,0]:.5f}" )
-
-    print(f"t    { y['time'][0,0,0,0]+dt:.5f}",
-          f"y    { y['y']   [0,0,0,0]+ dy3_on_dt['y'][0,0,0,0] * dt:.5f}",
-          f"dydt {dy4_on_dt['y'] [0,0,0,0]:.5f}" )
-
-    print(f"t    { yend['time'][0,0,0,0]:.5f}",
-          f"y    { yend['y']   [0,0,0,0]:.5f}")
-    print('')
-    '''
     return yend,state
 
 def _rk1(dydt_func=None, dt=None, y=None):

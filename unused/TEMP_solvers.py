@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt     # DB
 
 # specific
 from . import _utils
-from . import _class_checks
+from . import _class_check
 
 #from .._config import _SOLVER
 _SOLVER = 'eRK4-homemade'
@@ -268,8 +268,6 @@ def get_func_dydt(
         # Then compute derivative dydt (ode)
         for k0 in lode:
             v=dictpos[k0]
-
-            print(k0, **dargs_temp[k0])
             dydt[...,v,:] = dparam[k0]['func'](**dargs_temp[k0])
         return np.copy(dydt)
 
@@ -336,7 +334,7 @@ def _rk4(dydt_func=None, dt=None, y=None, t=None):
     dy1_on_dt = dydt_func(t, y)
     dy2_on_dt = dydt_func(t + dt/2., y + dy1_on_dt * dt/2.)
     dy3_on_dt = dydt_func(t + dt/2., y + dy2_on_dt * dt/2.)
-    dy4_on_dt = dydt_func(t + dt   , y + dy3_on_dt * dt)
+    dy4_on_dt = dydt_func(t + dt, y + dy3_on_dt * dt)
     return (dy1_on_dt + 2*dy2_on_dt + 2*dy3_on_dt + dy4_on_dt) * dt/6.
 
 

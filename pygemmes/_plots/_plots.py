@@ -191,7 +191,7 @@ def plotbyunits(hub,
                           vy[key][key2],
                           c=color[j,:],
                           label=symb ,
-                          ls=_LS[j % (len(_LS)-1)],
+                          #ls=_LS[j % (len(_LS)-1)],
                           lw=lw)
             mini=np.nanmin((mini,np.nanmin(vy[key][key2])))
         if j >= 0:
@@ -933,7 +933,7 @@ def convergence(hub,finalpoint,showtrajectory=False):
     ax.scatter(finalpoint[keys[0]],
             finalpoint[keys[1]],
             finalpoint[keys[2]],
-            s=50,
+            s=100,
             c='k')
 
     # Scatter plot
