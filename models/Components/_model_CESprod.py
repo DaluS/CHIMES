@@ -29,6 +29,9 @@ import numpy as np #(if you need exponential, pi, log, of matrix products...)
 from pygemmes._models import Funcs, importmodel,mergemodel,filldimensions
 from pygemmes._models import Operators as O
 
+
+def l(omegacarac,CESexp):
+    return np.select([omegacarac<1,omegacarac>=1],[(np.maximum(omegacarac**(-CESexp/(1+CESexp)) - 1,10**(-3)))**(1/CESexp),.5])
 ################## ALL THE NEW FIELDS LOGICS ###############################
 _LOGICS = { 'size'        : {},
             'differential': {},
@@ -39,7 +42,7 @@ _LOGICS = { 'size'        : {},
                'units': 'Humans'},
         'omegacarac': {'func': lambda w,a0,p,A,b,CESexp,gamma: (w/(A*a0*p*(1-gamma)))*((1-b)/b)**(1/CESexp),
                                     'symbol': '$\omega^c(1-\gamma)^{-1}$' },
-        'l' : {'func': lambda omegacarac, CESexp: np.select([omegacarac<1,omegacarac>=1],[(np.maximum(omegacarac**(-CESexp/(1+CESexp)) - 1,10**(-3)))**(1/CESexp),.5]),
+        'l' : {'func': l,
                                     'com': 'Floor at 0.5'},
         'Y' : {'func': lambda Yc,l,CESexp : Yc * (1 +l**(-CESexp) )**(-1/CESexp),
                                     'com' : 'CES PRODUCTION FUNCTION'},

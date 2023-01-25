@@ -472,7 +472,7 @@ def _get_summary_parameters(hub, idx=0,Region=0,filtersector=()):
         [
             k0,
             ksector,
-            v0['value'][idx,Region,idsectr],
+            v0['value'][idx,Region,idsectr,0],
             str(v0['units']) ,
             v0['group'] ,
             v0['definition'] ,

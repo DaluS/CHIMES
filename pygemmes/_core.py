@@ -902,7 +902,67 @@ Npoints : TYPE, optional
            v = Vals[k]
            print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
 
-    def get_summary(self,minimal=True):
+
+    def get_summary(self, idx=0, Region=0,removesector=()):
+        """
+        INTROSPECTION TOOL :
+        Print a str summary of the model, with
+        * Model description
+        * Parameters, their properties and their values
+        * ODE, their properties and their values
+        * Statevar, their properties and their values
+        For more precise elements, you can do introspection using hub.get_dparam()
+        INPUT :
+        * idx = index of the model you want the value to be shown when there are multiple models in parrallel
+        * region : name or index of the region you want to plot
+        """
+
+        _FLAGS = ['run', 'cycles', 'derivative','multisectoral','solver']
+        _ORDERS = ['statevar', 'differential', 'parameters']
+
+        Vals = self.__dparam
+
+        print(60 * '#')
+        print(20 * '#', 'SUMMARY'.center(18), 20 * '#')
+        print(60 * '#')
+
+        self.__short()
+
+        print('\n')
+        print(60 * '#')
+        print(20 * '#', 'fields'.center(18), 20 * '#')
+        if self.__dparam['nr']['value']!=1:
+            print(20 * '#', str('Region :'+str(self.__dparam['nr']['list'][Region])).center(18), 20 * '#')
+        if self.__dparam['nx']['value'] != 1:
+            print(20 * '#', str('Parr. sys numb:'+str(self.__dparam['nx'].get('list',np.arange(self.__dparam['nx']['value']))[idx])).center(18), 20 * '#')
+        print(60 * '#')
+        # parameters
+        col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx,filtersector=removesector)
+        # SCALAR ODE
+        col3, ar3 = _class_utility._get_summary_functions_vector(
+           self, idx=idx,Region=Region, eqtype=['differential'],filtersector=removesector)
+        # SCALAR Statevar
+        col4, ar4 = _class_utility._get_summary_functions_vector(
+           self, idx=idx,Region=Region, eqtype=['statevar'],filtersector=removesector)
+
+
+        print(''.join([a.ljust(15) for a in col2]))
+        for a in ar2:
+            print(''.join([str(aa).ljust(15) for aa in a]))
+
+        # ----------
+        # format output
+        _utils._get_summary(
+           lar =[  ar3,  ar4 ],
+           lcol=[  col3, col4],
+           verb=True,
+           returnas=False,)
+
+        # Print matrices
+        _class_utility._print_matrix(self,idx=idx,Region=Region)
+
+
+    def get_new_summary(self,minimal=True):
         """
         INTROSPECTION TOOL :
         Print a str summary of the model, with
