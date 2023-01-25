@@ -37,6 +37,7 @@ def dotV(Y, Gamma, Ir, C, Xi):
     return  Y - O.matmul(O.transpose(Gamma), Y) - C - O.matmul(O.transpose(Xi), Ir)
 
 
+
 _LOGICS = {
     'size': {'Nprod': {'list': ['MONO']}},
     ###################################################################
