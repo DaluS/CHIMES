@@ -97,9 +97,12 @@ def _indexes(hub,idx,Region,tini,tend):
 
     return hub,idx,Region,idt0,idt1
 
-def _key(key):
+def _key(R,key):
     if type(key) is list :
         keysect=R[R[key[0]]['size'][0]]['list'].index(key[1])
         key,keyname=key[0],key[1]
     else : keysect,keyname=0,''
-    return keysect,keyname
+
+    #print(keysect,type(keysect))
+    #print(keyname,type(keyname))
+    return key,keysect,keyname

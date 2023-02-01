@@ -84,8 +84,8 @@ _LOGICS = {
                           'units': ''},
 
         ### USE AND ACCESSIBILITY
-        #'u'             :{'func': lambda u0: u0,
-        #                  'com' : 'just u0'},
+        'u'             :{'func': lambda u0: u0,
+                          'com' : 'just u0'},
 
         ### COST COMPONENTS
         
@@ -96,10 +96,12 @@ _LOGICS = {
         'inflation'     :{'func': lambda inflationMarkup,inflationdotV: inflationMarkup+inflationdotV,},
         'inflationMarkup':{'func': lambda eta, mu0, mu: eta* np.log(mu0/mu),},#eta * (mu0/mu -1 )},#
 
-        #'inflationdotV' :{'func': lambda chi, dotV, V: - chi *( dotV / V),
-        #                  'com': 'dotV/V'},
+        #'inflationdotV' :{'func': lambda chi,Y,V: chi *(0.1*Y/V-1),
+        #            'com': 'V0/V'},
         'inflationdotV' :{'func': lambda chi, dotV, Y: - chi *( dotV / Y),
                           'com': 'dotV/Y'},
+        #'inflationdotV' :{'func': lambda chi, dotV, Y: - chi *( dotV / Y),
+        #                  'com': 'dotV/Y'},
 
         'basket'        :{'func': lambda p, C: p * C / O.sprod(p, C)},
         'ibasket'       :{'func': lambda inflation, basket: O.sprod(inflation, basket)},
@@ -114,7 +116,10 @@ _LOGICS = {
         'GammaY'        :{'func': lambda Gamma,Y : O.matmul(O.transpose(Gamma), Y),
                           'definition': 'flux to intermediate consumption',
                           'units': 'Units.y^{-1}',
-                          'symbol': '$(\Gamma Y)$'},
+                          'symbol': '$(\Gamma^T Y)$'},
+        'TakenforIr'    :{'func': lambda Xi,Ir : O.matmul(O.transpose(Xi), Ir),
+                          'units':  'Units.y^{-1}',
+                          'symbol': '$(\Xi^T I^r)$'},
         
         # Matrix approach
         'Minter'        :{'func': lambda Y, Gamma: O.transpose(Gamma*Y)},
@@ -157,23 +162,28 @@ _LOGICS = {
     },
 }
 
-################################ KAPPA-PHILLIPS ##########################
+########################### CHANGING PROPERTIES ############################
+# KAPPA-PHILLIPS #################
 #_LOGICS['statevar']['kappa'] = {'func': lambda pi, k0, k1, k2: k0 + k1 * np.exp(k2 * pi),
 #                                'com': 'exponential param curve'},
 #_LOGICS['statevar']['Phillips'] = {'func': lambda employmentAGG, phi0, phi1: -phi0 + phi1 / (1 - employmentAGG) ** 2},
 
-################################ TRANSFORMING INTO GOODWIN-KEEN ##########
+# TRANSFORMING INTO GOODWIN-KEEN #
 #_LOGICS['statevar']['Cpond']= {'func': lambda kappa,Gamma,nu,delta,omega: (1-kappa-Gamma-delta*nu)/omega},
 
-################################ ADDING UTILITY CONSUMPTION ##############
+# ADDING UTILITY CONSUMPTION #####
 
 
-################################ ADDING ACCESSIBILITY ####################
+# ADDING ACCESSIBILITY ###########
 
 
-################################ ADDING CES ##############################
-_LOGICS_CES,_PRESETS0= importmodel('CESprod')
-_LOGICS = mergemodel(_LOGICS, _LOGICS_CES, verb=False) 
+# ADDING CES #####################
+#_LOGICS_CES,_PRESETS0= importmodel('CESprod')
+#_LOGICS = mergemodel(_LOGICS, _LOGICS_CES, verb=False) 
+
+# CHANGING INFLATION #############
+#_LOGICS_INF,_PRESETS0= importmodel('inflationU')
+#_LOGICS = mergemodel(_LOGICS, _LOGICS_INF, verb=False)
 
 
 ##########################################################################
@@ -191,52 +201,182 @@ DIM= {'scalar':['__ONE__'],
 _LOGICS=filldimensions(_LOGICS,Dimensions,DIM)
 #########################################################################
 
-GOODWIN_PRESET= { 
-    ### Numerical values 
-    'Tmax':100,    'Tini':0,     'dt': 0.1, 
-    'Nprod': [''],     'nx': [''],     'nr': [''],
 
-    # Monosectoral initial 
-    'N':1,     'w0':0.75,     'a0':3, 
-    # Initial multisectoral
-    'D':0,     'Dh':0,     'V':1, 
-    'K':2,     'p':1, 
+def generategoodwin(Nsect,gamma=0.1,xi=1):
+    '''Generate a dparam to generate N Goodwin in parrallel'''
+    GOODWIN_PRESET= { 
+        
+        
+        ### Numerical values 
+        'Tmax':100.,    'Tini':0.,     'dt': 0.1, 
+        'Nprod': [''],    
+        #'nx': [''],     'nr': [''],
 
-    # Multisectoral ponderation
-    'z': 1,     # On wage 
-    'apond': 1, # On productivity
+        # Monosectoral initial 
+        'N':1/.9,     'w0':0.7,     'a0':3., 
+        # Initial multisectoral
+        'D':0.,     'Dh':0.,     'V':1., 
+        'K':3.,     'p':1., 
 
-    # Characteristic frequencies
-    'alpha':0.025,     'n':0.02,    'delta':0.005, 
-    'eta': 0,     'mu0': 1,     'chi': 0, 
+        # Multisectoral ponderation
+        'z': 1.,     # On wage 
+        'apond': 1., # On productivity
 
-    # Prices, inflation, negociation
-    'gammai':0,    
-    'r':0.03, 
-    #'phinull':0.1, 
-    'philinConst': -0.292,    'philinSlope':  0.469, 
-    'Delta': 0,             #shareholding 
+        # Characteristic frequencies
+        'alpha':0.025,     'n':0.02,    'delta':0.005, 
+        'eta': 0.,     'mu0': 1.,     'chi': 0., 
 
-    # Kappa investment 
-    'k0':0,    'k1':1,
+        # Prices, inflation, negociation
+        'gammai':0.,    
+        'r':0.03, 
+        #'phinull':0.1, 
+        'philinConst': -0.292,    'philinSlope':  0.469, 
+        'Delta': 0.,             #shareholding 
 
-    # CES production function
-    'A': 1/3,    'CESexp':10000,    'b' :.5,
+        # Kappa investment 
+        'k0':0.,    'k1':1.,
 
-    # MATRICES 
-    'Xi': 1,     'Gamma': 0.1, 
+        # CES production function
+        'A': 1/3,    'CESexp':100.,    'b' :.5,
 
-    #'sigma': 1, 
-    'Cpond': 1, 
+        # MATRICES 
+        'Xi': xi,     'Gamma': gamma, 
+
+        
+        'Cpond': 1., 
+        'sigma': 1, 
+        
+    }
+
+
+
+    GOODWIN_N= GOODWIN_PRESET.copy()
+    GOODWIN_N['w0'] = 1 -GOODWIN_N['Gamma'] - 1/GOODWIN_N['A']*GOODWIN_N['Xi']*(GOODWIN_N['alpha']
+                                                                                    +GOODWIN_N['n']
+                                                                                    +GOODWIN_N['delta'])
+    GOODWIN_N['Nprod']=[str(i) for i in range(Nsect)]
+    GOODWIN_N['Gamma']=np.eye(Nsect)*gamma
+    GOODWIN_N['Xi'   ]=np.eye(Nsect)*xi
+    
+    GOODWIN_N['N']*=Nsect
+    GOODWIN_N['Cpond']=1/Nsect
+
+
+    #useful statevar for calculation that will not be loaded in set_dparam
+    GOODWIN_N['a'] = GOODWIN_N['a0']*GOODWIN_N['apond']
+    GOODWIN_N['w'] = GOODWIN_N['w0']*GOODWIN_N['z']
+    return {k : np.array([v]) if type(v) not in [np.array,np.ndarray,list] else v for k,v in GOODWIN_N.items()}
+
+def pForROC(dic):
+    '''Find the price vector so that the natural return on capital is the growth rate of society
+    ROC = pi / (nu*xi'''
+    from scipy.optimize import fsolve
+    def ecart(p,dic):
+        nu = 1/dic['A']
+        omega = dic['w0']*dic['z']*nu/(dic['a0']*dic['apond']*p)
+        gamma = O.matmul(dic['Gamma'],p)/p
+        xi = O.matmul(dic['Xi'],p)/p
+            
+        return  1 - gamma - omega - nu*xi*(  dic['alpha'] 
+                                           + dic['n'] 
+                                           + dic['delta'] )  
+                                         
+    p = fsolve(ecart,np.array([1.]*len(dic['Nprod'])),args=dic)
+    return p
+
+def Kfor0dotV(params):
+    '''
+    Given the value of parameters (Gamma,Xi,Cpond,delta,nu,p,a,w),
+    Find the vector of capital that ensure dotV=0 at the first iteration, only for a GOODWIN.
+    You can then multiply it in order to have the right GDP or employment
+    '''
+    from scipy.optimize import fsolve
+    def dotV(K,params):
+        Gamma   =np.array(params['Gamma'])
+        Xi      =np.array(params['Xi'])
+        Cpond   =np.array(params['Cpond'])
+        delta   =np.array(params['delta'])  +0*K
+        A       =np.array(params['A'])      +0*K
+        p       =np.array(params['p'])      +0*K
+        a       =np.array(params['a'])      +0*K
+        w       =np.array(params['w'])      +0*K
+
+        #### Deriving equations 
+        Y = K*A
+        L = K/a
+        Inter = np.matmul(np.transpose(Gamma),Y) 
+        C = Cpond*sum(w*L)/p
+        Pi = p*Y 
+        Pi-= w*L 
+        Pi-= Y*np.matmul(Gamma,p)  
+        Pi-= delta*K* np.matmul(Xi,p)
+        Ir = Pi/(np.matmul(Xi,p)) + K*delta
+    
+        ### Returning dotV
+        return Y - Inter - C - np.matmul(np.transpose(Xi),Ir)
+    K = fsolve(dotV,np.array([1.]*len(params['Nprod'])),args=params)
+    return K
+
+def Leontievinverse(params,Eigenvalues=False):
+    LeontievInverse = np.linalg.inv(np.eye(params['Nsect'])
+                                    -params['Gamma']
+                                    -params['delta']/params['A']*params['Xi'])
+    Eigenvalues,Eigenvectors = np.linalg.eig(LeontievInverse)
+    return LeontievInverse,Eigenvalues,Eigenvectors
+
+
+###################### LOCAL SPECIAL PLOTS ################
+def PiRepartition(hub,tini=False,tend=False):
+    for sector in hub.dparam['Nprod']['list'] :
+        hub._DPLOT['repartition'](hub,
+                            ['pi','omega','Mxi','Mgamma','rd','reloverinvest','reldotv'],
+                            sign= [1,1,1,1,1,1,-1],
+                            sector=sector,
+                            title=f'Expected relative budget $\pi$ for sector {sector}',
+                                    tini=tini,
+                                    tend=tend)
+def PhysicalFluxes(hub,tini=False,tend=False):
+    for sector in hub.dparam['Nprod']['list'] :
+        hub._DPLOT['repartition'](hub,
+                            ['Minter','Minvest','C','dotV'],
+                            ref='Y',
+                            sector=sector,
+                            title=f'Physical Fluxes for sector {sector}',
+                                  tini=tini,
+                                  tend=tend)
+def MonetaryFluxes(hub,tini=False,tend=False):
+    for sector in hub.dparam['Nprod']['list'] :
+        hub._DPLOT['repartition'](hub,
+                          ['MtransactY','MtransactI','wL','pC','rD'],
+                          sign=[1, 1, 1, -1, 1],
+                          ref='dotD',
+                          sector=sector,
+                          title=f'Monetary Fluxes for sector {sector}',
+                          removetranspose=True,
+                                  tini=tini,
+                                  tend=tend)
+
+
+_SUPPLEMENTS = {
+    # Generating Set_dparam
+    'generateNgoodwin': generategoodwin,
+    'Kfor0dotV' : Kfor0dotV,
+    'pForROC' : pForROC,
+
+    # Exploring Leontiev Inverse
+    'LeontievInverse': Leontievinverse,
+
+    # Plots 
+    'PiRepartition' : PiRepartition,
+    'PhysicalFluxes': PhysicalFluxes,
+    'MonetaryFluxes': MonetaryFluxes,
 }
 
-GOODWIN_DOUBLE= GOODWIN_PRESET.copy()
-GOODWIN_DOUBLE['Nprod']=['One','Two']
-GOODWIN_DOUBLE['Gamma']=[[0.1,  0],
-                         [0  ,0.1]]
-GOODWIN_DOUBLE['Xi'   ]=[[1  ,  0],
-                         [0  ,1  ]]
-GOODWIN_DOUBLE['N']*=2
+
+
+
+
+
 
 
 preset_TRI = {
@@ -344,14 +484,19 @@ preset_basis2['K'] = [2]#.3,0.5]
 
 _PRESETS = {
     'Goodwin': {
-        'fields': GOODWIN_PRESET,
+        'fields': _SUPPLEMENTS['generateNgoodwin'](1),
         'com': (''),
         'plots': {'XY':[{'x':'omega',
                          'y':'employment',
                          'color':'time'}]},
     },
     '2Goodwin': {
-        'fields': GOODWIN_DOUBLE,
+        'fields':  _SUPPLEMENTS['generateNgoodwin'](2),
+        'com': (''),
+        'plots': {},
+    },
+    '5Goodwin': {
+        'fields': _SUPPLEMENTS['generateNgoodwin'](5),
         'com': (''),
         'plots': {},
     },

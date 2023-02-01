@@ -489,10 +489,14 @@ def _get_summary_parameters(hub, idx=0,Region=0,filtersector=()):
 def _print_matrix(hub,
                     idx=None,
                     Region=None):
-    for m in hub.dmisc['dmulti']['matrix']:
+
+  
+    for m in [m for m in hub.dparam.keys() if hub.dparam[m]['size'][1]!='__ONE__' ]:
         ## IF IT IS A PARAMETER
+        print(m)
         ax1 = hub.dparam[hub.dparam[m]['size'][0]]['list']
         ax2 = hub.dparam[hub.dparam[m]['size'][1]]['list']
+
         if m in hub.dmisc['dfunc_order']['parameters']:
             val=  hub.dparam[m]['value'][idx,Region,...]
         else :

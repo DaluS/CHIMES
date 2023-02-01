@@ -58,7 +58,6 @@ class Hub():
                         'cycles': False,     # Has an analysis of cycles been done
                         'derivative': False, # Has an analysis of derivatives been done
                         }
-
         # Load model files ####################################################
         (
             self.__dmodel,  # Contains the model informations
@@ -70,7 +69,7 @@ class Hub():
             from_user=from_user,
             verb=verb,
         )
-
+        
 
         # Actualize the shape ##############################################
         self.__dmisc['dmulti']['NxNr'] = (self.__dparam['nx']['value'],
@@ -94,7 +93,7 @@ class Hub():
         if dpresets is not None: self.set_dpreset(dpresets,verb=False)
         if preset is not None:   self.set_preset(preset, verb=False)
         else:                    self.reset()
-
+        
 
     # %% Setting parameters
     def set_dpreset(self,
@@ -726,7 +725,13 @@ class Hub():
     def dmisc(self):
        return self.__dmisc
 
+    @property
+    def supplements(self):
+        return self.dmodel.get('supplements',{})
 
+    @property
+    def _DPLOT(self):
+        return _DPLOT
    # ##############################
    # run simulation
    # ##############################

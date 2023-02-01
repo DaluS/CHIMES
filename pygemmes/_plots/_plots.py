@@ -191,7 +191,7 @@ def plotbyunits(hub,
                           vy[key][key2],
                           c=color[j,:],
                           label=symb ,
-                          #ls=_LS[j % (len(_LS)-1)],
+                          ls=_LS[j % (len(_LS)-1)],
                           lw=lw)
             mini=np.nanmin((mini,np.nanmin(vy[key][key2])))
         if j >= 0:
@@ -330,9 +330,9 @@ def XY(hub,x,y,
 
     ### INPUT TRANSLATION ############# 
     R=hub.dparam
-    xsect,xname = _key(x)
-    ysect,yname = _key(y)
-    csect,cname = _key(color)
+    x,xsect,xname = _key(R,x)
+    y,ysect,yname = _key(R,y)
+    color,csect,cname = _key(R,color)
 
 
     ### PLOT #################
@@ -382,10 +382,10 @@ def XYZ(hub,x,y,z,
     ### INPUT TRANSLATION ############# 
     R=hub.dparam
 
-    xsect,xname = _key(x)
-    ysect,yname = _key(y)
-    zsect,zname = _key(z)
-    csect,cname = _key(color)
+    x,xsect,xname = _key(R,x)
+    y,ysect,yname = _key(R,y)
+    z,zsect,zname = _key(R,z)
+    color,csect,cname = _key(R,color)
 
     vx = R[x]['value'][idt0:idt1, idx,Region,xsect,0]
     vy = R[y]['value'][idt0:idt1, idx,Region,ysect,0]
@@ -449,7 +449,7 @@ def Var(hub,
         print('done')
 
     R=hub.dparam
-    keysect,keyname = _key(key)
+    key,keysect,keyname = _key(R,key)
 
     fig = plt.figure()
     fig.set_size_inches(10, 5)
@@ -587,7 +587,7 @@ def Sankey(hub,t=0,idx=0,Region=0,figPhy=False,figMoney=False):
         if source in TD['label']:
             sourceindex = TD['label'].index(source)
         else : 
-            print(source,'adding')
+            #print(source,'adding')
             sourceindex = len(TD['label'])
             TD['label'].append(source)
 
@@ -665,10 +665,10 @@ def Sankey(hub,t=0,idx=0,Region=0,figPhy=False,figMoney=False):
 
         TDm['colors']= [c[i] for i in TDm['colors']]
 
-
         data = go.Sankey(link = dict(source = np.array(TDm['source']).reshape(-1), 
                                     target = np.array(TDm['target']).reshape(-1), 
                                     value = np.array(TDm['value']).reshape(-1),
+                                    label = np.array(TDm['types']).reshape(-1),
                                     color=TDm['colors']), 
                         node = dict(label = TDm['label'],
                                     pad=50, 
@@ -682,7 +682,7 @@ def Sankey(hub,t=0,idx=0,Region=0,figPhy=False,figMoney=False):
                 font=dict(size = 10, color = 'white'),
                 paper_bgcolor='#5B5958'
             )
-            #figPhy.show()
+            figPhy.show()
         else :
             figPhy.data[0].link.value=TDm['value']
             figPhy.update_layout(title=f"Physical exchanges between sectors, t={R['time']['value'][ntindex,0,0,0,0]:.2f}")
@@ -717,10 +717,10 @@ def Sankey(hub,t=0,idx=0,Region=0,figPhy=False,figMoney=False):
             if v<0:
                 TD['target'][i],TD['source'][i] = TD['source'][i],TD['target'][i]
                 TD['value'][i]*=-1
-
         data = go.Sankey(link = dict(source = np.array(TD['source']).reshape(-1), 
                                     target = np.array(TD['target']).reshape(-1), 
                                     value = np.array(TD['value']).reshape(-1),
+                                    label = np.array(TDm['types']).reshape(-1),
                                     color=TD['colors']), 
                         node= dict( label = TD['label'],
                                     pad=50, 
@@ -737,11 +737,11 @@ def Sankey(hub,t=0,idx=0,Region=0,figPhy=False,figMoney=False):
                 font=dict(size = 10, color = 'white'),
                 paper_bgcolor='#5B5958'
             )
-            #figMoney.show()
+            figMoney.show()
         else :
             figMoney.data[0].link.value=TD['value']
             figMoney.update_layout(title=f"Monetary exchanges between sectors, t={R['time']['value'][ntindex,0,0,0,0]:.2f}")
-    return figPhy,figMoney
+    #return figPhy,figMoney
 
 
 # #################################### TOOLBOX PLOTS ########################################
@@ -890,7 +890,7 @@ def repartition(hub ,
                 if np.max(np.abs(R[k]['value'][:, idx,Region,enum2,sectindex]))!=0:
                     dicvals[entrynameT] = -sign[enum] * R[k]['value'][idt0:idt1, idx,Region,enum2,sectindex]
 
-    color = list(plt.cm.turbo(np.linspace(0,1,len(keys)+1)))
+    color = list(plt.cm.nipy_spectral(np.linspace(0,1,len(dicvals.keys())+1)))
     dicvalpos = { k : np.maximum(v,0) for k,v in dicvals.items()}
     dicvalneg = { k : np.minimum(v,0) for k,v in dicvals.items()}
     time = R['time']['value'][idt0:idt1,0,0,0,0]
@@ -901,9 +901,10 @@ def repartition(hub ,
     ax=plt.gca()
     if len(ref):
         name = R[ref]['symbol'][:-1]+'_{'+sectname+'}$'
-        ax.plot(time,refsign*R[ref]['value'][idt0:idt1,idx,Region,sectindex,0],c='r',ls='--',lw=2,label=name)
+        ax.plot(time,refsign*R[ref]['value'][idt0:idt1,idx,Region,sectindex,0],c='k',ls='-',lw=2,label=name)
     ax.stackplot(time,dicvalpos.values(),labels=dicvals.keys(),colors=color)
-    ax.legend(loc='upper left')
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles[::-1], labels[::-1], loc='upper left')
     ax.stackplot(time, dicvalneg.values(),lw=3,colors=color)
 
     plt.ylabel('Repartition $ '+R[keys[0]]['units'].replace('$', '\$')+' $ ' if len(R[keys[0]]['units']) else 'Repartition')
@@ -1011,7 +1012,6 @@ def plot3D(hub, x, y, z, color, cmap='jet', index=0,Region=0, title=''):
         title=title)
 
     
-
 def __slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0,Region=0):
     '''
     Take the logic of a field, and calculate a slice given two of the argument fields that are modified

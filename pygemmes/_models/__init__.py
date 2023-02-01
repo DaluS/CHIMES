@@ -13,9 +13,7 @@ import inspect
 from .._config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS,_MODEL_NAME_CONVENTION,_MODELS_SHOWDETAILS,_MODEL_FOLDER_HIDDEN
 
 from copy import deepcopy
-
 import pandas as pd
-
 
 # ####################################################
 # ####################################################
@@ -115,6 +113,7 @@ def get_available_model_documentation(model):
     mess+= str(df.loc[model].loc['supplements'])
     return mess
 
+
 def get_available_models(
     model=None,
     details=_MODELS_SHOWDETAILS,
@@ -176,8 +175,6 @@ def get_available_models(
         return dic
     else:
         return modeldf.transpose()
-
-
 
 
 def _printsubgroupe(sub, it):
@@ -311,20 +308,16 @@ def filldimensions(_LOGICS,Dimensions,DIM=False):
       'matrix':['Nprod','Nprod']  }
     
     ### COMPLETING THE MISSING DIMENSION
-    #print('')
-    #print('Input', Dimensions)
     if len(list(Dimensions.keys()))<3:
         t1,t2 = list(Dimensions.keys())[0],list(Dimensions.keys())[1]
-        t3 = list(set(['scalar','vector','matrix'])-set(t1)-set(t2))[0]
-        #print(t1,t2)
-        #print(t3)
+        t3 = [f for f in ['scalar','vector','matrix'] if f not in Dimensions.keys()][0]
         Allfields = []
         for k0 in _LOGICS.keys(): Allfields.extend([k for k in _LOGICS[k0]])
         Dimensions[t3] = list( set(Allfields)     -
                                set(Dimensions[t1])-
                                set(Dimensions[t2]) )
 
-    #print(Dimensions)
+    
     ### COMPLETING _LOGICS WITH VARIABLES EXISTING INSIDE
     Added = []
     for cat, liste in Dimensions.items():
@@ -333,13 +326,14 @@ def filldimensions(_LOGICS,Dimensions,DIM=False):
                 if var in liste:
                     prop['size']=DIM[cat]
                     Added.append(var)
-
     ### COMPLETING PARAMETERS NOT DEFINED BEFORE IN _LOGICS
     Ds = []
     for V in Dimensions.values():Ds.extend(V)
+
     for var in list(set(Ds)-set(Added)):
         for cat, liste in Dimensions.items():
-            if var in liste:
+            if var in liste :
+                #print(var)
                 _LOGICS['parameter'][var]={'size':DIM[cat]}
 
     return _LOGICS
