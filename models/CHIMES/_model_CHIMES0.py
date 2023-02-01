@@ -96,8 +96,8 @@ _LOGICS = {
         'inflation'     :{'func': lambda inflationMarkup,inflationdotV: inflationMarkup+inflationdotV,},
         'inflationMarkup':{'func': lambda eta, mu0, mu: eta* np.log(mu0/mu),},#eta * (mu0/mu -1 )},#
 
-        #'inflationdotV' :{'func': lambda chi,Y,V: chi *(0.1*Y/V-1),
-        #            'com': 'V0/V'},
+        'inflationdotV' :{'func': lambda chi,v: chi *(v-1),
+                    'com': 'V0/V'},
         'inflationdotV' :{'func': lambda chi, dotV, Y: - chi *( dotV / Y),
                           'com': 'dotV/Y'},
         #'inflationdotV' :{'func': lambda chi, dotV, Y: - chi *( dotV / Y),
@@ -112,6 +112,7 @@ _LOGICS = {
         'Ir'            :{'func': lambda I,Xi,p: I/O.matmul(Xi,p),},
         'C'             :{'func': lambda W,Cpond,p: Cpond*W/p,},
         'dotV'          :{'func': dotV},
+        'v'             :{'func': lambda epsilonV,Y,V: epsilonV*Y/V},
         'Kdelta'        :{'func': lambda K,delta : delta*K,},
         'GammaY'        :{'func': lambda Gamma,Y : O.matmul(O.transpose(Gamma), Y),
                           'definition': 'flux to intermediate consumption',
@@ -155,10 +156,11 @@ _LOGICS = {
         'reloverinvest' :{'func': lambda kappa, pi: pi - kappa}, #'com': 'difference between kappa and pi',
     },
     'parameter': {
-        'apond': {'value':1,
-                  'definition': 'sector-ponderation of production'},
-        'CESexp':{'value':1000},
-        'b': {'value':0.5},
+        'apond' :   { 'value' : 1,
+                      'definition': 'sector-ponderation of production'},
+        'CESexp':   { 'value' : 1000},
+        'b':        { 'value' : 0.5},
+        'epsilonV': { 'value' : 1}
     },
 }
 
@@ -242,7 +244,6 @@ def generategoodwin(Nsect,gamma=0.1,xi=1):
         # MATRICES 
         'Xi': xi,     'Gamma': gamma, 
 
-        
         'Cpond': 1., 
         'sigma': 1, 
         
