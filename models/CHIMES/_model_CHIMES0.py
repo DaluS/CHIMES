@@ -55,10 +55,10 @@ _LOGICS = {
         'w0'            :{'func': lambda Phillips, w0, gammai, ibasket: w0 * (Phillips + gammai * ibasket)},
 
         ### BEHAVIOR
-        #'u0'            :{'func': lambda u0, sigma, V, dotV: -sigma * (1 - u0) * (dotV / V),
+        'u0'            :{'func': lambda u0, sigma, V, dotV: -sigma * (1 - u0) * (dotV / V),},
         #                  'com': 'On dotV/V',},
-        #'func': lambda u0, sigma, Y, dotV: -sigma * (1 - u0) * (dotV / Y),
-        #'func': lambda u0, sigma, v0: -sigma * (1 - u0) * (1-1/v0),
+        #'u0'            :{'func': lambda u0, sigma, Y, dotV: -sigma * (1 - u0) * (dotV / Y),},
+        #'u0'            :{'func': lambda u0, sigma, v: sigma * (1 - u0) * (1-v),},
         #'func': lambda u: 0,
 
         ### EXOGENOUS SCALING
@@ -93,22 +93,22 @@ _LOGICS = {
         'Mxi'           :{'func': lambda Xi, p,nu,delta: nu*delta*Xi * O.transpose(p) / p},
 
         ### Inflations
-        'inflation'     :{'func': lambda inflationMarkup,inflationdotV: inflationMarkup+inflationdotV,},
+        'inflation'     :{'func': lambda inflationMarkup,inflationdotVv,inflationdotVY,inflationdotVV: inflationMarkup+inflationdotVY+inflationdotVv+inflationdotVV,},
         'inflationMarkup':{'func': lambda eta, mu0, mu: eta* np.log(mu0/mu),},#eta * (mu0/mu -1 )},#
 
-        'inflationdotV' :{'func': lambda chi,v: chi *(v-1),
+        'inflationdotVv' :{'func': lambda chiv,v: chiv *(v-1),
                     'com': 'V0/V'},
-        'inflationdotV' :{'func': lambda chi, dotV, Y: - chi *( dotV / Y),
+        'inflationdotVY' :{'func': lambda chiY, dotV, Y: - chiY *( dotV / Y),
                           'com': 'dotV/Y'},
-        #'inflationdotV' :{'func': lambda chi, dotV, Y: - chi *( dotV / Y),
-        #                  'com': 'dotV/Y'},
+        'inflationdotVV' :{'func': lambda chiV, dotV, V: - chiV *( dotV / V),
+                          'com': 'dotV/V'},
 
         'basket'        :{'func': lambda p, C: p * C / O.sprod(p, C)},
         'ibasket'       :{'func': lambda inflation, basket: O.sprod(inflation, basket)},
-        'L'             : {'func': lambda K,a : K/a},
+        'L'             : {'func': lambda u,K,a : u*K/a},
 
         ### PHYSICAL FLUXES
-        'Y'             :{'func': lambda nu, K: K / nu,},
+        'Y'             :{'func': lambda u,nu, K: u*K / nu,},
         'Ir'            :{'func': lambda I,Xi,p: I/O.matmul(Xi,p),},
         'C'             :{'func': lambda W,Cpond,p: Cpond*W/p,},
         'dotV'          :{'func': dotV},
@@ -160,7 +160,10 @@ _LOGICS = {
                       'definition': 'sector-ponderation of production'},
         'CESexp':   { 'value' : 1000},
         'b':        { 'value' : 0.5},
-        'epsilonV': { 'value' : 1}
+        'epsilonV': { 'value' : 0.1},
+        'chiv' :    { 'value' : 0  },
+        'chiV' :    { 'value' : 0  },
+        'chiY' :    { 'value' : 0  },
     },
 }
 
@@ -217,8 +220,12 @@ def generategoodwin(Nsect,gamma=0.1,xi=1):
         # Monosectoral initial 
         'N':1/.9,     'w0':0.7,     'a0':3., 
         # Initial multisectoral
-        'D':0.,     'Dh':0.,     'V':1., 
+        'D':0.,     'Dh':0.,   
         'K':3.,     'p':1., 
+
+        # Inventory 
+        'V': 1,
+        'epsilonV': 0.1,
 
         # Multisectoral ponderation
         'z': 1.,     # On wage 
@@ -245,7 +252,7 @@ def generategoodwin(Nsect,gamma=0.1,xi=1):
         'Xi': xi,     'Gamma': gamma, 
 
         'Cpond': 1., 
-        'sigma': 1, 
+        'sigma': 0, 
         
     }
 

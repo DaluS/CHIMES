@@ -880,7 +880,7 @@ def repartition(hub ,
             entryname =  R[k]['symbol'][:-1]+'_{'+sectname+sectname2+'}$'   # Name in the dictionnary
 
             # if the entry is non-zero
-            if np.max(np.abs(R[k]['value'][:,idx,Region,sectindex,enum2]))!=0:
+            if np.nanmax(np.abs(R[k]['value'][:,idx,Region,sectindex,enum2]))!=0:
                 dicvals[entryname]=  sign[enum]*R[k]['value'][idt0:idt1,idx,Region,sectindex,enum2]
 
             if (removetranspose and R[k]['size'][1]!='__ONE__'):
@@ -901,11 +901,14 @@ def repartition(hub ,
     ax=plt.gca()
     if len(ref):
         name = R[ref]['symbol'][:-1]+'_{'+sectname+'}$'
-        ax.plot(time,refsign*R[ref]['value'][idt0:idt1,idx,Region,sectindex,0],c='k',ls='-',lw=2,label=name)
+        ax.plot(time,refsign*R[ref]['value'][idt0:idt1,idx,Region,sectindex,0],c='r',ls='-',lw=2,label=name)
     ax.stackplot(time,dicvalpos.values(),labels=dicvals.keys(),colors=color)
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles[::-1], labels[::-1], loc='upper left')
     ax.stackplot(time, dicvalneg.values(),lw=3,colors=color)
+
+    #for k,v in dicvals.items():
+    #    print(k, np.amax(np.abs(v)))
 
     plt.ylabel('Repartition $ '+R[keys[0]]['units'].replace('$', '\$')+' $ ' if len(R[keys[0]]['units']) else 'Repartition')
     plt.xlabel('Time (y)')
