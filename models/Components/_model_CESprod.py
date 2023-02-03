@@ -31,7 +31,8 @@ from pygemmes._models import Operators as O
 
 
 def l(omegacarac,CESexp):
-    return np.select([omegacarac<1,omegacarac>=1],[(np.maximum(omegacarac**(-CESexp/(1+CESexp)) - 1,10**(-3)))**(1/CESexp),.5])
+    return np.select([omegacarac<1,omegacarac>=1],[(np.maximum(omegacarac**(-CESexp/(1+CESexp)) - 1,10**(-3)))**(1/CESexp),.7])
+    #return omegacarac*0+1
 ################## ALL THE NEW FIELDS LOGICS ###############################
 _LOGICS = { 'size'        : {},
             'differential': {},
