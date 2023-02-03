@@ -241,7 +241,8 @@ def importmodel(name : str,
     spec.loader.exec_module(foo)
 
     return deepcopy({k0: dict(v0) for k0, v0 in foo._LOGICS.items()}),\
-           deepcopy({k0: dict(v0) for k0, v0 in foo._PRESETS.items()})
+           deepcopy({k0: dict(v0) for k0, v0 in foo._PRESETS.items()}),\
+           deepcopy({k0: dict(v0) for k0, v0 in foo._SUPPLEMENTS.items()})
 
 
 def mergemodel(Recipient,dictoadd,override=True,verb=False):

@@ -811,6 +811,7 @@ def repartition(hub ,
                 sector = '' ,
                 sign= '+',
                 ref = '',
+                stock = False,
                 refsign = '+',
                 removetranspose=False,
                 title= '',
@@ -901,17 +902,29 @@ def repartition(hub ,
     ax=plt.gca()
     if len(ref):
         name = R[ref]['symbol'][:-1]+'_{'+sectname+'}$'
-        ax.plot(time,refsign*R[ref]['value'][idt0:idt1,idx,Region,sectindex,0],c='r',ls='-',lw=2,label=name)
+        ax.plot(time,refsign*R[ref]['value'][idt0:idt1,idx,Region,sectindex,0],c='k',ls='-',lw=2,label=name)
+        ax.plot(time,refsign*R[ref]['value'][idt0:idt1,idx,Region,sectindex,0],c='w',ls='--',lw=2)
     ax.stackplot(time,dicvalpos.values(),labels=dicvals.keys(),colors=color)
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles[::-1], labels[::-1], loc='upper left')
     ax.stackplot(time, dicvalneg.values(),lw=3,colors=color)
 
+    plt.ylabel('$ '+R[keys[0]]['units'].replace('$', '\$')+' $ ' if len(R[keys[0]]['units']) else 'Repartition')
+    plt.xlabel('Time (y)')
+ 
+    if stock:
+        ax2=plt.twinx(ax)
+        ax2.plot(time,R[stock]['value'][idt0:idt1,idx,Region,sectindex,0],c='r',ls='-',lw=1)
+        
+        ax2.set_ylabel(R[stock]['symbol'][:-1]+'_{'+sectname+'}$')
+ 
+        #ax2.spines['left'].set_color('red')
+        ax2.tick_params(axis='y', colors='red')
+        ax2.yaxis.label.set_color('red')
     #for k,v in dicvals.items():
     #    print(k, np.amax(np.abs(v)))
 
-    plt.ylabel('Repartition $ '+R[keys[0]]['units'].replace('$', '\$')+' $ ' if len(R[keys[0]]['units']) else 'Repartition')
-    plt.xlabel('Time (y)')
+
     plt.suptitle(title)
     plt.tight_layout()
     plt.show()

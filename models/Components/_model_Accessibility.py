@@ -20,21 +20,21 @@ _LOGICS = {
     'statevar': {
         ### ACCESSIBILITY
         'AcY': {
-            'func': lambda V,Gamma,kY,softmin : O.ssum2((1-np.exp(-kY*O.transpose(V)/Gamma+1E-3))**(-softmin))**(-1/softmin),
+            'func': lambda V,Gamma,kY,softmin,K : np.maximum(0,O.ssum2((1-np.exp(-kY*O.transpose(V/K)/Gamma))**(-softmin))**(-1/softmin)),
             'com': 'Softmin with Gamma',
             'definition': 'Accessibility to intermediate production',
             'symbol': r'$\mathcal{A}^Y$',
             'size': ['Nprod']
         },
         'AcI': {
-            'func': lambda V,Xi,kI,softmin :    O.ssum2((1-np.exp(-kI*O.transpose(V) / Xi + 1E-3))**(-softmin))**(-1/softmin),
+            'func': lambda V,Xi,kI,softmin,K :    np.maximum(0,O.ssum2((1-np.exp(-kI*O.transpose(V/K) / Xi ))**(-softmin))**(-1/softmin)),
             'com': 'Softmin with Xi',
             'definition': 'Accessibility to Investment',
             'symbol': r'$\mathcal{A}^I$',
             'size': ['Nprod']
         },
         'AcC': {
-            'func': lambda V,Gamma,kC,softmin : 1-np.exp(-kC*V),
+            'func': lambda V,kC,K :np.maximum(0,1-np.exp(-kC*V/K)),
             'com': 'Softmin',
             'definition': 'Accessibility to consumption',
             'symbol': r'$\mathcal{A}^C$',
@@ -44,7 +44,8 @@ _LOGICS = {
         'u': {'func': lambda u0,AcY,softmin : (u0**(-softmin)+AcY**(-softmin))**(-1/softmin),
               'com': 'both diminution and accessibility',
               'definition': 'Effective use of capital',
-              'size': ['Nprod']},
+              'size': ['Nprod']
+        },
 
         ### CONSUMPTION
         'C': {
@@ -57,7 +58,7 @@ _LOGICS = {
 
         ### INVESTMENT
         'I': {
-            'func': lambda p, Y, kappa, Mxi,AcI: AcI * p * Y * (kappa + O.ssum2(Mxi)),
+            'func': lambda Idelta, Ilever,AcI: AcI *  (Idelta + Ilever),
             'com': 'Accessible explicit monetary flux',
             'definition': 'monetary investment',
             'units': '$.y^{-1}',
@@ -84,6 +85,9 @@ _LOGICS = {
         #      'size':['Nprod']}
     },
 }
+
+
+_SUPPLEMENTS= {}
 
 _PRESETS={
     '3sectors': {

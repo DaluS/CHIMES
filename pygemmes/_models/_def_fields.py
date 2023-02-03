@@ -227,7 +227,7 @@ _LIBRARY = {
             'definition': 'physical degraded of capital',
             'units': 'Units.y^{-1}',
             'size': ['Nprod'],
-            'symbol': r'$(delta K)$'
+            'symbol': r'$(\delta K)$'
         },
         'gamma': {
             'value':0,

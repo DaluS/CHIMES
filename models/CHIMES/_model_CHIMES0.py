@@ -22,6 +22,21 @@ It integrates :
 
 ## What should be done ?
 * Check u and i mechanism
+
+
+# DEALING WITH INVENTORY VARIATION (1) Starting close enough to the equilibrium
+
+$$ \dot{V} = Y - [\Gamma^T Y] - \Xi^T I^r - C $$ 
+
+With : 
+$$Y = K/\nu$$
+$$L = K/a$$
+$$\Pi = pY  - w L- Y [\Gamma p] - \delta K  [\Xi p]$$
+$$I^r = \delta K + \Pi$$ 
+$$C = C^{pond} \sum(w L)$$
+
+What this program does is, given : $\lambda$,$w$, $\Gamma$,$\Xi$,$C^{pond}$,$\delta$,$\nu$,$p$,$a$ returns the value of $K$ so that we have market-clearing conditions respecting the employment
+
 """
 from pygemmes._models import Funcs, importmodel,mergemodel,filldimensions
 from pygemmes._models import Operators as O
@@ -35,8 +50,6 @@ def dotD( MtransactI, MtransactY, wL, rD, pC):#,Shareholding):
 
 def dotV(Y, Gamma, Ir, C, Xi):
     return  Y - O.matmul(O.transpose(Gamma), Y) - C - O.matmul(O.transpose(Xi), Ir)
-
-
 
 _LOGICS = {
     'size': {'Nprod': {'list': ['MONO']}},
@@ -55,10 +68,10 @@ _LOGICS = {
         'w0'            :{'func': lambda Phillips, w0, gammai, ibasket: w0 * (Phillips + gammai * ibasket)},
 
         ### BEHAVIOR
-        'u0'            :{'func': lambda u0, sigma, V, dotV: -sigma * (1 - u0) * (dotV / V),},
+        #'u0'            :{'func': lambda u0, sigma, V, dotV: -sigma * (1 - u0) * (dotV / V),},
         #                  'com': 'On dotV/V',},
         #'u0'            :{'func': lambda u0, sigma, Y, dotV: -sigma * (1 - u0) * (dotV / Y),},
-        #'u0'            :{'func': lambda u0, sigma, v: sigma * (1 - u0) * (1-v),},
+        'u0'            :{'func': lambda u0, sigma, v: sigma * (1 - u0) * (1-v),},
         #'func': lambda u: 0,
 
         ### EXOGENOUS SCALING
@@ -180,11 +193,12 @@ _LOGICS = {
 
 
 # ADDING ACCESSIBILITY ###########
-
+_LOGICS_ACC,_PRESETS0,_SUPPLEMENTSACC= importmodel('Accessibility')
+_LOGICS = mergemodel(_LOGICS, _LOGICS_ACC, verb=False) 
 
 # ADDING CES #####################
-#_LOGICS_CES,_PRESETS0= importmodel('CESprod')
-#_LOGICS = mergemodel(_LOGICS, _LOGICS_CES, verb=False) 
+_LOGICS_CES,_PRESETS0,_SUPPLEMENTSCES= importmodel('CESprod')
+_LOGICS = mergemodel(_LOGICS, _LOGICS_CES, verb=False) 
 
 # CHANGING INFLATION #############
 #_LOGICS_INF,_PRESETS0= importmodel('inflationU')
@@ -221,11 +235,9 @@ def generategoodwin(Nsect,gamma=0.1,xi=1):
         'N':1/.9,     'w0':0.7,     'a0':3., 
         # Initial multisectoral
         'D':0.,     'Dh':0.,   
-        'K':3.,     'p':1., 
+        'K':2.7,     'p':1., 
 
-        # Inventory 
-        'V': 1,
-        'epsilonV': 0.1,
+
 
         # Multisectoral ponderation
         'z': 1.,     # On wage 
@@ -246,16 +258,22 @@ def generategoodwin(Nsect,gamma=0.1,xi=1):
         'k0':0.,    'k1':1.,
 
         # CES production function
-        'A': 1/3,    'CESexp':100.,    'b' :.5,
+        'A': 1/3,    'CESexp':1000.,    'b' :.5,
 
         # MATRICES 
         'Xi': xi,     'Gamma': gamma, 
 
         'Cpond': 1., 
         'sigma': 0, 
-        
-    }
 
+        # ACCESSIBILITY AND INVENTORY
+        'V' : 100,
+        'kY': 1000,
+        'kI': 1000,
+        'kC': 1000,        
+        'softmin':1000,  
+        'epsilonV': 0.1, 
+    }
 
 
     GOODWIN_N= GOODWIN_PRESET.copy()
@@ -346,8 +364,9 @@ def PiRepartition(hub,tini=False,tend=False):
 def PhysicalFluxes(hub,tini=False,tend=False):
     for sector in hub.dparam['Nprod']['list'] :
         hub._DPLOT['repartition'](hub,
-                            ['Minter','Minvest','C','dotV'],
+                            ['dotV','Minter','Minvest','C'],
                             ref='Y',
+                            stock='V',
                             sector=sector,
                             title=f'Physical Fluxes for sector {sector}',
                                   tini=tini,
