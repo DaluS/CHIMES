@@ -20,7 +20,7 @@ import numpy as np #(if you need exponential, pi, log, of matrix products...)
 from pygemmes._models import Funcs, importmodel,mergemodel
 
 # ######################## LOGICS #######################################
-_LOGICS,_PRESETS0= importmodel('Goodwin')
+_LOGICS,_PRESETS0,_SUPPLEMENTS_G= importmodel('Goodwin')
 # We simply do a few modifications on a previous model : we load it as a basis
 _LOGICS['statevar']['phillips']= {
                         'func': lambda phi0,phi1,zpi,employment,pi: -phi0+(pi**zpi)*phi1/(1-employment)**2,

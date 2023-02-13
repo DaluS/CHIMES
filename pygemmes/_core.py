@@ -941,6 +941,7 @@ Npoints : TYPE, optional
         if self.__dparam['nx']['value'] != 1:
             print(20 * '#', str('Parr. sys numb:'+str(self.__dparam['nx'].get('list',np.arange(self.__dparam['nx']['value']))[idx])).center(18), 20 * '#')
         print(60 * '#')
+        print(' ')
         # parameters
         col2, ar2 = _class_utility._get_summary_parameters(self, idx=idx,filtersector=removesector)
         # SCALAR ODE
@@ -952,8 +953,10 @@ Npoints : TYPE, optional
 
 
         print(''.join([a.ljust(15) for a in col2]))
+        print(''.join([(len(a.ljust(15))-2)*'-' + '  ' for a in col2]))
         for a in ar2:
             print(''.join([str(aa).ljust(15) for aa in a]))
+        print('')
 
         # ----------
         # format output
@@ -963,6 +966,8 @@ Npoints : TYPE, optional
            verb=True,
            returnas=False,)
 
+
+        print(30*'=')
         # Print matrices
         _class_utility._print_matrix(self,idx=idx,Region=Region)
 

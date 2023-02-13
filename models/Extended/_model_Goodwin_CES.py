@@ -18,7 +18,7 @@ import numpy as np
 from pygemmes._models import Funcs, importmodel,mergemodel
 
 # ######################## LOGICS #######################################
-_LOGICS,_PRESETS0= importmodel('Goodwin')
+_LOGICS,_PRESETS0,_SUPPLEMENTS_G= importmodel('Goodwin')
 
 _CES_LOGICS = {
     'statevar': {

@@ -493,7 +493,6 @@ def _print_matrix(hub,
   
     for m in [m for m in hub.dparam.keys() if hub.dparam[m]['size'][1]!='__ONE__' ]:
         ## IF IT IS A PARAMETER
-        print(m)
         ax1 = hub.dparam[hub.dparam[m]['size'][0]]['list']
         ax2 = hub.dparam[hub.dparam[m]['size'][1]]['list']
 
@@ -505,8 +504,7 @@ def _print_matrix(hub,
 
         col1= ['','|']+[str(x) for x in ax2]
         ar1=[]
-        print('')
-        print(f"name : {m}, units : {hub.dparam[m]['units']}")
+        print(f"name : {m},\nunits : {hub.dparam[m]['units']},\ntype : {hub.dparam[m].get('eqtype','parameter')}")
         #print(ax1,ax2)
         #print(np.shape(val))
         for ii,x in enumerate(ax1):
@@ -518,6 +516,7 @@ def _print_matrix(hub,
             lcol=[col1],
             verb=True,
             returnas=False, )
+        print(' ')
 
 
 

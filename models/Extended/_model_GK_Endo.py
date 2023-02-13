@@ -1,4 +1,3 @@
-
 '''Goodwin-Keen with Endogenous technical progress'''
 
 _DESCRIPTION="""
@@ -20,7 +19,7 @@ from pygemmes._models import Funcs, importmodel,mergemodel
 from pygemmes._models import Operators as O
 
 # ######################## LOGICS #######################################
-_LOGICS,_PRESETS0= importmodel('GK')
+_LOGICS,_PRESETS0,_SUPPLEMENTS_GK= importmodel('GK')
 _GKEndo_LOGICS = {
     'differential': {
         # Endogenous Labor Productivity

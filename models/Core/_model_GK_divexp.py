@@ -18,7 +18,7 @@ from pygemmes._models import Funcs, importmodel,mergemodel
 from pygemmes._models import Operators as O
 ######################################################################
 
-_LOGICS_GK,_PRESETS_GK = importmodel("GK")
+_LOGICS_GK,_PRESETS_GK,_SUPPLEMENTS_GK = importmodel("GK")
 _LOGICS2= {
     'statevar': {
         'kappa'     :{'func': lambda pi, k0, k1,k2: k0 + k1 *np.exp(k2*pi)},

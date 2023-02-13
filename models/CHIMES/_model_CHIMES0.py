@@ -193,12 +193,12 @@ _LOGICS = {
 
 
 # ADDING ACCESSIBILITY ###########
-_LOGICS_ACC,_PRESETS0,_SUPPLEMENTSACC= importmodel('Accessibility')
-_LOGICS = mergemodel(_LOGICS, _LOGICS_ACC, verb=False) 
+#_LOGICS_ACC,_PRESETS0,_SUPPLEMENTSACC= importmodel('Accessibility')
+#_LOGICS = mergemodel(_LOGICS, _LOGICS_ACC, verb=False) 
 
 # ADDING CES #####################
-_LOGICS_CES,_PRESETS0,_SUPPLEMENTSCES= importmodel('CESprod')
-_LOGICS = mergemodel(_LOGICS, _LOGICS_CES, verb=False) 
+#_LOGICS_CES,_PRESETS0,_SUPPLEMENTSCES= importmodel('CESprod')
+#_LOGICS = mergemodel(_LOGICS, _LOGICS_CES, verb=False) 
 
 # CHANGING INFLATION #############
 #_LOGICS_INF,_PRESETS0= importmodel('inflationU')
@@ -280,6 +280,7 @@ def generategoodwin(Nsect,gamma=0.1,xi=1):
     GOODWIN_N['w0'] = 1 -GOODWIN_N['Gamma'] - 1/GOODWIN_N['A']*GOODWIN_N['Xi']*(GOODWIN_N['alpha']
                                                                                     +GOODWIN_N['n']
                                                                                     +GOODWIN_N['delta'])
+    print(GOODWIN_N['w0'])
     GOODWIN_N['Nprod']=[str(i) for i in range(Nsect)]
     GOODWIN_N['Gamma']=np.eye(Nsect)*gamma
     GOODWIN_N['Xi'   ]=np.eye(Nsect)*xi

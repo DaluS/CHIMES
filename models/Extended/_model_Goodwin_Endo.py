@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
-"""
+"""Goodwin with endogenous kaldor-verdorn growth"""
+
+_DESCRIPTION = """
 DESCRIPTION :
 
     This is a small modificaiton of Goodwin. Assume that labour productivity (parameter a in our basic model) is not exogenous 
@@ -41,7 +43,7 @@ from pygemmes._models import Funcs, importmodel,mergemodel
 
 
 # ######################## LOGICS #######################################
-_LOGICS,_PRESETS0= importmodel('Goodwin')
+_LOGICS,_PRESETS0,_SUPPLEMENTS_G= importmodel('Goodwin')
 
 _GE_LOGICS = {
     'differential': {

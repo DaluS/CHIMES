@@ -16,8 +16,8 @@ TODO:
 import numpy as np
 from pygemmes._models import Funcs, importmodel,mergemodel
 from pygemmes._models import Operators as O
-_LOGICS,_PRESETS0= importmodel('GK')
-_LOGICSCLIM,_PRESETSCLIM= importmodel('Climate_3Layers')
+_LOGICS,_PRESETS0,_SUPPLEMENTS_GK= importmodel('GK')
+_LOGICSCLIM,_PRESETSCLIM,_SUPPLEMENTS_CLIM= importmodel('Climate_3Layers')
 
 ###############################################################################
 Tini = 2015
