@@ -49,7 +49,6 @@ def _get_dict_subset(
 
     # ----------------------
     # check input
-
     if condition is None:
         condition = 'all'
     if condition not in ['all', 'any']:
@@ -67,6 +66,7 @@ def _get_dict_subset(
         'list': list,
         "'DataFrame'": 'DataFrame',
     }
+
     if returnas not in dreturn_ok.values():
         lstr = [f'\t- {ss}' for ss in dreturn_ok.keys()]
         msg = (
@@ -77,7 +77,6 @@ def _get_dict_subset(
 
     # ----------------------
     # select relevant parameters
-
     if len(kwdargs) > 0:
         # isolate relevant criteria
         dcrit = {
@@ -96,6 +95,7 @@ def _get_dict_subset(
                 arok[ii, :] = [indict[k0].get(k1) in v1 for k0 in lk0]
             if isinstance(v1, tuple):
                 arok[ii, :] = ~arok[ii, :]
+
 
         # Apply condition
         if condition == 'all':

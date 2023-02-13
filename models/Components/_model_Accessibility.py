@@ -20,14 +20,14 @@ _LOGICS = {
     'statevar': {
         ### ACCESSIBILITY
         'AcY': {
-            'func': lambda V,Gamma,kY,softmin,K : np.maximum(0,O.ssum2((1-np.exp(-kY*O.transpose(V/K)/Gamma))**(-softmin))**(-1/softmin)),
+            'func': lambda V,Gamma,kY,softmin,K : np.maximum(0,O.ssum2((1-np.exp(-kY*O.transpose(V/K)/(Gamma+.00001)))**(-softmin))**(-1/softmin)),
             'com': 'Softmin with Gamma',
             'definition': 'Accessibility to intermediate production',
             'symbol': r'$\mathcal{A}^Y$',
             'size': ['Nprod']
         },
         'AcI': {
-            'func': lambda V,Xi,kI,softmin,K :    np.maximum(0,O.ssum2((1-np.exp(-kI*O.transpose(V/K) / Xi ))**(-softmin))**(-1/softmin)),
+            'func': lambda V,Xi,kI,softmin,K :    np.maximum(0,O.ssum2((1-np.exp(-kI*O.transpose(V/K) / (Xi+.00001) ))**(-softmin))**(-1/softmin)),
             'com': 'Softmin with Xi',
             'definition': 'Accessibility to Investment',
             'symbol': r'$\mathcal{A}^I$',
