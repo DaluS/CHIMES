@@ -34,25 +34,68 @@ _LOGICS = {
         'Phillips'      :{'func': lambda employmentAGG, philinConst, philinSlope: philinConst + philinSlope * employmentAGG},
 
         'Pi'            :{'func': lambda p,Y,w,L,Gamma,delta,K : p*Y-w*L-Gamma*Y*p-p*delta*K},
+        'SumPi'         :{'func': lambda Pi: O.ssum(Pi),
+                          'units' : r'$.y^{-1}',
+                          'symbol': r'$\sum \Pi $'  },
         'pi'            :{'func': lambda omega, gamma, delta,nu: 1 - omega - gamma - delta*nu },
         'ROC'           :{'func': lambda pi, A : pi*A},
         'Iweight'       :{'func': lambda ROC,beta: np.exp(ROC*beta)/O.ssum(np.exp(ROC*beta))},
-        'Ir'            :{'func': lambda Iweight, Pi,delta,K : Iweight*O.ssum(Pi) + delta*K},
+        'Ir'            :{'func': lambda Iweight, SumPi,delta,K : Iweight*SumPi + delta*K},
 
         'employment'    :{'func': lambda L,N        : L/N},
         'employmentAGG' :{'func': lambda employment: O.ssum(employment),},
     },
     'parameter': {
-        'beta' : {'value':1},
+        'beta' : {'value':100},
         'apond': {'value':3},
+        'A'    : {'value':1/3}, 
     }
 }
 
 
+
+
+_LOGICS_AGG = {
+    'statevar': {
+        'KAGG'      : {'func': lambda K         : O.ssum(K), 
+                       'symbol': r'$K^{\bigcirc}$',
+                       'units': 'Units' }, 
+        'YAGG'      : {'func': lambda K,A       : O.ssum(K*A), 
+                       'symbol': r'$Y^{\bigcirc}$',
+                       'units': 'Units.y^{-1}' },  
+        'deltaAGG'  : {'func': lambda KAGG,K,delta: O.ssum(K*delta)/KAGG , 
+                       'symbol': r'$\delta^{\bigcirc}$',
+                       'units': 'Units' }, 
+        'AAGG'      : {'func': lambda K,A,KAGG  : O.ssum(A*K)/KAGG, 
+                       'symbol': r'$a^{\bigcirc}$',
+                       'units': 'Units.Humans^{-1}.y^{-1}' }, 
+        'LAGG'      : {'func': lambda K,A,KAGG  : O.ssum(A*K)/KAGG, 
+                       'symbol': r'$L^{\bigcirc}$',
+                       'units': 'Humans' },                     
+        'GammaAGG'  : {'func': lambda K,Gamma,A : O.ssum(K*Gamma*A)/O.ssum(K*A) , 
+                       'symbol': r'$\Gamma^{\bigcirc}$',
+                       'units': '' },  
+        'aAGG'      : {'func': lambda K,KAGG,a  : KAGG/O.ssum(K/a), 
+                       'symbol': r'$K^{\bigcirc}$',
+                       'units': 'Units' }, 
+        'omegaAGG'  : {'func': lambda K,w,a,A   : O.ssum(K*w/a)/O.ssum(A*K), 
+                       'symbol': r'$K^{\bigcirc}$',
+                       'units': 'Units' }, 
+        'gAGG'      : {'func': lambda g,A       : O.ssum(g*A)/O.ssum(A), 
+                       'symbol': r'$K^{\bigcirc}$',
+                       'units': 'Units' }, 
+    }
+}
+
+print(_LOGICS_AGG['statevar'].keys())
+_LOGICS = mergemodel(_LOGICS,_LOGICS_AGG)
+
 Dimensions = { 
     'scalar': ['phinull', 'N', 'employmentAGG', 'w0', 'W',
-               'alpha', 'a0', 'Nprod', 'Phillips', 
-               'n','beta'],
+               'alpha', 'a0', 'Nprod', 'Phillips','n',
+               'beta','SumPi',
+               'KAGG', 'YAGG', 'deltaAGG', 'AAGG', 'GammaAGG', 'aAGG', 'omegaAGG', 'gAGG'
+               ],
     'matrix': [],
     #'vector': will be deduced by filldimensions 
 }

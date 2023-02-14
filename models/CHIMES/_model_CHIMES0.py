@@ -280,7 +280,6 @@ def generategoodwin(Nsect,gamma=0.1,xi=1):
     GOODWIN_N['w0'] = 1 -GOODWIN_N['Gamma'] - 1/GOODWIN_N['A']*GOODWIN_N['Xi']*(GOODWIN_N['alpha']
                                                                                     +GOODWIN_N['n']
                                                                                     +GOODWIN_N['delta'])
-    print(GOODWIN_N['w0'])
     GOODWIN_N['Nprod']=[str(i) for i in range(Nsect)]
     GOODWIN_N['Gamma']=np.eye(Nsect)*gamma
     GOODWIN_N['Xi'   ]=np.eye(Nsect)*xi
