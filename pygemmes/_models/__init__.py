@@ -110,7 +110,9 @@ def get_available_model_documentation(model):
     mess+='\n'
     mess+='# Supplements'
     mess+='\n'
-    mess+= str(df.loc[model].loc['supplements'])
+    for k,v in df.loc[model].loc['supplements'].items():
+        mess+=str(k)+'   '+str(v)+' \n\n '
+    #mess+= str(df.loc[model].loc['supplements'])
     return mess
 
 

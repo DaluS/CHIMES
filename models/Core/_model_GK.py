@@ -71,6 +71,50 @@ _LOGICS= {
 
 _SUPPLEMENTS = {}
 _PRESETS = {
+    'default2': {
+        'fields': {
+            'alpha': 0.01019082,
+            'n':  0.01568283,
+            'philinConst': -0.5768167,
+            'philinSlope':     0.624795,
+            'k0':    -0.0419826,
+            'k1':     0.9851812,
+            'nu':      3.844391,
+            'r':     0.02083975,
+            'delta': 0.04054871,
+            'Delta':  0.2780477,
+
+            'omega':  0.6900101,
+            'employment': 0.9383604 ,
+            'debt': 0.5282786 ,
+            'eta':0,
+            'dt': 0.01,
+
+            'a': 1,
+            'N': 1,
+            'K': 0.9383604 * 3.844391,
+            'D': 0,
+            'w': .5*1.2,
+        },
+        'com': 'Basic',
+        'plots': {'XYZ': [{'x': 'employment',
+                        'y': 'omega',
+                        'z': 'd',
+                        'color': 'time',
+                        'idx': 0,
+                        'title': ''}],
+                'plotbyunits': [],
+                'plotnyaxis': [{'x': 'time',
+                        'y': [['employment', 'omega'],
+                                ['d'],['pi','kappa'],['inflation']
+                                ],
+                            'idx':0,
+                            'title':'',
+                            'lw':1}],
+        },
+    },
+}
+"""
     'default': {
         'fields': {
             'k0':-.2,
@@ -106,47 +150,4 @@ _PRESETS = {
                             'title':'',
                             'lw':1}],
         },
-        'default': {
-            'fields': {
-                'alpha': 0.01019082,
-                'n':  0.01568283,
-                'philinConst': -0.5768167,
-                'philinSlope':     0.624795,
-                'k0':    -0.0419826,
-                'k1':     0.9851812,
-                'nu':      3.844391,
-                'r':     0.02083975,
-                'delta': 0.04054871,
-                'Delta':  0.2780477,
-
-                'omega':  0.6900101,
-                'employment': 0.9383604 ,
-                'debt': 0.5282786 ,
-                'eta':0,
-                'dt': 0.01,
-
-                'a': 1,
-                'N': 1,
-                'K': 0.9383604 * 3.844391,
-                'D': 0,
-                'w': .5*1.2,
-            },
-            'com': 'Basic',
-            'plots': {'XYZ': [{'x': 'employment',
-                            'y': 'omega',
-                            'z': 'd',
-                            'color': 'time',
-                            'idx': 0,
-                            'title': ''}],
-                    'plotbyunits': [],
-                    'plotnyaxis': [{'x': 'time',
-                            'y': [['employment', 'omega'],
-                                    ['d'],['pi','kappa'],['inflation']
-                                    ],
-                                'idx':0,
-                                'title':'',
-                                'lw':1}],
-            },
-        },
-    }
-}
+"""

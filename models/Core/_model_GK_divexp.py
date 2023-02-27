@@ -31,15 +31,15 @@ _SUPPLEMENTS = {}
 _PRESETS = {
     'test': {
         'fields': {},
-        'com': '',
+        'com': 'Just a few plots !',
         'plots': {'XYZ': [{ 'x': 'employment',
                             'y': 'omega',
                             'z': 'd',
                             'color': 'time',
                             'idx': 0,
                             'title': ''}],
-                 'plotbyunits': [],
-                 'plotnyaxis': [{'x': 'time',
+                 'byunits': [],
+                 'nyaxis': [{'x': 'time',
                            'y': [['employment', 'omega'],
                                  ['d'],['pi','kappa'],['inflation']
                                  ],

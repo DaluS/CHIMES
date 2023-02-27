@@ -59,7 +59,7 @@ def filter_kargs(hub, filters,redirect):
     return kargs,filters
 
 
-
+from pylatexenc.latex2text import LatexNodes2Text
 import webbrowser
 def show(net, name, local=True):
     """
@@ -163,16 +163,18 @@ def Network_pyvis(hub,
 
     if plot_params:
         for key in Parameters:
-
             v = R[key]
             if (v['group']!='Numerical' and v.get('eqtype',False) != 'size'):
-                Title = ''
-                Title += 'Units        :' + v['units']+'<br>'
-                Title += 'definition   :' + v['definition']+'<br>'
+                Title = f"""{key}
+'Units        :' {v['units']}
+'definition   :' {v['definition']}
+                """
+                
+                Newlabel = LatexNodes2Text().latex_to_text( R[key]['symbol']),
                 net.add_node(key,
-                             label=key,  # R[key]['symbol'],
+                             label=Newlabel,
                              color=['#3da831'],
-                             title=Title.replace(' ', '&nbsp;'),
+                             title=Title,
                              group='Parameters',
                              level=2,
                              shape='ellipse')
@@ -184,48 +186,48 @@ def Network_pyvis(hub,
                      group='Parameters',
                      level=2,
                      shape='ellipse')
-
     for key in StatevarNodes:
 
         v = R[key]
-        Title = ''
-        Title += 'Units        :' + v['units']+'<br>'
-        Title += 'Equation     :'+f'{key}=' + v.get('source_exp', 'f()').replace(
-            'itself', key)+'<br>'
-        Title += 'definition   :' + v['definition']+'<br>'
-        Title += 'Comment      :' + v['com']+'<br>'
-        Title += 'Dependencies :'+'<br>'
+        Title = f"""{key}
+Units        :{v['units']}
+Equation     :{key}={v['source_exp'].replace('itself', key)}
+definition   :{v['definition']}
+Comment      :{v['com']}
+Dependencies :
+"""
         for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
             v1 = hub.dparam[key2]
             Title += '    '+key2 + (8-len(key2))*' ' + \
-                v1['units']+(10-len(v1['units']))*' '+v1['definition']+'<br>'
+                v1['units']+(10-len(v1['units']))*' '+v1['definition']+'\n'
 
         net.add_node(key,
-                     label=key,  # R[key]['symbol'],
+                     label=LatexNodes2Text().latex_to_text( R[key]['symbol']),
                      color=['#3da831'],
-                     title=Title.replace(' ', '&nbsp;'),
+                     title=Title,#.replace(' ', '&nbsp;'),
                      group='STATEVAR',
                      level=2,
                      shape='ellipse')
 
     for key in ODENodes:
         v = R[key]
-        Title = f"""
-Units        :{v['units']}<br>
-Equation     :d{key}/dt={v['source_exp'].replace('itself', key)}<br>
-definition   :{v['definition']}<br>
-Comment      :{v['com']}<br>
-Dependencies :<br>
+        Title = f"""{key}
+Units        :{v['units']}
+Equation     :d{key}/dt={v['source_exp'].replace('itself', key)}
+definition   :{v['definition']}
+Comment      :{v['com']}
+Dependencies :
 """
         for key2 in [v2 for v2 in v['kargs'] if v2 != 'itself']:
             v1 = hub.dparam[key2]
             Title += '    '+key2 + (8-len(key2))*' ' + \
-                v1['units']+(10-len(v1['units']))*' '+v1['definition']+'<br>'
+                v1['units']+(10-len(v1['units']))*' '+v1['definition']+'\n'
+
 
         net.add_node(key,
-                     label=key,  # R[key]['symbol'],
+                     label=LatexNodes2Text().latex_to_text( R[key]['symbol']),
                      color=['#1dc831'],
-                     title=Title.replace(' ', '&nbsp;'),
+                     title=Title,#.replace(' ', '&nbsp;'),
                      group='ODE',
                      level=2,
                      shape='ellipse')

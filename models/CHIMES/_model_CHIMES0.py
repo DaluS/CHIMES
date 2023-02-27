@@ -38,6 +38,8 @@ $$C = C^{pond} \sum(w L)$$
 What this program does is, given : $\lambda$,$w$, $\Gamma$,$\Xi$,$C^{pond}$,$\delta$,$\nu$,$p$,$a$ returns the value of $K$ so that we have market-clearing conditions respecting the employment
 
 """
+
+
 from pygemmes._models import Funcs, importmodel,mergemodel,filldimensions
 from pygemmes._models import Operators as O
 import numpy as np
@@ -193,12 +195,12 @@ _LOGICS = {
 
 
 # ADDING ACCESSIBILITY ###########
-#_LOGICS_ACC,_PRESETS0,_SUPPLEMENTSACC= importmodel('Accessibility')
-#_LOGICS = mergemodel(_LOGICS, _LOGICS_ACC, verb=False) 
+_LOGICS_ACC,_PRESETS0,_SUPPLEMENTSACC= importmodel('Accessibility')
+_LOGICS = mergemodel(_LOGICS, _LOGICS_ACC, verb=False) 
 
 # ADDING CES #####################
-#_LOGICS_CES,_PRESETS0,_SUPPLEMENTSCES= importmodel('CESprod')
-#_LOGICS = mergemodel(_LOGICS, _LOGICS_CES, verb=False) 
+_LOGICS_CES,_PRESETS0,_SUPPLEMENTSCES= importmodel('CESprod')
+_LOGICS = mergemodel(_LOGICS, _LOGICS_CES, verb=False) 
 
 # CHANGING INFLATION #############
 #_LOGICS_INF,_PRESETS0= importmodel('inflationU')

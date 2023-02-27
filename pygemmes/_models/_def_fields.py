@@ -116,7 +116,7 @@ _LIBRARY = {
             'value':1,
         },
         'a0': {
-            'func': lambda a0, alpha: a0 * alpha,
+            'value':3,
             'com': 'Productivity indicator',
             'units': 'Units.Humans^{-1}.y^{-1}',
             'value':1,
@@ -407,11 +407,13 @@ _LIBRARY = {
             'value': 0.02,
             'definition': 'Rate of productivity increase',
             'units': 'y^{-1}',
+            'symbol': r'$\alpha$',
         },
         'beta': {
             'value': 0,
             'definition': 'productivity increase dependency to g',
             'units': '',
+            'symbol': r'$\beta$',
         },
         'Nmax': {
             'value': 12,
@@ -587,11 +589,13 @@ _LIBRARY = {
             'value': -0.292,
             'definition': 'wage rate when full unemployement',
             'units': 'y^{-1}',
+            'symbol': r'$\Phi_0$',
         },
         'philinSlope': {
             'value': 0.469,
             'definition': 'wage rate dependance to unemployement',
             'units': 'y^{-1}',
+            'symbol': r'$\Phi_1$',
         },
 
         # Exponential Philips (from CES article)
@@ -691,16 +695,19 @@ _LIBRARY = {
             'value': -0.0065,
             'definition': 'GDP share investedat zeroprofit (expo)',
             'units': '',
+            'symbol': r'$k_0$',
         },
         'k1': {
             'value': np.exp(-5),
             'definition': 'Investment slope (expo)',
             'units': '',
+            'symbol': r'$k_1$',
         },
         'k2': {
             'value': 20,
             'definition': 'Investment power in kappa (expo)',
             'units': '',
+            'symbol': r'$k_2$',
         },
         'kappalinSlope': {
             'value': 0.575,
@@ -760,6 +767,7 @@ _LIBRARY = {
             'value': 0,
             'definition': 'inflation rate',
             'units': 'y^{-1}',
+            'symbol': r'$i$',
         },
         'inflationMarkup': {
             'value': 0,
@@ -784,16 +792,19 @@ _LIBRARY = {
             'value': 1.3,
             'definition': 'Markup on prices',
             'units': '',
+            'symbol': r'$\mu$',
         },
         'eta': {
             'value': 0.5,
             'definition': 'timerate of price adjustment',
             'units': 'y^{-1}',
+            'symbol': r'$\eta$',
         },
         'chi': {
             'value': 1,
             'definition': 'inflation rate on inventory',
             'units': 'y^{-1}',
+            'symbol': r'$\chi$',
         },
     },
 

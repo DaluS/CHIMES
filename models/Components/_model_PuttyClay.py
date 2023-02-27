@@ -87,7 +87,6 @@ _LOGICS_AGG = {
     }
 }
 
-print(_LOGICS_AGG['statevar'].keys())
 _LOGICS = mergemodel(_LOGICS,_LOGICS_AGG)
 
 Dimensions = { 
