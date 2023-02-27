@@ -937,6 +937,11 @@ def convergence(hub,finalpoint,showtrajectory=False):
 
     # Plot of everything ####################
     ConvergeRate = hub.calculate_ConvergeRate(finalpoint)
+
+
+    plt.figure()
+    plt.plot(ConvergeRate,'*')
+    plt.show()
     #ConvergeRate/=np.amax(ConvergeRate)
     R=hub.get_dparam()
     keys = list(finalpoint.keys())
