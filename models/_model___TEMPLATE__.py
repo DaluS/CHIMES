@@ -61,7 +61,10 @@ _SUPPLEMENTS={}
 ################### DEFIMING PRESETS WITH THEIR SUPPLEMENTS #################
 _PRESETS = {
     'preset0': {
-        'fields': {},
+        'fields': {
+            'fields1':0,
+            'fields2':0,
+        },
         'com': '',
         'plots': {'Var': [{'key':'',
                            'mode':False, #sensitivity, cycles

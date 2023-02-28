@@ -66,8 +66,8 @@ _LOGICS = {
         },
     },
     'parameter':{
-        'Idelta': {'value':0},
-        'Ilever': {'value':0},
+        #'Idelta': {'value':0},
+        #'Ilever': {'value':0},
         'kC': {'value':10,
                'definition': 'accessibility to consumption',
               'size':['Nprod']},

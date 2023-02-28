@@ -56,6 +56,7 @@ _LOGICS = {
 _PRESETS = {
     'Canonical example': {
         'fields': {
+            'dt':0.01
         },
         'com': '',
         'plots': {'3D': [{'x': 'x',

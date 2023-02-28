@@ -33,14 +33,14 @@ class Operators :
     ### Regional operations (Coupling regions) #########################
     def ssumR(X):
         return np.sum(X,axis=-2)[...,np.newaxis]
-    def transpose(X):
-        '''Transposition of X :
-        Y=transpose(X)  Y_ij=X_ji'''
-        return np.moveaxis(X, -1, -2)
     def transposeR(X):
         '''Transposition of X :
         Y=transpose(X)  Y_ijk=X_jik'''
         return np.moveaxis(X, -2, -3)
+    def Rmatmul(nabla,C):
+        '''Matrix product but with the axis of Regions rather than multisectoral'''
+        return np.matmul(np.swapaxes(nabla, -3, -1),
+                         np.swapaxes(C    , -3, -2))
 
     ### Matrix generation ##############################################
     def Identity(X):

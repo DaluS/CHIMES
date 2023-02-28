@@ -1,25 +1,15 @@
-"""
-It is the reduced version of a Goodwin model, with another writing : when the model is established,
-one can rather than calculate (N,a,K,w), calculate the dynamics only on employment and wage share.
-In consequence it is a 2- differential equation model, but with the same dynamics as _model_goodwin.
+"""Stochastic dynamics """
 
-The rest of the documentation is in _model_Goodwin
-
-LINKTOARTICLE:
-
-Created on Wed Jul 21 15:11:15 2021
-@author: Paul Valcke
+_DESCRIPTION ="""
+solve $\dot{y} = y \sigma$, with sigma a guassian noise
 """
 
+################# IMPORTS ##################################################
+import numpy as np #(if you need exponential, pi, log, of matrix products...)
+from pygemmes._models import Funcs, importmodel,mergemodel,filldimensions
+from pygemmes._models import Operators as O
 
-import numpy as np
-from pygemmes._models import Funcs
-
-
-# ---------------------------
-# user-defined model
-# contains parameters and functions of various types
-
+# ######################## LOGICS #######################################
 
 _LOGICS = {
     'differential': {
@@ -44,10 +34,24 @@ _LOGICS = {
     },
     'size': {},
 }
+###################################
+def plot(hub):
+    import matplotlib.pyplot as plt 
+
+    R=hub.dparam
+    y= R['y']['value'][:,:,0,0,0]
+    t= R['time']['value'][:,0,0,0,0]
+
+    plt.figure()
+    for j in range(np.shape(y)[1]):
+        plt.plot(t,y[:,j])
+    plt.show()
+
+_SUPPLEMENTS = {
+    'plot':plot
+}
 
 
-# ---------------------------
-# List of presets for specific interesting simulations
 
 _PRESETS = {
     'Onevar': {
