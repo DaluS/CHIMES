@@ -1,11 +1,10 @@
 ##################################################################
 #################### PYGEMMES CHEATSHEET #########################
 ##################################################################
-Tab for autocompletion
-? for docstring 
+# Tab for autocompletion
+# ? for docstring 
 
 ##################################################################
-
 ### LOADING PYGEMMES 
 import sys 
 path = "YOURPATHTOTHELIBRARY" 
@@ -41,3 +40,8 @@ R=hub.get_dparam()
 hub.dparam 
 R['employment']['value'][:,0,0,0,0]
 
+### Changing fields
+hub.set_preset('PRESET_NAME')
+hub.set_dparam('key',value)
+hub.set_dparam(**{'key1':value1,
+                  'key2':value2})
