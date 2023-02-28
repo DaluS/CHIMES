@@ -34,28 +34,29 @@ def l(omegacarac,CESexp):
     return np.select([omegacarac<1,omegacarac>=1],[(np.maximum(omegacarac**(-CESexp/(1+CESexp)) - 1,10**(-3)))**(1/CESexp),.7])
     #return omegacarac*0+1
 ################## ALL THE NEW FIELDS LOGICS ###############################
-_LOGICS = { 'size'        : {},
-            'differential': {},
-            'statevar'    : {
-        'Yc': {'func': lambda K,b,CESexp,A : A*K*b**(-1/CESexp),
-               'units': 'Units.y^{-1}'},
-        'cesLcarac': {'func': lambda b,CESexp,K,a0: K/a0 * (b/(1-b))**(-1/CESexp),
-               'units': 'Humans'},
-        'omegacarac': {'func': lambda w,a0,p,A,b,CESexp,gamma: (w/(A*a0*p*(1-gamma)))*((1-b)/b)**(1/CESexp),
-                                    'symbol': '$[\omega^c(1-\gamma)^{-1}]$' },
-        'l' : {'func': l,
-                                    'com': 'Floor at 0.5'},
-        'Y' : {'func': lambda Yc,l,CESexp : Yc * (1 +l**(-CESexp) )**(-1/CESexp),
-                                    'com' : 'CES PRODUCTION FUNCTION'},
-        'L' : {'func': lambda l,cesLcarac : l*cesLcarac },
-        'nu': {'func': lambda K,Y: K/Y},
-    },
-            'parameter'   : 
-        {'a0':{'value':3,},
-        'K':{'value':3,},
-        'b':{'value':0.5,},
-        'CESexp':{'value':100},
-            }
+_LOGICS = { 
+'size'        : {},
+'differential': {},
+'statevar'    : {
+    'Yc': {'func': lambda K,b,CESexp,A : A*K*b**(-1/CESexp),
+            'units': 'Units.y^{-1}'},
+    'cesLcarac': {'func': lambda b,CESexp,K,a0: K/a0 * (b/(1-b))**(-1/CESexp),
+            'units': 'Humans'},
+    'omegacarac': {'func': lambda w,a0,p,A,b,CESexp,gamma: (w/(A*a0*p*(1-gamma)))*((1-b)/b)**(1/CESexp),
+                                'symbol': '$[\omega^c(1-\gamma)^{-1}]$' },
+    'l' : {'func': l,
+                                'com': 'Floor at 0.5'},
+    'Y' : {'func': lambda Yc,l,CESexp : Yc * (1 +l**(-CESexp) )**(-1/CESexp),
+                                'com' : 'CES PRODUCTION FUNCTION'},
+    'L' : {'func': lambda l,cesLcarac : l*cesLcarac },
+    'nu': {'func': lambda K,Y: K/Y},
+},
+'parameter'   : {
+    #'a0':{'value':3,},
+    #'K':{'value':3,},
+    #'b':{'value':0.5,},
+    #'CESexp':{'value':100},
+}
 }
 
 

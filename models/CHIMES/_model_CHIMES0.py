@@ -21,10 +21,7 @@ It integrates :
 * Adaptive use of capital
 
 ## What should be done ?
-* Check u and i mechanism
-
-
-# DEALING WITH INVENTORY VARIATION (1) Starting close enough to the equilibrium
+* Change u and i mechanism
 
 $$ \dot{V} = Y - [\Gamma^T Y] - \Xi^T I^r - C $$ 
 
@@ -297,7 +294,7 @@ def generategoodwin(Nsect,gamma=0.1,xi=1):
 
 def pForROC(dic):
     '''Find the price vector so that the natural return on capital is the growth rate of society
-    ROC = pi / (nu*xi'''
+    ROC = pi / (nu*xi^p)'''
     from scipy.optimize import fsolve
     def ecart(p,dic):
         nu = 1/dic['A']
@@ -346,6 +343,7 @@ def Kfor0dotV(params):
     return K
 
 def Leontievinverse(params,Eigenvalues=False):
+    '''Give the equivalent of the Leontiev Matrix with intermediate consumption and capital weight'''
     LeontievInverse = np.linalg.inv(np.eye(params['Nsect'])
                                     -params['Gamma']
                                     -params['delta']/params['A']*params['Xi'])
@@ -355,6 +353,7 @@ def Leontievinverse(params,Eigenvalues=False):
 
 ###################### LOCAL SPECIAL PLOTS ################
 def PiRepartition(hub,tini=False,tend=False):
+    '''Plot the relative profit repartition for each sector'''
     for sector in hub.dparam['Nprod']['list'] :
         hub._DPLOT['repartition'](hub,
                             ['pi','omega','Mxi','Mgamma','rd','reloverinvest','reldotv'],
@@ -364,6 +363,7 @@ def PiRepartition(hub,tini=False,tend=False):
                                     tini=tini,
                                     tend=tend)
 def PhysicalFluxes(hub,tini=False,tend=False):
+    '''Plot the physical fluxes for each sector'''
     for sector in hub.dparam['Nprod']['list'] :
         hub._DPLOT['repartition'](hub,
                             ['dotV','Minter','Minvest','C'],
@@ -374,6 +374,7 @@ def PhysicalFluxes(hub,tini=False,tend=False):
                                   tini=tini,
                                   tend=tend)
 def MonetaryFluxes(hub,tini=False,tend=False):
+    '''Plot monetary fluxes for each sector'''
     for sector in hub.dparam['Nprod']['list'] :
         hub._DPLOT['repartition'](hub,
                           ['MtransactY','MtransactI','wL','pC','rD'],

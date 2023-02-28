@@ -265,7 +265,9 @@ def mergemodel(Recipient,dictoadd,override=True,verb=False):
     typ= {}
     for k,v in keyvars.items():
         for vv in v :
-            typ[vv]=k
+            typ[vv]=k        
+
+
     ### Merging dictionnaries
     for category, dic in dictoadd.items(): ### LOOP ON [SECTOR SIZE,ODE,STATEVAR,PARAMETERS]
         for k, v in dic.items(): ### LOOP ON THE FIELDS
