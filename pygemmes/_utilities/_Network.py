@@ -172,7 +172,7 @@ def Network_pyvis(hub,
                 
                 Newlabel = LatexNodes2Text().latex_to_text( R[key]['symbol']),
                 net.add_node(key,
-                             label=Newlabel,
+                             label=LatexNodes2Text().latex_to_text( R[key]['symbol']),
                              color=['#3da831'],
                              title=Title,
                              group='Parameters',

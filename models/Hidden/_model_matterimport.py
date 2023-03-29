@@ -20,53 +20,7 @@ from pygemmes._models import Operators as O
 
 
 ################# Matter Gestion ###########################################
-'''
-from mater_gemmes import GemmesMater
-import warnings
-import os 
-def initialize_MATTER(Tmax,scenario=None):
-    # import mater if possible
-    try:
-        import mater_package as mater
-        boolMATER = True
-    except ImportError:
-        boolMATER = False
-
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        scenario = GemmesMater()
-        materpath = os.path.split(mater.__path__[0])[0]
-        scenario.load(os.path.join(materpath, 'data', 'data', "MATER Monde3 data2.mater"))
-        scenario.mater_pre_processing(
-                # MATER needs to build the infrastructures from 1901 on
-                # To get consistent data, we must start the simulation in 1901
-                simulation_start_time = 1901,
-                simulation_end_time = min(2099, Tmax),
-                approach=["LogisticalStart"],
-                calcul=["Endogenous"],
-                region=["World"]
-        )
-
-    yield scenario
-
-def MATER_initial(scenario):
-    # initial time loop for MATER (1901-2016)
-    for year in np.arange(
-                        scenario.simulation_start_time,
-                        2016,
-                        scenario.sampling_period): 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            scenario.mater_time_loop(year) # time loop of MATER
-        print('Mater year', year)
-
-def from_MATER(scenario):
-            # exchange coupling variables
-        Etot, Npop = scenario.MATER_to_GEMMES(year) # (4) exchange variables
-
-def to_MATER((108.91513576859262/59.74)*int_GDP, year) 
-'''
-
+'''from mater_gemmes import GemmesMater'''
 
 class MATTER_API():
     ##################### INITIATION ###############
@@ -122,7 +76,6 @@ class MATTER_API():
             return 
 
 _MATTER=MATTER_API()
-
 def giveGPD_GET_E(GDP,time):
     global _MATTER
     """
@@ -180,7 +133,8 @@ _PRESETS = {
     'preset0': {
         'fields': {},
         'com': '',
-        'plots': {'Var': [{'key':'',
+        'plots': {
+                  'Var': [{'key':'',
                            'mode':False, #sensitivity, cycles
                            'log':False,
                            'idx':0, 
