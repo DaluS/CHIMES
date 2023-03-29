@@ -89,6 +89,10 @@ The phenomena behind is a class struggle
             'com': 'linear param curve'
         }
 
+        pidiv = { 
+            'func': lambda zpi,pi, phi0,phi1, employment: -phi0 + (pi/0.15)**zpi  * phi1 / (1 - employment)**2
+        }
+
         # DEFINITION OF w (Wage)
         salaryfromPhillips = {
             'func': lambda phillips, w, gammai, inflation: w * (phillips + gammai*inflation),

@@ -374,7 +374,7 @@ def PhysicalFluxes(hub,tini=False,tend=False):
                                   tini=tini,
                                   tend=tend)
 def MonetaryFluxes(hub,tini=False,tend=False):
-    '''Plot monetary fluxes for each sector'''
+    '''Plot monetary fluxes for each sectore'''
     for sector in hub.dparam['Nprod']['list'] :
         hub._DPLOT['repartition'](hub,
                           ['MtransactY','MtransactI','wL','pC','rD'],

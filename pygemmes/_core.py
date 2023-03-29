@@ -1198,7 +1198,6 @@ Npoints : TYPE, optional
         for plot, funcplot in _DPLOT.items():
             for argl in tempd.get(plot, []):
                 funcplot(self, **argl)
-            print(plot)
 
     def plot(self,
              filters_key =(),

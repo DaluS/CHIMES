@@ -467,6 +467,7 @@ def _suggest_funct_order_by_group(eqtype=None, dparam=None):
                 elif all([k1 in lfsort for k1 in dparam[kk]['args'][eqtype]]):
                     lfsort.append(kk)
 
+            
             # evaluate termination condition
             ntry += 1
             if set(lf) == set(lfsort):

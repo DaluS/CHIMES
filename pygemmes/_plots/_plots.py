@@ -363,6 +363,7 @@ def XY(hub,x,y,
     plt.ylim([np.nanmin(yval), np.nanmax(yval)])
     if scaled:
         plt.axis('scaled')
+    #plt.loglog()
     plt.title(title)
     plt.show()
 
