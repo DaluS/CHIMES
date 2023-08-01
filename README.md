@@ -1,6 +1,8 @@
-# What is pygemmes ?
+## CHIMES: Core for Holistic Intertwined Models for Eco-Eco Sustainability
 
-Pygemmes is a huge toolbox for the study of complex models written with dynamical systems. It is aimed mostly, but not only, to ecological economists. 
+# What is CHIMES?
+
+CHIMES is a huge toolbox for the study of complex models written with dynamical systems. It is aimed mostly, but not only, to ecological economists. 
 It can solves : 
 * Ordinary differential equations 
 * Spatial differential equations, on any type of grid 
@@ -20,7 +22,7 @@ In a few lines one can :
 * Analyse the outcomes
 
 ```
-import pygemmes as pgm
+import CHIMES as pgm
 hub = pgm.Hub(model='GK',preset='default')
 hub.run()
 hub.plot_preset(preset='default')
@@ -85,7 +87,7 @@ There are three layers of contributions possible
 
 
 ## Contributing as a Modeller
-The goal of a modeller is to implement models given the framework of `pygemmes`
+The goal of a modeller is to implement models given the framework of `CHIMES`
 
 
 ### Try being a user !
@@ -115,7 +117,7 @@ The goal of a modeller is to implement models given the framework of `pygemmes`
 
 ### Sharing with the community : first pull request
 1. Create a branch on your git
-2. Put your model file in the `pygemmes` folder
+2. Put your model file in the `CHIMES` folder
 3. Push your branch
 4. Do a pull request explaining what you've put inside your model (you can do generalisation directly if you want and avoid the multiple pull request)
 
@@ -140,7 +142,7 @@ This step is optional but appreciated !
 
 # HOW TO WRITE A MODEL
 
-There are many ways to write a model in **pygemmes**, and one might fit your project better than other ones.
+There are many ways to write a model in **CHIMES**, and one might fit your project better than other ones.
 As there are already some stuff coded, you should always have an eye on :
     * Existing models ( list can be obtained using `pgm.get_available_models` or in `_models\model_*.py`
     * Existing fields ( list can be obtained using `pgm.get_available_fields` or in `_models\_def_fields.py`
@@ -163,7 +165,7 @@ _LOGICS contains in itself 3 dictionnary :
     * ODE which contains all the fields which are defined by a differential equation
     * Statevar which contains all the fields which are defined by a state variables
     * param which contains all the fields which are not changing through time but are
- not defined in pygemmes's library (read `pgm.get_available_fields()` to check)
+ not defined in CHIMES's library (read `pgm.get_available_fields()` to check)
 
 Check the ipython notebook in `doc/Model_creation.ipynb`
 
@@ -175,10 +177,10 @@ Check the ipython notebook in `doc/Model_creation.ipynb`
     4) _class_set.load_model 
         * Check model name
         * Load "model" as a dictionnary
-        * prepare pygemmes knowledge of fields to be compatible
+        * prepare CHIMES knowledge of fields to be compatible
         * Check completude 
         * Translation from dmodel to dparam 
-        * Add pygemmes knowledge 
+        * Add CHIMES knowledge 
         * Identification for categories/solving
         * Initial shapes
         * Big dictionnary of pointers
