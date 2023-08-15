@@ -605,7 +605,7 @@ class Hub():
     # ##############################
     # %% Getting parameters ########
     # ##############################
-    def get_presets(self,returnas=False):
+    def get_presets(self,returnas=True):
         '''
         Give preset name and description
 
@@ -623,6 +623,28 @@ class Hub():
         if returnas==dict:
             return {k:v['com'] for k,v in self.__dmodel['presets'].items() }
 
+    def get_supplements(self,returnas=True):
+        '''
+        Give all supplements and their description. you can use them with:
+        hub.supplements[Nameofthesupplement]
+
+        if returnas= False : print
+        if returnas= list : give the list of the presets
+        if returnas= dict : give the dict of the presets
+        if returnas= True : give the dataframe of the presets
+        '''
+        supp = self.dmodel.get('supplements',{})
+        print(supp)        
+
+        if returnas==False :
+            print('List of supplements material :')
+            for k,v in supp.items():
+                print(k.ljust(30),v.__doc__)#['com'])
+        if returnas==list:
+            return list(supp.keys())
+        else:
+            return {k:v.__doc__ for k,v in supp.items() }       
+         
     def get_dparam(self, condition=None,returnas=dict,verb=False, **kwdargs):
        """ Return a copy of the input parameters dict that you can filter
        lcrit = ['key', 'dimension', 'units', 'type', 'group', 'eqtype','isneeded']

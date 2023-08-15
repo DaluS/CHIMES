@@ -156,7 +156,7 @@ def Network_pyvis(hub,
 
 
     net = Network(directed=True, height=screensize, width=screensize,
-                  heading=hub.dmodel['name']+f' Logical network, hidden:{filters}',
+                  heading='',#\hub.dmodel['name']+f' Logical network, hidden:{filters}',
                   notebook=True
                   )
 
