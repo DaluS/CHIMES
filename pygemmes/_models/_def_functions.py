@@ -90,7 +90,8 @@ The phenomena behind is a class struggle
         }
 
         pidiv = { 
-            'func': lambda zpi,pi, phi0,phi1, employment: -phi0 + (pi/0.15)**zpi  * phi1 / (1 - employment)**2
+            'func': lambda zpi,pi, phi0,phi1, employment: -phi0 + (pi/0.15)**zpi  * phi1 / (1 - employment)**2,
+            'com': 'Diverging Phillips with nonlinear profit impact. Closes lambda-omega phasespace'
         }
 
         # DEFINITION OF w (Wage)

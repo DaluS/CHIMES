@@ -1,6 +1,4 @@
-
-# Check December 2022
-
+## IMPORTATIONS 
 import os
 import importlib
 
@@ -10,16 +8,20 @@ from ._def_Operators import Operators
 from .._utilities import _utils
 import inspect
 
-from .._config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS,_MODEL_NAME_CONVENTION,_MODELS_SHOWDETAILS,_MODEL_FOLDER_HIDDEN
+from .._config import _FROM_USER, _PATH_PRIVATE_MODELS, _PATH_MODELS,_MODEL_NAME_CONVENTION,_MODELS_SHOWDETAILS,_MODEL_FOLDER_HIDDEN,_MARKDOWN 
 
 from copy import deepcopy
 import pandas as pd
+if _MARKDOWN:
+    from IPython.display import display,HTML,Markdown
+
 
 # ####################################################
 # ####################################################
 #       Automatically load all available models
 # ####################################################
-def _get_DMODEL(model=False,from_user=_FROM_USER):
+def _get_DMODEL(model=False,
+                from_user=_FROM_USER):
     # check 09/27/2022 OK
 
 
@@ -88,13 +90,25 @@ def _get_DMODEL(model=False,from_user=_FROM_USER):
 # ####################################################
 # Generic function to get the list of available models
 # ####################################################
+def get_model_documentation(model:str,
+                            returnString=False):
+    '''
+    Gives the Markdown description located in the model file 
 
-def get_available_model_documentation(model):
+    model: in chm.get_available_models(Return=list)
     '''
-    Gives a more detailed description of the model you are asking for  
-    '''
+    # check 2023/08/11
+    # To improve: _from user mode + error with a vertical list
+
     df = get_available_models(FULL=True) 
-    mess = '## Model: '+df.loc[model].loc['name']
+    try:
+        mess = '## Model: '+df.loc[model].loc['name']
+    except BaseException as E:
+        modellist ="".join(['* '+str(f)+"\n" for f in list(get_available_models(Return=list))])
+        msg=f"""Your model {model} cannot be found!
+Available models are {modellist}."""
+        print(msg)
+        raise Exception(msg)
     mess+='\n'
     #mess+= df.loc[model].loc['description']    
     mess+=df.loc[model].loc['description']
@@ -104,38 +118,48 @@ def get_available_model_documentation(model):
     if df.loc[model].loc['description'] != df.loc[model].loc['longDescription']:
         mess+=df.loc[model].loc['longDescription']
     mess+='\n'
-    mess+='# Presets'
-    mess+='\n'
-    mess+=str(pd.DataFrame(pd.DataFrame(df.loc[model].loc['presets']).transpose()['com']))
-    mess+='\n'
+    if 'com' in pd.DataFrame(pd.DataFrame(df.loc[model].loc['presets']).transpose()).keys():
+        mess+='# Presets'
+        mess+='\n'
+        mess+=str(pd.DataFrame(pd.DataFrame(df.loc[model].loc['presets']).transpose()['com']))
+        mess+='\n'
+    else: 
+        mess+='# Presets'
+        mess+='No preset\n'
     mess+='# Supplements'
     mess+='\n'
     for k,v in df.loc[model].loc['supplements'].items():
         mess+='    '+str(k)+'\n   '+str(v.__doc__)+' \n\n '
+    if len(df.loc[model].loc['supplements'].keys())==0:
+        mess+='No supplements with this model'
     #mess+= str(df.loc[model].loc['supplements'])
-    return mess
+    if not returnString:
+        return Markdown(mess)
+    else:
+        return mess
 
 
 def get_available_models(
-    model=None,
-    details=_MODELS_SHOWDETAILS,
+    #model=None,
+    #details=_MODELS_SHOWDETAILS,
     verb=None,
-    from_user=_FROM_USER,
-    Return=False, 
+    #from_user=_FROM_USER,
+    Return=True, 
     FULL=False
 ):
-    # Check 2022
     '''
+    # Check 2023/08/11
     Return all available models with their respective instructions as a dataframe
-    if model is None, gives all the model
-    if model is not None, gives details of the model
-    if details, gives model description
-    if FULL, gives all it can
 
-    if Return is dict, gives a dictionnary
-    if Return is list, gives the list of model 
-    if Return is False, gives dataframe
+    Parameters: 
+    * Full   : (False,True)    . If True, load the dictionnary/dataframe with all it can
+    * Return : (dict,list,...). List give the list of model names, dict their properties in a dictionnary, anything else a Dataframe
+
     '''
+    details=False
+    model=None
+    from_user=_FROM_USER
+
     # Load the "models dictionnary"
     path_models, _DMODEL = _get_DMODEL(from_user=from_user)
 
@@ -207,7 +231,7 @@ def _printsubgroupe(sub, it):
 
 def get_available_functions():
     '''
-    Print the content of the `def_function` file
+    Print the content of the `def_function` file SHOULD BE RESTRUCTURED HEAVILY FOR MARKDOWN APPROACHES
     '''
     # Check 9/27/22
     Subgroups = [f for f in inspect.getmembers(Funcs) if '_' not in f[0]]
@@ -218,6 +242,17 @@ def get_available_functions():
         it = 0
         _printsubgroupe(sub, it)
 
+def get_available_operators():
+    '''
+    Gives all non-trivial operators, typically to create a model with multiple regions, or multiple sectors'''
+
+    msg= '# Operators'
+    dict={}
+    for F in inspect.getmembers(Operators):
+        if '__' not in F[0]:
+            #print(F[0],F[1].__doc__)
+            dict[F[0]]={'documentation':F[1].__doc__,'function':inspect.getsource(F[1]).split('return')[1][:-1]}
+    return pd.DataFrame(dict).transpose()
 
 def importmodel(name : str,
                 from_user=False):

@@ -13,12 +13,11 @@ class Operators :
         Z=sprod(X,Y) so Z_i=\sum X_i Y_i'''
         return np.matmul(np.moveaxis(X,-1,-2),Y)
     def ssum(X):
-        ''' Scalar product between vector X and Y.
+        '''Scalar product between vector X and Y.
         Z=ssum(X) so Z_i=\sum X_i'''
         return np.matmul(np.moveaxis(X,-1,-2),X*0+1)
     def ssum2(X):
-        '''
-        Z_i=ssum_j(X_{ij}) so Z_i=\sum_j X_{ij}'''
+        '''Z_i=ssum_j(X_{ij}) so Z_i=\sum_j X_{ij}'''
         return np.sum(X, axis=-1)[...,np.newaxis]
 
     # Multiplications
@@ -34,7 +33,7 @@ class Operators :
     def ssumR(X):
         return np.sum(X,axis=-2)[...,np.newaxis]
     def transposeR(X):
-        '''Transposition of X :
+        '''Transposition of X for regions:
         Y=transpose(X)  Y_ijk=X_jik'''
         return np.moveaxis(X, -2, -3)
     def Rmatmul(nabla,C):

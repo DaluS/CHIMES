@@ -23,10 +23,10 @@ __all__ = [
 ]
 
 def get_available_plots():
+    '''Print all the plots routines with their docstring and dependencies through a dataframe
+    '''
     # Check 01 2023
-    '''
-    Print all the plots routines with their docstring and dependencies
-    '''
+
     all_functions = inspect.getmembers(plots, inspect.isfunction)
 
     dic={i[0]: {'documentation': i[1].__doc__,
@@ -36,17 +36,14 @@ def get_available_plots():
 
 
 def get_available_fields(exploreModels=_FIELDS_EXPLOREMODEL):
-    # Check 2022
     '''
-    Will load the library of fields, then all available models,
-    and will print the ensemble of fields with their properties and the models they are in.
-
-    * returnas can be used on "list,dict"
-    * Exploremodels will read all models to check the variables defined inside
-    * showModels will show you the list of models that use this field
-
-    if a field has no group, then it is only defined in model files
+    Shows their units, default value and informations from the library.
+    Will load the library of fields, then if exploreModels all fields defined inside model.
+    Return as a dataframe (typically use pandasgui show to check it out)
+    
+    * exploreModels (True,False) to explore or not all available models
     '''
+    # Check 2023/08/11
 
     # INITIALIZE
     dparam_sub = _DFIELDS
@@ -54,21 +51,23 @@ def get_available_fields(exploreModels=_FIELDS_EXPLOREMODEL):
         dparam_sub[key]['inmodel'] = []
     models = get_available_models(Return=list,verb=False)
 
-
-
     if exploreModels:
         fieldsnotinDfields = []
         if exploreModels:
             for model in models:
-                hub = Hub(model, verb=False)
-                params = hub.get_dparam(returnas=dict)
-                for key in params.keys():
-                    if key in dparam_sub:
-                        if 'inmodel' not in dparam_sub[key].keys():
-                            dparam_sub[key]['inmodel'] = []
-                        dparam_sub[key]['inmodel'].append(model)
-                    else:
-                        fieldsnotinDfields.append([key.ljust(20), model])
+                try:
+                    hub = Hub(model, verb=False)
+                    params = hub.get_dparam(returnas=dict)
+                    for key in params.keys():
+                        if key in dparam_sub:
+                            if 'inmodel' not in dparam_sub[key].keys():
+                                dparam_sub[key]['inmodel'] = []
+                            dparam_sub[key]['inmodel'].append(model)
+                        else:
+                            fieldsnotinDfields.append([key.ljust(20), model])
+                except BaseException as E:
+                    print(f'ISSUE WITH MODEL : {model} \n {E}')
+
 
     print(f'{len(dparam_sub)} fields in the library \n')
 

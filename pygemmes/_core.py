@@ -46,11 +46,17 @@ class Hub():
     def __init__(
         self,
         model,
-        from_user=_FROM_USER,
+        #from_user=_FROM_USER,
         preset=None,
         dpresets=None,
         verb=_VERB,
     ):
+        from_user = False 
+
+
+
+
+        
         # Initialize the hub main dictionnaries ###############################
         # Contains miscellaneous, practical informations
         self.__dmisc = {'run': False,        # Has a run been done
@@ -793,13 +799,13 @@ class Hub():
 
     def run(
            self,
-           N=False,
+           NtimeOutput=False,
+           NstepsInput=False,
            verb=None,
            ComputeStatevarEnd=False
     ):
        """
-Run the simulation, with any of the solver existing in :
-Compute each time step from the previous one using:
+Run the simulation using an RK4. Compute each time step from the previous one using:
 - parameters
 - differentials (ode)
 - intermediary functions in specified func_order   
@@ -809,11 +815,16 @@ Compute each time step from the previous one using:
 - 1 at every step
 - any float (like 1.1) the iteration is written at any of these value
 ## ComputeStatevarEnd : if true will recompute all statevar at the end (do not work with noise or external call)
-## if you define N, the system will reinterpolate the temporal values on N samples
-typically, N=Tmax will put 1 value per year
+
+## NtimeInput will modify dt so that the system use NstepsInput to simulate Tmax years. If False, the system use default vaule
+## NtimeOutput will reinterpolate the simulation on the given number. Useful if you need small timestep for simulation but do not want to keep the details 
+
        """
        if (_VERB == True and verb is None):
            verb = 1.1
+
+       if NstepsInput:
+            self.set_dparam('dt',self.dparam['Tmax']['value']/NstepsInput,verb=verb)
 
        # check inputs
        dverb = _class_check._run_verb_check(verb=verb)
@@ -833,8 +844,8 @@ typically, N=Tmax will put 1 value per year
            )
            self.__dmisc['run'] = True
            self.__dmisc['solver'] = solver
-           if N:
-            self.reinterpolate_dparam(N)
+           if NtimeOutput:
+            self.reinterpolate_dparam(NtimeOutput)
 
        except Exception as err:
            self.__dmisc['run'] = False
@@ -982,10 +993,6 @@ Npoints : TYPE, optional
         * Statevar, their properties and their values
 
         For more precise elements, you can do introspection using hub.get_dparam()
-
-        INPUT :
-        * idx = index of the model you want the value to be shown when there are multiple models in parrallel
-        * region : name or index of the region you want to plot
         """
 
         df0= self.get_fieldsproperties()
@@ -998,7 +1005,11 @@ Npoints : TYPE, optional
         dfs = self.get_dataframe(eqtype='statevar'    ,firstlast=True)
 
 
-        SUMMARY=[df0,dfp.transpose(),dfd.transpose(),dfs.transpose()]
+        #SUMMARY=[df0,dfp.transpose(),dfd.transpose(),dfs.transpose()]
+        SUMMARY={'Field Basic Properties':df0,
+                 'Parameters values':dfp.transpose(),
+                 'State Variables values':dfs.transpose(),
+                 'Differential Variables values':dfd.transpose()}
         #display(df0)
         #display(dfp.transpose())
         #display(dfd.transpose())
@@ -1189,15 +1200,17 @@ Npoints : TYPE, optional
         If no preset is loaded, you can try to plot its associated plots by calling it.
         '''
 
-        if preset is None:
+        if preset is not None:
             preset = self.dmodel['preset']
 
-        tempd = self.dmodel['presets'][preset]['plots']
-        if type(tempd) is tuple:
-            raise Exception('your plot dictionnary might have a comma at the end, please remove it !')
-        for plot, funcplot in _DPLOT.items():
-            for argl in tempd.get(plot, []):
-                funcplot(self, **argl)
+            
+            tempd = self.dmodel['presets'].get(preset,{'plots':{}})['plots']
+            print(tempd,'HELLO!')
+            if type(tempd) is tuple:
+                raise Exception('your plot dictionnary might have a comma at the end, please remove it !')
+            for plot, funcplot in _DPLOT.items():
+                for argl in tempd.get(plot, []):
+                    funcplot(self, **argl)
 
     def plot(self,
              filters_key =(),

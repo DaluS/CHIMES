@@ -71,7 +71,7 @@ _LOGICS= {
 
 _SUPPLEMENTS = {}
 _PRESETS = {
-    'default2': {
+    'default': {
         'fields': {
             'alpha': 0.01019082,
             'n':  0.01568283,
