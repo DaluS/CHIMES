@@ -12,7 +12,7 @@ _PATH_OUTPUT_REF = os.path.join(_PATH_HERE, 'output_ref')
 
 # library-specific
 sys.path.insert(0, _PATH_PCK)   # ensure Main comes from .. => add PYTHONPATH
-import pygemmes as pgm
+import pygemmes as chm
 sys.path.pop(0)                 # clean PYTHONPATH
 
 
@@ -54,34 +54,45 @@ class Test00_Get():
     def teardown_class(cls):
         pass
 
-    def test01_test_get(self):
-        """ Make sure the main function runs from a python console """
+    def test01_CHM_get(self):
+        """
+        Make sure that CHM is able to read all structures
+        """
+        for FULL in [False,True]:
+            for Return in [dict,list,False]: 
+                out = chm.get_available_models(FULL=FULL,Return=Return)
 
-        pgm.get_available_fields(exploreModels=True)
-        pgm.get_available_functions()
-        pgm.get_available_models(details=True)
-        pgm.get_available_plots()
+        for model in chm.get_available_models(Return=list):
+            for returnString in [True,False]:
+                chm.get_model_documentation(model,returnString=returnString)
 
-    def test02_run_all_models(self):
+        chm.get_available_fields(exploreModels=True)
+        chm.get_available_fields(exploreModels=False)
+
+        chm.get_available_plots()
+
+        chm.get_available_functions()
+
+        chm.get_available_operators()
+
+
+    def test02_run_all_models_all_preset(self):
         """ Run all model, all presets, and their plots"""
-        dmodel = pgm.get_available_models(Return=dict)
-        for k in dmodel.keys():
-            if k not in ['__EMPTY__']:
-                for v in [None]+dmodel[k]['Preset']:
-                    print(k,v)
-                    hub=pgm.Hub(k,preset=v,verb=False)
-                    hub.set_dparam(**{'Tmax':1,'dt':0.01},verb=False)
-                    hub.run(verb=False)
-                    #if v:
-                    #    hub.plot_preset()
+        modelist = chm.get_available_models(Return=dict)
+        for model in modelist.keys():
+            for preset in [None]+modelist[model].get('Preset',[]):
+                    hub=chm.Hub(model,verb=False)
+                    hub.run(NstepsInput=10)
+                    if preset is not None:
+                        hub.plot_preset()   
 
     def test03_all_plots(self):
-        hub=pgm.Hub('GK')
+        hub=chm.Hub('GK')
         hub.set_dparam(**{'Tmax':100,'dt':0.1})
         hub.run()
         hub.reinterpolate_dparam(100)
         ### One var 
-        pgm.plots.Var(hub,**{'key':'employment', 
+        chm.plots.Var(hub,**{'key':'employment', 
                 'mode':False, 
                 'log':False,
                 'idx':0, 
@@ -90,7 +101,7 @@ class Test00_Get():
                 'tend':False, 
                 'title':''})
         plt.close('all')
-        pgm.plots.Var(hub,**{'key':'employment',
+        chm.plots.Var(hub,**{'key':'employment',
                 'mode':'sensitivity',  #
                 'log':False,
                 'idx':0, 
@@ -99,7 +110,7 @@ class Test00_Get():
                 'tend':False, 
                 'title':''})
         plt.close('all')
-        pgm.plots.Var(hub,**{'key':'employment',
+        chm.plots.Var(hub,**{'key':'employment',
                 'mode':'sensitivity', 
                 'log':True, #
                 'idx':0, 
@@ -108,7 +119,7 @@ class Test00_Get():
                 'tend':False, 
                 'title':''})
         plt.close('all')
-        pgm.plots.Var(hub,**{'key':'employment',
+        chm.plots.Var(hub,**{'key':'employment',
                 'mode':'cycles', #
                 'log':False,
                 'idx':0, 
@@ -117,7 +128,7 @@ class Test00_Get():
                 'tend':False, 
                 'title':''})
         plt.close('all')
-        pgm.plots.Var(hub,**{'key':'employment',
+        chm.plots.Var(hub,**{'key':'employment',
                 'mode':False, 
                 'log':False,
                 'idx':0, 
@@ -126,7 +137,7 @@ class Test00_Get():
                 'tend':20, #
                 'title':''})
         plt.close('all')
-        pgm.plots.Var(hub,**{'key':'employment',
+        chm.plots.Var(hub,**{'key':'employment',
                 'mode':False, 
                 'log':False,
                 'idx':0, 
@@ -136,7 +147,7 @@ class Test00_Get():
                 'title':'Hello'})
         plt.close('all')
 
-        pgm.plots.cycles_characteristics(hub,**{'xaxis':'omega', 
+        chm.plots.cycles_characteristics(hub,**{'xaxis':'omega', 
                                               'yaxis':'employment', 
                                               'ref':'employment', 
                                               'type1':'frequency', 
@@ -144,7 +155,7 @@ class Test00_Get():
                                               'Region':0, 
                                               'title':''})
         plt.close('all')
-        pgm.plots.plotbyunits(hub,**{'filters_key':(),
+        chm.plots.plotbyunits(hub,**{'filters_key':(),
                                'filters_units':(),
                                'filters_sector':(),
                                'separate_variables':{}, 
@@ -155,7 +166,7 @@ class Test00_Get():
                                'tend':False, 
                                'title':''})
         plt.close('all')
-        pgm.plots.plotbyunits(hub,**{'filters_key':(),
+        chm.plots.plotbyunits(hub,**{'filters_key':(),
                                'filters_units':(),
                                'filters_sector':(),
                                'separate_variables':{}, 
@@ -166,7 +177,7 @@ class Test00_Get():
                                'tend':15, 
                                'title':''})
         plt.close('all')
-        pgm.plots.plotbyunits(hub,**{'filters_key':('pi','Pi'),
+        chm.plots.plotbyunits(hub,**{'filters_key':('pi','Pi'),
                                'filters_units':('y^{-1}'),
                                'filters_sector':(),
                                'separate_variables':{'':['omega']}, 
@@ -177,7 +188,7 @@ class Test00_Get():
                                'tend':15, 
                                'title':''})
         plt.close('all')
-        pgm.plots.plotnyaxis(hub,**{'y':[['pi','omega'],['d']],
+        chm.plots.plotnyaxis(hub,**{'y':[['pi','omega'],['d']],
                                    'x':'time', 
                                    'idx':0,
                                    'Region':0,
@@ -185,7 +196,7 @@ class Test00_Get():
                                    'title':'', 
                                    })
         plt.close('all')
-        pgm.plots.plotnyaxis(hub,**{'y':[['omega'],['employment']],
+        chm.plots.plotnyaxis(hub,**{'y':[['omega'],['employment']],
                                    'x':'time', 
                                    'idx':0,
                                    'Region':0,
@@ -193,7 +204,7 @@ class Test00_Get():
                                    'title':'', 
                                    })
         plt.close('all')
-        pgm.plots.plotnyaxis(hub,**{   'y':[['omega'],['employment']],
+        chm.plots.plotnyaxis(hub,**{   'y':[['omega'],['employment']],
                                    'x':'time', 
                                    'idx':0,
                                    'Region':0,
@@ -202,7 +213,7 @@ class Test00_Get():
                                    })
         plt.close('all')
 
-        pgm.plots.XY (hub,**{    'x':'employment',
+        chm.plots.XY (hub,**{    'x':'employment',
                             'y':'omega',
                             'color':'d', 
                             'scaled':True,
@@ -213,7 +224,7 @@ class Test00_Get():
                             'title':'', 
                             })
         plt.close('all')
-        pgm.plots.XY (hub,**{    'x':'employment',
+        chm.plots.XY (hub,**{    'x':'employment',
                             'y':'omega',
                             'color':'d', 
                             'scaled':False,
@@ -224,7 +235,7 @@ class Test00_Get():
                             'title':'', 
                             })
         plt.close('all')
-        pgm.plots.XY (hub,**{    'x':'employment',
+        chm.plots.XY (hub,**{    'x':'employment',
                             'y':'omega',
                             'color':'d', 
                             'scaled':False,
@@ -235,7 +246,7 @@ class Test00_Get():
                             'title':'', 
                             })
         plt.close('all')
-        pgm.plots.XYZ(hub,**{   'x':'employment',
+        chm.plots.XYZ(hub,**{   'x':'employment',
                             'y':'omega',
                             'z':'d', 
                             'color':'time', 
@@ -245,7 +256,7 @@ class Test00_Get():
                             'tend':False, 
                             'title':''},)
         plt.close('all')
-        pgm.plots.XYZ(hub,**{   'x':'employment',
+        chm.plots.XYZ(hub,**{   'x':'employment',
                             'y':'omega',
                             'z':'d', 
                             'color':'time', 
@@ -256,7 +267,7 @@ class Test00_Get():
                             'title':''},)
         plt.close('all')
 
-        pgm.plots.plotbyunits(hub,**{'filters_key' :('p'),
+        chm.plots.plotbyunits(hub,**{'filters_key' :('p'),
                                     'filters_units':('Units'),
                                     'filters_sector':(),
                                     'separate_variables':{'':['employment','omega']},
@@ -266,9 +277,9 @@ class Test00_Get():
                                     'lw':2})
         plt.close('all')
 
-        #pgm.plots.cycles_characteristics(hub,**{})
+        #chm.plots.cycles_characteristics(hub,**{})
 
-        pgm.plots.plotnyaxis(hub,**{'x': 'time',
+        chm.plots.plotnyaxis(hub,**{'x': 'time',
                                     'y': [['employment', 'employment'],
                                             ['omega'],
                                             ],
@@ -279,12 +290,12 @@ class Test00_Get():
 
 
 
-        hub=pgm.Hub('CHIMES0')
-        pgm.plots.Sankey(hub)
+        hub=chm.Hub('CHIMES0')
+        chm.plots.Sankey(hub)
 
         R=hub.get_dparam()
         for sector in R['Nprod']['list'] :
-            pgm.plots.plotnyaxis(hub, y=[[['inflation', sector],
+            chm.plots.plotnyaxis(hub, y=[[['inflation', sector],
                                         ['inflationMarkup', sector],
                                         ['inflationdotV', sector], ],
                                         [['dotV',sector]],
@@ -295,16 +306,16 @@ class Test00_Get():
                                         [['employment',sector],
                                         ['u',sector],
                                         ]],)
-            pgm.plots.repartition(hub,
+            chm.plots.repartition(hub,
                                 ['pi','omega','Mxi','Mgamma','rd','reloverinvest','reldotv'],
                                 sign= [1,1,1,1,1,1,-1],
                                 sector=sector,
                                 title=f'Expected relative budget $\pi$ for sector {sector}')
-            pgm.plots.repartition(hub,['Minter','Minvest','C','dotV'],
+            chm.plots.repartition(hub,['Minter','Minvest','C','dotV'],
                                 ref='Y',
                                 sector=sector,
                                 title=f'Physical Fluxes for sector {sector}')
-            pgm.plots.repartition(hub,['MtransactY','MtransactI','wL','pC','rD'],
+            chm.plots.repartition(hub,['MtransactY','MtransactI','wL','pC','rD'],
                                 sign=[1, 1, 1, -1, 1],
                                 ref='dotD',
                                 sector=sector,
@@ -312,71 +323,71 @@ class Test00_Get():
                                 removetranspose=True)
 
     def test04_set_params(self):
-        hub=pgm.Hub('GK')
+        hub=chm.Hub('GK')
         dpreset = {'test': {'fields': {'philinConst': -0.55465958},
                            'com': '',
                            'plots': {}},}
         hub.set_dpreset(dpreset,preset='test')
         
-        hub=pgm.Hub('GK')
+        hub=chm.Hub('GK')
         hub.set_preset('default')
 
         # Monosectoral 
-        hub=pgm.Hub('GK',verb=False); hub.set_dparam('a',1           ,verb=False)
-        hub=pgm.Hub('GK',verb=False); hub.set_dparam('alpha',0.01    ,verb=False)  
-        hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'alpha':0.01},verb=False)      
+        hub=chm.Hub('GK',verb=False); hub.set_dparam('a',1           ,verb=False)
+        hub=chm.Hub('GK',verb=False); hub.set_dparam('alpha',0.01    ,verb=False)  
+        hub=chm.Hub('GK',verb=False); hub.set_dparam(**{'alpha':0.01},verb=False)      
 
         # Dimensions nr and nx 
-        hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'Tmax':10,
+        hub=chm.Hub('GK',verb=False); hub.set_dparam(**{'Tmax':10,
                                                         'dt':0.01},verb=False)
-        hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nx':10,
+        hub=chm.Hub('GK',verb=False); hub.set_dparam(**{'nx':10,
                                                         'nr':5},verb=False)
-        hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nx':['one','two'],
+        hub=chm.Hub('GK',verb=False); hub.set_dparam(**{'nx':['one','two'],
                                                         'nr':['here','there','test']},verb=False)
 
         try:
         # Multiple values 
-            hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nx':3,
+            hub=chm.Hub('GK',verb=False); hub.set_dparam(**{'nx':3,
                                                             'alpha':[0.01,0.02,0.03]})
         except BaseException as ERR: print(ERR)
-        #hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
+        #hub=chm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
         #                                                'alpha':[['nr','France'],0.01]})    
-        try:hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
+        try:hub=chm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
                                                         'nx': 3,    
                                                         'alpha':[['nr','France'],['nx',1],0.01]})
         except BaseException as ERR: print(ERR)
-        try:hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
+        try:hub=chm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
                                                         'nx': 6,    
                                                         'alpha':[['nr',0],['nx',0,4],[0.5,0.2]]}) 
         except BaseException as ERR: print(ERR)
-        try:hub=pgm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
+        try:hub=chm.Hub('GK',verb=False); hub.set_dparam(**{'nr':['France','USA'],
                                                         'nx': 6, 
                                                         'alpha':{'nr':['France','USA'],
                                                                  'nx':1,
                                                                  'value':0.5}})
         except BaseException as ERR: print(ERR)
         # Multisectoral        
-        try:hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[0.1,1])                      #will put [0,1] for all parrallel all regions
+        try:hub=chm.Hub('CHIMES0',preset='Bisectoral',verb=False);hub.set_dparam('p',[0.1,1])                      #will put [0,1] for all parrallel all regions
         except BaseException as ERR: print(ERR)
-        #hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[['nr',0],[0.1,1]])            #will put [0,1] for all parrallel in region 0
-        try:hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[['nr',0,1],[0.1,1]])          #will put [0,1] for all parrallel in region 0 and 1
+        #hub=chm.Hub('CHIMES0',preset='Bisectoral',verb=False);hub.set_dparam('p',[['nr',0],[0.1,1]])            #will put [0,1] for all parrallel in region 0
+        try:hub=chm.Hub('CHIMES0',preset='Bisectoral',verb=False);hub.set_dparam('p',[['nr',0,1],[0.1,1]])          #will put [0,1] for all parrallel in region 0 and 1
         except BaseException as ERR: print(ERR)
-        try:hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('p',[['nx',0],['nr',0,1],[0.1,1]]) #will put [0,1] for parrallel system 0, in region 0 and 1
+        try:hub=chm.Hub('CHIMES0',preset='Bisectoral',verb=False);hub.set_dparam('p',[['nx',0],['nr',0,1],[0.1,1]]) #will put [0,1] for parrallel system 0, in region 0 and 1
         except BaseException as ERR: print(ERR)                                                                                         
-        try:hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam('Gamma',[[0,1],[1,0]])  #will put [[0,1],[1,0]] for all parrallel all regions
+        try:hub=chm.Hub('CHIMES0',preset='Bisectoral',verb=False);hub.set_dparam('Gamma',[[0,1],[1,0]])  #will put [[0,1],[1,0]] for all parrallel all regions
         except BaseException as ERR: print(ERR)
-        try:hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam(**{'Gamma': {'first':['Consumption','Capital'],
+        try:hub=chm.Hub('CHIMES0',preset='Bisectoral',verb=False);hub.set_dparam(**{'Gamma': {'first':['Consumption','Capital'],
                                                                                         'second':['Consumption','Consumption'],
                                                                                         'nr':0,
                                                                                         'value':[0.5,0.22]}})
         except BaseException as ERR: print(ERR)
-        try:hub=pgm.Hub('CHIMES0',preset='WithRegions',verb=False);hub.set_dparam(**{'Gamma': {'first':['Consumption','Capital'],
+        try:hub=chm.Hub('CHIMES0',preset='Bisectoral',verb=False);hub.set_dparam(**{'Gamma': {'first':['Consumption','Capital'],
                                                                                        'nr':0,
                                                                                        'value':[0.5,0.22]}})
         except BaseException as ERR: print(ERR)
                                                                             
     def test05_network(self):
-        hub=pgm.Hub('GK')
+        hub=chm.Hub('GK')
         hub.get_Network()
         hub.get_Network(params=True)                    # state,differential,parameters
         hub.get_Network(auxilliary=False,params=True)   # remove auxilliary statevar and differential
@@ -384,7 +395,7 @@ class Test00_Get():
         hub.get_Network(filters=('Pi',),redirect=True) 
 
     def test06_description(self):
-        hub=pgm.Hub('GK')
+        hub=chm.Hub('GK')
         hub.get_equations_description()
         hub.get_summary()
         _=hub.dmodel
@@ -407,15 +418,15 @@ class Test00_Get():
                 'sigma': .12,
                 'type': 'log'},
         }
-        presetCoupled = pgm.generate_dic_distribution(SensitivityDic,
+        presetCoupled = chm.generate_dic_distribution(SensitivityDic,
                                                     N=100)
         presetCoupled['nx']=100
 
-        hub=pgm.Hub('GK',verb=False)
+        hub=chm.Hub('GK',verb=False)
         hub.set_dparam(**presetCoupled)
         hub.run(N=100)
         hub.calculate_StatSensitivity()
-        pgm.plots.Var(hub,'employment',mode='sensitivity')
+        chm.plots.Var(hub,'employment',mode='sensitivity')
 
     def test08_generate_interface(self):
         pass 
