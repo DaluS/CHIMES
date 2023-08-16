@@ -823,7 +823,7 @@ class Hub():
            self,
            NtimeOutput=False,
            NstepsInput=False,
-           verb=None,
+           verb=True,
            ComputeStatevarEnd=False
     ):
        """
@@ -833,19 +833,18 @@ Run the simulation using an RK4. Compute each time step from the previous one us
 - intermediary functions in specified func_order   
 
 ## Verb will have the following behavior :
-- none no print of the step
-- 1 at every step
-- any float (like 1.1) the iteration is written at any of these value
+- True : evolving counter
+- False : no message
 ## ComputeStatevarEnd : if true will recompute all statevar at the end (do not work with noise or external call)
 
 ## NtimeInput will modify dt so that the system use NstepsInput to simulate Tmax years. If False, the system use default vaule
 ## NtimeOutput will reinterpolate the simulation on the given number. Useful if you need small timestep for simulation but do not want to keep the details 
 
        """
-       if (_VERB == True and verb is None):
-           verb = 1.1
+
 
        if NstepsInput:
+            print(self.dparam['Tmax']['value']/NstepsInput)
             self.set_dparam('dt',self.dparam['Tmax']['value']/NstepsInput,verb=verb)
 
        # check inputs
@@ -940,6 +939,32 @@ Npoints : TYPE, optional
            v = Vals[k]
            print(f"{k.ljust(20)}{str(v['value']).ljust(20)}{v['definition']}")
 
+    def get_dvalues(self,idx=True,Region=True):
+        '''
+        Gives one dictionnary with values of variables.
+        Automatically scan if there is multisectoriality, regions, and parrallel system.
+        Depending of this, it will change the format of values. 
+        '''
+
+        R=self.get_dparam()
+        
+        if idx      ==True:
+            idx = np.arange(self.dmisc['dmulti']['NxNr'][0])
+        if len(idx)==1:idx=0
+        if Region   ==True:
+            Region = np.arange(self.dmisc['dmulti']['NxNr'][1])
+        if len(Region)==1:Region=0
+
+        if len(self.dmisc['dmulti']['vector']+self.dmisc['dmulti']['matrix'])<1:
+            D = {k:R[k]['value'][:,idx,Region,0,0] for k in self.dmisc['dfunc_order']['statevar']+
+                                                            self.dmisc['dfunc_order']['differential']}
+        elif len(self.dmisc['dmulti']['matrix'])==0:
+            D = {k:R[k]['value'][:,idx,Region,:,0] for k in self.dmisc['dfunc_order']['statevar']+
+                                                            self.dmisc['dfunc_order']['differential']}
+        else: 
+            D = {k:R[k]['value'][:,idx,Region,:,:] for k in self.dmisc['dfunc_order']['statevar']+
+                                                            self.dmisc['dfunc_order']['differential']}
+        return D
 
     def get_summary(self, idx=0, Region=0,removesector=()):
         """

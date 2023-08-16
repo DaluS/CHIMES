@@ -1,0 +1,1 @@
+'''Should not be called without __TESTS__ (it's here for merge)'''
