@@ -29,6 +29,16 @@ setup(
     author='Paul Valcke',
     author_email='pv229@georgetown.edu',
     url="https://environmentaljustice.georgetown.edu/#",
-    packages=['PyGEMMES'],  #same as name
-    install_requires=['numpy','scipy','pyvis','matplotlib','pandas','plotly'], #external packages as dependencies
+    packages=['CHIMES'],  #same as name
+    install_requires=['numpy',
+                      'scipy',
+                      'pyvis',
+                      'matplotlib',
+                      'pandas',
+                      'plotly',
+                      'ipywidgets',
+                      'itables',
+                      'ipympl',
+                      'pylatexenc'], #external packages as dependencies
 )
+
