@@ -17,26 +17,17 @@ sys.path.pop(0)                 # clean PYTHONPATH
 
 
 #######################################################
-#
 #     Setup and Teardown
-#
 #######################################################
-
-
 def setup_module():
     pass
-
 
 def teardown_module():
     pass
 
 #######################################################
-#
 #     Creating Ves objects and testing methods
-#
 #######################################################
-
-
 class Test00_Get():
 
     @classmethod
@@ -54,6 +45,8 @@ class Test00_Get():
     def teardown_class(cls):
         pass
 
+
+### TESTS CHM 
     def test01_CHM_get(self):
         """
         Make sure that CHM is able to read all structures
@@ -75,9 +68,83 @@ class Test00_Get():
 
         chm.get_available_operators()
 
+    def test02_CHM_distribution(self):
+        '''
+        Test generation of distributions for set_dparam
+        '''
 
-    def test02_run_all_models_all_preset(self):
+        Tests = {'log':{    'mu': .02,
+                            'sigma': .12,
+                            'type':'log' },
+                 'lognormal':{'mu': .02,
+                            'sigma': .12,
+                            'type':  'lognormal'},
+                 'log-normal':{'mu': .02,
+                            'sigma': .12,
+                            'type':'log-normal'},
+                 'normal':{'mu': .02,
+                            'sigma': .12,
+                            'type': 'normal'},
+                 'gaussian':{'mu': .02,
+                            'sigma': .12,
+                            'type': 'gaussian'},
+                 'uniform':{'mu': .02,
+                            'sigma': .12,
+                            'type':'uniform'},}
+        TestDistrib = chm.generate_dic_distribution(Tests,
+                                                    N=100)
+        
+
+
+        SensitivityDic = {
+            'alpha': {'mu': .02,
+                    'sigma': .12,
+                    'type': 'log'},
+            'k2': {'mu': 20,
+                'sigma': .12,
+                'type': 'log'},
+            'mu': {'mu': 1.3,
+                'sigma': .12,
+                'type': 'log'},
+        }
+        presetCoupled = chm.generate_dic_distribution(SensitivityDic,
+                                                    N=100)
+        presetCoupled['nx']=100
+
+        hub=chm.Hub('GK',verb=False)
+        hub.set_dparam(**presetCoupled)
+        hub.run(N=100)
+        hub.calculate_StatSensitivity()
+        chm.plots.Var(hub,'employment',mode='sensitivity')
+
+### TESTS HUB
+    def test03_basics(self):
+        '''All basic elements'''
+        hub=chm.Hub('GK')
+
+        hub.get_equations_description()
+
+        dmodel      = hub.dmodel
+        dmisc       = hub.dmisc
+        dparam      = hub.dparam
+        supplements = hub.supplements
+
+        print(hub)
+
+        hub.get_summary()
+
+        hub.get_dparam_as_reverse_dict(
+            crit='units',
+            eqtype=['differential', 'statevar'])
+        
+        hub.reset()
+        hub.run()
+        hub.reinterpolate_dparam(10)
+
+
+    def test04_run_all_models_all_preset(self):
         """ Run all model, all presets, and their plots"""
+
         modelist = chm.get_available_models(Return=dict)
         for model in modelist.keys():
             for preset in [None]+modelist[model].get('Preset',[]):
@@ -85,8 +152,37 @@ class Test00_Get():
                     hub.run(NstepsInput=10)
                     if preset is not None:
                         hub.plot_preset()   
+        
+    def test05_set_presets(self):
+        # hub.set_dpreset
+        # hub.set_preset
+        hub=chm.Hub('GK',preset='default')
+        
+        hub=chm.Hub('GK')
+        hub.set_preset('default')
 
-    def test03_all_plots(self):
+        hub=chm.Hub('GK')
+        hub.set_dpreset({ 'test' : {'fields' : {'p':1.1,
+                                                'a':3.1} ,
+                          'com': 'Message', 
+                          'plots' : {'XY':{'x':'employment',
+                                           'y':'omega'}}
+                        },
+                        },)
+        hub.get_summary()
+
+    def test06_run(self):
+        hub=chm.Hub('GK')
+        for NstepsInput in [None,1,2,10]:
+            for NtimeOutput in [None,1,2,10]:
+                for verb in [False,True]:
+                    for ComputeStatevarEnd in [True,False]:
+                        hub.run(NstepsInput=NstepsInput,
+                                NtimeOutput=NtimeOutput,
+                                verb=verb,
+                                ComputeStatevarEnd=ComputeStatevarEnd)
+
+    def test07_all_plots(self):
         hub=chm.Hub('GK')
         hub.set_dparam(**{'Tmax':100,'dt':0.1})
         hub.run()
@@ -322,7 +418,7 @@ class Test00_Get():
                                 title=f'Monetary Fluxes for sector {sector}',
                                 removetranspose=True)
 
-    def test04_set_params(self):
+    def test08_set_params(self):
         hub=chm.Hub('GK')
         dpreset = {'test': {'fields': {'philinConst': -0.55465958},
                            'com': '',
@@ -386,7 +482,7 @@ class Test00_Get():
                                                                                        'value':[0.5,0.22]}})
         except BaseException as ERR: print(ERR)
                                                                             
-    def test05_network(self):
+    def test09_network(self):
         hub=chm.Hub('GK')
         hub.get_Network()
         hub.get_Network(params=True)                    # state,differential,parameters
@@ -394,48 +490,3 @@ class Test00_Get():
         hub.get_Network(filters=('Pi',))                # remove the variable Pi and its connexions
         hub.get_Network(filters=('Pi',),redirect=True) 
 
-    def test06_description(self):
-        hub=chm.Hub('GK')
-        hub.get_equations_description()
-        hub.get_summary()
-        _=hub.dmodel
-        _=hub.dmisc
-        _=hub.dparam
-        print(hub)
-        hub.get_dparam_as_reverse_dict(
-    crit='units',
-    eqtype=['differential', 'statevar'])
-
-    def test07_distributions(self):
-        SensitivityDic = {
-            'alpha': {'mu': .02,
-                    'sigma': .12,
-                    'type': 'log'},
-            'k2': {'mu': 20,
-                'sigma': .12,
-                'type': 'log'},
-            'mu': {'mu': 1.3,
-                'sigma': .12,
-                'type': 'log'},
-        }
-        presetCoupled = chm.generate_dic_distribution(SensitivityDic,
-                                                    N=100)
-        presetCoupled['nx']=100
-
-        hub=chm.Hub('GK',verb=False)
-        hub.set_dparam(**presetCoupled)
-        hub.run(N=100)
-        hub.calculate_StatSensitivity()
-        chm.plots.Var(hub,'employment',mode='sensitivity')
-
-    def test08_generate_interface(self):
-        pass 
-
-    def test09_cycles_analysis(self):
-        pass 
-
-    def test10_special_plots(self):
-        # Sankey
-
-        # Repartition
-        pass
