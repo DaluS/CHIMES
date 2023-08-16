@@ -31,7 +31,6 @@ def _get_DMODEL(model=False,
     else:
         path_models = _PATH_MODELS
 
-
     _df= {}
     _dfr = {}
     ERROR=[]
@@ -39,7 +38,6 @@ def _get_DMODEL(model=False,
         if (_MODEL_FOLDER_HIDDEN not in root and root.split("\\")[-1][0]!='_') :
             for ff in files :
                 if ff.startswith(_MODEL_NAME_CONVENTION) and ff.endswith('.py'):
-
                     # IF THERE IS ALREADY A MODEL WITH THE SAME NAME
                     if ff[len(_MODEL_NAME_CONVENTION):ff.index('.py')] in _dfr.keys():
                         ERROR.append([_dfr[ff[len(_MODEL_NAME_CONVENTION):ff.index('.py')]],
@@ -53,6 +51,7 @@ def _get_DMODEL(model=False,
 
     if model is not False:
         _df = {k:v for k,v in _df.items() if v == model}
+
 
     # CREATE A DICTIONNARY CONTAINING EVERYTHING THEY HAVE
     _DMODEL = {}
@@ -145,7 +144,8 @@ def get_available_models(
     verb=None,
     #from_user=_FROM_USER,
     Return=True, 
-    FULL=False
+    FULL=False,
+    hide_underscore=True
 ):
     '''
     # Check 2023/08/11
@@ -154,7 +154,7 @@ def get_available_models(
     Parameters: 
     * Full   : (False,True)    . If True, load the dictionnary/dataframe with all it can
     * Return : (dict,list,...). List give the list of model names, dict their properties in a dictionnary, anything else a Dataframe
-
+    * hide_underscore : remove model with names like _model__NAME.py (that should not be called directly)
     '''
     details=False
     model=None
@@ -162,6 +162,8 @@ def get_available_models(
 
     # Load the "models dictionnary"
     path_models, _DMODEL = _get_DMODEL(from_user=from_user)
+
+
 
     # Tranform input into machine-friendly
     if model is None:
@@ -184,14 +186,16 @@ def get_available_models(
     }
 
     ## Choosing what infos is in
+    #dic={v0['name']: {'Folder': v0['address'][len(_PATH_MODELS)+1:-len(_MODEL_NAME_CONVENTION)-len(v0['name'])-1],
+    #                  'Preset': v0['presets'],}for k0, v0 in dmod.items()}
+    #if details: 
     dic={v0['name']: {'Folder': v0['address'][len(_PATH_MODELS)+1:-len(_MODEL_NAME_CONVENTION)-len(v0['name'])-1],
-                      'Preset': v0['presets'],}for k0, v0 in dmod.items()}
-    if details: 
-        dic={v0['name']: {'Folder': v0['address'][len(_PATH_MODELS)+1:-len(_MODEL_NAME_CONVENTION)-len(v0['name'])-1],
                       'Preset': v0['presets'],
                       'Short Documentation': v0['description']}for k0, v0 in dmod.items()}       
     if FULL:
         dic = _DMODEL
+    if hide_underscore:
+        dic = {k:v for k,v in dic.items() if '__' not in k}
     modeldf=pd.DataFrame(dic)
 
     # format
