@@ -4,8 +4,8 @@ with open("README", 'r') as f:
     long_description = f.read()
 
 setup(
-    name='PyGEMMES',
-    version='0.9',
+    name='CHIMES',
+    version='0.1',
     description='A dynamical system library',
     license="MIT",
     long_description=long_description,
