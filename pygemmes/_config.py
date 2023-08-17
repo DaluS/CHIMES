@@ -1,9 +1,6 @@
-
 """
 Created on Mon Mar 21 13:43:06 2022
-
 @author: Paul Valcke
-
 ALL THE BASIC FIELDS THAT ONE MIGHT NEED
 """
 
@@ -12,8 +9,8 @@ import os
 
 # ################# LOGS AND PRINTS IN THE SYSTEM #############################
 _VERB = True        #! Print by default when actions are done
-__PRINTLOGO = True  #! Print the logo
-__PRINTINTRO = True #! Print tutorial text
+__PRINTLOGO = False #! Print the logo
+__PRINTINTRO = False#! Print tutorial text
 
 # pgm.get_...
 _FIELDS_EXPLOREMODEL =False #! get_available_fields will check existing models

@@ -620,7 +620,7 @@ class Hub():
                 print(k.ljust(30),v['com'])
         if returnas==list:
             return list(self.__dmodel['presets'].keys())
-        if returnas==dict:
+        else:
             return {k:v['com'] for k,v in self.__dmodel['presets'].items() }
 
     def get_supplements(self,returnas=True):

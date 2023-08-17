@@ -56,15 +56,27 @@ _LOGICS = {
 _PRESETS = {
     'Canonical example': {
         'fields': {
-            'dt':0.01
+            'dt':0.01,
+            'lor_sigma':10,
+            'lor_rho': 28,
+            'lor_beta':  8/3,
         },
-        'com': '',
-        'plots': {'3D': [{'x': 'x',
+        'com': 'Chaotic attractor around two equilibrium, for those parameter values',
+        'plots': {
+                'XYZ': [{'x': 'x',
                     'y': 'y',
                     'z': 'z',
                     'color': 'time',
                     'cmap': 'jet',
                     'index': 0,
-                    'title': 'Lorenz 3-dimension strange attractor'}]},
+                    'title': 'Lorenz 3-dimension strange attractor'}],
+                'XY': [{
+                    'y': [['y'],['x','z']],
+                    'color': 'time',
+                    'cmap': 'jet',
+                    'index': 0,
+                    'title': 'Multiple axis plot'}],
+                'plotnyaxis': [{''}]
+                },
     },
 }
