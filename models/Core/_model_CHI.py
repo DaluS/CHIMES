@@ -1,4 +1,4 @@
-"""Human-Capital core"""
+"""Human-Capital Instability: Causal core"""
 
 _DESCRIPTION ="""
 # Human-Capital Instability: Causal core
