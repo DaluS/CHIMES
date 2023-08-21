@@ -36,6 +36,8 @@ _LOGICS = {
 }
 
 def FIND_EQ_Gr(hub=None,dic=False):
+    '''
+    Gives the equilibrium value based on '''
     if not dic:
         R=hub.get_dparam()
         d={v:R[v]['value'] for v in R.keys()}

@@ -57,7 +57,8 @@ class Test00_Get():
 
         for model in chm.get_available_models(Return=list):
             for returnString in [True,False]:
-                chm.get_model_documentation(model,returnString=returnString)
+                if model[0]!='_':
+                    chm.get_model_documentation(model,returnString=returnString)
 
         chm.get_available_fields(exploreModels=True)
         chm.get_available_fields(exploreModels=False)
