@@ -1178,7 +1178,7 @@ def _complete_DFIELDS(
     if len(dfail) > 0:
         lstr = [f'\t- {k0}: {v0}' for k0, v0 in dfail.items()]
         msg = (
-            "The followinbg entries in _DFIELDS are not valid:\n"
+            "The following entries in _DFIELDS are not valid:\n"
             + "\n".join(lstr)
         )
         raise Exception(msg)

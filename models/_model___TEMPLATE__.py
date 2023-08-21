@@ -19,6 +19,7 @@ from pygemmes._models import Funcs, importmodel,mergemodel,filldimensions
 from pygemmes._models import Operators as O
 
 ################## ALL THE NEW FIELDS LOGICS ###############################
+_UNITS = []
 _LOGICS = { 'size'        : {},
             'differential': {},
             'statevar'    : {},
