@@ -1,4 +1,4 @@
-## CHIMES: Core for Holistic Intertwined Models for Ecological Sustainability
+## CHIMES: Core of Holistic Intertwined Models for Ecological Sustainability
 
 # What is CHIMES?
 
