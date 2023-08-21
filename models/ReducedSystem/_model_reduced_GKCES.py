@@ -1,8 +1,21 @@
-
 '''3-dimensional reduced Goodwin-Keen dynamics with CES production function'''
 
 _DESCRIPTION="""
+* **Article :** 
+* **Coder   :** Paul Valcke 
+* **Date    :** 2023/08/21
 
+ABSTRACT: This is a 3 sector model : bank, household, and production.
+* Everything is stock-flow consistent, but capital is not created by real products
+* The model is driven by offer
+* Negociation by philips is impacted by the profit
+* There is capital-labor instant substitution and recruitment in production, making the system more stable than a classic GK
+
+TYPICAL BEHAVIOR : convergent oscillation around a solow point / debt crisis
+
+Created on Wed Jul 21 15:11:15 2021
+
+@author: Paul Valcke
 """
 
 import numpy as np

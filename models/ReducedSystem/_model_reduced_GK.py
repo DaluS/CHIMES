@@ -1,5 +1,12 @@
+'''3dimensional Goodwin-Keen economy'''
 
-"""
+_DESCRIPTION = """
+
+* **Article :** 
+* **Author  :** Steve Keen
+* **Coder   :** Paul Valcke 
+* **Date    :** 2023/08/21
+
 ABSTRACT: This is a 3 sector model : bank, household, and production.
 * Everything is stock-flow consistent, but capital is not created by real products
 * The model is driven by offer
@@ -7,25 +14,15 @@ ABSTRACT: This is a 3 sector model : bank, household, and production.
 * Loans from banks are limited by solvability
 TYPICAL BEHAVIOR : convergent oscillation around a solow point / debt crisis
 
-LINKTOARTICLE : Goodwin, Richard, 1967. ‘A growth cycle’, in:
-    Carl Feinstein, editor, Socialism, capitalism
-    and economic growth. Cambridge, UK: Cambridge University Press.
-
 Created on Wed Jul 21 15:11:15 2021
 
 @author: Paul Valcke
 """
 
-import numpy as np
-
-# ---------------------------
-# user-defined function order (optional)
-
-
-# ---------------------------
-# user-defined model
-# contains parameters and functions of various types
-
+################# IMPORTS ##################################################
+import numpy as np #(if you need exponential, pi, log, of matrix products...)
+from pygemmes._models import Funcs, importmodel,mergemodel,filldimensions
+from pygemmes._models import Operators as O
 
 _LOGICS = {
     'differential': {
@@ -64,7 +61,7 @@ _LOGICS = {
             'com': 'Markup dynamics',
         },
     },
-    'param': {
+    'parameter': {
     },
 }
 
@@ -86,5 +83,16 @@ _PRESETS = {'default': {
         'k1': np.exp(-5),
         'k2': 20,
         'r': 0.03, },
-    'com': ' Default run'},
+    'com': ' Default run',
+    'plots': {'XYZ': [{ 'x':'omega',
+            'y':'employment',
+            'z':'d', 
+            'color':'time', 
+            'idx':0, 
+            'Region':0, 
+            'tini':False, 
+            'tend':False, 
+            'title':''},
+                  ],},
+},
 }

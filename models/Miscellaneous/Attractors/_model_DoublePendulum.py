@@ -7,7 +7,7 @@ This set of equation assume m1=m2 and l1=l2
 
 * **Name :** Double Uniform Pendulum Chaotic Dynamics
 * **Article :** https://en.wikipedia.org/wiki/Double_pendulum
-* **Author  :** /
+* **Author  :** 
 * **Coder   :** Paul Valcke
 
 ** TODO:**

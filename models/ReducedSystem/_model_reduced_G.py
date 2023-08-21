@@ -8,9 +8,10 @@ In consequence it is a 2- differential equation model, but with the same dynamic
 
 The rest of the documentation is in _model_Goodwin
 
-* **Article :** 
-* **Author  :** Goodwin, Richard, 1967. ‘A growth cycle’, in: Carl Feinstein, editor, Socialism, capitalism and economic growth. Cambridge, UK: Cambridge University Press.
+* **Article :**  1967. ‘A growth cycle’, in: Carl Feinstein, editor, Socialism, capitalism and economic growth. Cambridge, UK: Cambridge University Press.
+* **Author  :** Goodwin, Richard,
 * **Coder   :** Paul Valcke
+* **Date    :** 2023/08/21
 
 TODO:
 *
@@ -28,6 +29,7 @@ _LOGICS = {
     },
     'statevar': { 
         'phillips': Funcs.Phillips.div,
+        'g': {'func': lambda omega,delta,nu: (1-omega)/nu-delta }
     },
     'parameter': {},
     'size': {},
@@ -41,8 +43,8 @@ def FIND_EQ_Gr(hub=None,dic=False):
         d=dic
 
     fm1 = lambda x : 1-np.sqrt(x)
-    return {'omega': 1-R['nu']*(R['delta']+R['alpha']+R['n']),
-            'employment': fm1( -d['Phi1']/(d['Phi0']+d['alpha']*(1-d['phialpha'])+d['inflation']*(1-d['phii'])) )}
+    return {'omega': 1-d['nu']*(d['delta']+d['alpha']+d['n']),
+            'employment': fm1( -d['Phi1']/(d['Phi0']+d['alpha']) )}
 
 _SUPPLEMENTS={'equilibrium':FIND_EQ_Gr}
 
@@ -57,7 +59,7 @@ _PRESETS = {
         'employment':0.01,
         'omega':0.01,
     },
-    'com':"Start close to the (0,0) equilibrium",
+    'com':"Start close to the (0,0) equilibrium. This is explosive",
     'plots':plots,    
 },
 'NontrivialEQ':{
@@ -74,7 +76,8 @@ _PRESETS = {
 },
 'farfromEQ': {
     'fields':{'employment':.6,
-              'omega':0.4},
+              'omega':0.4,
+              'dt':0.01,'Tmax':100},
     'com': "Start far from EQ",
     'plots':plots
 }

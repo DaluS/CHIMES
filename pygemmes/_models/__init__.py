@@ -260,7 +260,7 @@ def get_available_operators():
 
 def importmodel(name : str,
                 from_user=False):
-    print('IMPORT MIGHT HAVE ISSUES')
+    print('IMPORTMODEL MIGHT HAVE ISSUES, BE CAREFUL')
 
     # FIND THE PATH TO MODELS
     if from_user is True and _PATH_PRIVATE_MODELS is not None:

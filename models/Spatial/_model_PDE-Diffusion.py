@@ -76,6 +76,9 @@ def generate(diffcoeff,N):
     return preset
 
 def plot(hub):
+    '''
+    Minimal plot of the Concentration evolution
+    '''
     import matplotlib.pyplot as plt
     R=hub.get_dparam()
     C=R['C']['value'][:,0,:,0,0]
@@ -93,7 +96,7 @@ _SUPPLEMENTS = {
 _PRESETS = {
     'Basic': {
         'fields': generate(10,100),
-        'com': ('A diffusion on 100 elements of a gaussian'),
+        'com': ('A diffusion on 100 elements of a gaussian distribution'),
         'plots': {},
     },
 }

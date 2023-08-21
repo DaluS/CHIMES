@@ -26,7 +26,6 @@ this conserve closed-loop phase-space trajectory
 
 It is written with a price p=1 for homogeneity issues
 
-@author: Paul Valcke
 """
 
 # ######################## PRELIMINARY ELEMENTS #########################

@@ -1,7 +1,6 @@
 """Movement synchronization"""
 
-_DESCRIPTION=
-"""
+_DESCRIPTION="""
 
 * **Name :** Vicsek Agent-Based dynamics
 * **Article :** https://en.wikipedia.org/wiki/Vicsek_model
@@ -10,20 +9,12 @@ _DESCRIPTION=
 """
 
 import numpy as np
+from pygemmes._models import Funcs, importmodel,mergemodel
 from pygemmes._models import Funcs
+from pygemmes._models import Operators as O
 
 
-# ######################## OPERATORS ####################################
-def sprod(X,Y):
-    return np.matmul(np.moveaxis(X,-1,-2),Y)
-def ssum(X):
-    return np.matmul(np.moveaxis(X,-1,-2),X*0+1)
-def transpose(X):
-    return np.moveaxis(X, -1, -2)
-def matmul(M,V):
-    return np.matmul(M,V)
-# #######################################################################
-
+###############################################################################
 def lognorm(x,y,r0):
     return np.exp(- ((np.log(x)-r0)**2) /(2*y**2))/(2*x*y*np.sqrt(2*np.pi))
 
@@ -67,12 +58,12 @@ _LOGICS = {
         ### LOCAL CHARACTERISTICS ##########
         # Matrix of distance between particles
         'distances': {
-            'func': lambda x, y: np.sqrt((x - transpose(x)) ** 2 + (y - transpose(y)) ** 2),
+            'func': lambda x, y: np.sqrt((x - O.transpose(x)) ** 2 + (y - O.transpose(y)) ** 2),
             'com': 'vector norm',
             'size': ['Nagents', 'Nagents'],
         },
         'anglediff': {
-            'func': lambda theta : theta-transpose(theta),
+            'func': lambda theta : theta-O.transpose(theta),
             'size': ['Nagents', 'Nagents'],
 
         },
@@ -87,11 +78,11 @@ _LOGICS = {
         },
         # Agregates on all agents
         'meanX': {
-            'func': lambda x: ssum(x) / ssum(x * 0 + 1),
+            'func': lambda x: O.ssum(x) / O.ssum(x * 0 + 1),
             'com': 'mean position',
         },
         'meanY': {
-            'func': lambda y: ssum(y) / ssum(y * 0 + 1),
+            'func': lambda y: O.ssum(y) / O.ssum(y * 0 + 1),
             'com': 'mean position',
         },
         # Characteristic on each agent
@@ -137,7 +128,9 @@ _PRESETS = {
             'v':  0.1,
         },
         'com': 'Agents are going to synchronize in one direction',
-        'plots': {},
+        'plots':{'XYZ':[{'x':'meanX',
+                         'y':'meanY',
+                         'z':'time'}]},
     },
     'TooNoisy': {
         'fields': {
@@ -150,7 +143,9 @@ _PRESETS = {
             'v':  0.1,
         },
         'com': 'Agents cannot synchronize',
-        'plots': {},
+        'plots': {'XYZ':[{'x':'meanX',
+                         'y':'meanY',
+                         'z':'time'}]},
     },
     'LowSync': {
         'fields': {
@@ -164,10 +159,9 @@ _PRESETS = {
             'Tmax':300
         },
         'com': 'Agents cannot synchronize',
-        'plots': {},
+        'plots': {'XYZ':[{'x':'meanX',
+                         'y':'meanY',
+                         'z':'time'}]},
     },
 }
 
-
-# Check size consistent in operations
-# If only one dimension, transform string into list

@@ -634,7 +634,7 @@ class Hub():
         if returnas= True : give the dataframe of the presets
         '''
         supp = self.dmodel.get('supplements',{})
-        print(supp)        
+        #print(supp)        
 
         if returnas==False :
             print('List of supplements material :')
@@ -642,8 +642,10 @@ class Hub():
                 print(k.ljust(30),v.__doc__)#['com'])
         if returnas==list:
             return list(supp.keys())
-        else:
+        else:#if returnas==dict:
             return {k:v.__doc__ for k,v in supp.items() }       
+        #else:
+        #    return pd.DataFrame({k:v.__doc__ for k,v in supp.items() } )
          
     def get_dparam(self, condition=None,returnas=dict,verb=False, **kwdargs):
        """ Return a copy of the input parameters dict that you can filter
