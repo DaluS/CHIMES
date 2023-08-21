@@ -478,7 +478,7 @@ _LIBRARY = {
 
         # VARIABLES
         'K': {
-            'value': 2.7,
+            'value': 2.3,
             'units': 'Units',
             'definition': 'Capital in real units',
         },

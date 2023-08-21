@@ -1247,12 +1247,14 @@ Npoints : TYPE, optional
         If no preset is loaded, you can try to plot its associated plots by calling it.
         '''
 
-        if preset is not None:
+        # Load preset name if preset is loaded. If not it will remain None
+        if preset is None:
             preset = self.dmodel['preset']
 
-            
+
+        if preset is not None:
             tempd = self.dmodel['presets'].get(preset,{'plots':{}})['plots']
-            print(tempd,'HELLO!')
+            #print(preset,tempd)
             if type(tempd) is tuple:
                 raise Exception('your plot dictionnary might have a comma at the end, please remove it !')
             for plot, funcplot in _DPLOT.items():

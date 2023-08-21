@@ -3,7 +3,7 @@
 _DESCRIPTION = """
 Template to write your model. This can be written with markdown formalism. 
 
-* **Name :**
+
 * **Article :** 
 * **Author  :** 
 * **Coder   :** 

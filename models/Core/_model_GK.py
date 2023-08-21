@@ -7,19 +7,11 @@ _DESCRIPTION = """
 * **Coder   :** Paul Valcke
 
 ## Description
-It takes carbon emissions as an input, and let them evolves in three layers ( upper ocean, lower ocean, atmosphere)
-The atmosphere concentration is driving radiative forcing, changing temperature of atmosphere
-Atmosphere is changing its temperature and exchanging energy with ocean
+A Goodwin model with possibility of reducing consumption to increase investment.
+It verifies Say's law and generate private debt. 
+Converging equilibrium and possibility of Debt-Crisis
 
-Should be called in an economic model. Typically: 
-* Input as "Emission"
-* Output as "T"
-
-The Philips and the Kappa parameter functions are here affine
-
-TODO:
-* 
-* 
+The Philips and the Kappa parameter functions are here respectively diverging and exponential
 """
 
 import numpy as np
@@ -57,8 +49,13 @@ _LOGICS= {
 
         'inflation' :{'func': lambda c,p, eta,mu : eta*(mu*c/p -1) },
         
-        'kappa'     :{'func': lambda pi, k0, k1: k0 + k1 * pi},
-        'phillips'  :{'func': lambda employment, philinConst, philinSlope: philinConst + philinSlope * employment,},    
+        # Divergent Phillips, exponential kappa
+        'kappa'     :{'func': lambda pi, k0, k1,k2: k0 + k1 *np.exp(k2*pi)},
+        'phillips'  :{'func': lambda employment, phi0,phi1: -phi0+phi1/(1-employment)**2,},
+
+        # Affine for both
+        #'kappa'     :{'func': lambda pi, k0, k1: k0 + k1 * pi},
+        #'phillips'  :{'func': lambda employment, philinConst, philinSlope: philinConst + philinSlope * employment,},    
     },
 
     'parameter': {
@@ -68,86 +65,145 @@ _LOGICS= {
     'size': {},
 }
 
+def ThreeDynamics(hub):
+    """Draw three qualitatively different Dynamical phase-space associated with a Goodwin-Keen"""
+    for preset in ['default','debtcrisis','debtstabilisation']:
+        hub.set_preset(preset,verb=False)
+        hub.run(verb=False)
+        hub.plot_preset('debtstabilisation')
 
-_SUPPLEMENTS = {}
+_SUPPLEMENTS = {'ThreeDynamics':ThreeDynamics}
 _PRESETS = {
     'default': {
         'fields': {
             'alpha': 0.01019082,
             'n':  0.01568283,
-            'philinConst': -0.5768167,
-            'philinSlope':     0.624795,
-            'k0':    -0.0419826,
-            'k1':     0.9851812,
+
+            'k0' :      -0.0065   ,                  
+            'k1' :       0.006737946999085467   ,    
+            'k2' :       20              ,         
+            'phinull' :  0.1   ,   
+
             'nu':      3.844391,
             'r':     0.02083975,
             'delta': 0.04054871,
-            'Delta':  0.2780477,
 
-            'omega':  0.6900101,
-            'employment': 0.9383604 ,
-            'debt': 0.5282786 ,
-            'eta':0,
+            'eta':0.1,
             'dt': 0.01,
 
             'a': 1,
             'N': 1,
-            'K': 0.9383604 * 3.844391,
+            'K': 3.607,
             'D': 0,
-            'w': .5*1.2,
+            'w': .7,
+
+            'Tmax':50,
         },
-        'com': 'Basic',
-        'plots': {'XYZ': [{'x': 'employment',
+        'com': 'Convergence to equilibrium',
+        'plots': {'XY': [{'x': 'employment',
+                        'y': 'omega',
+                        'color': 'd',
+                        'idx': 0,
+                        'title': ''}],
+                 'XYZ': [{'x': 'employment',
                         'y': 'omega',
                         'z': 'd',
                         'color': 'time',
                         'idx': 0,
                         'title': ''}],
-                'plotbyunits': [],
-                'plotnyaxis': [{'x': 'time',
+                'byunits': [{'title':'plot by units'}],
+                'nyaxis': [{'x': 'time',
                         'y': [['employment', 'omega'],
                                 ['d'],['pi','kappa'],['inflation']
                                 ],
                             'idx':0,
                             'title':'',
                             'lw':1}],
+                'Onevariable':[{'key':'employment', 
+                            'mode':'cycles', 
+                            'log':False,
+                            'idx':0, 
+                            'Region':0, 
+                            'tini':False, 
+                            'tend':False, 
+                            'title':''}]
         },
     },
-}
-"""
-    'default': {
-        'fields': {
-            'k0':-.2,
-            'k1':1.2,
-            'eta':0,
+    'debtcrisis':{'fields': {
+            'alpha': 0.01019082,
+            'n':  0.01568283,
+
+            'k0' :      -0.0065   ,                  
+            'k1' :       0.006737946999085467   ,    
+            'k2' :       20              ,         
+            'phinull' :  0.1   ,   
+
+            'nu':      3.844391,
+            'r':     0.02083975,
+            'delta': 0.04054871,
+
+            'eta':0.,
             'dt': 0.01,
+
             'a': 1,
             'N': 1,
-            'K': 2.9,
+            'K': 3.07,
             'D': 0,
-            'w': .5*1.2,
-            'alpha': 0.02,
-            'n': 0.025,
-            'nu': 3,
-            'delta': .005,
-            'phinull': 0.1,
-            'alpha': 0.02,
-            'Delta': 0,
+            'w': .7,
+
+            'Tmax':50,
         },
-        'com': 'Basic',
-        'plots': {'XYZ': [{'x': 'employment',
+        'com': 'Path toward infinite relative debt',
+        'plots': {
+                 'XYZ': [{'x': 'employment',
                         'y': 'omega',
                         'z': 'd',
                         'color': 'time',
                         'idx': 0,
                         'title': ''}],
-                 'plotbyunits': [],
-                 'plotnyaxis': [{'x': 'time',
-                           'y': [['employment', 'omega'],
-                                 ['d'],['pi','kappa'],['inflation']
-                                 ],
+                'nyaxis': [{'x': 'time',
+                        'y': [['employment', 'omega'],
+                                ['d'],['pi','kappa'],['inflation']
+                                ],
                             'idx':0,
                             'title':'',
                             'lw':1}],
+}
+    },
+    'debtstabilisation': {
+        'fields': {
+            'alpha': 0.01019082,
+            'n':  0.01568283,
+
+            'k0' :      -0.0065   ,                  
+            'k1' :       0.003737946999085467   ,    
+            'k2' :       20              ,         
+            'phinull' :  0.1   ,   
+
+            'nu':      3.844391,
+            'r':     0.02083975,
+            'delta': 0.04054871,
+
+            'eta':0.01,
+            'mu':1.5,
+            'dt': 0.01,
+
+            'a': 1,
+            'N': 1,
+            'K': 3.307,
+            'D': 0,
+            'w': .7,
+
+            'dt':0.05,
+            'Tmax':300,
         },
-"""
+        'com': 'Stabilization through excess of debt',
+        'plots': {'XYZ': [{'x': 'employment',
+                        'y': 'omega',
+                        'z': 'd',
+                        'color': 'time',
+                        'idx': 0,
+                        'title': 'Goodwin-Keen phase-space dynamics'}],
+        },
+    },
+}

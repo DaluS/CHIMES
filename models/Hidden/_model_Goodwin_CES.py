@@ -47,7 +47,7 @@ _CES_LOGICS = {
             'size': ['Nprod'],
         },
         'l': {
-            'func': lambda omegacarac, CESexp: np.maximum((omegacarac**(-CESexp/(1+CESexp)) - 1)**(1/CESexp),0),
+            'func': lambda omegacarac, CESexp: np.maximum((omegacarac**(-CESexp/(1+CESexp)) - 1)**(1/CESexp),0.5),
             'com': 'impact of elasticity on real employment',
             'size': ['Nprod'],
         },

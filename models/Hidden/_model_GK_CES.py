@@ -1,29 +1,24 @@
+"""Goodwin-Keen CES model"""
+
+_DESCRIPTION ="""
+* **Article :** Batisdas []
+* **Author  :** []
+* **Coder   :** Paul Valcke
+
+This is a small modificaiton of Goodwin : the Leontiev optimised function has been
+replaced by a CES (its generalisation).
+It closes the phase-space on omeg
 
 """
-DESCRIPTION :
+################# IMPORTS ##################################################
+import numpy as np #(if you need exponential, pi, log, of matrix products...)
+from pygemmes._models import Funcs, importmodel,mergemodel,filldimensions
+from pygemmes._models import Operators as O
 
-    This is a small modificaiton of Goodwin : the Leontiev optimised function has been
-    replaced by a CES (its generalisation). We
-
-LINKTOARTICLE: Nothing has been published
-
-Created on Wed Jul 21 15:11:15 2021
-@author: Paul Valcke
-"""
-
-
-import numpy as np
-from pygemmes._models import Funcs
-
-# ----------------------------------------------------------------------------
-# We simply do a few modifications on a previous model : we load it as a basis
-from pygemmes._models._model_GK import _LOGICS as _LOGICS0
-from copy import deepcopy
-_LOGICS = deepcopy(_LOGICS0)
-
+_LOGICS_GK,_PRESETS0,_SUPPLEMENTS= importmodel('GK')
 
 # We write the fields we want to add/modify
-_CES_LOGICS = {
+_LOGICS_CES = {
     'statevar': {
         # Characteristics of a CES
         'cesLcarac': Funcs.ProductionWorkers.cesLcarac,
@@ -40,11 +35,7 @@ _CES_LOGICS = {
     },
 }
 
-# We add them explicitely
-for category, dic in _CES_LOGICS.items():
-    for k, v in dic.items():
-        _LOGICS[category][k] = v
-
+_LOGICS = mergemodel(_LOGICS_GK, _LOGICS_CES, verb=False)
 
 # ---------------------------
 # List of presets for specific interesting simulations

@@ -1,4 +1,3 @@
-
 '''Goodwin model: Stock-flow consistency core '''
 
 _DESCRIPTION = """
@@ -14,6 +13,7 @@ This is a basic Goodwin model :
     * Salary-Profit through Philips curve
     * No money, no inflation
     * No loan possibility
+    * Affine Phillips curve
 
 The interesting things :
     * growth is an emergent property

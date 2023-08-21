@@ -1,12 +1,11 @@
 """Human-Capital Instability: Causal core"""
 
 _DESCRIPTION ="""
-# Human-Capital Instability: Causal core
+* **Article :** https://www.overleaf.com/read/bczdyhfqrdgh
+* **Author  :** Paul Valcke 
+* **Coder   :** Paul Valcke
 
 Model as presented in "H-C instability".
-It can be found with its full description in https://www.overleaf.com/read/bczdyhfqrdgh
-
-## Short description
 
 Two sector (production, consolidated households), with physical (V,K) and nominal (D,Dh) stock-flow (Y,C,I) consistency. 
 
@@ -15,7 +14,9 @@ Behavior:
 * investment proportional to post-dividends profits
 * Wage through employment Philipps curve
 
-
+**TODO:**
+* Presets, presets, presets
+* Add endogenisation
 """
 
 
@@ -72,8 +73,8 @@ _LOGICS= {
         'mu': {'func': lambda p,c: p/c},
         'GDPn': {'func': lambda p,Y,Gamma: p*Y*(1-Gamma)},
         'GDP': {'func': lambda Y,Gamma: Y*(1-Gamma)},
-        'omegaeq': {'func': lambda Gamma,nu,delta,Xi,alpha,n,Delta: 1-Gamma-nu*Xi*delta-nu*Xi*(alpha+n)/(1-Delta),
-                  'symbol':r'$\omega_{eq}$'},
+        #'omegaeq': {'func': lambda Gamma,nu,delta,Xi,alpha,n,Delta: 1-Gamma-nu*Xi*delta-nu*Xi*(alpha+n)/(1-Delta),
+        #          'symbol':r'$\omega_{eq}$'},
     },
 
     'parameter': {
