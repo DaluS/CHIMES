@@ -825,7 +825,7 @@ class Hub():
            self,
            NtimeOutput=False,
            NstepsInput=False,
-           verb=True,
+           verb=0.1,
            ComputeStatevarEnd=False
     ):
        """

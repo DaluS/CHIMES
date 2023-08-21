@@ -31,8 +31,8 @@ def _run_verb_check(
         flush = False
         timewait = False
     elif type(verb) is float:   # if timewait is a float, then it is the
-        end = '\n'              # delta of real time between print
-        flush = False
+        end = '\r'              # delta of real time between print
+        flush = True
         timewait = True         # we will check real time between iterations
     else:
         timewait = False
