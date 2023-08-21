@@ -260,6 +260,8 @@ def get_available_operators():
 
 def importmodel(name : str,
                 from_user=False):
+    print('IMPORT MIGHT HAVE ISSUES')
+
     # FIND THE PATH TO MODELS
     if from_user is True and _PATH_PRIVATE_MODELS is not None:
         path_models = _PATH_PRIVATE_MODELS
@@ -283,7 +285,7 @@ def importmodel(name : str,
 
     return deepcopy({k0: dict(v0) for k0, v0 in foo._LOGICS.items()}),\
            deepcopy({k0: dict(v0) for k0, v0 in foo._PRESETS.items()}),\
-           deepcopy({k0: dict(v0) for k0, v0 in foo._SUPPLEMENTS.items()})
+           {}#deepcopy({k0: dict(v0) for k0, v0 in foo._SUPPLEMENTS.items()})
 
 
 def mergemodel(Recipient,dictoadd,override=True,verb=False):

@@ -1,14 +1,15 @@
 """GEMMES 2018 : GK + Climate """
 
 _DESCRIPTION ="""
-ABSTRACT : This is the model Coping from Bovari 2018: Coping with Collapse: A Stock-Flow Consistent Monetary Macrodynamics of Glabal Warming
-TYPICAL BEHAVIOR : BAU and TRANSITION converges toward the good equilibrium, BAU_DAM toward the bad.
-LINKTOARTICLE : DOI: 10.1016/j.ecolecon.2018.01.034
-@author: Hugo A. MARTIN, Paul VALCKE
+* **Date    :** 2023/08/21
+* **Article :** DOI: 10.1016/j.ecolecon.2018.01.034
+* **Author  :** Bovari, McIsaac
+* **Coder   :** Hugo A. MARTIN, Paul VALCKE
 
-TODO:
- - regler l'inflation pour qu'elle soit comme Coping 2. ACTUELLEMENT PHILIPS SANS INFLATION
- - verefier unite
+This is the model Coping from Bovari 2018: Coping with Collapse: A Stock-Flow Consistent Monetary Macrodynamics of Glabal Warming.
+Its is a combination between a Goodwin-Keen model, damage functions, climate model, and 
+BAU and TRANSITION converges toward the good equilibrium, BAU_DAM toward the bad.
+
 """
 
 # ######################## PRELIMINARY ELEMENTS #########################

@@ -1,18 +1,12 @@
+"""Movement synchronization"""
 
+_DESCRIPTION=
 """
-This is a collective movement agent-based model : https://en.wikipedia.org/wiki/Vicsek_model
 
-Try :
-```
-hub=pgm.Hub('Agents_Vicsek','default')
-hub.run()
-R=hub.get_dparam()
-coord = { k : R[k]['value'][:,0,0,:,0] for k in ['x','y'] }
-for i in range(100):
-    plt.plot(coord['x'][:,i],coord['y'][:,i])
-plt.axis('scaled')
-plt.show()
-```
+* **Name :** Vicsek Agent-Based dynamics
+* **Article :** https://en.wikipedia.org/wiki/Vicsek_model
+* **Author  :** 
+* **Coder   :** Paul Valcke
 """
 
 import numpy as np
@@ -115,21 +109,65 @@ _LOGICS = {
     },
 }
 
+####################################################
+def plotTrajectories(hub):
+    '''Plot of all trajectories'''
+    import matplotlib.pyplot as plt
+    R=hub.get_dparam()
+    coord = { k : R[k]['value'][:,0,0,:,0] for k in ['x','y'] }
 
+    for i in range(R['Nagents']['value']):
+        plt.plot(coord['x'][:,i],coord['y'][:,i])
+
+    plt.plot(coord['x'][0,:],coord['y'][0,:],'*',c='k')
+    plt.axis('scaled')
+    plt.show()
+_SUPPLEMENTS={'PlotTrajectories':plotTrajectories}
+
+####################################################
 _PRESETS = {
-    'default': {
+    'synchronisation': {
         'fields': {
             'Nagents':Nagents,
             'x':  X,
             'y': Y,
-            'noise':  10,
+            'noise':  1,
             'theta':  Z,
             'distscreen':  3,
             'v':  0.1,
         },
-        'com': (''),
+        'com': 'Agents are going to synchronize in one direction',
+        'plots': {},
+    },
+    'TooNoisy': {
+        'fields': {
+            'Nagents':Nagents,
+            'x':  X,
+            'y': Y,
+            'noise': 10,
+            'theta':  Z,
+            'distscreen':  3,
+            'v':  0.1,
+        },
+        'com': 'Agents cannot synchronize',
+        'plots': {},
+    },
+    'LowSync': {
+        'fields': {
+            'Nagents':Nagents,
+            'x':  X,
+            'y': Y,
+            'noise': 6,
+            'theta':  Z,
+            'distscreen':  3,
+            'v':  0.1,
+            'Tmax':300
+        },
+        'com': 'Agents cannot synchronize',
         'plots': {},
     },
 }
+
+
 # Check size consistent in operations
 # If only one dimension, transform string into list

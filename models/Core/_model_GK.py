@@ -2,6 +2,7 @@
 """Goodwin-Keen model: debt dynamics with residual consumption"""
 
 _DESCRIPTION = """
+* **Date    :** 2023/08/21
 * **Article :** 
 * **Author  :** Steve Keen
 * **Coder   :** Paul Valcke
@@ -12,6 +13,8 @@ It verifies Say's law and generate private debt.
 Converging equilibrium and possibility of Debt-Crisis
 
 The Philips and the Kappa parameter functions are here respectively diverging and exponential
+
+
 """
 
 import numpy as np

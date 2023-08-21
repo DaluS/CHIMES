@@ -1,20 +1,19 @@
+'''Lorenz Chaotic Attractor: Butterfly effect!'''
+
+
+_DESCRIPTION = """
+* **Date    :** 2023/08/21
+* **Article :** https://en.wikipedia.org/wiki/Lorenz_system
+* **Author  :** Edward Lorenz
+* **Coder   :** Paul Valcke
+
+Solving the famous 3-coupled ordinary differential system. Canonical case has the two equilibrium with the strange attraction
 
 """
-DESCRIPTION :
-@author: Paul Valcke
-"""
 
-import numpy as np
-
-# ---------------------------
-# user-defined function order (optional)
-_FUNC_ORDER = None
-
-
-# ---------------------------
-# user-defined model
-# contains parameters and functions of various types
-
+# ######################## PRELIMINARY ELEMENTS #########################
+import numpy as np #(if you need exponential, pi, log, of matrix products...)
+from pygemmes._models import Funcs, importmodel,mergemodel
 
 _LOGICS = {
     'differential': {
@@ -50,6 +49,7 @@ _LOGICS = {
     'size': {},
 }
 
+_SUPPLEMENTS={}
 
 # ---------------------------
 # List of presets for specific interesting simulations
@@ -67,16 +67,16 @@ _PRESETS = {
                     'y': 'y',
                     'z': 'z',
                     'color': 'time',
-                    'cmap': 'jet',
-                    'index': 0,
+                    #'cmap': 'jet',
+                    'idx': 0,
                     'title': 'Lorenz 3-dimension strange attractor'}],
-                'XY': [{
-                    'y': [['y'],['x','z']],
-                    'color': 'time',
-                    'cmap': 'jet',
-                    'index': 0,
+                'nyaxis': [{
+                    'x':'time',
+                    'y': [['y'],
+                          ['x','z']],
+                    #'cmap': 'jet',
+                    'idx': 0,
                     'title': 'Multiple axis plot'}],
-                'plotnyaxis': [{''}]
                 },
     },
 }
