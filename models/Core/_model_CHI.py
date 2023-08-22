@@ -29,11 +29,15 @@ employment0= 0.88277812
 omega0     = 0.4969697
 pieq       = 0.15151515
 
+
+__KEENLIKE = True
+__KAPPACDrive = False
 _LOGICS= {
     'differential': {
         'K': {'func': lambda K, I, delta: I-delta*K},
         'V': {'func': lambda Y, Gamma, C, Xi, I: Y-Gamma*Y-C-Xi*I},
-        'D': {'func': lambda r,D,w,L,Delta,Pi,C,p: r*D+w*L+Delta*Pi-C*p},
+        'D': {'func': lambda r,D,w,L,Delta,Pi,C,p: r*D+w*L+Delta*Pi-C*p,
+              'initial':0},
         'Dh':{'func': lambda r,D,w,L,Delta,Pi,C,p:-r*D-w*L-Delta*Pi+C*p},
         'p' :{'func': lambda p,inflation: p*inflation},
         'a': {'func': lambda a,alpha    : a*alpha ,
@@ -93,12 +97,46 @@ _LOGICS= {
         'Xi'        : {'value': 1},
         'kappaC'    : {'value': 1},
         'kappaI'    : {'value': 1},
-        'D'         : {'value': 0},
 
 
     },
     'size': {},
 }
+
+
+#### FORCE THE SYSTEM TO ENDOGENIZE ####################################
+if  (__KEENLIKE and  __KAPPACDrive):
+    raise Exception('CHI cannot Be Keenlike and KappacDrive at the same time !')
+if __KEENLIKE:
+    del _LOGICS['differential']['V']  
+    del _LOGICS['parameter']['kappaC']
+    _LOGICS['statevar']['C']  = {'func': lambda Y,Gamma,I: Y*(1-Gamma)-I,
+                                 'com': "KEENLINKE OVERRIDE"}
+    _LOGICS['statevar']['Cn'] = {'func': lambda C,p: C*p,
+                                 'com': "KEENLINKE OVERRIDE"}
+    
+    _LOGICS['statevar']['kappaC'] = {'func': lambda W,Cn: Cn/W ,
+                                 'com': "KEENLINKE OVERRIDE"}
+if __KAPPACDrive:
+    del _LOGICS['differential']['V']  
+    del _LOGICS['parameter']['kappaI']
+    _LOGICS['statevar']['I']  = {'func': lambda Y,Gamma,C: Y*(1-Gamma)-C,
+                                 'com': "KappC OVERRIDE"}
+    _LOGICS['statevar']['In'] = {'func': lambda I,p: I*p,
+                                 'com': "KappC OVERRIDE"}
+    _LOGICS['statevar']['kappaI'] = {'func':  lambda p,delta,Xi,K,Delta,In,Pi :(In-p*delta*Xi*K)/( (1-Delta)*Pi ),
+                                 'com': "KappC OVERRIDE"}
+    
+#if __PHILLIPSPROFITS:
+
+
+#if __CES:
+
+
+#if __EndoVidends:
+
+#########################################################################
+
 
 ###########################################
 def equilibriumpost(hub,ftype='divergent'):
@@ -150,9 +188,28 @@ _PRESETS = {
             'D'         :  0,
         },
         'com': 'Goodwin-like behavior',
-        'plots': {'XY': [],
-                'plotbyunits': [],
-                'plotnyaxis': [],
+        'plots': {'XYZ': [{'x': 'employment',
+                        'y': 'omega',
+                        'z': 'd',
+                        'color': 'time',
+                        'idx': 0,
+                        'title': ''}],
+                'byunits': [{'title':'plot by units'}],
+                'nyaxis': [{'x': 'time',
+                        'y': [['employment', 'omega'],
+                                ['d'],['pi','kappa'],['inflation']
+                                ],
+                            'idx':0,
+                            'title':'',
+                            'lw':1}],
+                'Onevariable':[{'key':'employment', 
+                            'mode':'cycles', 
+                            'log':False,
+                            'idx':0, 
+                            'Region':0, 
+                            'tini':False, 
+                            'tend':False, 
+                            'title':''}]
         },
     },
 }

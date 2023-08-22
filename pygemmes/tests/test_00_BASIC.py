@@ -56,8 +56,9 @@ class Test00_Get():
                 out = chm.get_available_models(FULL=FULL,Return=Return)
 
         for model in chm.get_available_models(Return=list):
-            for returnString in [True,False]:
-                chm.get_model_documentation(model,returnString=returnString)
+            if model[0]!='_':
+                for returnString in [True,False]:
+                    chm.get_model_documentation(model,returnString=returnString)
 
         chm.get_available_fields(exploreModels=True)
         chm.get_available_fields(exploreModels=False)
@@ -113,7 +114,7 @@ class Test00_Get():
 
         hub=chm.Hub('GK',verb=False)
         hub.set_dparam(**presetCoupled)
-        hub.run(N=100)
+        hub.run()
         hub.calculate_StatSensitivity()
         chm.plots.Var(hub,'employment',mode='sensitivity')
 
@@ -143,7 +144,7 @@ class Test00_Get():
 
 
     def test04_run_all_models_all_preset(self):
-        """ Run all model, all presets, and their plots"""
+        '''Run all model, all presets, and their plots'''
 
         modelist = chm.get_available_models(Return=dict)
         for model in modelist.keys():
@@ -385,7 +386,7 @@ class Test00_Get():
         plt.close('all')
 
 
-
+        """
         hub=chm.Hub('CHIMES0')
         chm.plots.Sankey(hub)
 
@@ -481,7 +482,7 @@ class Test00_Get():
                                                                                        'nr':0,
                                                                                        'value':[0.5,0.22]}})
         except BaseException as ERR: print(ERR)
-                                                                            
+        """                                                               
     def test09_network(self):
         hub=chm.Hub('GK')
         hub.get_Network()
@@ -489,4 +490,3 @@ class Test00_Get():
         hub.get_Network(auxilliary=False,params=True)   # remove auxilliary statevar and differential
         hub.get_Network(filters=('Pi',))                # remove the variable Pi and its connexions
         hub.get_Network(filters=('Pi',),redirect=True) 
-

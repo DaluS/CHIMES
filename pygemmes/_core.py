@@ -9,6 +9,7 @@ import pandas as pd
 from ._config import _FROM_USER
 from ._config import _DEFAULTSIZE
 from ._config import _VERB
+from ._config import _SOLVER
 from ._utilities import _utils, _class_check, _class_utility, _cn
 from ._utilities import _class_set
 from ._utilities import _Network
@@ -826,10 +827,11 @@ class Hub():
            NtimeOutput=False,
            NstepsInput=False,
            verb=0.1,
-           ComputeStatevarEnd=False
+           ComputeStatevarEnd=False,
+           solver=_SOLVER
     ):
        """
-Run the simulation using an RK4. Compute each time step from the previous one using:
+Run the simulation using an RK4 (by default, can be). Compute each time step from the previous one using:
 - parameters
 - differentials (ode)
 - intermediary functions in specified func_order   
@@ -843,7 +845,8 @@ Run the simulation using an RK4. Compute each time step from the previous one us
 ## NtimeOutput will reinterpolate the simulation on the given number. Useful if you need small timestep for simulation but do not want to keep the details 
 
        """
-
+       if solver not in ['rk1','rk4']:
+           raise Exception(f'solver name {solver} unknown ! Try rk1 or rk4')
 
        if NstepsInput:
             print(self.dparam['Tmax']['value']/NstepsInput)
@@ -863,7 +866,8 @@ Run the simulation using an RK4. Compute each time step from the previous one us
                dmisc=self.__dmisc,
                #dargs=self.__dargs,
                dverb=dverb,
-               ComputeStatevarEnd=ComputeStatevarEnd
+               ComputeStatevarEnd=ComputeStatevarEnd,
+               solver=solver
            )
            self.__dmisc['run'] = True
            self.__dmisc['solver'] = solver
