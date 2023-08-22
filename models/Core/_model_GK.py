@@ -30,7 +30,7 @@ _LOGICS= {
         'w': {'func': lambda w,phillips : w*phillips },
         'p': {'func': lambda p,inflation: p*inflation },
         'D': {'func': lambda w,L,C,r,D,p,Pi,Delta: r*D + w*L - p*C + Pi*Delta },
-        'Dh':{'func': lambda w,L,C,r,D,p,Pi,Delta:-r*D - w*L + p*C - Pi*Delta},
+        'Dh':{'func': lambda w,L,C,r,D,p,Pi,Delta:-r*D - w*L + p*C - Pi*Delta },
     },
 
     'statevar': {

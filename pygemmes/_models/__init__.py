@@ -80,6 +80,10 @@ def _get_DMODEL(model=False,
         ### ADD Long Description 
         try : _DMODEL[v0]['longDescription']= foo._DESCRIPTION
         except BaseException: _DMODEL[v0]['longDescription']= foo.__doc__
+
+        ### ADD UNITS 
+        try : _DMODEL[v0]['Units']=foo._UNITS
+        except BaseException: _DMODEL[v0]['units']=[]
         #except BaseException as Err:
         #    print(f'''Model {v0} could not be loaded from folder {k0} ! \n you might have a commma "," at the end of one of your dictionnaries. Error message :\n {Err}\n''')
     return path_models, _DMODEL

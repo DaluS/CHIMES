@@ -11,7 +11,6 @@ ABSTRACT: This is a 3 sector model : bank, household, and production.
 * Everything is stock-flow consistent, but capital is not created by real products
 * The model is driven by offer
 * Negociation by philips is impacted by the profit
-* Loans from banks are limited by solvability
 TYPICAL BEHAVIOR : convergent oscillation around a solow point / debt crisis
 
 Created on Wed Jul 21 15:11:15 2021

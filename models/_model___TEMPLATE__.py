@@ -3,10 +3,10 @@
 _DESCRIPTION = """
 Template to write your model. This can be written with markdown formalism. 
 
-
 * **Article :** 
 * **Author  :** 
 * **Coder   :** 
+* **Date    :**
 
 * **Supplements description :** 
 
@@ -19,6 +19,7 @@ from pygemmes._models import Funcs, importmodel,mergemodel,filldimensions
 from pygemmes._models import Operators as O
 
 ################## ALL THE NEW FIELDS LOGICS ###############################
+_UNITS = []
 _LOGICS = { 'size'        : {},
             'differential': {},
             'statevar'    : {},
@@ -36,7 +37,7 @@ _LOGICS = { 'size'        : {},
 
 ################## MODELS YOU WANT TO MERGE THE NEW LOGICS INTO ############
 
-#_LOGICS_GOODWIN,_PRESETS0= importmodel('Goodwin')
+#_LOGICS_GOODWIN,_PRESETS0,_SUPPLEMENTS= importmodel('Goodwin')
 #_LOGICS = mergemodel(_LOGICS, _LOGICS_GOODWIN, verb=False) 
 
 ################## ADDING DIMENSIONS TO VARIABLES IF NOT DONE BEFORE #######
