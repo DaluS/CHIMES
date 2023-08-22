@@ -51,12 +51,12 @@ def solve(
         if dverb['verb'] > 0: t0 = _class_check._print_or_wait(ii=ii, nt=dparam['nt']['value'], t0=t0, **dverb)
 
         # compute ode variables from ii-1, using solver
-        if solver is 'rk4':
-            y,state = _rk4( dydt_func=dydt_func,
+        if solver=='rk1':
+            y,state = _rk1( dydt_func=dydt_func,
                             dt=dparam['dt']['value'],
                             y=y,)
         else:
-            y,state = _rk1( dydt_func=dydt_func,
+            y,state = _rk4( dydt_func=dydt_func,
                             dt=dparam['dt']['value'],
                             y=y,)
         # dispatch to store result of ode
