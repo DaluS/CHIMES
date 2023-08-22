@@ -250,6 +250,7 @@ def get_available_functions():
         it = 0
         _printsubgroupe(sub, it)
 
+
 def get_available_operators():
     '''
     Gives all non-trivial operators, typically to create a model with multiple regions, or multiple sectors'''
@@ -261,6 +262,7 @@ def get_available_operators():
             #print(F[0],F[1].__doc__)
             dict[F[0]]={'documentation':F[1].__doc__,'function':inspect.getsource(F[1]).split('return')[1][:-1]}
     return pd.DataFrame(dict).transpose()
+
 
 def importmodel(name : str,
                 from_user=False):
@@ -328,7 +330,6 @@ def mergemodel(Recipient,dictoadd,override=True,verb=False):
             else: ### IF FIELD DOES NOT
                 Recipient[category][k] = v
     return Recipient
-
 
 
 def filldimensions(_LOGICS,Dimensions,DIM=False):

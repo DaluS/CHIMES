@@ -59,6 +59,7 @@ _LEQTYPES = ['differential',  # Every differentially defined variables (PDE, ODE
              'size'           # Size of tensors, special type parrameter
              ]
 
+_SOLVER = 'rk4'
 # ######################### DPARAM CONTENT ####################################
 # POSSIBLE KEYS IN DPARAM
 _LEXTRAKEYS = [
