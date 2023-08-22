@@ -5,3 +5,4 @@ pyvis
 matplotlib
 pandas
 plotly
+pylatexenc
