@@ -71,11 +71,11 @@ class Interface:
                     'function':ShowUse_event,
                     'tooltip': '',
                     },
-                  'Models' : {
+                  'Models list' : {
                     'function':ShowModels_event,
                     'tooltip': 'All models available in the system',
                     }, 
-                  'Plots'     : {
+                  'Plots list'     : {
                     'function':ShowPlots_event,
                     'tooltip': 'All existing plots for simulations',
                     },
@@ -83,15 +83,15 @@ class Interface:
                     'function':ShowWriting_event,
                     'tooltip': 'Guide on how you can write your own models',
                     },
-                  'Fields'    : {
+                  'Fields list'    : {
                     'function':ShowFields_event,
                     'tooltip': 'All quantities covered by models',
                     },
-                  'Operators'    : {
+                  'Operators list'    : {
                     'function':ShowWoperators_event,
                     'tooltip': 'All Multi-regional, multi-sector, multi-agent operators',
                     },
-                  'Functions'    : {
+                  'Functions list'    : {
                     'function':ShowFunctions_event,
                     'tooltip': 'Show all explicit functions with their doc',
                     },
@@ -102,7 +102,8 @@ class Interface:
         }
         Buttons2 = {b : widgets.Button(description=b,
                                        style=self.PARAMS['style'],
-                                       button_style='primary') for b in Bnames2.keys() }
+                                       #button_style='primary'
+                                       ) for b in Bnames2.keys() }
         for b in Bnames2.keys(): Buttons2[b].on_click( Bnames2[b]['function'])    
         return widgets.VBox([widgets.HBox(list(Buttons2.values())),
                              ShowOut])
@@ -127,9 +128,10 @@ class Interface:
         def createhub_event(obj):
             with LoadOut:
                 try:
-                    self.hub= self.Hub0
-                except BaseException:
-                    print('select a model')        
+                    self.hub= Hub(Buttons3['Model'].value,preset=Buttons3['Preset'].value)
+                except BaseException as E:
+                    print('select a model ')   
+                    print(E)     
 
         @clear_output_decorator2
         def clear(obj):
@@ -148,9 +150,10 @@ class Interface:
                     'tooltip': 'Load selected model and preset'
                    }
         }
+        print([None]+list(self.PARAMS['FULL'].index))
         Dropnames={'Model':{
                     'value':None,#self.hub.dmodel['name'],
-                    'option':[None],#list(self.PARAMS['FULL'].index),
+                    'option':[None]+list(self.PARAMS['FULL'].index),
                     'tooltip':'Model to explore',
                     },
                    'Preset':{

@@ -266,13 +266,13 @@ def get_available_operators():
 
 def importmodel(name : str,
                 from_user=False):
-    print('IMPORTMODEL MIGHT HAVE ISSUES, BE CAREFUL')
+    '''
+    Will read a model file and import : _LOGICS, _PRESETS, _SUPPLEMENTS 
+    '''
 
     # FIND THE PATH TO MODELS
-    if from_user is True and _PATH_PRIVATE_MODELS is not None:
-        path_models = _PATH_PRIVATE_MODELS
-    else:
-        path_models = _PATH_MODELS
+    if from_user is True and _PATH_PRIVATE_MODELS is not None: path_models = _PATH_PRIVATE_MODELS
+    else:        path_models = _PATH_MODELS
 
     ### FIND THE ADRESSES
     for root, dir, files in os.walk(path_models):
@@ -289,9 +289,14 @@ def importmodel(name : str,
     foo = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(foo)
 
+    try: 
+        supp = {k0: v0 for k0, v0 in foo._SUPPLEMENTS.items()}
+    except BaseException:
+        supp= {}
+
     return deepcopy({k0: dict(v0) for k0, v0 in foo._LOGICS.items()}),\
-           deepcopy({k0: dict(v0) for k0, v0 in foo._PRESETS.items()}),\
-           {}#deepcopy({k0: dict(v0) for k0, v0 in foo._SUPPLEMENTS.items()})
+            deepcopy({k0: dict(v0) for k0, v0 in foo._PRESETS.items()}),\
+            deepcopy(supp)
 
 
 def mergemodel(Recipient,dictoadd,override=True,verb=False):
@@ -306,15 +311,39 @@ def mergemodel(Recipient,dictoadd,override=True,verb=False):
     Recipient is _LOGICS that you want to fill
     dicttoadd contains the new elements you want
     '''
-    #verb=False
-    ### Category of the variable in a dict
-    keyvars = { k:v.keys() for k,v in Recipient.items() }
+    
+    print('MERGE MIGH NOT WORK AS INTENDED')
+    
+    #print(dictoadd)
+    
+    ### EXPLORING WHAT IS ON THE MODEL WE USE AS A BASE
     typ= {}
-    for k,v in keyvars.items():
+    for k,v in { k:v.keys() for k,v in Recipient.items() }.items():
         for vv in v :
-            typ[vv]=k        
-
-
+            typ[vv]=k
+            
+    ### SAME THING ON THE OTHER DICTIONNARY 
+    typ2= {}
+    for k,v in { k:v.keys() for k,v in dictoadd.items() }.items():
+        for vv in v :
+            typ2[vv]=k      
+            
+    ### MERGING: 
+    for k,v in typ2.items():
+        if k not in typ.keys():
+            Recipient[typ2[k]][k]=dictoadd[typ2[k]][k]
+            #print(k,'added !')
+        else:
+            if override:
+                if verb:
+                    print('Overriding', k)
+                del Recipient[typ[k]][k]
+                Recipient[typ2[k]][k]=dictoadd[typ2[k]][k]
+            else: 
+                print(f'The variable {k} is already in the system')
+                print(f'original definition:\n type :{typ[k]}, function: {Recipient[typ[k]][k]}')
+                print(f'new : {typ2[k]}, func: {dictoadd[typ2[k]][k]}')
+    '''
     ### Merging dictionnaries
     for category, dic in dictoadd.items(): ### LOOP ON [SECTOR SIZE,ODE,STATEVAR,PARAMETERS]
         for k, v in dic.items(): ### LOOP ON THE FIELDS
@@ -329,6 +358,7 @@ def mergemodel(Recipient,dictoadd,override=True,verb=False):
                 #elif verb : print(f'Keeping old definition {category} variable {k}. Previous :{Recipient[category][k]} \n {v}')
             else: ### IF FIELD DOES NOT
                 Recipient[category][k] = v
+    '''
     return Recipient
 
 
