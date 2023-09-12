@@ -1,5 +1,7 @@
 # built-in
 import copy
+import os 
+import dill as pickle
 
 # Common
 import numpy as np
@@ -10,6 +12,7 @@ from ._config import _FROM_USER
 from ._config import _DEFAULTSIZE
 from ._config import _VERB
 from ._config import _SOLVER
+from ._config import _SAVE_FOLDER
 from ._utilities import _utils, _class_check, _class_utility, _cn
 from ._utilities import _class_set
 from ._utilities import _Network
@@ -53,8 +56,6 @@ class Hub():
         verb=_VERB,
     ):
         from_user = False 
-
-
 
 
         
@@ -734,6 +735,8 @@ class Hub():
     # ##############################
     # %% Read-only properties
     # ##############################
+    
+    
     @property
     def dfunc_order(self):
        """ The ordered list of intermediary function names """
@@ -1638,4 +1641,43 @@ idx                : is the same for parrallel systems
         self.__dmisc['derivative'] = True
 
 
-# %%
+# %% SAVE AND LOAD 
+    def save(self,
+             name:str,
+             description='',
+             localsave=True,
+             verb=False):
+        '''
+        Save your hub as a .chm file for later use. It can be loaded with (chm.load(name))
+        
+        * name (string): file name, or path if you want to save it somewhere specific. You do not have to put the extension
+        * description (string): say a few thing about the run 
+        * localsave: if true, the run will be saved inside CHIMES save file
+        * verb: print the address
+        '''
+        
+        # Absolute path management
+        _PATH_HERE = os.path.abspath(os.path.dirname(__file__))
+        _PATH_SAVE = os.path.join(os.path.dirname(_PATH_HERE),_SAVE_FOLDER)
+        
+        # Extension management
+        if (name[-4:]!='.chm' and '.' not in name):
+            name=name+'.chm'
+        if name[-4:]=='.chm':
+            pass
+        elif '.' in name:
+            raise Exception(f"extension not understood :{name.split('.')[1]}, expected .chm or nothing")
+        
+        if localsave:
+            address=os.path.join(_PATH_SAVE,name)
+        else: 
+            address=name
+        # Saving
+        with open(address,'wb') as f:
+            if verb:
+                print('File will be saved as : ', address)
+                print('Associated description: ',description)
+            pickle.dump({'hub':self,
+                         'description':description},
+                        f)
+
