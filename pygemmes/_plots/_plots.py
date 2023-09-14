@@ -19,9 +19,15 @@ from matplotlib.patches import Rectangle
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib.gridspec import GridSpec
+
 import plotly.graph_objects as go
+import plotly.express as px
+import plotly.offline as pyo
+
 import pandas as pd
 import matplotlib as mpl
+
+from plotly.tools import mpl_to_plotly
 
 _LS = [
     (0, ()),
@@ -60,11 +66,42 @@ __all__ = [
     'Var',
     'cycles_characteristics',
     'repartition',
-    'convergence'
+    'convergence',
+    'Showsentivitity'
 ]
 
 # ############################################################################
 # ############## IMPORTANT PLOTS #############################################
+
+
+
+def Showsentivitity(OUT,vars,std=0.01):  
+    ''' 
+    Display how sensitive is the parameter value on a run 
+    ''' 
+    if type(vars)==str:
+        vars=[vars]
+    
+    Figures={}
+    
+    dic ={ }
+    for v in vars:
+        plt.figure(v)
+        dic[v]={}
+        for k,H in OUT.items():
+            R = H.get_dparam()
+            time=R['time']['value'][:,0,0,0,0]#(100, 10, 1, 1, 1)
+            dic[v][k] = go.Scatter(x=time, y=R[v]['sensitivity'][0]['']['stdv'], mode='lines', name=R.get(k,{'symbol':k})['symbol'])
+            
+            layout = go.Layout(
+                title=f"Sensitibility on variable {R[v]['symbol']} for a lognormal noise of 1%",
+                xaxis=dict(title='Time'),
+                yaxis=dict(title=f"Sensitivity on variable {R[v]['symbol']}"),
+                legend=dict(orientation='h'),
+            )
+            fig = go.Figure(data=list(dic[v].values()), layout=layout)
+        Figures[v]=pyo.iplot(fig)
+    return Figures
 
 def plotbyunits(hub,
                filters_key=(),
@@ -206,7 +243,7 @@ def plotbyunits(hub,
     plt.subplots_adjust(wspace=0.01, hspace=0)
     plt.suptitle(title)
     plt.show()
-
+    return fig
 
 def plotnyaxis(hub,  y=[[]],x='time', log=False, idx=0,Region=0,tini=False,tend=False, title='', lw=2,loc='best'):
     '''

@@ -66,7 +66,7 @@ _PRESETS = {
             'fields1':0,
             'fields2':0,
         },
-        'com': 'This is doing something ',
+        'com': 'EMPTY',
         'plots': {'Var': [{'key':'',
                            'mode':False, #sensitivity, cycles
                            'log':False,

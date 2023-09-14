@@ -6,3 +6,6 @@ matplotlib
 pandas
 plotly
 pylatexenc
+dill 
+ipywidgets
+itables

@@ -30,15 +30,16 @@ setup(
     author_email='pv229@georgetown.edu',
     url="https://environmentaljustice.georgetown.edu/#",
     packages=['CHIMES'],  #same as name
-    install_requires=['numpy',
-                      'scipy',
-                      'pyvis',
-                      'matplotlib',
-                      'pandas',
-                      'plotly',
-                      'ipywidgets',
-                      'itables',
-                      'ipympl',
-                      'pylatexenc'], #external packages as dependencies
+    install_requires=[  'numpy',
+                        'scipy',
+                        'pyvis',
+                        'matplotlib',
+                        'pandas',
+                        'plotly',
+                        'pylatexenc',
+                        'dill',
+                        'ipywidgets',
+                        'itables'
+                        ], #external packages as dependencies
 )
 

@@ -1,4 +1,3 @@
-
 """
 CHIMES:
 Core for Holistic Intertwined Models of Ecological Sustainability
@@ -22,6 +21,7 @@ from ._models import get_available_models, get_available_functions,get_model_doc
 from ._toolbox import *
 from ._core import Hub
 from . import _plots as plots
+from ._interface import Interface
 
 # MESSAGE LOGO ########################################
 from ._config import __PRINTINTRO

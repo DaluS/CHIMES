@@ -16,8 +16,8 @@ def _run_verb_check(
 ):
     # ------
     # verb
-    if verb is True:
-        verb = 1
+    if verb in [True,int]:
+        verb = 0.1
     if verb in [None, False]:
         verb = 0
 

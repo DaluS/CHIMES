@@ -7,6 +7,7 @@ ALL THE BASIC FIELDS THAT ONE MIGHT NEED
 import numpy as np
 import os
 
+
 # ################# LOGS AND PRINTS IN THE SYSTEM #############################
 _VERB = True        #! Print by default when actions are done
 __PRINTLOGO = False #! Print the logo
@@ -27,7 +28,7 @@ _FROM_USER = False                 # Location of nodel files (NOT CHECKED)
 _MODEL_NAME_CONVENTION = '_model_' # The convention for pygemmes to know where models are
 _MODEL_FOLDER = 'models'           # Files in the local library
 _MODEL_FOLDER_HIDDEN = 'Hidden'
-
+_SAVE_FOLDER= 'saves'
 
 # ################# MODELS FILE CONTENT #######################################
 # ELEMENTS IN A MODEL

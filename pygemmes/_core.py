@@ -1,5 +1,7 @@
 # built-in
 import copy
+import os 
+import dill as pickle
 
 # Common
 import numpy as np
@@ -10,13 +12,16 @@ from ._config import _FROM_USER
 from ._config import _DEFAULTSIZE
 from ._config import _VERB
 from ._config import _SOLVER
+from ._config import _SAVE_FOLDER
 from ._utilities import _utils, _class_check, _class_utility, _cn
 from ._utilities import _class_set
 from ._utilities import _Network
 from ._utilities import _solvers
 from ._utilities import _comparesubarray
 from ._utilities import pprint
+from ._utilities import _distribution_generator
 from ._plots._plots import _DPLOT
+from ._utilities._distribution_generator import generate_dic_distribution as _generate_dic_distribution 
 
 
 class Hub():
@@ -53,8 +58,6 @@ class Hub():
         verb=_VERB,
     ):
         from_user = False 
-
-
 
 
         
@@ -734,6 +737,8 @@ class Hub():
     # ##############################
     # %% Read-only properties
     # ##############################
+    
+    
     @property
     def dfunc_order(self):
        """ The ordered list of intermediary function names """
@@ -849,7 +854,7 @@ Run the simulation using an RK4 (by default, can be). Compute each time step fro
            raise Exception(f'solver name {solver} unknown ! Try rk1 or rk4')
 
        if NstepsInput:
-            print(self.dparam['Tmax']['value']/NstepsInput)
+            #print(self.dparam['Tmax']['value']/NstepsInput)
             self.set_dparam('dt',self.dparam['Tmax']['value']/NstepsInput,verb=verb)
 
        # check inputs
@@ -858,6 +863,7 @@ Run the simulation using an RK4 (by default, can be). Compute each time step fro
        # reset variables
        self.set_dparam(**{})
        self.reset()
+
 
        # start time loop
        try:
@@ -1572,8 +1578,9 @@ idx                : is the same for parrallel systems
         }
         return dout
 
-
-
+    def copy(self):
+        """Do a deep copy of the hub"""
+        return copy.deepcopy(self)
 
     def __calculate_variation_rate(self, epsilon=0.0001):
         '''
@@ -1638,4 +1645,129 @@ idx                : is the same for parrallel systems
         self.__dmisc['derivative'] = True
 
 
-# %%
+    #  SAVE 
+    def save(self,
+             name:str,
+             description='',
+             localsave=True,
+             verb=False):
+        '''
+        Save your hub as a .chm file for later use. It can be loaded with (chm.load(name))
+        
+        * name (string): file name, or path if you want to save it somewhere specific. You do not have to put the extension
+        * description (string): say a few thing about the run 
+        * localsave: if true, the run will be saved inside CHIMES save file
+        * verb: print the address
+        '''
+        
+        # Absolute path management
+        _PATH_HERE = os.path.abspath(os.path.dirname(__file__))
+        _PATH_SAVE = os.path.join(os.path.dirname(_PATH_HERE),_SAVE_FOLDER)
+        
+        # Extension management
+        if (name[-4:]!='.chm' and '.' not in name):
+            name=name+'.chm'
+        if name[-4:]=='.chm':
+            pass
+        elif '.' in name:
+            raise Exception(f"extension not understood :{name.split('.')[1]}, expected .chm or nothing")
+        
+        if localsave:
+            address=os.path.join(_PATH_SAVE,name)
+        else: 
+            address=name
+        # Saving
+        with open(address,'wb') as f:
+            if verb:
+                print('File will be saved as : ', address)
+                print('Associated description: ',description)
+            pickle.dump({'hub':self,
+                         'description':description},
+                        f)
+
+    def run_sensitivity(self,
+                        std=0.01,
+                        distribution='lognormal',
+                        N = 10,
+                        combined_run=True, 
+                        #independant_mode='sequential',
+                        Noutput=500,
+                        verb=False
+                        ):
+        '''
+        Do a lot of run in parrallel, looking at how variations of parameters/differential will influence the output.
+        This part is only running the values, not doing the analysis. 
+
+        * std : the range of variation for each value. x \to x*(1+noise), in which noise has a standard deviation of std
+        * distribution : the shape of the distribution (normal, uniform, lognormal)
+        * N : number of sampling done on each side
+        * combined_run : True, independant, additive:
+            * independant is moving one parameter and looking at its effects sequentially
+            * additive is moving all parameters at the same time
+            * True is doing both
+        * independant_mode: sequential, parrallel
+            * sequential is first doing the additive sensitivity, then the independant parameters one by one 
+            * parrallel is combining all at them at once to fully use the parrallel resolution (more RAM needed)
+        '''
+        
+        # KEEPING THE STATE OF THE SYSTEM
+        Base = self.Extract_preset(t=0) # The state of the system
+        Base={k:v for k,v in Base.items() if k in self.dmisc['dfunc_order']['differential']+
+                                    list(set(self.dmisc['dfunc_order']['parameters'])-
+                                         set(['Tmax','Tini','dt','nx','nr','Nprod','__ONE__']))}
+        
+        # GENERATING THE DISTRIBUTIONS 
+        Newdict= {k:  {'mu': v,
+              'sigma': std*v, 'type':distribution} for k,v in Base.items()}
+        Globalset = _generate_dic_distribution(Newdict,N=N)
+        Localset = {k: _generate_dic_distribution({k:Newdict[k]},N=N) for k in Newdict.keys()}
+        
+        dHub = {}
+        #if independant_mode == 'sequential':
+        
+        # Studying combination
+        if combined_run in [True,'additive']:
+            # Calculating the Global sensitivity
+            dHub['_COMBINED_']=self.copy()
+            dHub['_COMBINED_'].set_dparam(**Base,verb=False)
+            dHub['_COMBINED_'].set_dparam(**Globalset)
+            dHub['_COMBINED_'].run(NtimeOutput=Noutput,verb=verb)
+            dHub['_COMBINED_'].calculate_StatSensitivity()
+            
+        # Sequential parameter
+        if combined_run in [True,'independant']:
+            for k,v in Localset.items():
+                if verb:
+                    print('On variable',k)
+                
+                dHub[k]=self.copy()
+                dHub[k].set_dparam(**Base       ,verb=False)
+                dHub[k].set_dparam(**v,verb=False)  
+                dHub[k].run(NtimeOutput=Noutput,verb=verb)
+                dHub[k].calculate_StatSensitivity()
+        return  dHub
+        '''
+        else:
+            # Generating the combination dict
+            self.set_dparam(**Base     ,verb=False)
+            self.set_dparam(**Globalset,verb=False)
+            Combine ={ '_COMBINED_': self.Extract_preset(t=0)}
+
+            for k,v in Localset.items():
+                self.set_dparam(**Base,verb=False)
+                self.set_dparam(**v   ,verb=False)  
+                Combine[k] = self.Extract_preset(t=0)
+
+            # Stacking the presets
+            Full = {}
+            for k in Base.keys():
+                Full[k]= np.vstack([Combine[kk][k] for kk in Combine.keys()])     
+                
+            self.set_dparam(**Base,verb=False)
+            self.set_dparam('nx',np.shape(Full[k])[0])    
+            self.set_dparam(**Full) 
+            
+            self.run(NtimeOutput=Noutput)  
+            bigOut=self.get_dparam()
+            return bigOut           
+        '''

@@ -1,29 +1,24 @@
-# Instructions in the readme
+# What is a model file ?
 
-There are many ways to write a model in **pygemmes**, and one might fit your project better than other ones.
-As there are already some stuff coded, you should always have an eye on :
-    * Existing models ( table can be obtained using `pgm.get_available_models` )
-    * Existing fields ( table can be obtained using `pgm.get_available_fields` or in `_models\_def_fields.py`
-    * Existing functions ( list can be obtained using `pgm.get_available_functions` or in `_models\_def_functions.py`
-That way you do not have to recode something that's already been added !
+There are many ways to write a model in **CHIMES**, and one might fit your project better than other ones. You can explore different existing models (in the `models` folder of CHIMES) to take a look at your favorite. 
 
-To explore the different approaches one can explore :
- 1. `LorenzSystem` which contains all the basis (not using any external source)
- 2. `Goodwin` as a Goodwin model using both the fields and functions library
- 3. `Goodwin-CES` as an extension of `Goodwin` model
-
- # General file
-
-* models are in the folder `models`
-* models names have the nomenclature `_model_MODELNAME.py` : they are python file and you can do python operations on models !
+All files have the same common properties:
+* models are in the folder `models`, in any subfolder
+* model files are python files: you can do anything python authorize inside!
+* models names have the nomenclature `_model_{modelname}.py`. They will not be read otherwise *example: `_model_mymodel.py`
 
 The model file NEED to contains : 
-* A docstring at the beginning (containing the description of your model)
+* A docstring at the beginning (containing the short description of your model)
+* A long docstring `_DESCRIPTION` that can be written in Markdown 
 * A dictionary called `_LOGICS` with a specific shape (see next part)
 * A dictionnary called `_PRESETS` with a specific shape 
 
 The model file CAN contains : 
-* 
+* An ensemble of supplementary tools to transmit with `_SUPPLEMENTS`, in a dictionnary. Typically an ensemble of functions one might want to call to study the model (plots, initialisations methods, advanced analyses... )
+* New units specific to your model in `_UNITS` 
+
+We recommend the exploration of `models/_model__TEMPLATE__.py` for more informations. Do not modify it! But you can copy it (or `__MINITEMPLATE__`) then modify the copy to create your own
+
 
 ## The shape of `_LOGICS`
 
@@ -77,11 +72,19 @@ In consequence the field `K` defined as a differential variable $\dot{K} = I^r -
 ```
 but also 
 ```
+def dotK(Ir,delta,u,K):
+    return Ir-delta*u*K
+
 'K': {'func' : dotK},
 ```
 And the system will do its best for the rest using informations in `pgm.get_available_fields()`. The more you give the better !
 If some fields are needed but not specified, the system will try to find them on its own. For example in `delta` is never defined in any component of the `_LOGICS` of the model, he will look for it in the shared library `_def_fields`. 
 
+### Priority management of information
+ 
+A model does not have to give all informations as most of them might be redundant: the definition of capital should not change between models for a better compatibility. 
+
+If you do not give an information in the model file, then the system is going to look what exist in the `_def_fields()` file that you can access by `chm.get_available_fields()`
 
 ### writing `func` the functions
 
