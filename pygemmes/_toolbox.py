@@ -17,9 +17,9 @@ import numpy as np
 from ._config import _FIELDS_EXPLOREMODEL
 from ._config import _SAVE_FOLDER
 from ._core import Hub
+from ._utilities._distribution_generator import *
 
-
-# FULLY CHECKED DECEMBER 2022 
+# FULLY CHECKED SEPTEMBER 2023
 # #############################################################################
 
 __all__ = [
@@ -31,7 +31,7 @@ __all__ = [
 ]
 
 def get_available_saves(path='local',
-                        returnas=dict):
+                        returnas=True):
     '''
     Check all .chm files in a a folder.
     if path is 'local', the default folder of CHIMES is used
@@ -124,7 +124,6 @@ def get_available_plots():
     plotdf=pd.DataFrame(dic)
     return plotdf.transpose().style.set_properties(**{'text-align': 'left'})
 
-
 def get_available_fields(exploreModels=_FIELDS_EXPLOREMODEL):
     '''
     Shows their units, default value and informations from the library.
@@ -171,81 +170,4 @@ def get_available_fields(exploreModels=_FIELDS_EXPLOREMODEL):
     modeldf=pd.DataFrame(dic)
     return modeldf.transpose()#.style.set_properties(**{'text-align': 'left'})
 
-
-def _GenerateIndividualSensitivity(key, mu, sigma, disttype='normal', dictpreset={}, N=10):
-    '''
-    Generate a preset taking random values in one distribution.
-
-    INPUT :
-        * key : the field name you want to test the sensitivity
-        * mu : the first parameter of your distribution (mean typically)
-        * sigma : the second parameter of your distribution (std typically)
-        * dispreset : dictionnary you want to add the distribution in
-        * disttype : the type of distribution you pick the value on :
-            1. 'log','lognormal','log-normal' for lognormal distribution
-            2. 'normal','gaussian' for gaussian distribution
-        * N : the number of value you want to pick
-
-        IF THE DISTRIBUTION IS LOG, then mu is the median value
-
-    '''
-    if disttype in ['log', 'lognormal', 'log-normal']:
-        dictpreset[key] = np.random.lognormal(np.log(mu), sigma, N)
-    elif disttype in ['normal', 'gaussian']:
-        dictpreset[key] = np.random.normal(mu, sigma, N)
-    elif disttype in ['uniform']:
-        dictpreset[key] = np.random.uniform(mu, sigma, N)
-    else:
-        raise Exception('wrong distribution type input')
-    return dictpreset
-
-
-def generate_dic_distribution(InputDic, dictpreset={}, N=10):
-    '''
-    Wrapup around GenerateIndividualSensitivity function, to generate multiple distributions entangled.
-
-    InputDic should look like :
-        {
-        'alpha': {'mu': .02,
-                  'sigma': .2,
-                  'type': 'normal'},
-        'k2': {'mu': 20,
-               'sigma': .2,
-               'type': 'log'},
-        'mu': {'mu': 1.3,
-               'sigma': .2,
-               'type': 'uniform'},
-        }
-
-    'type' can be :
-        1. 'log','lognormal','log-normal' for lognormal distribution
-        2. 'normal','gaussian' for gaussian distribution
-        3. 'uniform' for uniform distribution in interval [mu,sigma]
-
-    Be careful, grid will generate N**len(InputDic.key()) run if activated !
-
-    GenerateIndividualSensitivity :
-        Generate a preset taking random values in one distribution.
-
-    INPUT :
-        * mu : the first parameter of your distribution (mean typically)
-        * sigma : the second parameter of your distribution (std typically)
-        * dispreset : dictionnary you want to add the distribution in
-        * disttype : the type of distribution you pick the value on :
-            1. 'log','lognormal','log-normal' for lognormal distribution
-            2. 'normal','gaussian' for gaussian distribution
-        * N : the number of value you want to pick
-
-        IF THE DISTRIBUTION IS LOG, then mu is the median value
-    '''
-    dictpreset = {}
-    for key, val in InputDic.items():
-        dictpreset = _GenerateIndividualSensitivity(key,
-                                                    val['mu'],
-                                                    val['sigma'],
-                                                    disttype=val['type'],
-                                                    dictpreset=dictpreset,
-                                                    N=N)
-        dictpreset['nx']=N
-    return dictpreset
 

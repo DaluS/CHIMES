@@ -492,6 +492,9 @@ class Test00_Get():
         hub.get_Network(filters=('Pi',),redirect=True) 
 
     def test10_loadsave(self): 
+        
+        chm.get_available_saves(returnas=True)
+        
         hub=chm.Hub('GK')
         
         # Test local
@@ -501,6 +504,13 @@ class Test00_Get():
         test.run()
         
         # Test in pytest
-        hub.save('localtest2.chm')
+        hub.save('localtest.chm','Test inside the folder',localsave=False,verb=True)
+        test= chm.load('localtest.chm',localsave=False,verb=True)
         
-        
+    def test11_sensitivity(self):
+        hub=chm.Hub('GK')
+        hub.set_dparam('Delta',0.01)
+        hub.set_dparam('Tmax',5)
+        hub.set_dparam('dt',0.1)
+        OUT=hub.run_sensitivity(verb=False,std=0.05)
+        FIGURES=chm.plots.Showsentivitity(OUT,['employment','omega','d'],0.05)

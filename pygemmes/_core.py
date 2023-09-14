@@ -19,7 +19,9 @@ from ._utilities import _Network
 from ._utilities import _solvers
 from ._utilities import _comparesubarray
 from ._utilities import pprint
+from ._utilities import _distribution_generator
 from ._plots._plots import _DPLOT
+from ._utilities._distribution_generator import generate_dic_distribution as _generate_dic_distribution 
 
 
 class Hub():
@@ -852,7 +854,7 @@ Run the simulation using an RK4 (by default, can be). Compute each time step fro
            raise Exception(f'solver name {solver} unknown ! Try rk1 or rk4')
 
        if NstepsInput:
-            print(self.dparam['Tmax']['value']/NstepsInput)
+            #print(self.dparam['Tmax']['value']/NstepsInput)
             self.set_dparam('dt',self.dparam['Tmax']['value']/NstepsInput,verb=verb)
 
        # check inputs
@@ -861,6 +863,7 @@ Run the simulation using an RK4 (by default, can be). Compute each time step fro
        # reset variables
        self.set_dparam(**{})
        self.reset()
+
 
        # start time loop
        try:
@@ -1575,8 +1578,9 @@ idx                : is the same for parrallel systems
         }
         return dout
 
-
-
+    def copy(self):
+        """Do a deep copy of the hub"""
+        return copy.deepcopy(self)
 
     def __calculate_variation_rate(self, epsilon=0.0001):
         '''
@@ -1641,7 +1645,7 @@ idx                : is the same for parrallel systems
         self.__dmisc['derivative'] = True
 
 
-# %% SAVE AND LOAD 
+    #  SAVE 
     def save(self,
              name:str,
              description='',
@@ -1681,3 +1685,89 @@ idx                : is the same for parrallel systems
                          'description':description},
                         f)
 
+    def run_sensitivity(self,
+                        std=0.01,
+                        distribution='lognormal',
+                        N = 10,
+                        combined_run=True, 
+                        #independant_mode='sequential',
+                        Noutput=500,
+                        verb=False
+                        ):
+        '''
+        Do a lot of run in parrallel, looking at how variations of parameters/differential will influence the output.
+        This part is only running the values, not doing the analysis. 
+
+        * std : the range of variation for each value. x \to x*(1+noise), in which noise has a standard deviation of std
+        * distribution : the shape of the distribution (normal, uniform, lognormal)
+        * N : number of sampling done on each side
+        * combined_run : True, independant, additive:
+            * independant is moving one parameter and looking at its effects sequentially
+            * additive is moving all parameters at the same time
+            * True is doing both
+        * independant_mode: sequential, parrallel
+            * sequential is first doing the additive sensitivity, then the independant parameters one by one 
+            * parrallel is combining all at them at once to fully use the parrallel resolution (more RAM needed)
+        '''
+        
+        # KEEPING THE STATE OF THE SYSTEM
+        Base = self.Extract_preset(t=0) # The state of the system
+        Base={k:v for k,v in Base.items() if k in self.dmisc['dfunc_order']['differential']+
+                                    list(set(self.dmisc['dfunc_order']['parameters'])-
+                                         set(['Tmax','Tini','dt','nx','nr','Nprod','__ONE__']))}
+        
+        # GENERATING THE DISTRIBUTIONS 
+        Newdict= {k:  {'mu': v,
+              'sigma': std*v, 'type':distribution} for k,v in Base.items()}
+        Globalset = _generate_dic_distribution(Newdict,N=N)
+        Localset = {k: _generate_dic_distribution({k:Newdict[k]},N=N) for k in Newdict.keys()}
+        
+        dHub = {}
+        #if independant_mode == 'sequential':
+        
+        # Studying combination
+        if combined_run in [True,'additive']:
+            # Calculating the Global sensitivity
+            dHub['_COMBINED_']=self.copy()
+            dHub['_COMBINED_'].set_dparam(**Base,verb=False)
+            dHub['_COMBINED_'].set_dparam(**Globalset)
+            dHub['_COMBINED_'].run(NtimeOutput=Noutput,verb=verb)
+            dHub['_COMBINED_'].calculate_StatSensitivity()
+            
+        # Sequential parameter
+        if combined_run in [True,'independant']:
+            for k,v in Localset.items():
+                if verb:
+                    print('On variable',k)
+                
+                dHub[k]=self.copy()
+                dHub[k].set_dparam(**Base       ,verb=False)
+                dHub[k].set_dparam(**v,verb=False)  
+                dHub[k].run(NtimeOutput=Noutput,verb=verb)
+                dHub[k].calculate_StatSensitivity()
+        return  dHub
+        '''
+        else:
+            # Generating the combination dict
+            self.set_dparam(**Base     ,verb=False)
+            self.set_dparam(**Globalset,verb=False)
+            Combine ={ '_COMBINED_': self.Extract_preset(t=0)}
+
+            for k,v in Localset.items():
+                self.set_dparam(**Base,verb=False)
+                self.set_dparam(**v   ,verb=False)  
+                Combine[k] = self.Extract_preset(t=0)
+
+            # Stacking the presets
+            Full = {}
+            for k in Base.keys():
+                Full[k]= np.vstack([Combine[kk][k] for kk in Combine.keys()])     
+                
+            self.set_dparam(**Base,verb=False)
+            self.set_dparam('nx',np.shape(Full[k])[0])    
+            self.set_dparam(**Full) 
+            
+            self.run(NtimeOutput=Noutput)  
+            bigOut=self.get_dparam()
+            return bigOut           
+        '''

@@ -52,7 +52,7 @@ class Interface:
             display(Markdown('If you want to know more about one specific model, go in the loading tab'))
             display(get_available_models())
         @clear_output_decorator2
-        def ShowFields_event(obj):   display(get_available_fields())#exploreModels=True))
+        def ShowFields_event(obj):   display(get_available_fields(exploreModels=True))
         @clear_output_decorator2
         def ShowFunctions_event(obj):display(get_available_functions())
         @clear_output_decorator2
@@ -129,9 +129,10 @@ class Interface:
             with LoadOut:
                 try:
                     self.hub= Hub(Buttons3['Model'].value,preset=Buttons3['Preset'].value)
+                    Buttons3['Load'].button_style='success'
                 except BaseException as E:
                     print('select a model ')   
-                    print(E)     
+                    print(E)   
 
         @clear_output_decorator2
         def clear(obj):
@@ -143,45 +144,47 @@ class Interface:
                     }, 
                    'Load': {
                     'function': createhub_event,
-                    'tooltip': 'Load selected model and preset'
+                    'tooltip': 'Load selected model and preset',
+                    'button_style':'warning'
                    },
-                    'Clear': {
-                    'function': clear,
-                    'tooltip': 'Load selected model and preset'
-                   }
+                  #  'Clear': {
+                  #  'function': clear,
+                  #  'tooltip': 'Load selected model and preset',
+                  #  'button_style':''
+                  # }
         }
-        print([None]+list(self.PARAMS['FULL'].index))
+        
         Dropnames={'Model':{
-                    'value':None,#self.hub.dmodel['name'],
-                    'option':[None]+list(self.PARAMS['FULL'].index),
+                    'value':'__TEMPLATE__',#self.hub.dmodel['name'],
+                    'options':[None]+list(self.PARAMS['AllModels'].keys()),
                     'tooltip':'Model to explore',
                     },
                    'Preset':{
                     'value':None,
-                    'option':[None],#[None]+list(self.PARAMS['FULL'].loc[self.hub.dmodel['name']].loc['presets'].keys()),
+                    'options':[None]+list(self.PARAMS['AllModels'][self.hub.dmodel['name']]['Preset']),
                     'tooltip':'Preset to load',
                     },
                    }
 
-
         Buttons3 = {b : widgets.Button(description=b,
                                        style=self.PARAMS['style'],
-                                       #button_style='primary'
+                                       button_style=Bnames3[b].get('button_style','info')
                                        ) for b in Bnames3.keys() }
         for b in Bnames3.keys(): Buttons3[b].on_click( Bnames3[b]['function'])   
-        #createhub.on_click(createhub_event)
-        #Loaddropdown.observe(valuechange, names='value')
 
         for k,v in Dropnames.items():
             Buttons3[k]=widgets.Dropdown(description=k,**v)
-       
+          
         def valuechange(change):
-            pass
-            #Buttons3['Preset'].options = [None]+list(self.PARAMS['AllModels'].loc[change['new']].loc['presets'].keys())
-            #with LoadOut:
-            #    LoadOut.clear_output()
-            #    display(Markdown(get_model_documentation(Buttons3['Model'].value)))
-            #    self.hub0= Hub(Buttons3['Model'].value,preset=Buttons3['Preset'].value,verb=False)
+            if Buttons3['Model'].value is not None:
+                liste = self.PARAMS['AllModels'][Buttons3['Model'].value]['Preset']
+            else:
+                liste=[]
+            Buttons3['Preset'].options = [None]+liste
+            with LoadOut:
+                LoadOut.clear_output()
+                display(get_model_documentation(Buttons3['Model'].value))
+                self.hub= Hub(Buttons3['Model'].value,preset=Buttons3['Preset'].value,verb=False)
 
         # Create a checkbox widget
         checkbox = widgets.Checkbox(
@@ -199,13 +202,13 @@ class Interface:
                                            Buttons3['Preset'],
                                            Buttons3['Load'],
                                            checkbox,
-                                           Buttons3['Clear'],
+                                           #Buttons3['Clear'],
                                            ]),
                              LoadOut])
  
     def get_network(self): # Network
         '''Create the HTML network'''
-        createNetwork = widgets.Button(description='Create Network')
+        createNetwork = widgets.Button(description='Create Network',button_style='success')
         outnet= widgets.Output()
         dchecks = {
             'Parameters': {
@@ -247,10 +250,13 @@ class Interface:
                 return ()
 
         def createNetwork_event(obj):
-            with outnet: self.hub.get_Network(params    =dbuttons_network['Parameters'].value,
-                                              auxilliary=dbuttons_network['Auxilliary'].value,
-                                              redirect  =dbuttons_network['Redirect'].value,
-                                              filters    =parse_string_list_tuple(list_input.value))  
+            with outnet: 
+                outnet.clear_output()
+                self.hub.get_Network(params    =dbuttons_network['Parameters'].value,
+                                     auxilliary=dbuttons_network['Auxilliary'].value,
+                                     redirect  =dbuttons_network['Redirect'].value,
+                                     filters    =parse_string_list_tuple(list_input.value)) 
+                outnet.clear_output()
         createNetwork.on_click(createNetwork_event)
 
         return widgets.VBox([
@@ -262,7 +268,7 @@ class Interface:
                             outnet])
 
     def get_run(self):
-        clickrun = widgets.Button(description='RUN!')
+        clickrun = widgets.Button(description='RUN!',button_style='primary')
         outrun = widgets.Output()
 
         OutputSize = widgets.Text(
@@ -296,12 +302,13 @@ class Interface:
         def clickrun_event(obj):
             with outrun:
                 outrun.clear_output()
+  
                 if verbat.value: verb = 0.2 
                 else: verb=0
                 self.hub.run(NtimeOutput=parse_string_int(OutputSize.value),
                              NstepsInput=parse_string_int(InputSize.value),
                              verb= verb) 
-                print('Simulation finished !')
+                print('test')
         clickrun.on_click(clickrun_event)
 
         return widgets.VBox([widgets.HBox([InputSize,
@@ -317,22 +324,59 @@ class Interface:
             show(**alldicts)
         def setvalue(obj):
             self.hub.set_dparam(**eval(SetDparamText.value))
+            clickSET.button_style='success'
         #### GET DATA IN PANDASGUI
-        clickGUI = widgets.Button(description='Show fields!')
+        clickGUI = widgets.Button(description='Show fields!',button_style='primary')
         clickGUI.on_click(showSummary)
 
+
     
-        # SET_DPARAM EXPRESSION 
-        SetDparamText = widgets.Text(
-            value="{'Time':100}",
-            description='Number of output time slices',
-            tooltip= "Put an integer !",
+        #### NUMERICAL ENTRY
+        SetParrallel=  widgets.Text(
+            value=str(self.hub.dmisc['dmulti']['NxNr'][0]),
+            description='Number of parrallel systems',
+            tooltip= "",
             style=self.PARAMS['style']
         )
-                
-        # BUTTON
-        clickSET = widgets.Button(description='Set New parameters !')
         
+        SetRegion=  widgets.Text(
+            value=str(self.hub.dmisc['dmulti']['NxNr'][1]),
+            description='Number of spatial regions',
+            tooltip= "",
+            style=self.PARAMS['style']
+        )
+
+        SetTmax=  widgets.Text(
+            value=str(self.hub.dparam['Tmax']['value']),
+            description='Simulation length',
+            tooltip= "",
+            style=self.PARAMS['style']
+        )
+    
+
+        # SET_DPARAM EXPRESSION 
+        SetDparamText = widgets.Text(
+            value="{'a':100,'b':10}",
+            description='Dictionnary entry get_dparam',
+            tooltip= "",
+            style=self.PARAMS['style']
+        )
+            
+        # BUTTON
+        clickSETR = widgets.Button(description='Change',button_style='warning')
+        clickSETP = widgets.Button(description='Change',button_style='warning')
+        clickSETT = widgets.Button(description='Change',button_style='warning')
+        clickSET = widgets.Button(description='Set New parameters !',button_style='warning')
+               
+        def parse_string_list_int(s):
+            try: 
+                parsed=eval(s)      
+                if isinstance(parsed,list)  and all(isinstance(item, str) for item in parsed):
+                    return parsed 
+                elif isinstance(parsed,int):
+                    return parsed
+            except (SyntaxError, ValueError):
+                return ()                 
         def parse_string_list_tuple(input_str):
             try:
                 parsed_list = eval(input_str)
@@ -345,8 +389,36 @@ class Interface:
             except (SyntaxError, ValueError):
                 return ()        
         clickSET.on_click(setvalue)
+        
+        
+        ################ CHAOTIC INSTANCE TEMP ##################
+        FIELDS = self.hub.dmisc['dfunc_order']['differential']+self.hub.dmisc['dfunc_order']['parameters']
+        FIELDS = list(set(FIELDS)-set(['nx','nr','Nprod','__ONE__','Tmax','Tini','dt','time']))
 
-        return widgets.VBox([clickGUI,widgets.HBox([SetDparamText,clickSET])])
+        for f in FIELDS: 
+            print(f)
+            print(self.hub.dparam[f]['value'][0,0,0,0,0])
+
+        buttons = {f: {'value':str(self.hub.dparam[f]['value'][0,0,0,0,0]),
+                       'description':self.hub.dparam[f]['description'],
+                       'tooltip': self.hub.dparam[f].get('com','')} for f in FIELDS}
+        dsets =  {f :widgets.Text(
+            style=self.PARAMS['style'],**v
+        ) for f,v in buttons.items()}
+  
+
+        #########################################################
+
+        return widgets.VBox([widgets.HTML(value='<strong>Explore fields values</strong>'),
+                             clickGUI,
+                             widgets.HTML(value='<strong>Set numerical fields</strong>'),
+                             widgets.HBox([SetParrallel,clickSETP]),
+                             widgets.HBox([SetRegion,clickSETR]),
+                             widgets.HBox([SetTmax,clickSETT]),
+                             widgets.HTML(value='<strong>Set general</strong>'),
+                             widgets.HBox([SetDparamText,clickSET]),
+                             widgets.HTML(value='<strong>Set details</strong>'),
+                             *list(dsets.values())])
 
 
     # TAB PLOTS
@@ -684,7 +756,7 @@ class Interface:
         self.PARAMS = {}
         self.PARAMS['style']      = {'description_width': 'initial'}
         self.PARAMS['Categories'] = ['eqtype','source_exp','definition','com','group','units','symbol','isneeded']
-        self.PARAMS['AllModels'] = get_available_models(hide_underscore=False)
+        self.PARAMS['AllModels'] = get_available_models(hide_underscore=False,Return=dict)
         self.PARAMS['FULL']      = get_available_models(FULL=True,hide_underscore=False)
         with open(path+'\\README.md', 'r') as fh: self.PARAMS['tutorial'] = fh.read()
         with open(path+'\\Tutorial-model.md', 'r') as fh: self.PARAMS['tutorialmodel'] = fh.read()        
