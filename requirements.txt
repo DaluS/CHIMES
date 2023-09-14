@@ -8,3 +8,4 @@ plotly
 pylatexenc
 dill 
 ipywidgets
+itables
