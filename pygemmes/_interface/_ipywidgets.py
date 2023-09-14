@@ -21,7 +21,7 @@ pd.set_option('display.max_colwidth', None)
 pd.set_option("display.colheader_justify","left")
 
 
-from pandasgui import show
+#from pandasgui import show
 
 path = "C:\\Users\\Paul Valcke\\Documents\\GitHub\\GEMMES"
 ################################## PREPARATION FOR THE INTERFACE ###################################
@@ -321,7 +321,7 @@ class Interface:
         '''
         def showSummary(obj):
             alldicts=self.hub.get_new_summary()
-            show(**alldicts)
+            #show(**alldicts)
         def setvalue(obj):
             self.hub.set_dparam(**eval(SetDparamText.value))
             clickSET.button_style='success'
