@@ -11,7 +11,7 @@ LINKTOARTICLE :
 import numpy as np
 
 
-from pygemmes._models import Funcs
+from chimes._models import Funcs
 
 
 __r0 = 1000

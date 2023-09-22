@@ -37,7 +37,7 @@ def load_model(model=None, verb=None, from_user=None):
     model can be:
         - a model name:
             - from_user = False => loaded from the library
-            - from_user = True => loaded the user's personal .pygemmes folder
+            - from_user = True => loaded the user's personal .chimes folder
         - the absolute path to an abitrary model file
     """
 

@@ -10,7 +10,7 @@ Created on Thu Jan  20 2022
 """
 
 import numpy as np
-from pygemmes._models import Funcs
+from chimes._models import Funcs
 
 
 _LOGICS = {

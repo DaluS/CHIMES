@@ -30,7 +30,7 @@ It is written with a price p=1 for homogeneity issues
 
 # ######################## PRELIMINARY ELEMENTS #########################
 import numpy as np #(if you need exponential, pi, log, of matrix products...)
-from pygemmes._models import Funcs, importmodel,mergemodel
+from chimes._models import Funcs, importmodel,mergemodel
 
 # ######################## LOGICS #######################################
 _LOGICS = {

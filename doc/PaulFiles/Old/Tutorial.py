@@ -1,18 +1,18 @@
 
 """
-THIS DOCUMENT IS A TUTORIAL ON HOW TO USE PYGEMMES AS A SIMPLE USER
+THIS DOCUMENT IS A TUTORIAL ON HOW TO USE chimes AS A SIMPLE USER
 EXECUTE THE DOCUMENT LINE BY LINE TO UNDERSTAND WHAT IS HAPPENING
 """
 
 
 """
-# IF PYGEMMES IS NOT IN YOUR PATH, OR YOU DID NOT START YOUR TERMINAL IN PYGEMMES
+# IF chimes IS NOT IN YOUR PATH, OR YOU DID NOT START YOUR TERMINAL IN chimes
 import sys
-path = "C:\\Users\\Paul Valcke\\Documents\\GitHub\\GEMMES"  # Where pygemmes is
+path = "C:\\Users\\Paul Valcke\\Documents\\GitHub\\CHIMES"  # Where chimes is
 sys.path.insert(0, path)  # we tell python to look at the folder `path`
 """
 
-import pygemmes as pgm
+import chimes as pgm
 import numpy as np
 
 
@@ -29,7 +29,7 @@ analysis.
 '''
 
 
-# %% OVERVIEW OF PYGEMMES ########################################
+# %% OVERVIEW OF chimes ########################################
 
 # Content (practical functions will be shown later)
 pgm.get_available_fields(exploreModels=True, showModels=True,) #returnas=list)
@@ -302,7 +302,7 @@ preset= {
                         'idx':0,
                         'title':'',
                         'lw':1}],
-            'phasespace': [{'x': 'employment',
+            'XY': [{'x': 'employment',
                             'y': 'omega',
                             'color': 'd',
                             'idx': 0}],
@@ -413,7 +413,7 @@ plt.show()
 # %% EXERCICES ###############################################################
 '''
 Exercise 1 : execute by yourself
-    1. Loading library "From scratch", load pygemmes
+    1. Loading library "From scratch", load chimes
     2. Access lists get the list of models, the list of solvers
     3. Load a model, then with a preset directly loaded
     4. change value : Run it with different timestep
@@ -431,7 +431,7 @@ Exercise 1 : execute by yourself
 '''
 Exercise 2 : editing
     1. Copy-paste a file Copy the file model GK-CES name it GK-NEW then reload
-pygemmes to see if you can load id
+chimes to see if you can load id
     2. Modify the equations Use the equations for "lambda, omega, d" you find in McIsaac et al,
 Minskyan classical growth cycles, Mathematics and Financial Economics with the introduction
 of new parameters in _def_fields
@@ -441,7 +441,7 @@ of new parameters in _def_fields
 
 Exercise 3 : add on github
     1. Create an issue on the github page
-    2. Once your model is ready, put it in pygemmes/_models
+    2. Once your model is ready, put it in chimes/_models
     3. Create a branch with your modifications and push it
     4. Create a Pull Request with it
 '''
@@ -449,8 +449,8 @@ Exercise 3 : add on github
 
 # %% TESTS ##########################################
 # TO TEST THAT EVERYTHING IS WORKING WELL
-# !pytest pygemmes/tests/test_01_Hub.py -v
-# !pytest pygemmes/tests/test_00_get -v
-# !pytest pygemmes/tests/test_02_Hub_Multiple -v
-# !pytest pygemmes/tests/test_03_articles -v
+# !pytest chimes/tests/test_01_Hub.py -v
+# !pytest chimes/tests/test_00_get -v
+# !pytest chimes/tests/test_02_Hub_Multiple -v
+# !pytest chimes/tests/test_03_articles -v
 

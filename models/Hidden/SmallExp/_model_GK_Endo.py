@@ -15,8 +15,8 @@ TYPICAL BEHAVIOR: Locally Unstable, the good equilibrium is an unstable focuse
 
 # ######################## PRELIMINARY ELEMENTS #########################
 import numpy as np
-from pygemmes._models import Funcs, importmodel,mergemodel
-from pygemmes._models import Operators as O
+from chimes._models import Funcs, importmodel,mergemodel
+from chimes._models import Operators as O
 
 # ######################## LOGICS #######################################
 _LOGICS,_PRESETS0,_SUPPLEMENTS_GK= importmodel('GK')

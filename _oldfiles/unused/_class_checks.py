@@ -23,7 +23,7 @@ from .. import _models
 
 _PATH_HERE = os.path.dirname(__file__)
 _PATH_USER_HOME = os.path.expanduser('~')
-_PATH_PRIVATE_MODELS = os.path.join(_PATH_USER_HOME, '.pygemmes', '_models')
+_PATH_PRIVATE_MODELS = os.path.join(_PATH_USER_HOME, '.chimes', '_models')
 
 
 # ##############################

@@ -1,173 +1,184 @@
-## CHIMES: Core of Holistic Intertwined Models for Ecological Sustainability
+# CHIMES: Core of Holistic Intertwined Models for Ecological Sustainability
+
+
+# CHIMES overview
+
+* You want to explore, couple, analyze existing models, or create your own ? CHIMES is the library made for you! 
+* You work with Agent-Based models (collective behavior, economic agents, birds movements), chaotic systems, spatial properties, multiple circuits of ressources (Money, CHNOPS...), CHIMES is the library for you! 
+* You want to do a lot of runs in parrallel to test the sensitivity of a parameter or initial condition? Same!
+* You want a user-friendly interface so that you do not code too much, while keeping the full flexibility of python at every step ? Same! 
+* You like python for its practicality but it's slow to solve equations ? CHIMES is the library for you !
+
+![image](https://github.com/georgetown-ejp/CHIMES/assets/11523050/00cd06e1-0a8d-4f38-a74a-f1ee006f83af)
+*Some illustrations of CHIMES content*
+
 
 # What is CHIMES?
 
-CHIMES is a huge toolbox for the study of complex models written with dynamical systems. It is aimed mostly, but not only, to ecological economists. 
-It can solves : 
-* Ordinary differential equations 
-* Spatial differential equations, on any type of grid 
-* Agent-based models 
+CHIMES is a numerical core, with a huge toolbox and interface around it. It goals are the following:
+* Library of models in the litterature based on differential equations
+* Methodology to couple them
+* Set of tools to prototype, run, compare, analyze.
+
+In consequence it is composed of :
+* A `Model` base of files that contains  description, the mathematical logical links they are composed of, preset values, and supplements
+* A `Field` base (any quantity measurable in the real world) with its name, unit and default value
+* A `Data` base that contains value of the real world related to models (WIP)
+* A method to load models and interact with it
+* A solver library for high-speed simulation with a C core using an RK4 method
+* An analysis library for statistical elements on runs
+* A plot library to explore the output of simulation
+* An interface to user-friendly experience
+
+![image](https://github.com/georgetown-ejp/CHIMES/assets/11523050/22286361-1d5e-48c3-9d6c-d3179eb27515)
+* The flow inside the library*
 
 In consequence, it is possible to do multisectoral, multiregional, resources-inequalities-climate-international socio-economic system. 
 
-It is :
-* An ensemble of fields, concepts that makes sense in our world (temperature, inflation, debt, production, carbon concentration, productivity...)
-* And ensemble of links : concepts that are related to each other in their definition or their evolution (the evolution of price is linked to inflation, the employement is linked to the workers and the population...)
-* An ensemble of model : each model is an ensemble of links consistent altogether, you can compare each model on its construction and their consequence, couple models...
-* An ensemble of tools to study the system : equation solvers, cycles analysis, sensitivity analysis, basin of attractions...
+## What is a model? 
 
-In a few lines one can :
-* Explore and plot the litterature
-* Write his own model, prototype it
-* Analyse the outcomes
+A model is a intertwined map of fields. Fields are quantities (Population size, temperature anomaly, price, inflation) relevant for the system. Creating a model is building the web of dependency, how each field relate to each other, through logic equations. 
+Those equation can be purely algebraic expressions. 
 
+To each field can be associated a logic. The logical can be differential "the variation of the field is given by this mathematical relationship", or a state variable "the value of this field is given by this mathematical relationship". 
+If a field has no logic, it is a parameter. 
+
+A model is a map, not the values themselves. Putting values allows one to do go from one model to specific uses of the model as examples (presets). Coupling a model with a database allow it to animate its elements and do prospective! 
+
+![image](https://github.com/georgetown-ejp/CHIMES/assets/11523050/33a7e520-3a0a-4489-b99f-f167c51c9e4f)
+*Causal map of a Goodwin-Keen model*
+
+## How to use the library (importation)
+
+### Importing the library
+Since the library is not on a pip wheel, you need to add it to your path 
+
+To do so I recommend 
 ```
-import CHIMES as pgm
-hub = pgm.Hub(model='GK',preset='default')
-hub.run()
-hub.plot_preset(preset='default')
+path = "C:\\Users\\Username\\Documents\\GitHub\\CHIMES" 
+import sys
+sys.path.insert(0, path)
+
+import chimes as chm
+```
+
+Where path is where you installed the library
+
+### Installing the requirements
+The requirements can be found in `requirement.txt`, you need to install all of them. 
+It can be done by executing: 
+```
+import os 
+import importlib.util
+with open(os.path.join(path,'requirements.txt'),'rb') as f :
+    out=str(f.read())
+    libraries = out.split('\\r\\n')[1:]
+    for l in libraries:
+        if importli
+        b.util.find_spec(l) is None:
+            !{sys.executable} -m pip install {l}
+        else: 
+            print(l,'already installed')
+```
+
+### Exploring the library 
+Always use `?` and `tab` (help and autocompletion) to know what are in each element. 
+
+To know the content I recommend: 
+```
+chm.get_available_models()
+chm.get_available_fields()
+chm.get_available_functions()
+chm.get_available_operators()
+chm.get_available_plots()
+chm.get_available_saves()
+```
+
+To explore one model in particular:
+```
+chm.get_model_documentation('modelname')
+```
+
+To load a model 
+```
+hub=chm.Hub('modelname')
+```
+
+To load the save of a model 
+```
+hub=chm.load('nameofthefile')
+```
+
+To explore it 
+```
 hub.get_summary()
 ```
-![image](https://user-images.githubusercontent.com/11523050/153495548-7f85f5c3-1cde-452c-8218-bc1a25215f66.png)
-*A network automatically generated by the system. It is interactive !*
 
-![image](https://user-images.githubusercontent.com/11523050/153495738-43300d36-bbd7-4454-a2c3-392a8eaa4863.png)
-*Automatic plot by units*
+To explore it further
+```
+hub.get_Network()
+hub.get_dataframe()
+hub.get_dparam()
+hub.get_dparam_as_reverse_dict()
+hub.get_dvalues()
+hub.get_equations_description()
+hub.get_fieldsproperties()
+hub.get_new_summary()
+hub.get_presets()
+hub.get_summary()
+hub.get_supplements()
+hub.reverse_cycles_dic()
+hub.Extract_preset()
+```
 
-![image](https://user-images.githubusercontent.com/11523050/153495829-46588141-fa1d-4ef8-bcec-fc278432279d.png)
-*N Y-axis plots*
+To load a preset 
+```
+hub.set_preset('presetname')
+```
 
-![image](https://user-images.githubusercontent.com/11523050/153495982-9b080f2d-dbe5-460b-a8ce-04d72c0c0b31.png)
-*3D plots*
+To run the model 
+```
+hub.run()
+```
 
-![image](https://user-images.githubusercontent.com/11523050/153496144-c260b212-1042-4b98-b2bd-26b44f36507c.png)
-*Fast-cycle decoupling in analysis*
-
-![image](https://user-images.githubusercontent.com/11523050/153496401-63d8eef8-ec82-4550-a4c9-444038fcedb2.png)
-*Sensitivity impact Of initial conditions*
-
-# Structure of the library (general)
-
-![image](https://user-images.githubusercontent.com/11523050/199280909-ef35f3e7-f240-4610-8ad3-b1fa902426c8.png)
-
-# Structure of the library and methods (user side)
-
-![image](https://user-images.githubusercontent.com/11523050/199279983-4c7ed333-3254-4e10-897d-e36b7d6a2d29.png)
-
-
-# How to use it ?
-
-Execute line by line `doc/Tutorial.py`
-Look at file `doc/Introduction.ipynb`
-
-
-# IS IT AN IAM AS MANY OTHERS ?
-
-The goal of the library is to help the community of modellers, especially the ones working with IAM (Integrated assessment model). However, those are not constructed standard way : it is based on dynamical systems rather than intertemporal optimisation.
-
-As a consequence, the model is much more suited to take into account economy as a part of the world (ecology) rather than seeing the ecology as a part of the economy.
-It is much more convenient that way to couple different disciplines that way. This formulation is also stock-flow consistent : nothing appear or disappear out of nowhere by construction. This is a great help to get closer to a thermodynamic consistent model.
-
-The economic part is handled through Post-Keynesian approach, particularly efficient on rapidly-evolving, out of equilibrium dynamics with endogeneous crysis.
-
-In the general methodology, one could see similitudes with 'Limits to growth' but with 50 years of update in term of dynamical systems and interdisciplinary research, and more policy oriented.
-The model are based on descriptivity and allow the user to develop normativity.
+To access values 
+```
+dval = hub.get_dvalues() # Minimal values output
+dparam = hub.get_dparam() # Contains all the model fields and properties
+```
 
 # Contributing
 
 There are three layers of contributions possible
 * User (just have fun with the library and use it for your work)
-* Modeller (add new model in the system)
-* Developper (add new functionalities)
+* Modeler (add new model in the system)
+* Developer (add new functionalities)
 
 ## Contributing as a User
-1. Do the tutorial in `doc\tutorial.py`
-2. Try different models and preset
-3. Emit `issues` when something looks wrong `https://github.com/DaluS/GEMMES/issues/new`
-
+1. Explore the interface using `chm.Interface()`
+1. Do the tutorial in `doc\tutorial.ipynb`
+2. Try different models and preset, with their plots
+3. Changing values and see the impact
+4. Save your runs
+3. Emit `issues` on the github page
 
 ## Contributing as a Modeller
-The goal of a modeller is to implement models given the framework of `CHIMES`
+The goal of a modeller is to implement models given the framework of `CHIMES`. 
+1. Look at model files (typically `models/_model__TEMPLATE_.py`)
+2. Explore the `Tutorial-model.md` tutorial on how to create a model
+3. Explore `get_available_fields()` to see what fields are already developed
+4. Create your own model, either loading a previous model (extension), connecting two models (bridging)
+5. Create your preset to insert relevant run of the model 
+6. Add supplements that can be used with the model in its section
+7. Share the model through a github pull request
 
+## Contributing as developer
+The goal of a developer is to ensure the consistency of models and the toolboxes
+1. If a model is in the pull request, verify that it works, and is not duplicating fields
+2. If there is no duplicate, integrate new fields in `_def_fields`
+3. Check the supplements, and if relevant add them in `_plots` or `_core` depending of their use
+4. Help on the issues 
 
-### Try being a user !
-1. Do everything in "contributing as a user" section just above
-2. Look at the list of proposed model to implement in `https://github.com/DaluS/GEMMES/projects/1`, or choose your own
-
-### Look at the part 'HOW TO WRITE A MODEL`
-
-
-### Get to know what to put in your economic model (on paper)
-1. Choose what sectors you want to put in your model
-2. Choose the stocks they have (money, physical units)
-3. Choose the flux that links them
-4. Write stock-flow consistency (evolution of stock depending of flux)
-5. Detail the quantitative values of flux (Metabolix hypothesis, Behavior)
-6. You might have some circular dependency in your variable : a first round of simplification might be needed
-
-
-### Implement everything : in the model file
-1. Copy a file model that you think is inspiring and write it with a new name
-2. Use all the fields alaready existing in `_def_fields` that exist in your model
-3. Use all the function existing in `_def_functions` that correspond to your model
-4. Write your presets
-5. Define new fields and parameters if needed
-6. Define new functions if needed
-
-
-### Sharing with the community : first pull request
-1. Create a branch on your git
-2. Put your model file in the `CHIMES` folder
-3. Push your branch
-4. Do a pull request explaining what you've put inside your model (you can do generalisation directly if you want and avoid the multiple pull request)
-
-
-### Generalisation : from the model file to the library
-This step is optional but appreciated !
-
-0. Create a new branch
-1. put all your new fields inside `def_fields` either by creating a new group or adding elements in an existing one
-2. put your new functions inside `def_functions`
-3. put your new plots inside `def_plots`
-4. Re-edit your models calling the functions of these files instead
-5. Do a new pull request
-
-
-## Contributing as a Developper <3
-1. First add a model in the system
-2. Look at the issues
-3. Choose which issue you want to work on and say it on the issue (or raise a new issue)
-4. Bring a PR with your new code !
-
-
-# HOW TO WRITE A MODEL
-
-There are many ways to write a model in **CHIMES**, and one might fit your project better than other ones.
-As there are already some stuff coded, you should always have an eye on :
-    * Existing models ( list can be obtained using `pgm.get_available_models` or in `_models\model_*.py`
-    * Existing fields ( list can be obtained using `pgm.get_available_fields` or in `_models\_def_fields.py`
-    * Existing functions ( list can be obtained using `pgm.get_available_functions` or in `_models\_def_functions.py`
-That way you do not have to reinvent something that's already been added !
-
-To explore the different approaches one can explore :
-     1. `LorenzSystem` which contains all the basis (not using any external source)
-     2. `G` as a Goodwin model using both the fields and functions library
-     3. `G-CES` as an extension of `G` model
-
-## How to read a model file
-A model file is two big dictionnary :
-    * `_LOGICS` that contains all the logics that links fields together
-    * `_PRESETS` that contains typical values and plots for simulations. it
-is a help for new users who wants to understand the typical properties of the model.
-
-### `_LOGICS` Dictionnary
-_LOGICS contains in itself 3 dictionnary :
-    * ODE which contains all the fields which are defined by a differential equation
-    * Statevar which contains all the fields which are defined by a state variables
-    * param which contains all the fields which are not changing through time but are
- not defined in CHIMES's library (read `pgm.get_available_fields()` to check)
-
-Check the ipython notebook in `doc/Model_creation.ipynb`
 
 ## Code path at initialization (for developper)
 
@@ -198,7 +209,31 @@ Check the ipython notebook in `doc/Model_creation.ipynb`
             * Create all buffers and arrays
             * create the function y'=F(y) with F coupling functions
 
-# The Developpers
+## Files and folder description
+
+* **doc** Contains practical files for user that do not touch the code
+* **model** Contains all models loaded by CHIMES with categories subfolder
+* **pygemmes** Contains the code library
+    * `_config.py` All flags and general properties of the library
+    * `_core.py` Main methods for the Hub
+    * `_toolbox.py` Miscellaneous functions for CHIMES
+    * `__init__.py` Welcome message if activated
+    * **_models** Basic shared properties of models and introspection methods 
+        * `__init__.py` Introspection, completion methods, integrity checks (should be moved away)
+        * `_def_fields.py` Fields library 
+        * `_def_functions.py` Functions library used in model file
+        * `_def_Operators.py` Operators library used in model files (scalar product, transpose etc)
+    * **_plots** Plot functions for the hub
+    * **_utilities** Additional functions for the hub, complement of `_core`
+        * `_class_check` Verify the model integrity
+        * `_class_set` Transform the model file into practical hub version
+        * `_class_utility` Miscellaneous functions
+        * `_Network` Representation of models in nodes
+        * `_solvers` Solving time iterations
+        * `_utils` Should be fused with `_class_utility`
+    * **test** Unit tests 
+
+# The Developpers (that have done at least one PR)
 
 * Paul Valcke
 * Didier Vezinet

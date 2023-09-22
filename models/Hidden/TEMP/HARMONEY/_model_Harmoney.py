@@ -30,8 +30,8 @@ sustainability questions such as a transition to low-carbon energy.
 """
 ################# IMPORTS ##################################################
 import numpy as np #(if you need exponential, pi, log, of matrix products...)
-from pygemmes._models import Funcs, importmodel,mergemodel,filldimensions
-from pygemmes._models import Operators as O
+from chimes._models import Funcs, importmodel,mergemodel,filldimensions
+from chimes._models import Operators as O
 
 def relax(Xt,X,tau):
     '''Subfunction for relaxation dynamics
@@ -39,7 +39,7 @@ def relax(Xt,X,tau):
 * Xt is the targed signal
 * tau is the relaxation time
     
-To be used in pygemmes for differential variables:
+To be used in chimes for differential variables:
     $\dot{X}=(Xt-X)/tau$'''
     return (Xt-X)/tau
 

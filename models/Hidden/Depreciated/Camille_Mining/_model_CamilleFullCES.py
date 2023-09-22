@@ -11,12 +11,12 @@ Created on Fri Feb  18 2022
 """
 
 import numpy as np
-from pygemmes._models import Funcs
+from chimes._models import Funcs
 
 # ----------------------------------------------------------------------------
 # We simply do a few modifications on two previous models : we load them as a basis
-from pygemmes._models._model_GKCES import _LOGICS as _LOGICSCES
-from pygemmes._models._model_Camille_Mine import _LOGICS as _LOGICSMine
+from chimes._models._model_GKCES import _LOGICS as _LOGICSCES
+from chimes._models._model_Camille_Mine import _LOGICS as _LOGICSMine
 from copy import deepcopy
 
 # The model is a start of a Goodwin-Keen model with CES

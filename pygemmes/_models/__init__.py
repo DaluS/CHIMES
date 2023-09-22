@@ -267,7 +267,7 @@ def get_available_operators():
 def importmodel(name : str,
                 from_user=False):
     '''
-    Will read a model file and import : _LOGICS, _PRESETS, _SUPPLEMENTS 
+    Will read a model file and import : _LOGICS, _PRESETS, _SUPPLEMENTS, _DESCRIPTION
     '''
 
     # FIND THE PATH TO MODELS
@@ -293,10 +293,16 @@ def importmodel(name : str,
         supp = {k0: v0 for k0, v0 in foo._SUPPLEMENTS.items()}
     except BaseException:
         supp= {}
+        
+    try:
+        description = foo._DESCRIPTION
+    except BaseException:
+        description = ''
 
     return deepcopy({k0: dict(v0) for k0, v0 in foo._LOGICS.items()}),\
             deepcopy({k0: dict(v0) for k0, v0 in foo._PRESETS.items()}),\
-            deepcopy(supp)
+            deepcopy(supp),\
+            deepcopy(description)
 
 
 def mergemodel(Recipient,dictoadd,override=True,verb=False):

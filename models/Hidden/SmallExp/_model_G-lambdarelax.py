@@ -12,11 +12,11 @@ Created on Wed Jul 21 15:11:15 2021
 @author: Paul Valcke
 """
 import numpy as np
-from pygemmes._models import Funcs
+from chimes._models import Funcs
 
 # ----------------------------------------------------------------------------
 # We simply do a few modifications on a previous model : we load it as a basis
-from pygemmes._models._model_G import _LOGICS as _LOGICS0
+from chimes._models._model_G import _LOGICS as _LOGICS0
 from copy import deepcopy
 _LOGICS = deepcopy(_LOGICS0)
 
@@ -64,11 +64,11 @@ _PRESETS = {
                             'idx':0,
                             'title':'',
                             'lw':1}],
-            'phasespace': [{'x': 'employment',
+            'XY': [{'x': 'employment',
                             'y': 'omega',
                             'color': 'time',
                             'idx': 0}],
-            'plot3D': [{'x': 'lamb0',
+            'XYZ': [{'x': 'lamb0',
                         'y': 'omega',
                         'z': 'employment',
                         'cinf': 'time',

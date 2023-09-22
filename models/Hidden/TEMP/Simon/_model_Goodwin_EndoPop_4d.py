@@ -37,7 +37,7 @@ Victor Court & Florent McIsaac, A Representation of the World Population Dynamic
 
 # ######################## PRELIMINARY ELEMENTS #########################
 import numpy as np #(if you need exponential, pi, log, of matrix products...)
-from pygemmes._models import Funcs, importmodel,mergemodel
+from chimes._models import Funcs, importmodel,mergemodel
 
 ################# DEFINING NEW FUNCTIONS ####################################
 def dem_transition(y, lvl_min, ampl, y_crit, std):
@@ -212,7 +212,7 @@ _PRESETS = {
         'plots': {
             'timetrace': [{'keys': ['employment', 'omega']}],
             'nyaxis': [],
-            'phasespace': [{'x': 'employment',
+            'XY': [{'x': 'employment',
                            'y': 'omega',
                             'idx': 0}],
             '3D': [],

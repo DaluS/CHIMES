@@ -9,9 +9,9 @@ _DESCRIPTION="""
 """
 
 import numpy as np
-from pygemmes._models import Funcs, importmodel,mergemodel
-from pygemmes._models import Funcs
-from pygemmes._models import Operators as O
+from chimes._models import Funcs, importmodel,mergemodel
+from chimes._models import Funcs
+from chimes._models import Operators as O
 
 
 ###############################################################################

@@ -12,7 +12,7 @@ increasing return $\epsilon$
 
 # ######################## PRELIMINARY ELEMENTS #########################
 import numpy as np #(if you need exponential, pi, log, of matrix products...)
-from pygemmes._models import Funcs, importmodel,mergemodel
+from chimes._models import Funcs, importmodel,mergemodel
 
 # ######################## LOGICS #######################################
 _LOGICS = {
@@ -125,7 +125,7 @@ _PRESETS = {
         'plots': {
             'timetrace': [{'keys': ['employment', 'omega']}],
             'nyaxis': [],
-            'phasespace': [{'x': 'employment',
+            'XY': [{'x': 'employment',
                            'y': 'omega',
                             'idx': 0}],
             '3D': [],

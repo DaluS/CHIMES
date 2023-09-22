@@ -19,8 +19,8 @@ Created on Wed Jul 21 15:11:15 2021
 """
 
 import numpy as np
-from pygemmes._models import Funcs, importmodel,mergemodel
-from pygemmes._models import Operators as O
+from chimes._models import Funcs, importmodel,mergemodel
+from chimes._models import Operators as O
 
 _LOGICS = {
     'differential': {

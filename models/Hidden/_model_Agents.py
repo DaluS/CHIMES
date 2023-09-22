@@ -1,6 +1,6 @@
 
 """
-DESCRIPTION : This is a model of "agents" to show how we can incorporte it into pygemmes
+DESCRIPTION : This is a model of "agents" to show how we can incorporte it into chimes
 
 Those agents are very simple (not economic) :
     * they have a position (x,y), a speed (vx,vy)
@@ -12,7 +12,7 @@ We also show how we can calculate agregated properties, and inter-agent properti
 """
 
 import numpy as np
-from pygemmes._models import Funcs
+from chimes._models import Funcs
 
 
 # ######################## OPERATORS ####################################

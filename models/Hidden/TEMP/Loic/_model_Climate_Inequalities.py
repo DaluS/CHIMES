@@ -7,8 +7,8 @@ LINKTOARTICLE : DOI: Not yet
 """
 from copy import deepcopy
 import numpy as np
-from pygemmes._models import Funcs
-from pygemmes._models._model_Climate_3Layers import _LOGICS as _LOGICSCLIM
+from chimes._models import Funcs
+from chimes._models._model_Climate_3Layers import _LOGICS as _LOGICSCLIM
 
 ###############################################################################
 """
@@ -408,7 +408,7 @@ plots = {
             'lw':1
         }
     ],
-    'phasespace': [],
+    'XY': [],
     '3D': [{'x': 'lambda',
             'y': 'omega',
             'z': 'd',

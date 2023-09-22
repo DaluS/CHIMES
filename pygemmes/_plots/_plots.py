@@ -57,8 +57,6 @@ LEGENDHANDLELENGTH = 2
 
 __all__ = [
     'plotnyaxis',
-    'phasespace',
-    'plot3D',
     'XY',
     'XYZ',
     'Sankey',
@@ -75,7 +73,7 @@ __all__ = [
 
 
 
-def Showsentivitity(OUT,vars,std=0.01):  
+def Showsentivitity(OUT,vars,std=0.01,returnFig=False):  
     ''' 
     Display how sensitive is the parameter value on a run 
     ''' 
@@ -100,8 +98,10 @@ def Showsentivitity(OUT,vars,std=0.01):
                 legend=dict(orientation='h'),
             )
             fig = go.Figure(data=list(dic[v].values()), layout=layout)
+    if not returnFig:
         Figures[v]=pyo.iplot(fig)
-    return Figures
+    else:
+        return Figures
 
 def plotbyunits(hub,
                filters_key=(),
@@ -113,7 +113,8 @@ def plotbyunits(hub,
                Region=0,
                tini=False,
                tend=False,
-               title=''):
+               title='',
+               returnFig=False):
     '''
     generate one subfigure per set of units existing.
 
@@ -242,10 +243,23 @@ def plotbyunits(hub,
 
     plt.subplots_adjust(wspace=0.01, hspace=0)
     plt.suptitle(title)
-    plt.show()
-    return fig
+    if not returnFig:
+        plt.show()
+    else:
+        return fig
 
-def plotnyaxis(hub,  y=[[]],x='time', log=False, idx=0,Region=0,tini=False,tend=False, title='', lw=2,loc='best'):
+def plotnyaxis(hub, 
+               y=[[]],
+               x='time', 
+               log=False, 
+               idx=0,
+               Region=0,
+               tini=False,
+               tend=False, 
+               title='', 
+               lw=2,
+               loc='best',
+               returnFig=False):
     '''
     x must be a variable name (x axis organisation)
     y must be a list of list of variables names (each list is a shared axis)
@@ -347,7 +361,11 @@ def plotnyaxis(hub,  y=[[]],x='time', log=False, idx=0,Region=0,tini=False,tend=
     dax[ii].legend(handles=p.values(),loc=loc,labelspacing=0.0)
     plt.title(title)
     plt.tight_layout()
-    plt.show()
+    if not returnFig:
+        plt.show()
+    else:
+        return fig
+
 
 
 def XY(hub,x,y,
@@ -357,7 +375,8 @@ def XY(hub,x,y,
        Region=0,
        tini=False ,
        tend=False ,
-       title=''
+       title='',
+       returnFig=False
        ):
     '''
     plot 'x' in function of 'y', the curve color being the value of 'color'.
@@ -402,7 +421,11 @@ def XY(hub,x,y,
         plt.axis('scaled')
     #plt.loglog()
     plt.title(title)
-    plt.show()
+
+    if not returnFig:
+        plt.show()
+    else:
+        return fig
 
 
 def XYZ(hub,x,y,z,
@@ -411,7 +434,8 @@ def XYZ(hub,x,y,z,
         Region=0,
         tini=False ,
         tend=False ,
-        title=''):
+        title='',
+        returnFig=False):
     '''Plot a 3D curve, with a fourth field as the color of the curve'''
     
     hub,idx,Region,idt0,idt1=_indexes(hub,idx,Region,tini,tend)
@@ -456,7 +480,10 @@ def XYZ(hub,x,y,z,
     plt.tight_layout()
     # plt.legend()
     plt.title(title)
-    plt.show()
+    if not returnFig:
+        plt.show()
+    else:
+        return fig
 
 
 def Var(hub, 
@@ -467,7 +494,8 @@ def Var(hub,
         Region=0, 
         tini=False,
         tend=False,
-        title=''):
+        title='',
+        returnFig=False):
     '''
     One variable plot, with possibly cycles analysis and sensitivity if asked
     if you put [key,sectorname] it will load the specific sector
@@ -574,10 +602,12 @@ def Var(hub,
                R[key]['symbol'] )
     plt.xlabel('time (y)')
     if mode: ax.legend()
-    plt.show()
+    if not returnFig:
+        plt.show()
+    else:
+        return fig
 
-
-def Sankey(hub,t=0,idx=0,Region=0,figPhy=False,figMoney=False):
+def Sankey(hub,t=0,idx=0,Region=0,figPhy=False,figMoney=False,returnFig=False):
     '''Physical and monetary Sankey diagrams'''
 
 
@@ -779,7 +809,10 @@ def Sankey(hub,t=0,idx=0,Region=0,figPhy=False,figMoney=False):
         else :
             figMoney.data[0].link.value=TD['value']
             figMoney.update_layout(title=f"Monetary exchanges between sectors, t={R['time']['value'][ntindex,0,0,0,0]:.2f}")
-    #return figPhy,figMoney
+    if not returnFig:
+        pass
+    else:
+        return figPhy,figMoney
 
 
 # #################################### TOOLBOX PLOTS ########################################
@@ -791,7 +824,8 @@ def cycles_characteristics(hub,
                            type1='frequency',
                            normalize=False,
                            Region=0,
-                           title=''):
+                           title='',
+                           returnFig=False):
     '''
     Plot frequency and harmonicity for each cycle found in the system
 
@@ -841,7 +875,10 @@ def cycles_characteristics(hub,
 
 
     plt.suptitle(title+'Period analysis on : '+R[ref]['symbol'])
-    plt.show()
+    if not returnFig:
+        plt.show()
+    else:
+        return fig
 
 
 def repartition(hub ,
@@ -857,7 +894,7 @@ def repartition(hub ,
                 Region=0,
                 tini=False,
                 tend=False,
-                ):
+                returnFig=False):
     """
     Temporal visualisation of a composition.
     Recommended use on stock-flow consistency and budget repartition.
@@ -965,10 +1002,13 @@ def repartition(hub ,
 
     plt.suptitle(title)
     plt.tight_layout()
-    plt.show()
+    if not returnFig:
+        plt.show()
+    else:
+        return fig
 
 
-def convergence(hub,finalpoint,showtrajectory=False):
+def convergence(hub,finalpoint,showtrajectory=False,returnFig=False):
 
     if len(finalpoint.keys())!=3:
         raise Exception('Use three dimension for your phasespace !')
@@ -1022,139 +1062,16 @@ def convergence(hub,finalpoint,showtrajectory=False):
     ax.set_zlabel(R[keys[2]]['symbol'])
     cbar = fig.colorbar(scat)
     cbar.ax.set_ylabel(r'$f_{carac}^{stab} (y^{-1})$')
-    plt.show()
+    if not returnFig:
+        plt.show()
+    else:
+        return fig
     '''
     lc1 = _multiline(AllX, AllY, AllZ, ax=ax,color='k', lw=0.1)
     # Add colobar
     '''
 # #############################################################
 
-# %% DEPRECIATED ##################################################################
-###################################################################################
-
-
-def phasespace(hub, x, y, color='time', idx=0,Region=0):
-    '''
-    Depreciated, use XY instead
-    '''
-    print('plot phasespace is depreciated, use XY instead')
-
-    if not hub.dmisc['run']:
-        print('NO RUN DONE YET, SYSTEM IS DOING A RUN WITH GIVEN FIELDS VALUES')
-        hub.run()
-
-    XY(hub,x,y,
-       color='time',
-       scaled=False,
-       idx=0,
-       Region=0,
-       tini=False ,
-       tend=False ,
-       title='')
-
-
-def plot3D(hub, x, y, z, color, cmap='jet', index=0,Region=0, title=''):
-    '''
-    Depreciated, use XYZ instead
-    '''
-    print('Depreciated, use XYZ instead')
-    XYZ(hub,x,y,z,
-        color,
-        idx=0,
-        Region=Region,
-        tini=False ,
-        tend=False ,
-        title=title)
-
-    
-def __slices_wholelogic(hub, key='', axes=[[]], N=100, tid=0, idx=0,Region=0):
-    '''
-    Take the logic of a field, and calculate a slice given two of the argument fields that are modified
-
-    Example :
-        plotfunction(hub,key='Hid',axes=[['Omega',0,2]],N=100,tid=0,idx=0)
-        plotfunction(hub,key='Hid',axes=[['Omega',0,2],['x',0,100]],N=100,tid=0,idx=0)
-
-    Parameters
-    ----------
-    key  : str. name of the field you are introspecting
-    axes : [[str,valmin,valmax]] or [[str,valmin,valmax],[str,valmin,valmax]] for 2D
-    N    : int, number of points in grid
-    tid  : index of
-    idx : TYPE, optional
-        DESCRIPTION. The default is 0.
-
-    Raises
-    ------
-    Exception
-        DESCRIPTION.
-
-    Returns
-    -------
-    None.
-    '''
-
-    R = hub.get_dparam()
-
-    if len(axes) > 2:
-        raise Exception('Too many dimensions to plot !')
-    elif len(axes) == 2:
-        axx = axes[0]
-        axy = axes[1]
-
-        ## If the axes contains a sector
-        if len(axx)==4: RegionX=axx[1]
-        else : RegionX=0
-        if len(axy)==4: RegionY=axy[1]
-        else : RegionY=0
-
-        ### CREATE THE GRID
-        XX, YY = np.meshgrid(np.linspace(axx[-2], axx[-1], N),
-                             np.linspace(axy[-2], axy[-1], N))
-
-
-        keys = [axes[0][0], axes[1][0]]
-        defaultkeys = [k for k in R[key]['kargs'] if k not in keys]
-
-        defaultval = {k: R[k]['value'] for k in defaultkeys if k in hub.dmisc['parameters']}
-        defaultval.update({k: R[k]['value'][tid, idx,Region,:,0]
-                          for k in defaultkeys if k in hub.dmisc['dfunc_order']['statevar']})
-        defaultval0 = copy.deepcopy(defaultval)
-        defaultval[keys[0]][:,RegionX] = XX
-        defaultval[keys[1]][:,RegionY] = YY
-
-        Z = R[key]['func'](**defaultval)
-
-        plt.figure(f'Function: {key} 2D')
-        plt.pcolormesh(XX, YY, Z, cmap='jet')
-        plt.xlabel(R[axes[0][0]]['symbol'])
-        plt.ylabel(R[axes[1][0]]['symbol'])
-        plt.title(R[key]['symbol']+f'\n {defaultval0}')
-        plt.colorbar()
-        plt.show()
-    elif len(axes) == 1:
-        XX = np.linspace(axes[0][1], axes[0][2], N)
-        if len(axes[0])==4: RegionX=axes[0][1]
-        else : RegionX=0
-
-        defaultkeys = [k for k in R[key]['kargs'] if k not in [key]]
-
-        defaultval = {k: R[k]['value'] for k in defaultkeys if k in hub.dmisc['dfunc_order']['parameters']}
-
-        defaultval.update({k: R[k]['value'][tid, idx,Region,:,0]
-                          for k in defaultkeys if k in hub.dmisc['dfunc_order']['statevar']})
-        defaultval0 = copy.deepcopy(defaultval)
-
-        defaultval[axes[0][0]][:] = XX
-
-        Z = R[key]['func'](**defaultval)
-
-        plt.figure(f'Function: {key} 1D')
-        plt.plot(XX, Z)
-        plt.xlabel(R[axes[0][0]]['symbol'])
-        plt.ylabel(R[key]['symbol'])
-        plt.title(f'{defaultval0}')
-        plt.show()
 
 
 def __plot_variation_rate(hub, varlist, title='', idx=0):
@@ -1253,10 +1170,8 @@ _DPLOT = {
     #'variation_rate': plot_variation_rate,
     #'timetrace': plot_timetraces,
     'nyaxis': plotnyaxis,
-    'phasespace': phasespace,
     'XY' : XY,
     'XYZ' : XYZ,
-    '3D': plot3D,
     'sankey': Sankey,
     'byunits': plotbyunits,
     'Onevariable': Var,

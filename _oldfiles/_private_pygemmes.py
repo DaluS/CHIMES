@@ -9,12 +9,12 @@ _PATH_HERE = os.path.dirname(__file__)
 _PATH_USER_HOME = os.path.expanduser('~')
 
 
-def create_private_pygemmes(
+def create_private_chimes(
     path_user_home=_PATH_USER_HOME,
     reset=None,
     reset_hard=None,
 ):
-    """ Create the private .pygemmes folder in user's home
+    """ Create the private .chimes folder in user's home
 
     This pivate folder contains user-customizable:
         - _models/:
@@ -26,7 +26,7 @@ def create_private_pygemmes(
     reset:      bool
         will overwrite existing files but will preserve added files
     reset_hard: bool
-        will remove the whole .pygemmes/ folder and re-create it
+        will remove the whole .chimes/ folder and re-create it
 
     """
 
@@ -59,7 +59,7 @@ def create_private_pygemmes(
     # ---------------------------------
     # Check pre-existing private folder
 
-    path_private_pgm = os.path.join(path_user_home, '.pygemmes')
+    path_private_pgm = os.path.join(path_user_home, '.chimes')
 
     if os.path.isdir(path_private_pgm):
         if reset_hard is True:

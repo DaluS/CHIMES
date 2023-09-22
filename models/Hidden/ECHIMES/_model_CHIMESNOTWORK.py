@@ -23,8 +23,8 @@ It integrates :
 ## What should be done ?
 * Check u and i mechanism
 """
-from pygemmes._models import Funcs, importmodel,mergemodel
-from pygemmes._models import Operators as O
+from chimes._models import Funcs, importmodel,mergemodel
+from chimes._models import Operators as O
 import numpy as np
 
 def dotD( MtransactI, MtransactY, wL, rD, pC):

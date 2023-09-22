@@ -26,8 +26,8 @@ There is an hard-cap to ensure that it can work with $\omega_c\geq 1 $ (which gi
 
 ################# IMPORTS ##################################################
 import numpy as np #(if you need exponential, pi, log, of matrix products...)
-from pygemmes._models import Funcs, importmodel,mergemodel,filldimensions
-from pygemmes._models import Operators as O
+from chimes._models import Funcs, importmodel,mergemodel,filldimensions
+from chimes._models import Operators as O
 
 
 def l(omegacarac,CESexp):

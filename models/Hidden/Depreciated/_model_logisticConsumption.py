@@ -3,7 +3,7 @@ Consumption dynamics for a logistic distribution
 
 """
 
-from pygemmes._models import Funcs, importmodel,mergemodel
+from chimes._models import Funcs, importmodel,mergemodel
 import numpy as np
 
 # ######################## OPERATORS ####################################

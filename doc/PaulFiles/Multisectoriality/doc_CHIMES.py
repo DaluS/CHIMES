@@ -1,4 +1,4 @@
-import pygemmes as pgm
+import chimes as pgm
 import numpy as np
 plt.close('all')
 

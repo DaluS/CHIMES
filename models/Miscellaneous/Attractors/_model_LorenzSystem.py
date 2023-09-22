@@ -13,13 +13,15 @@ Solving the famous 3-coupled ordinary differential system. Canonical case has th
 
 # ######################## PRELIMINARY ELEMENTS #########################
 import numpy as np #(if you need exponential, pi, log, of matrix products...)
-from pygemmes._models import Funcs, importmodel,mergemodel
+from chimes._models import Funcs, importmodel,mergemodel
 
 _LOGICS = {
     'differential': {
         'x': {
             'func': lambda lor_sigma, y, x: lor_sigma*(y-x),
             'com': 'X',
+            'definition':'One of the dimension',
+            'symbol':r'$\mathcal{r}$',
             'initial': 0.2,
         },
         'y': {

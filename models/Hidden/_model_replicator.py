@@ -10,8 +10,8 @@ This important property allows the replicator equation to capture the essence of
 
 ################# IMPORTS ##################################################
 import numpy as np #(if you need exponential, pi, log, of matrix products...)
-from pygemmes._models import Funcs, importmodel,mergemodel,filldimensions
-from pygemmes._models import Operators as O
+from chimes._models import Funcs, importmodel,mergemodel,filldimensions
+from chimes._models import Operators as O
 
 # ######################## LOGICS #######################################
 

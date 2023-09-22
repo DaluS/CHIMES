@@ -13,9 +13,9 @@ import numpy as np
 
 # ----------------------------------------------------------------------------
 # We simply do a few modifications on two previous models : we load them as a basis
-from pygemmes._models import Funcs
-from pygemmes._models._model_Goodwin import _LOGICS as _LOGICS0
-from pygemmes._models._model_MinePaul import _LOGICS as _MININGSECTOR
+from chimes._models import Funcs
+from chimes._models._model_Goodwin import _LOGICS as _LOGICS0
+from chimes._models._model_MinePaul import _LOGICS as _MININGSECTOR
 
 from copy import deepcopy
 

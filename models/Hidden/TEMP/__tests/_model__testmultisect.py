@@ -7,7 +7,7 @@ DESCRIPTION :
 """
 
 import numpy as np
-#from pygemmes._models import Funcs
+#from chimes._models import Funcs
 
 def scalarprod(X,Y):
     return np.matmul(np.moveaxis(X,-1,-2),Y)

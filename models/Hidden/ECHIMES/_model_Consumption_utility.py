@@ -13,8 +13,8 @@ _DESCRIPTION = """
 
 """
 import numpy as np #(if you need exponential, pi, log, of matrix products...)
-from pygemmes._models import Funcs, importmodel,mergemodel,filldimensions
-from pygemmes._models import Operators as O
+from chimes._models import Funcs, importmodel,mergemodel,filldimensions
+from chimes._models import Operators as O
 
 utility = lambda H0,U0,H:U0*(1- np.exp(-(H/H0)))  
 #utility = lambda beta,U,H:U*np.log(1+beta*H)

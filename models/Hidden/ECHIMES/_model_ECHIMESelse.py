@@ -15,7 +15,7 @@ It integrates :
     * Adaptive use of capital
 """
 
-from pygemmes._models import Funcs, importmodel,mergemodel
+from chimes._models import Funcs, importmodel,mergemodel
 import numpy as np
 
 

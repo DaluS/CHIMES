@@ -92,7 +92,7 @@ Functions can be written two ways :
 * classic functions defined somewhere else and called in `'func':`
 * "lambda" (un-named function) 
 
-`Pygemmes` is going to READ the function and the names of what you call. So put the right names inside ! For example : `func': lambda Ir,delta,u,K: Ir-delta*u*K`, the system will look at the fields named `Ir`, `delta`, `u`, `K` to compute the value. 
+`chimes` is going to READ the function and the names of what you call. So put the right names inside ! For example : `func': lambda Ir,delta,u,K: Ir-delta*u*K`, the system will look at the fields named `Ir`, `delta`, `u`, `K` to compute the value. 
 
 * If your field is in `differential`, it is assumed that what you define is its time derivative (like in the previous example)
 * If your field is in `statevar`, it is assumed that what you define is the value.
@@ -124,7 +124,7 @@ This is practical if you need complex multiline functions, or to call an externa
 
 ### The presets
 
-Presets are pre-defined set of fields values and plots that a user can load to explore the properties of the model. As often in pygemmes, it is a dictionnary of dictionnary : 
+Presets are pre-defined set of fields values and plots that a user can load to explore the properties of the model. As often in chimes, it is a dictionnary of dictionnary : 
 ```
 _PRESETS= {
     'presetname_1': {
@@ -186,7 +186,7 @@ Example :
                         'log':[False,False],
                         'title':'',
                         'lw':1}],
-            'phasespace': [{'x': 'employment',
+            'XY': [{'x': 'employment',
                             'y': 'omega',
                             'color': 'd',
                             'idx': 0}],
@@ -214,7 +214,7 @@ If your model is a fork (modification of) a previous model, you can import the l
 
 More powerful functions are comming to do such thing (but can be found in `_model_CHIMES` as `Merge`
 ```
-from pygemmes._models._model_Goodwin import _LOGICS as _LOGICS0
+from chimes._models._model_Goodwin import _LOGICS as _LOGICS0
 from copy import deepcopy
 _LOGICS = deepcopy(_LOGICS0) # security
 _GK_LOGICS = {
@@ -275,7 +275,7 @@ def TfromE(E,time):
     ### Initialize your model
     if time==0:
         MODEL.start()
-    ### If Pygemmes is too much in advance in time, compute next iteration
+    ### If chimes is too much in advance in time, compute next iteration
     if time>MODEL['simulatedtime']:
         MODEL.run('Emissions'=E)
     T=MODEL.give('Temperature',time)
@@ -283,4 +283,4 @@ def TfromE(E,time):
 ```
 
 Of course the binding needs to have `MODEL` correctly coded. 
-As pygemmes use an RK-4 solver, `MODEL.give` must not necessary compute the iteration at each timestep (depends of your solver on the other side.
+As chimes use an RK-4 solver, `MODEL.give` must not necessary compute the iteration at each timestep (depends of your solver on the other side.

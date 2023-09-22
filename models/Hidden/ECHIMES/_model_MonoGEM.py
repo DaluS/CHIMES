@@ -7,7 +7,7 @@ This model is mostly taken from : https://www.overleaf.com/read/wrxcvrkwpgfm
 
 """
 import numpy as np
-from pygemmes._models import Funcs
+from chimes._models import Funcs
 
 
 _LOGICS_MONOGEM = {

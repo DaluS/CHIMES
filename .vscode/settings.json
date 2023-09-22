@@ -1,6 +1,6 @@
 {
     "python.testing.pytestArgs": [
-        "pygemmes/tests"
+        "chimes/tests"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true

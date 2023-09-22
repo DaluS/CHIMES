@@ -18,7 +18,7 @@ This set of equation assume m1=m2 and l1=l2
 """
 # ######################## PRELIMINARY ELEMENTS #########################
 import numpy as np #(if you need exponential, pi, log, of matrix products...)
-from pygemmes._models import Funcs, importmodel,mergemodel
+from chimes._models import Funcs, importmodel,mergemodel
 
 
 

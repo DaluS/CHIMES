@@ -26,8 +26,8 @@ Real gross investment, I, is then driven by the return on assets, pi_K, capturin
 
 # ######################## PRELIMINARY ELEMENTS #########################
 import numpy as np
-from pygemmes._models import Funcs, importmodel,mergemodel
-#from pygemmes._models import Operators as O
+from chimes._models import Funcs, importmodel,mergemodel
+#from chimes._models import Operators as O
 
 
 _LOGICS= {
@@ -143,7 +143,7 @@ plotdict= {
                         'log':[False,False],
                         'title':'',
                         'lw':1}],
-            'phasespace': [{'x': 'employment',
+            'XY': [{'x': 'employment',
                             'y': 'omega',
                             'color': 'd',
                             'idx': 0}],

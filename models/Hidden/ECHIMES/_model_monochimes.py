@@ -10,8 +10,8 @@ _DESCRIPTION = """
 
 """
 
-from pygemmes._models import Funcs, importmodel,mergemodel,filldimensions
-from pygemmes._models import Operators as O
+from chimes._models import Funcs, importmodel,mergemodel,filldimensions
+from chimes._models import Operators as O
 import numpy as np
 
 _LOGICS = {

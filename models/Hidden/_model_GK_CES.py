@@ -12,8 +12,8 @@ It closes the phase-space on omeg
 """
 ################# IMPORTS ##################################################
 import numpy as np #(if you need exponential, pi, log, of matrix products...)
-from pygemmes._models import Funcs, importmodel,mergemodel,filldimensions
-from pygemmes._models import Operators as O
+from chimes._models import Funcs, importmodel,mergemodel,filldimensions
+from chimes._models import Operators as O
 
 _LOGICS_GK,_PRESETS0,_SUPPLEMENTS= importmodel('GK')
 
@@ -71,7 +71,7 @@ _PRESETS = {
                             'idx':0,
                             'title':'',
                             'lw':1}],
-            'phasespace': [{'x': 'employment',
+            'XY': [{'x': 'employment',
                             'y': 'omega',
                             'color': 'time',
                             'idx': 0}],

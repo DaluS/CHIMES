@@ -1,8 +1,8 @@
 '''Extensions for international trades, applied to ECHIMES'''
 
 _DESCRIPTION = ''' '''
-from pygemmes._models import Funcs, importmodel,mergemodel
-from pygemmes._models import Operators as O
+from chimes._models import Funcs, importmodel,mergemodel
+from chimes._models import Operators as O
 import numpy as np
 
 

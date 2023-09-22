@@ -32,10 +32,10 @@ import sys
 
 path = "/Users/zhu/Desktop/GEJP/GEMMES" 
 sys.path.insert(0, path)
-import pygemmes as pgm
+import chimes as pgm
 
 import numpy as np
-from pygemmes._models import Funcs, importmodel,mergemodel
+from chimes._models import Funcs, importmodel,mergemodel
 
 
 
@@ -88,7 +88,7 @@ _PRESETS = {
                         'idx':0,
                         'title':'',
                         'lw':1}],
-            'phasespace': [{'x': 'employment',
+            'XY': [{'x': 'employment',
                             'y': 'omega',
                             'color': 'time',
                             'idx': 0}],
@@ -122,7 +122,7 @@ _PRESETS = {
         'plots': {
             'timetrace': [{'keys': ['employment', 'omega']}],
             'nyaxis': [],
-            'phasespace': [{'x': 'employment',
+            'XY': [{'x': 'employment',
                            'y': 'omega',
                             'idx': 0}],
             '3D': [],

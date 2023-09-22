@@ -9,14 +9,14 @@ Wave propagation with :
 the system solves in 1D (if v=D=0) :
     $d^2C/dt^2 - c**2 \nabla \nabla C = 0 $
 
-It is more a proof of concept of what pygemmes can do in term of regions coupling.
+It is more a proof of concept of what chimes can do in term of regions coupling.
 A big part is still a bit sloppy.
 """
 
 ################# IMPORTS ##################################################
 import numpy as np #(if you need exponential, pi, log, of matrix products...)
-from pygemmes._models import Funcs, importmodel,mergemodel,filldimensions
-from pygemmes._models import Operators as O
+from chimes._models import Funcs, importmodel,mergemodel,filldimensions
+from chimes._models import Operators as O
 
 # ######################## LOGICS #######################################
 _LOGICS = {

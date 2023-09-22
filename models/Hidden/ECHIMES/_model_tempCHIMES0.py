@@ -28,7 +28,7 @@ CHIMES :
 # ######################## PRELIMINARY ELEMENTS #########################
 __AUXIN = True # Add auxilliary variables
 __AGGIN = True # Add Agregated variables
-from pygemmes._models import Funcs, importmodel,mergemodel
+from chimes._models import Funcs, importmodel,mergemodel
 
 import numpy as np
 

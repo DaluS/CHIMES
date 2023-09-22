@@ -14,8 +14,8 @@ BAU and TRANSITION converges toward the good equilibrium, BAU_DAM toward the bad
 
 # ######################## PRELIMINARY ELEMENTS #########################
 import numpy as np
-from pygemmes._models import Funcs, importmodel,mergemodel
-from pygemmes._models import Operators as O
+from chimes._models import Funcs, importmodel,mergemodel
+from chimes._models import Operators as O
 _LOGICS,_PRESETS0,_SUPPLEMENTS_GK= importmodel('GK')
 _LOGICSCLIM,_PRESETSCLIM,_SUPPLEMENTS_CLIM= importmodel('Climate_3Layers')
 
