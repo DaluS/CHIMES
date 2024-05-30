@@ -37,7 +37,7 @@ CHIMES is its own numerical environment, open on other structures. It has:
 * An ensemble of easy to access plots
 * A methodology to couple external models through an API. 
 
-![image](https://github.com/georgetown-ejp/CHIMES/assets/11523050/00cd06e1-0a8d-4f38-a74a-f1ee006f83af)
+![image](https://github.com/DaluS/CHIMES/assets/11523050/a37b3b8b-2e9e-46cc-8c0e-51746c3590f4)
 *Some illustrations of CHIMES content*
 
 ## TL:DR USE 
