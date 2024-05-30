@@ -29,17 +29,17 @@ _LOGICS = {
 
     },
     'statevar': {
-        'ux': dict(lambda u, nablax: O.RmatmulI(u, nablax)),
-        'uy': dict(lambda u, nablay: O.RmatmulI(u, nablay)),
-        'vx': dict(lambda v, nablax: O.RmatmulI(v, nablax)),
-        'vy': dict(lambda v, nablay: O.RmatmulI(v, nablay)),
-        'hx': dict(lambda h, nablax: O.RmatmulI(h, nablax)),
-        'hy': dict(lambda h, nablay: O.RmatmulI(h, nablay)),
+        'ux': dict(lambda u, nablax: O.Rmatmul(u, nablax)),
+        'uy': dict(lambda u, nablay: O.Rmatmul(u, nablay)),
+        'vx': dict(lambda v, nablax: O.Rmatmul(v, nablax)),
+        'vy': dict(lambda v, nablay: O.Rmatmul(v, nablay)),
+        'hx': dict(lambda h, nablax: O.Rmatmul(h, nablax)),
+        'hy': dict(lambda h, nablay: O.Rmatmul(h, nablay)),
 
-        'uxx': dict(lambda ux, nablax: O.RmatmulI(ux, nablax)),
-        'uyy': dict(lambda uy, nablay: O.RmatmulI(uy, nablay)),
-        'vxx': dict(lambda vx, nablax: O.RmatmulI(vx, nablax)),
-        'vyy': dict(lambda vy, nablay: O.RmatmulI(vy, nablay)),
+        'uxx': dict(lambda ux, nablax: O.Rmatmul(ux, nablax)),
+        'uyy': dict(lambda uy, nablay: O.Rmatmul(uy, nablay)),
+        'vxx': dict(lambda vx, nablax: O.Rmatmul(vx, nablax)),
+        'vyy': dict(lambda vy, nablay: O.Rmatmul(vy, nablay)),
     },
     'parameter': {
         'H': dict(value=3),
