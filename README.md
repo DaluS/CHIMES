@@ -5,9 +5,9 @@
 ![image](https://img.shields.io/badge/Pandas-2C2D72?style=for-the-badge&logo=pandas&logoColor=white)
 ![image](https://img.shields.io/badge/Plotly-239120?style=for-the-badge&logo=plotly&logoColor=white)
 
-![image](https://img.shields.io/badge/this_is-a_test-green)
+![image](https://img.shields.io/badge/In-Beta)
 
-[LogoCHIMES.pdf](https://github.com/DaluS/CHIMES/files/15501925/LogoCHIMES.pdf)
+![LOGO](https://github.com/DaluS/CHIMES/assets/11523050/59cb2a80-107f-401c-95f4-c1e16933c086)
 
 
 CHIMES is a library to explore, prototype, analyze and couple dynamical models in python.
