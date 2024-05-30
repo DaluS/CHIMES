@@ -10,3 +10,4 @@ exclude =
     .pytest_cache
     env
     .env
+    unused_files
