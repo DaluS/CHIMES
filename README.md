@@ -11,11 +11,14 @@
 ![image](https://img.shields.io/badge/Pandas-2C2D72?style=for-the-badge&logo=pandas&logoColor=white)
 ![image](https://img.shields.io/badge/Plotly-239120?style=for-the-badge&logo=plotly&logoColor=white)
 
+[![Maintained](https://img.shields.io/badge/Maintained-Yes-brightgreen.svg)](https://github.com/georgetown-ejp/CHIMES/pulse)
+[![Coverage Status](https://coveralls.io/repos/github/SDXorg/pysd/badge.svg?branch=master)](https://coveralls.io/github/dalus/CHIMES?branch=devel)
+[![Contributions](https://img.shields.io/badge/contributions-welcome-blue.svg)](https://pysd.readthedocs.io/en/latest/development/development_index.html)
+
 # CHIMES
 
-
-
-CHIMES is a library to explore, prototype, analyze and couple dynamical models in python.
+CHIMES is a user-friendly library to explore, prototype, analyze and couple dynamical models in python.
+It is built with both beginners and advanced users in mind, and give access to complex tensorial dynamics resolution if needed. 
 
 CHIMES means **C**ore for **H**olisitic **I**ntertwined **M**odel for **E**nvironmental **S**implexity. 
 
@@ -24,7 +27,6 @@ It has been developped as a structure for the next generation of complexity-base
 At the core is the idea that quantities (here called fields) can have a causal logic, a mathematical definitionm that defines its value or its variation. 
 hose fields are going to create a causal map of intertwined relationships looping on each others. 
 Studying such model is studying the dance between those quantities. 
-
 
 CHIMES is its own numerical environment, open on other structures. It has:
 * A modelbase with macreconomic, climate, agent-based, circuits, partial differential equation models that contains logics, preset, explanation and examples for each.  
@@ -77,8 +79,9 @@ hub.get_supplements()         # Give you all the supplementary functions availab
 ```
 
 **To change values**
+```
 hub.set_fields(field,value)
-
+```
 
 ## Another dynamical system library? 
 
@@ -148,18 +151,12 @@ See also the list of [contributors](https://github.com/georgetown-ejp/CHIMES/con
 # To upgrade [ NOT REALLY PART OF THE README ]
 
 Status list (here taken from pySD)
-- [ ] The github to be public (should makes the maintained status to work)
 - [ ] https://coveralls.io for the pytest coverage ?
 - [ ] Publish in JOSS 
-- [ ] Readthedocs page
 
 
-[![Maintained](https://img.shields.io/badge/Maintained-Yes-brightgreen.svg)](https://github.com/georgetown-ejp/CHIMES/pulse)
-[![Coverage Status](https://coveralls.io/repos/github/SDXorg/pysd/badge.svg?branch=master)](https://coveralls.io/github/georgetown-ejp/CHIMES?branch=devel)
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/pysd/badges/version.svg)](https://anaconda.org/conda-forge/pysd)
 [![PyPI version](https://badge.fury.io/py/pysd.svg)](https://badge.fury.io/py/pysd)
 [![PyPI status](https://img.shields.io/pypi/status/pysd.svg)](https://pypi.python.org/pypi/pysd/)
 [![Py version](https://img.shields.io/pypi/pyversions/pysd.svg)](https://pypi.python.org/pypi/pysd/)
 [![JOSS](https://joss.theoj.org/papers/10.21105/joss.04329/status.svg)](https://doi.org/10.21105/joss.04329)
-[![Contributions](https://img.shields.io/badge/contributions-welcome-blue.svg)](https://pysd.readthedocs.io/en/latest/development/development_index.html)
-[![Docs](https://readthedocs.org/projects/pysd/badge/?version=latest)](https://pysd.readthedocs.io/en/latest/?badge=latest)
