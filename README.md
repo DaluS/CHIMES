@@ -130,7 +130,7 @@ it is composed of :
 * An interface for a user-friendly experience
 
 ![image](https://github.com/georgetown-ejp/CHIMES/assets/11523050/22286361-1d5e-48c3-9d6c-d3179eb27515)
-* The flow inside the library*
+
 
 ## Running the tests
 
@@ -149,11 +149,6 @@ See also the list of [contributors](https://github.com/georgetown-ejp/CHIMES/con
 
 
 # To upgrade [ NOT REALLY PART OF THE README ]
-
-Status list (here taken from pySD)
-- [ ] https://coveralls.io for the pytest coverage ?
-- [ ] Publish in JOSS 
-
 
 [![Anaconda-Server Badge](https://anaconda.org/conda-forge/pysd/badges/version.svg)](https://anaconda.org/conda-forge/pysd)
 [![PyPI version](https://badge.fury.io/py/pysd.svg)](https://badge.fury.io/py/pysd)
