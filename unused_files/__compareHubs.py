@@ -69,9 +69,9 @@ for entry_name, entry_dict in FAKE_DATA.items():
     OUTcolors = {'GK_01^US': '',
                  'GEMMES_02^WORLD': ''}
 
-    return FAKE_DATA, ordered_dict, OUTcolors
+#    return FAKE_DATA, ordered_dict, OUTcolors
 
-
+'''
 def compare_hubs(
         hub,
         idx=False,
@@ -93,3 +93,4 @@ def compare_hubs(
         F.show()
     else:
         return F
+'''
