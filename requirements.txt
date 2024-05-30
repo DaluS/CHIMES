@@ -9,3 +9,7 @@ pylatexenc
 dill 
 ipywidgets
 itables
+redivis
+tabulate
+python-dotenv
+ipympl

@@ -1,0 +1,84 @@
+# Configuration Schema Documentation
+
+## Configuration Options
+
+- **_VERB**
+  - **Type:** `boolean`
+  - **Default:** `True`
+  - **Description:** Description not provided.
+- **__PRINTINTRO**
+  - **Type:** `boolean`
+  - **Default:** `False`
+  - **Description:** Description not provided.
+- **_FIELDS_EXPLOREMODEL**
+  - **Type:** `boolean`
+  - **Default:** `False`
+  - **Description:** Description not provided.
+- **_FROM_USER**
+  - **Type:** `boolean`
+  - **Default:** `False`
+  - **Description:** Description not provided.
+- **_MODEL_NAME_CONVENTION**
+  - **Type:** `string`
+  - **Default:** `_model_`
+  - **Description:** Description not provided.
+- **_MODEL_FOLDER_HIDDEN**
+  - **Type:** `string`
+  - **Default:** `Hidden`
+  - **Description:** Description not provided.
+- **_SAVE_FOLDER**
+  - **Type:** `string`
+  - **Default:** `saves`
+  - **Description:** Description not provided.
+- **_DMODEL_KEYS**
+  - **Type:** `object`
+  - **Default:** `{description: '', file: '', logics: {}, name: '', presets: {}}`
+  - **Description:** Description not provided.
+- **_LTYPES**
+  - **Type:** `array`
+  - **Default:** `[int, float]`
+  - **Description:** Description not provided.
+- **_LTYPES_ARRAY**
+  - **Type:** `array`
+  - **Default:** `[list, tuple]`
+  - **Description:** Description not provided.
+- **_LEQTYPES**
+  - **Type:** `array`
+  - **Default:** `[differential, statevar, parameter, size]`
+  - **Description:** Description not provided.
+- **_SOLVER**
+  - **Type:** `string`
+  - **Default:** `rk4`
+  - **Description:** Description not provided.
+- **_LEXTRAKEYS**
+  - **Type:** `array`
+  - **Default:** `[func, kargs, args, initial, source_exp, isneeded, analysis, size]`
+  - **Description:** Description not provided.
+- **_LOCAL_MODEL**
+  - **Type:** `['string', None]`
+  - **Default:** `None`
+  - **Description:** Description not provided.
+- **_PATH_HERE**
+  - **Type:** `string`
+  - **Default:** `Path toward chimes`
+  - **Description:** Description not provided.
+- **_PATH_USER_HOME**
+  - **Type:** `string`
+  - **Default:** ``
+  - **Description:** Description not provided.
+- **_PATH_PRIVATE_MODELS**
+  - **Type:** `['string', None]`
+  - **Default:** `None`
+  - **Description:** Description not provided.
+- **_PATH_MODELS**
+  - **Type:** `string`
+  - **Default:** `models path`
+  - **Description:** Description not provided.
+- **_DEFAULTSIZE**
+  - **Type:** `string`
+  - **Default:** `__ONE__`
+  - **Description:** Description not provided.
+- **__DEFAULTFIELDS**
+  - **Type:** `object`
+  - **Default:** `No default value provided`
+  - **Description:** Automatic filling of fields when the information is not given

@@ -14,11 +14,11 @@ Created on Wed Jul 21 15:11:15 2021
 
 
 import numpy as np
-from chimes._models import Funcs
+from chimes.libraries import Funcs
 
 # ----------------------------------------------------------------------------
 # We simply do a few modifications on a previous model : we load it as a basis
-from chimes._models._model_G import _LOGICS as _LOGICS0
+from chimes.libraries._model_G import _LOGICS as _LOGICS0
 from copy import deepcopy
 _LOGICS = deepcopy(_LOGICS0)
 
@@ -49,7 +49,7 @@ _PRESETS = {
     'taulamb': {
         'fields': {
             'dt': 0.01,
-            'Tmax': 100,
+            'Tsim': 100,
 
             'a': 1,
             'N': 1,
@@ -75,25 +75,25 @@ _PRESETS = {
             'convergent oscillations'),
         'plots': {
             'timetrace': [{}],
-            'plotnyaxis': [{'x': 'time',
-                           'y': [['employment', 'lamb0'],
-                                 ['omega'],
-                                 ],
-                            'idx':0,
-                            'title':'',
-                            'lw':1}],
+            'nyaxis': [{'x': 'time',
+                        'y': [['employment', 'lamb0'],
+                              ['omega'],
+                              ],
+                        'idx': 0,
+                        'title': '',
+                        'lw': 1}],
             'XY': [{'x': 'employment',
-                            'y': 'omega',
-                            'color': 'time',
-                            'idx': 0}],
+                    'y': 'omega',
+                    'color': 'time',
+                    'idx': 0}],
             'XYZ': [{'x': 'lamb0',
-                        'y': 'omega',
-                        'z': 'employment',
-                        'cinf': 'time',
-                        'cmap': 'jet',
-                        'index': 0,
-                        'title': ''}],
-            'plotbyunits': [],
+                     'y': 'omega',
+                     'z': 'employment',
+                     'cinf': 'time',
+                     'cmap': 'jet',
+                     'index': 0,
+                     'title': ''}],
+            'byunits': [],
         },
     },
 }

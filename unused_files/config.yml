@@ -1,0 +1,8 @@
+  lint:
+    image: us-east4-docker.pkg.dev/mdi-ejp/ejp-docker/chimes:latest
+    when: 
+      - event: [ push, manual ]
+    commands:
+      - pip install -r requirements.lint.txt
+      - echo Running flake8
+      - make lint

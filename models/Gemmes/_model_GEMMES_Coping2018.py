@@ -1,23 +1,23 @@
 """GEMMES 2018 : GK + Climate """
 
-_DESCRIPTION ="""
+from chimes.libraries import Funcs, importmodel, merge_model
+from chimes.libraries import Operators as O
+import numpy as np
+_DESCRIPTION = """
 * **Date    :** 2023/08/21
 * **Article :** DOI: 10.1016/j.ecolecon.2018.01.034
 * **Author  :** Bovari, McIsaac
 * **Coder   :** Hugo A. MARTIN, Paul VALCKE
 
 This is the model Coping from Bovari 2018: Coping with Collapse: A Stock-Flow Consistent Monetary Macrodynamics of Glabal Warming.
-Its is a combination between a Goodwin-Keen model, damage functions, climate model, and 
+Its is a combination between a Goodwin-Keen model, damage functions, climate model, and
 BAU and TRANSITION converges toward the good equilibrium, BAU_DAM toward the bad.
 
 """
 
 # ######################## PRELIMINARY ELEMENTS #########################
-import numpy as np
-from chimes._models import Funcs, importmodel,mergemodel
-from chimes._models import Operators as O
-_LOGICS,_PRESETS0,_SUPPLEMENTS_GK= importmodel('GK')
-_LOGICSCLIM,_PRESETSCLIM,_SUPPLEMENTS_CLIM= importmodel('Climate_3Layers')
+_LOGICS, _PRESETS0, _SUPPLEMENTS_GK = importmodel('GK')
+_LOGICSCLIM, _PRESETSCLIM, _SUPPLEMENTS_CLIM = importmodel('Climate_3Layers')
 
 ###############################################################################
 Tini = 2015
@@ -25,47 +25,47 @@ Tini = 2015
 _LOGICS_COPING2018 = {
     # ode
     'differential': {
-        # from _def_functions
+        # from functions_library
         'N': Funcs.Population.logistic,
         'w': Funcs.Phillips.salaryfromPhillipsNoInflation,
         # production group
         'K': {
-            'func': lambda K, deltad, I: I - deltad*K,
+            'func': lambda K, deltad, I: I - deltad * K,
             'com': 'Evolution def. in Eq. (7) in Bovari2018',
             'definition': 'Monetary Capital',
         },
         'D': {
-            'func': lambda Sh, K, Pi, deltad, p, I: p*I - Pi - p*deltad*K + Sh,
+            'func': lambda Sh, K, Pi, deltad, p, I: p * I - Pi - p * deltad * K + Sh,
             'com': 'Evolution def. in Eq. (8) in Bovari2018',
             'definition': 'Private debt in current $',
         },
         # carbon price group
         'pbackstop': {
-            'func': lambda pbackstop, deltapbackstop: pbackstop*deltapbackstop,
+            'func': lambda pbackstop, deltapbackstop: pbackstop * deltapbackstop,
             'com': 'Exogenous Evolution is implicitely given in Bovari2018',
         },
         'pcarbon_pot': {
-            'func': lambda apc, bpc, pcarbon_pot, time, Tini: pcarbon_pot*(apc + bpc/(time - (Tini - 1))),
+            'func': lambda apc, bpc, pcarbon_pot, time, Tini: pcarbon_pot * (apc + bpc / (time - (Tini - 1))),
             'com': 'Evolution of carbon price Eq. (38) in Bovari2018',
         },
         'sigmaEm': {
-            'func': lambda sigmaEm, gsigmaEm: sigmaEm*gsigmaEm,
+            'func': lambda sigmaEm, gsigmaEm: sigmaEm * gsigmaEm,
             'com': 'Evolution of sigma in Eq. (17) in Bovari2018',
         },
         'gsigmaEm': {
-            'func': lambda gsigmaEm, deltagsigmaEm: gsigmaEm*deltagsigmaEm,
+            'func': lambda gsigmaEm, deltagsigmaEm: gsigmaEm * deltagsigmaEm,
             'com': 'Evolution of gsigma in Eq. (18) in Bovari2018',
         },
         # Emissions group
         'Eland': {
-            'func': lambda Eland, deltaEland: deltaEland*Eland,
+            'func': lambda Eland, deltaEland: deltaEland * Eland,
             'com': 'Evolution of land use emissions in Eq. (19) in Bovari2018',
         },
     },
 
     # statevar
     'statevar': {
-        # from _def_functions
+        # from functions_library
         'phillips': Funcs.Phillips.lin,
         'kappa': Funcs.Kappa.lin,
         'Sh': Funcs.Shareholding.lin,
@@ -73,11 +73,11 @@ _LOGICS_COPING2018 = {
 
         # damage group
         'DK': {
-            'func': lambda Damage, fk: fk*Damage,
+            'func': lambda Damage, fk: fk * Damage,
             'com': 'Defined in Eq. (28) in Bovari2018'
         },
         'Dy': {
-            'func': lambda DK, Damage: 1. - (1. - Damage)/(1. - DK),
+            'func': lambda DK, Damage: 1. - (1. - Damage) / (1. - DK),
             'com': 'Defined in Eq. (29) in Bovari2018'
         },
         'deltad': {
@@ -92,13 +92,13 @@ _LOGICS_COPING2018 = {
             'com': 'Sum of industrial and Land-Use',
         },
         'Eind': {
-            'func': lambda emissionreductionrate, sigmaEm, Y0: (1. - emissionreductionrate)*sigmaEm*Y0,
+            'func': lambda emissionreductionrate, sigmaEm, Y0: (1. - emissionreductionrate) * sigmaEm * Y0,
             'definition': 'Industrial emissions',
             'com': 'Defined given in Eq. (16) in Bovari2018',
         },
         # production group
         'Y': {
-            'func': lambda Abattement, Dy, Y0: (1. - Abattement)*(1. - Dy)*Y0,
+            'func': lambda Abattement, Dy, Y0: (1. - Abattement) * (1. - Dy) * Y0,
             'com': 'Defined in Eq. (2) in Bovari2018',
             'definition': 'Yearly Production with impacts',
         },
@@ -108,27 +108,27 @@ _LOGICS_COPING2018 = {
             'definition': 'Yearly Production without impacts',
         },
         'L': {
-            'func': lambda Nmax, Y0, a: np.minimum(Nmax, Y0/a),
+            'func': lambda Nmax, Y0, a: np.minimum(Nmax, Y0 / a),
             'com': 'Number of workers according to K, Eq. (1) in Bovari2018',
         },
         'I': {
-            'func': lambda kappa=0, Y=0: kappa*Y,
+            'func': lambda kappa=0, Y=0: kappa * Y,
             'com': 'Defined in Eq. (6) in Bovari2018',
             'definition': 'Investment in capital',
         },
         'Pi': {
-            'func': lambda GDP, w, L, r, D, p, carbontax, deltad, K: GDP - w*L - r*D - p*carbontax - p*deltad*K,
+            'func': lambda GDP, w, L, r, D, p, carbontax, deltad, K: GDP - w * L - r * D - p * carbontax - p * deltad * K,
             'com': 'Defined in Eq. (3) in Bovari2018',
             'definition': 'Monetary profit of private sector',
         },
         'g': {
-            'func': lambda I, K, deltad: (I - deltad*K)/K,
+            'func': lambda I, K, deltad: (I - deltad * K) / K,
             'com': 'Relative growth of GDP: Kdot / K',
         },
 
         # carbon price group
         'emissionreductionrate': {
-            'func': lambda pbackstop, convexitycost, pcarbon: np.minimum(1., (pcarbon/pbackstop)**(1./(convexitycost - 1.))),
+            'func': lambda pbackstop, convexitycost, pcarbon: np.minimum(1., (pcarbon / pbackstop)**(1. / (convexitycost - 1.))),
             'com': 'Defined in Eq. (31) in Bovari2018',
         },
         'pcarbon': {
@@ -137,12 +137,12 @@ _LOGICS_COPING2018 = {
             'com': 'The carbon price used in emissionreductionrate',
         },
         'Abattement': {
-            'func': lambda sigmaEm, pbackstop, emissionreductionrate, convexitycost: 0.001*sigmaEm*pbackstop*(emissionreductionrate**convexitycost)/convexitycost,
+            'func': lambda sigmaEm, pbackstop, emissionreductionrate, convexitycost: 0.001 * sigmaEm * pbackstop * (emissionreductionrate**convexitycost) / convexitycost,
             'definition': 'Rate of production devoted to transition',
             'com': 'Defined in Eq. (30) in Bovari2018',
         },
         'carbontax': {
-            'func': lambda Eind, pcarbon, conv10to15: pcarbon*Eind*conv10to15,
+            'func': lambda Eind, pcarbon, conv10to15: pcarbon * Eind * conv10to15,
             'definition': 'Carbon tax paid by private sector',
             'com': 'Defined below Eq. (3) in Bovari2018',
         },
@@ -155,8 +155,8 @@ _LOGICS_COPING2018 = {
     'size': {},
 }
 
-_LOGICS=mergemodel(_LOGICS,_LOGICSCLIM)
-_LOGICS=mergemodel(_LOGICS,_LOGICS_COPING2018)
+_LOGICS = merge_model(_LOGICS, _LOGICSCLIM)
+_LOGICS = merge_model(_LOGICS, _LOGICS_COPING2018)
 del _LOGICS['statevar']['Ir']
 
 
@@ -212,7 +212,7 @@ _LOGICS['statevar']['F']['units'] = 'W.L^{-2}'
 # Dictionnary of fields for preset
 df = {
     # Time iteration
-    'dt': 1./12,
+    'dt': 1. / 12,
     # 'Tini':Tini,
 
     # ode initial conditions
@@ -243,7 +243,7 @@ df = {
     # carbon policy dynamics
     'convexitycost': 2.6,
     'deltapbackstop': -0.005,
-    'conv10to15': 1.160723971/1000.,
+    'conv10to15': 1.160723971 / 1000.,
 
     # parametric curves
     'philinSlope': 0.469,
@@ -267,7 +267,7 @@ df = {
     'CLO': 1720.,
     'phi12': 0.024,
     'phi23': 0.001,
-    'Capacity': 1./0.098,
+    'Capacity': 1. / 0.098,
     'Capacity0': 80,  # old value is 3.52 (to fit with ILOVECLIM)
 
     # variables for scenarios
@@ -277,7 +277,7 @@ df = {
     'pi2': 0.,
     'pi3': 0.,
     'zeta3': 6.754,
-    'fk': 1./3,
+    'fk': 1. / 3,
 }
 
 # dictionnary of fields value that are not explicitly in the model but used for calibration
@@ -301,21 +301,21 @@ df0 = {
 
 # second order initial conditions calculation
 df0['L'] = df0['employment'] * df['N']
-df0['Abattement'] = 1./(1. + ((1. - df0['emissionreductionrate'])*df0['Y'] *
-                              df['convexitycost'])/(0.001*df0['Eind']*df['pbackstop'] *
-                                                    df0['emissionreductionrate']**df['convexitycost']*(1. - df0['Dy'])))
-df0['Y0'] = df0['Y']/(1. - df0['Dy'])/(1. - df0['Abattement'])
-df0['sigmaEm'] = df0['Eind']/(1. - df0['emissionreductionrate'])/df0['Y0']
-df0['Y2'] = (1. - df0['Abattement'])*(1. - df0['Dy'])*df0['Y0']
+df0['Abattement'] = 1. / (1. + ((1. - df0['emissionreductionrate']) * df0['Y'] *
+                                df['convexitycost']) / (0.001 * df0['Eind'] * df['pbackstop'] *
+                                                        df0['emissionreductionrate']**df['convexitycost'] * (1. - df0['Dy'])))
+df0['Y0'] = df0['Y'] / (1. - df0['Dy']) / (1. - df0['Abattement'])
+df0['sigmaEm'] = df0['Eind'] / (1. - df0['emissionreductionrate']) / df0['Y0']
+df0['Y2'] = (1. - df0['Abattement']) * (1. - df0['Dy']) * df0['Y0']
 
 # We integrate our second order initial condition
 df['K'] = df['nu'] * df0['Y0']
 df['D'] = df0['d'] * df['p'] * df0['Y']
 df['w'] = df0['omega'] * df['p'] * df0['Y'] / df0['L']
 df['a'] = df0['Y0'] / df0['L']
-df['rhoAtmo'] = 3.681/df0['climate_sens']
+df['rhoAtmo'] = 3.681 / df0['climate_sens']
 
-df['sigmaEm'] = df0['Eind']/(1. - df0['emissionreductionrate'])/df0['Y0']
+df['sigmaEm'] = df0['Eind'] / (1. - df0['emissionreductionrate']) / df0['Y0']
 
 # plots
 plots = {
@@ -328,18 +328,18 @@ plots = {
                   ['g'],
                   ['kappa', 'pi'],
                   ],
-            'idx':0,
-            'title':'Classic variables of a Goodwin Keen',
-            'lw':1},
+            'idx': 0,
+            'title': 'Classic variables of a Goodwin Keen',
+            'lw': 1},
         {
             'x': 'time',
             'y': [['CO2AT', 'CO2UP', 'CO2LO'],
                   ['T', 'T0'],
                   ['F'],
                   ['Emission', 'Eind', 'Eland']],
-            'idx':0,
-            'title':'All climatic variables',
-            'lw':1
+            'idx': 0,
+            'title': 'All climatic variables',
+            'lw': 1
         },
         {
             'x': 'time',
@@ -347,9 +347,9 @@ plots = {
                   ['Y', 'Y0', 'Pi', 'I'],
                   ['c', 'p'],
                   ['pcarbon', 'pbackstop']],
-            'idx':0,
-            'title':'Twin variables',
-            'lw':1
+            'idx': 0,
+            'title': 'Twin variables',
+            'lw': 1
         },
         {
             'x': 'time',
@@ -359,20 +359,20 @@ plots = {
                   ['T'],
                   ['Emission'],
                   ['sigmaEm']],
-            'idx':0,
-            'title':'Relevant variables',
-            'lw':1
+            'idx': 0,
+            'title': 'Relevant variables',
+            'lw': 1
         }
     ],
     'XY': [],
     'XYZ': [{'x': 'employment',
             'y': 'omega',
-            'z': 'd',
-            'color': 'sigmaEm',
-            'idx': 0,
-            'title': ''
-            }
-           ],
+             'z': 'd',
+             'color': 'sigmaEm',
+             'idx': 0,
+             'title': ''
+             }
+            ],
     'byunits': [],
 }
 

@@ -9,12 +9,12 @@ LINKTOARTICLE:
 
 
 import numpy as np
-from chimes._models import Funcs
+from chimes.libraries import Funcs
 
 
 # ----------------------------------------------------------------------------
 # We simply do a few modifications on a previous model : we load it as a basis
-from chimes._models._model_Goodwin import _LOGICS as _LOGICS0
+from chimes.libraries._model_Goodwin import _LOGICS as _LOGICS0
 from copy import deepcopy
 _LOGICS = deepcopy(_LOGICS0)
 
@@ -47,7 +47,7 @@ _GK_LOGICS = {
 
         # Growth manually coded
         'g': {
-            'func': lambda Ir, K, delta: (Ir - K * delta)/K,
+            'func': lambda Ir, K, delta: (Ir - K * delta) / K,
             'com': 'relative growth rate'},
     },
     'param': {
@@ -70,7 +70,7 @@ _PRESETS = {
             'N': 1,
             'K': 2.9,
             'D': 0,
-            'w': .85*1.2,
+            'w': .85 * 1.2,
             'alpha': 0.02,
             'n': 0.025,
             'nu': 3,
@@ -93,20 +93,20 @@ _PRESETS = {
                               ['d'],
                               ['kappa', 'pi'],
                               ],
-                        'idx':0,
-                        'title':'',
-                        'lw':2},
+                        'idx': 0,
+                        'title': '',
+                        'lw': 2},
                        {'x': 'time',
                         'y': [['K', 'Y', 'I', 'Pi'],
                               ['inflation', 'g'],
                               ],
-                        'idx':0,
-                        'title':'',
-                        'lw':1}],
+                        'idx': 0,
+                        'title': '',
+                        'lw': 1}],
             'XY': [{'x': 'employment',
-                            'y': 'omega',
-                            'color': 'd',
-                            'idx': 0}],
+                    'y': 'omega',
+                    'color': 'd',
+                    'idx': 0}],
             '3D': [{'x': 'employment',
                     'y': 'omega',
                     'z': 'd',
@@ -132,7 +132,7 @@ _PRESETS = {
             'N': 1,
             'D': 5,
             'K': 2.9,
-            'w': .85*1.2,
+            'w': .85 * 1.2,
             'alpha': 0.02,
             'n': 0.025,
             'nu': 3,
@@ -155,13 +155,13 @@ _PRESETS = {
                               ['d'],
                               ['kappa', 'pi'],
                               ],
-                        'idx':0,
-                        'title':'',
-                        'lw':2}],
+                        'idx': 0,
+                        'title': '',
+                        'lw': 2}],
             'XY': [{'x': 'employment',
-                            'y': 'omega',
-                            'color': 'd',
-                            'idx': 0}],
+                    'y': 'omega',
+                    'color': 'd',
+                    'idx': 0}],
             '3D': [{'x': 'employment',
                     'y': 'omega',
                     'z': 'd',

@@ -13,9 +13,9 @@ import numpy as np
 
 # ----------------------------------------------------------------------------
 # We simply do a few modifications on two previous models : we load them as a basis
-from chimes._models import Funcs
-from chimes._models._model_Goodwin import _LOGICS as _LOGICS0
-from chimes._models._model_MinePaul import _LOGICS as _MININGSECTOR
+from chimes.libraries import Funcs
+from chimes.libraries._model_Goodwin import _LOGICS as _LOGICS0
+from chimes.libraries._model_MinePaul import _LOGICS as _MININGSECTOR
 
 from copy import deepcopy
 
@@ -34,17 +34,17 @@ _COUPLING = {
     'statevar': {
         # THE IMPACT ON PRODUCTION
         'Y': {
-            'func': lambda K, nuEQ, Gamma, intensity: (K/nuEQ) / (1-intensity*Gamma),
+            'func': lambda K, nuEQ, Gamma, intensity: (K / nuEQ) / (1 - intensity * Gamma),
             'com': 'EROI impacting Leontiev'
         },
         'nuEQ': {
-            'func': lambda intensity, nu, nuMine: intensity*nuMine+(1-intensity)*nu,
+            'func': lambda intensity, nu, nuMine: intensity * nuMine + (1 - intensity) * nu,
             'com': 'nu from both system together',
             'definition': "nu when pseudo-bisectorial",
-            'units':'y'
+            'units': 'y'
         },
         'c': {
-            'func': lambda w, a, Gamma, intensity:  w/(a*(1+intensity*Gamma)),
+            'func': lambda w, a, Gamma, intensity: w / (a * (1 + intensity * Gamma)),
             'com': 'price with only labor salary',
         }
 

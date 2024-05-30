@@ -1,239 +1,159 @@
-# CHIMES: Core of Holistic Intertwined Models for Ecological Sustainability
+# CHIMES
+
+![image](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue)
+![image](https://img.shields.io/badge/Numpy-777BB4?style=for-the-badge&logo=numpy&logoColor=white)
+![image](https://img.shields.io/badge/Pandas-2C2D72?style=for-the-badge&logo=pandas&logoColor=white)
+![image](https://img.shields.io/badge/Plotly-239120?style=for-the-badge&logo=plotly&logoColor=white)
+
+![image](https://img.shields.io/badge/this_is-a_test-green)
+
+[ Logo ]
+
+CHIMES is a library to explore, prototype, analyze and couple dynamical models in python.
+
+CHIMES means **C**ore for **H**olisitic **I**ntertwined **M**odel for **E**nvironmental **S**implexity. 
+
+It has been developped as a structure for the next generation of complexity-based integrated assesment model, but can be used well beyond that.
+
+At the core is the idea that quantities (here called fields) can have a causal logic, a mathematical definitionm that defines its value or its variation. 
+hose fields are going to create a causal map of intertwined relationships looping on each others. 
+Studying such model is studying the dance between those quantities. 
 
 
-# CHIMES overview
-
-* You want to explore, couple, analyze existing models, or create your own ? CHIMES is the library made for you! 
-* You work with Agent-Based models (collective behavior, economic agents, birds movements), chaotic systems, spatial properties, multiple circuits of ressources (Money, CHNOPS...), CHIMES is the library for you! 
-* You want to do a lot of runs in parrallel to test the sensitivity of a parameter or initial condition? Same!
-* You want a user-friendly interface so that you do not code too much, while keeping the full flexibility of python at every step ? Same! 
-* You like python for its practicality but it's slow to solve equations ? CHIMES is the library for you !
+CHIMES is its own numerical environment, open on other structures. It has:
+* A modelbase with macreconomic, climate, agent-based, circuits, partial differential equation models that contains logics, preset, explanation and examples for each.  
+* A field-base with values, definitions that can be used and shared between models
+* A tensor-based resolution system with an RK4 solver, that allow efficient parrallel and complex structure modeling
+* An ensemble of `get` and `set` method to understand a model and modify its conditions
+* An ensemble of additional methods for sensitivity, stability analyses
+* An ensemble of easy to access plots
+* A methodology to couple external models through an API. 
 
 ![image](https://github.com/georgetown-ejp/CHIMES/assets/11523050/00cd06e1-0a8d-4f38-a74a-f1ee006f83af)
 *Some illustrations of CHIMES content*
 
+## TL:DR USE 
 
-# What is CHIMES?
+If you are not in a hurry, read the section "Exploring the content" rather than this 
+ 
+**To load and run a model**
+Always use `?` and `tab` (help and autocompletion) to know what is in each element. 
 
-CHIMES is a numerical core, with a huge toolbox and interface around it. It goals are the following:
-* Library of models in the litterature based on differential equations
-* Methodology to couple them
-* Set of tools to prototype, run, compare, analyze.
+```
+import chimes as chm 
 
-In consequence it is composed of :
+#we assume you want to run the model 'MODEL' 
+hub=chm.Hub('MODEL') # will load the model in a hub using the default values
+hub.run() # will simulate 100 years on a 0.1 timestep
+hub.plot() # will plot all the fields by their units
+```
+
+**A bit slower: to explore the library**
+```
+chm.get_available_models()
+chm.get_available_fields()
+chm.get_available_functions_library()
+chm.get_available_operators()
+chm.get_available_plots()
+chm.get_available_saves()
+chm.get_model_documentation('modelname')
+```
+
+**To explore a model**
+```
+hub=chm.Hub('modelname')      # Load a model file from `get_available_models()`
+hub=chm.load_saved('nameofthefile') # Load a previous hub from `get_available_saves()`
+hub.get_Network()             # Create a causal network of the model logics
+hub.get_summary()             # Tell you everything about the model 
+R = hub.get_dfields()          # Give you access to all fields inside the hub
+hub.get_presets()             # Give you all presets you can load
+hub.get_supplements()         # Give you all the supplementary functions available
+```
+
+**To change values**
+hub.set_fields(field,value)
+
+
+## Another dynamical system library? 
+
+Many libraries of model simulations exists already. CHIMES architecture bring new elements that facilitate the 
+
+The advantage of CHIMES over the other architectures are the following: 
+* Models files are extremely flexible, can be very short for prototyping, as well as include external models coupling or intermediate calculations in their creation. 
+* Model files are in interaction between each others if needed to structure easily complex models or insist on one modification. They find undefined informations for their field in a shared library 
+* The structure is made to solve tensors for each field: it is easy to do distribution of parameter values, multiple regions, multiple agents dynamics at a low computational costs. 
+* Multiple analysis toolboxes and plot are made specifically for the architecture making the contributions scaling easily
+* Simulations are highly interactive allowing "user endogenisation" and gamification of models. 
+* The library is fully open-source
+
+
+
+## Installation
+You need python `3.11` or above and we recommend an IDE that supports Jupyter Notebooks. We recommend [visual studio](https://code.visualstudio.com/docs/python/python-tutorial)
+
+To install the library with pip, use `pip install --user chimes`
+
+For manual installation: 
+1. Clone the repository or manual download (in green on top-right of the github page, `Code`, `Download zip`)
+2. Install the content of `requirements.txt` (using pip `pip install -r requirement.txt`)
+3. Add to the path the python library in the begining of your code `import sys; sys.path.insert(0, path)` where path is your installation folder
+
+## Exploring the content 
+There are four level of users: 
+1. **Interface user**: explore models and their straightforward use. No code expertise required. simply execute `import chimes as chm; chm.Interface()` in a new `.ipynb` file or explore `tutorials/01_Interface.ipynb`
+2. **Code user**: that use the library through code and manipulate existing models without changing their logics. We recommend to go through the folder `tutorials/02_[...].ipynb` and go through the files in order. you can also go in `docs/notebooks` and find inspiration in other user's notebooks. Once you feel confident, create your own notebooks!
+3. **Modeler**: you write your own models and modify existing ones. You can look in the folder `tutorials` at the `write_models.md`, and explore all models in the `models` file. Once you feel confident you can do a copy of `models/__TEMPLATE__.py` or `models/__MINITEMPLATE__.py`, then modify it. We recommend you to get inspiration from existing models. We recommend: [ ] for extremely short model, [ ] for well-documented model, [ ] for multisectoral model with supplements, [ ] for webbing models together. 
+4. **Developer**: first, thank you! You can explore the `chimes` folder and modify its content. You can explore the [existing issues](https://github.com/georgetown-ejp/CHIMES/issues), transform model supplements [ ] into general methods. Please explore `tutorial/04_ForModellers.ipynb`
+
+
+
+
+## Components 
+
+it is composed of :
 * A `Model` base of files that contains  description, the mathematical logical links they are composed of, preset values, and supplements
 * A `Field` base (any quantity measurable in the real world) with its name, unit and default value
-* A `Data` base that contains value of the real world related to models (WIP)
+* A `Database that contains the value of the natural world related to models (WIP)
 * A method to load models and interact with it
 * A solver library for high-speed simulation with a C core using an RK4 method
 * An analysis library for statistical elements on runs
-* A plot library to explore the output of simulation
-* An interface to user-friendly experience
+* A plot library to explore the output of the simulation
+* An interface for a user-friendly experience
 
 ![image](https://github.com/georgetown-ejp/CHIMES/assets/11523050/22286361-1d5e-48c3-9d6c-d3179eb27515)
 * The flow inside the library*
 
-In consequence, it is possible to do multisectoral, multiregional, resources-inequalities-climate-international socio-economic system. 
-
-## What is a model? 
-
-A model is a intertwined map of fields. Fields are quantities (Population size, temperature anomaly, price, inflation) relevant for the system. Creating a model is building the web of dependency, how each field relate to each other, through logic equations. 
-Those equation can be purely algebraic expressions. 
-
-To each field can be associated a logic. The logical can be differential "the variation of the field is given by this mathematical relationship", or a state variable "the value of this field is given by this mathematical relationship". 
-If a field has no logic, it is a parameter. 
-
-A model is a map, not the values themselves. Putting values allows one to do go from one model to specific uses of the model as examples (presets). Coupling a model with a database allow it to animate its elements and do prospective! 
-
-![image](https://github.com/georgetown-ejp/CHIMES/assets/11523050/33a7e520-3a0a-4489-b99f-f167c51c9e4f)
-*Causal map of a Goodwin-Keen model*
-
-## How to use the library (importation)
-
-### Importing the library
-Since the library is not on a pip wheel, you need to add it to your path 
-
-To do so I recommend 
-```
-path = "C:\\Users\\Username\\Documents\\GitHub\\CHIMES" 
-import sys
-sys.path.insert(0, path)
-
-import chimes as chm
-```
-
-Where path is where you installed the library
-
-### Installing the requirements
-The requirements can be found in `requirement.txt`, you need to install all of them. 
-It can be done by executing: 
-```
-import os 
-import importlib.util
-with open(os.path.join(path,'requirements.txt'),'rb') as f :
-    out=str(f.read())
-    libraries = out.split('\\r\\n')[1:]
-    for l in libraries:
-        if importli
-        b.util.find_spec(l) is None:
-            !{sys.executable} -m pip install {l}
-        else: 
-            print(l,'already installed')
-```
-
-### Exploring the library 
-Always use `?` and `tab` (help and autocompletion) to know what are in each element. 
-
-To know the content I recommend: 
-```
-chm.get_available_models()
-chm.get_available_fields()
-chm.get_available_functions()
-chm.get_available_operators()
-chm.get_available_plots()
-chm.get_available_saves()
-```
-
-To explore one model in particular:
-```
-chm.get_model_documentation('modelname')
-```
-
-To load a model 
-```
-hub=chm.Hub('modelname')
-```
-
-To load the save of a model 
-```
-hub=chm.load('nameofthefile')
-```
-
-To explore it 
-```
-hub.get_summary()
-```
-
-To explore it further
-```
-hub.get_Network()
-hub.get_dataframe()
-hub.get_dparam()
-hub.get_dparam_as_reverse_dict()
-hub.get_dvalues()
-hub.get_equations_description()
-hub.get_fieldsproperties()
-hub.get_new_summary()
-hub.get_presets()
-hub.get_summary()
-hub.get_supplements()
-hub.reverse_cycles_dic()
-hub.Extract_preset()
-```
-
-To load a preset 
-```
-hub.set_preset('presetname')
-```
-
-To run the model 
-```
-hub.run()
-```
-
-To access values 
-```
-dval = hub.get_dvalues() # Minimal values output
-dparam = hub.get_dparam() # Contains all the model fields and properties
-```
-
-# Contributing
-
-There are three layers of contributions possible
-* User (just have fun with the library and use it for your work)
-* Modeler (add new model in the system)
-* Developer (add new functionalities)
-
-## Contributing as a User
-1. Explore the interface using `chm.Interface()`
-1. Do the tutorial in `doc\tutorial.ipynb`
-2. Try different models and preset, with their plots
-3. Changing values and see the impact
-4. Save your runs
-3. Emit `issues` on the github page
-
-## Contributing as a Modeller
-The goal of a modeller is to implement models given the framework of `CHIMES`. 
-1. Look at model files (typically `models/_model__TEMPLATE_.py`)
-2. Explore the `Tutorial-model.md` tutorial on how to create a model
-3. Explore `get_available_fields()` to see what fields are already developed
-4. Create your own model, either loading a previous model (extension), connecting two models (bridging)
-5. Create your preset to insert relevant run of the model 
-6. Add supplements that can be used with the model in its section
-7. Share the model through a github pull request
-
-## Contributing as developer
-The goal of a developer is to ensure the consistency of models and the toolboxes
-1. If a model is in the pull request, verify that it works, and is not duplicating fields
-2. If there is no duplicate, integrate new fields in `_def_fields`
-3. Check the supplements, and if relevant add them in `_plots` or `_core` depending of their use
-4. Help on the issues 
+## Running the tests
 
 
-## Code path at initialization (for developper)
+## Authors
 
-1) __config 
-2) __init__
-3) _core hub __init__
-    4) _class_set.load_model 
-        * Check model name
-        * Load "model" as a dictionnary
-        * prepare CHIMES knowledge of fields to be compatible
-        * Check completude 
-        * Translation from dmodel to dparam 
-        * Add CHIMES knowledge 
-        * Identification for categories/solving
-        * Initial shapes
-        * Big dictionnary of pointers
-    5) _set_preset
-        * set dparam
-            * set dimensions
-            * set fields 
-    6) reset 
-7) set dparam
-    * set dimensions            
-    * set fields 
-8) run
-    9) _solvers.solve
-        10) get_func_dydt
-            * Create all buffers and arrays
-            * create the function y'=F(y) with F coupling functions
+* [**Paul Valcke**](https://github.com/DaluS) - *Initial project, architecture, models, toolboxes, matplotlib, core* -
+* [**Didier Vezinet**](https://github.com/Didou09) - *Class set, initial structure* -
+* [**Stephen Kent**](https://github.com/stephen-kent) - *Server structure, refractors, dashboard* -
+* [**Weiye Zhu**](https://github.com/I-dontlikeit) - *Redivis-exiobase coupling* - 
 
-## Files and folder description
+See also the list of [contributors](https://github.com/georgetown-ejp/CHIMES/contributors) who participated in this project.
 
-* **doc** Contains practical files for user that do not touch the code
-* **model** Contains all models loaded by CHIMES with categories subfolder
-* **pygemmes** Contains the code library
-    * `_config.py` All flags and general properties of the library
-    * `_core.py` Main methods for the Hub
-    * `_toolbox.py` Miscellaneous functions for CHIMES
-    * `__init__.py` Welcome message if activated
-    * **_models** Basic shared properties of models and introspection methods 
-        * `__init__.py` Introspection, completion methods, integrity checks (should be moved away)
-        * `_def_fields.py` Fields library 
-        * `_def_functions.py` Functions library used in model file
-        * `_def_Operators.py` Operators library used in model files (scalar product, transpose etc)
-    * **_plots** Plot functions for the hub
-    * **_utilities** Additional functions for the hub, complement of `_core`
-        * `_class_check` Verify the model integrity
-        * `_class_set` Transform the model file into practical hub version
-        * `_class_utility` Miscellaneous functions
-        * `_Network` Representation of models in nodes
-        * `_solvers` Solving time iterations
-        * `_utils` Should be fused with `_class_utility`
-    * **test** Unit tests 
 
-# The Developpers (that have done at least one PR)
 
-* Paul Valcke
-* Didier Vezinet
+
+
+# To upgrade [ NOT REALLY PART OF THE README ]
+
+Status list (here taken from pySD)
+- [ ] The github to be public (should makes the maintained status to work)
+- [ ] https://coveralls.io for the pytest coverage ?
+- [ ] Publish in JOSS 
+- [ ] Readthedocs page
+
+
+[![Maintained](https://img.shields.io/badge/Maintained-Yes-brightgreen.svg)](https://github.com/georgetown-ejp/CHIMES/pulse)
+[![Coverage Status](https://coveralls.io/repos/github/SDXorg/pysd/badge.svg?branch=master)](https://coveralls.io/github/georgetown-ejp/CHIMES?branch=devel)
+[![Anaconda-Server Badge](https://anaconda.org/conda-forge/pysd/badges/version.svg)](https://anaconda.org/conda-forge/pysd)
+[![PyPI version](https://badge.fury.io/py/pysd.svg)](https://badge.fury.io/py/pysd)
+[![PyPI status](https://img.shields.io/pypi/status/pysd.svg)](https://pypi.python.org/pypi/pysd/)
+[![Py version](https://img.shields.io/pypi/pyversions/pysd.svg)](https://pypi.python.org/pypi/pysd/)
+[![JOSS](https://joss.theoj.org/papers/10.21105/joss.04329/status.svg)](https://doi.org/10.21105/joss.04329)
+[![Contributions](https://img.shields.io/badge/contributions-welcome-blue.svg)](https://pysd.readthedocs.io/en/latest/development/development_index.html)
+[![Docs](https://readthedocs.org/projects/pysd/badge/?version=latest)](https://pysd.readthedocs.io/en/latest/?badge=latest)

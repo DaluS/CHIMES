@@ -10,7 +10,7 @@ Created on Thu Jan  20 2022
 """
 
 import numpy as np
-from chimes._models import Funcs
+from chimes.libraries import Funcs
 
 
 _LOGICS = {
@@ -39,18 +39,18 @@ _LOGICS = {
             'com': 'extraction output as product of extraction efficiency, extraction capital, and reserve', },
         # Investment flux
         'I_R': {
-            'func': lambda kappa_R=0, M=0, p_R=0: kappa_R * M*p_R,
+            'func': lambda kappa_R=0, M=0, p_R=0: kappa_R * M * p_R,
             # 'initial': ,
             'com': 'investment monetary', },
         # Stock flow consistency
         'Pi_R': {
-            'func': lambda varphi=0, p_R=0, Y_R=0, r=0, D_R=0: (1-varphi)*p_R*Y_R - r * D_R,
+            'func': lambda varphi=0, p_R=0, Y_R=0, r=0, D_R=0: (1 - varphi) * p_R * Y_R - r * D_R,
             'com': 'Profit for production-Salary-debt func', },
         'inflation_R': {
             'func': lambda mu=0, eta_R=0, varphi=0, p_R=1: eta_R * (mu * varphi - 1),
             'com': 'extraction markup dynamics', },
         'pi_R': {
-            'func': lambda Pi_R=0, p_R=1, Y_R=1: Pi_R/(p_R*Y_R),
+            'func': lambda Pi_R=0, p_R=1, Y_R=1: Pi_R / (p_R * Y_R),
             # 'initial': ,
             'com': 'relative profit', },
         'd_R': {
@@ -63,7 +63,7 @@ _LOGICS = {
 
         # Growth
         'g_r': {
-            'func': lambda I_R=0, K_R=1, delta_R=0, p_R=1: (I_R/p_R - K_R * delta_R)/K_R,
+            'func': lambda I_R=0, K_R=1, delta_R=0, p_R=1: (I_R / p_R - K_R * delta_R) / K_R,
             'definition': 'Growth rate of mining sector',
             'com': 'CAREFUL UNIT I_R'},
     },
@@ -106,11 +106,11 @@ _PRESETS = {
     'default': {
         'fields': {},
         'com': '',
-        'plots': {'plotbyunits': [{'title': '',
-                                   'lw': 1,       # optional
-                                   'idx': 0,      # optional
-                                   'color': 'k'},  # optional
-                                  ],
+        'plots': {'byunits': [{'title': '',
+                               'lw': 1,       # optional
+                               'idx': 0,      # optional
+                               'color': 'k'},  # optional
+                              ],
                   }
     },
 }

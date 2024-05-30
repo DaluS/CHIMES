@@ -7,31 +7,33 @@ DESCRIPTION :
 """
 
 import numpy as np
-#from chimes._models import Funcs
+# from chimes.libraries import Funcs
 
-def scalarprod(X,Y):
-    return np.matmul(np.moveaxis(X,-1,-2),Y)
+
+def scalarprod(X, Y):
+    return np.matmul(np.moveaxis(X, -1, -2), Y)
 
 # ######################## OPERATORS ####################################
 
 # #######################################################################
 
+
 _LOGICS = {
     'differential': {
         'Z': {
-            'func': lambda OPER,Z: OPER-0.5*Z,
+            'func': lambda OPER, Z: OPER - 0.5 * Z,
             'size': ['Nprod', ],
             'initial': 1,
         },
         'scal': {
-            'func': lambda Z: scalarprod(Z,Z),
+            'func': lambda Z: scalarprod(Z, Z),
             'initial': 0,
         },
 
     },
     'statevar': {
         'OPER': {
-            'func': lambda Z, MATRIX: np.matmul(MATRIX,Z),
+            'func': lambda Z, MATRIX: np.matmul(MATRIX, Z),
             'size': ['Nprod', ],
         },
     },
@@ -42,13 +44,13 @@ _LOGICS = {
         },
         'Coupling': {
             'value': 0,
-            'size': ['nr','nr']
+            'size': ['nr', 'nr']
         }
     },
     'size': {
         'Nprod': {
-            #'value': 4,
-            'list': ['energy','Capital','Cons'],
+            # 'value': 4,
+            'list': ['energy', 'Capital', 'Cons'],
         },
         'nr': {
             # 'value': 4,
@@ -67,5 +69,3 @@ _PRESETS = {
 }
 # Check size consistent in operations
 # If only one dimension, transform string into list
-
-

@@ -15,49 +15,64 @@ It integrates :
     * Adaptive use of capital
 """
 
-from chimes._models import Funcs, importmodel,mergemodel
+from chimes.libraries import Funcs, importmodel, merge_model
 import numpy as np
 
 
 # ######################## OPERATORS ####################################
 '''
-Those are operators that can be used to do multisectoral operations : 
-coupling, transposition, sums... 
+Those are operators that can be used to do multisectoral operations :
+coupling, transposition, sums...
 '''
-def sprod(X,Y):
+
+
+def sprod(X, Y):
     ''' Scalar product between vector X and Y.
     Z=sprod(X,Y) so Z_i=\sum X_i Y_i'''
-    return np.matmul(np.moveaxis(X,-1,-2),Y)
+    return np.matmul(np.moveaxis(X, -1, -2), Y)
+
+
 def ssum(X):
     ''' Scalar product between vector X and Y.
     Z=ssum(X) so Z_i=\sum X_i'''
-    return np.matmul(np.moveaxis(X,-1,-2),X*0+1)
+    return np.matmul(np.moveaxis(X, -1, -2), X * 0 + 1)
+
+
 def ssum2(X):
     '''
     Z_i=ssum_j(X_{ij}) so Z_i=\sum_j X_{ij}'''
-    return np.sum(X, axis=-1)[...,np.newaxis]
+    return np.sum(X, axis=-1)[..., np.newaxis]
+
+
 def transpose(X):
     '''Transposition of X :
     Y=transpose(X)  Y_ij=X_ji'''
     return np.moveaxis(X, -1, -2)
-def matmul(M,V):
+
+
+def matmul(M, V):
     '''Matrix product Z=matmul(M,V) Z_i = \sum_j M_{ij} V_j'''
-    return np.matmul(M,V)
-def distXY(x,y):
+    return np.matmul(M, V)
+
+
+def distXY(x, y):
     '''x and y vector of position, z=distXY(x,y) is the matrix of distance
      between each particle of position x,y :
      z_ij= \sqrt{ (x_i-x_j)^2 + (y_i-y_j)^2}'''
     return np.sqrt((x - transpose(x)) ** 2 + (y - transpose(y)) ** 2)
+
+
 def Identity(X):
     '''generate an identity matrix of the same size a matrix X'''
     return np.eye(np.shape(X)[-1])
 # ########################################################################
 
-def dotD( MtransactI, MtransactY, wL, rD, pC,Sh):
+
+def dotD(MtransactI, MtransactY, wL, rD, pC, Sh):
     return rD \
-         + Sh + wL - pC \
-         + ssum2(MtransactI - transpose(MtransactI)) \
-         + ssum2(MtransactY - transpose(MtransactY))
+        + Sh + wL - pC \
+        + ssum2(MtransactI - transpose(MtransactI)) \
+        + ssum2(MtransactY - transpose(MtransactY))
 
 
 _LOGICS = {
@@ -68,7 +83,7 @@ _LOGICS = {
     },
     ###################################################################
     'differential': {
-        ### MONETARY STOCK-FLOW CONSISTENCY
+        # MONETARY STOCK-FLOW CONSISTENCY
         'D': {
             'func': lambda dotD: dotD,
             'com': 'logics in field dotD',
@@ -84,7 +99,7 @@ _LOGICS = {
             'symbol': r'$D_{household}$'
         },
 
-        ### PHYSICAL STOCK-FLOW CONSISTENCY
+        # PHYSICAL STOCK-FLOW CONSISTENCY
         'V': {
             'func': lambda dotV: dotV,
             'com': 'dynamics in dotV',
@@ -101,7 +116,7 @@ _LOGICS = {
             'initial': 2.7,
         },
 
-        ### PRICES
+        # PRICES
         'p': {
             'func': lambda p, inflation: p * inflation,
             'com': 'price deduced from inflation',
@@ -109,17 +124,17 @@ _LOGICS = {
             'units': '$.Units^{-1}',
         },
         'w0': {'func': lambda Phillips, w0, gammai, ibasket: w0 * (Phillips + gammai * ibasket),
-              'com': 'Inflation-awareness + a Phillips',
+               'com': 'Inflation-awareness + a Phillips',
                'definition': 'Wage caracteristic level',
-               'units':'$.Humans^{-1}.y^{-1}',
-               'initial':0.75,
-              },
+               'units': '$.Humans^{-1}.y^{-1}',
+               'initial': 0.75,
+               },
 
-        ### BEHAVIOR
+        # BEHAVIOR
         'u0': {
-            #'func': lambda u0, sigma, V, dotV: sigma * (1 - u0) * (-dotV / V ),
-            #'com': 'signal on inventory variation',
-            'func': lambda u0, sigma, v: sigma * (1 - u0) * (v - 1 ),
+            # 'func': lambda u0, sigma, V, dotV: sigma * (1 - u0) * (-dotV / V ),
+            # 'com': 'signal on inventory variation',
+            'func': lambda u0, sigma, v: sigma * (1 - u0) * (v - 1),
             'com': 'signal on target inventory',
             'definition': 'voluntary use of productive capital',
             'units': '',
@@ -127,34 +142,34 @@ _LOGICS = {
             'initial': 1,
         },
 
-        ### EXOGENOUS SCALING
+        # EXOGENOUS SCALING
         'a0': {'func': lambda a0, alpha: a0 * alpha,
                'com': 'Capital per person',
-               'initial':1,
-              },
+               'initial': 1,
+               },
         'N': {'func': lambda N, n: N * n,
               'com': 'exogenous',
-              'initial':1,
+              'initial': 1,
               },
     },
     'statevar': {
-        ### BY-SECTOR PRODUCTIVITY, WAGE, USE AND ACCESSIBILITY
-        'w': {'func': lambda w0,z: w0*z,
+        # BY-SECTOR PRODUCTIVITY, WAGE, USE AND ACCESSIBILITY
+        'w': {'func': lambda w0, z: w0 * z,
               'com': 'Sector-adjusted wage',
-              'size':['Nprod']},
-        'a': {'func': lambda a0, b,nu,u : u*a0*b/nu,
+              'size': ['Nprod']},
+        'a': {'func': lambda a0, b, nu, u: u * a0 * b / nu,
               'com': 'Sector-adjusted productivity',
-              'size':['Nprod']},
+              'size': ['Nprod']},
         'u': {'func': lambda u0: u0,
               'com': 'for the moment only voluntary limitation',
               'definition': 'Effective use of capital',
               'size': ['Nprod']},
-        'nu': {'func': lambda nu0, u: nu0/u,
+        'nu': {'func': lambda nu0, u: nu0 / u,
                'com': 'Adjusted by use of capital',
                'size': ['Nprod']},
 
-        ### PRODUCTION FUNCTION
-        'L': {'func': lambda Y,a : Y/a,
+        # PRODUCTION FUNCTION
+        'L': {'func': lambda Y, a: Y / a,
               'com': 'logics in a',
               'size': ['Nprod'],
               },
@@ -164,36 +179,36 @@ _LOGICS = {
             'units': '',
             'symbol': r'$\lambda$',
             'size': ['Nprod'],
-            },
+        },
         'Y': {'func': lambda nu, K: K / nu,
               'com': 'logics in nu',
               'size': ['Nprod'],
               },
         'v': {
-            'func': lambda K, epsinV, nu0,V: epsinV*K/(V*nu0),
+            'func': lambda K, epsinV, nu0, V: epsinV * K / (V * nu0),
             'definition': 'relative inventory to target',
             'com': 'epsilon of year share',
-            'units':'',
+            'units': '',
             'symbol': r'$v$',
             'size': ['Nprod'],
         },
 
-        ### COST COMPONENTS
+        # COST COMPONENTS
         'omega': {
-            'func': lambda a, w, p:  w / (p* a),
+            'func': lambda a, w, p: w / (p * a),
             'com': 'By definition',
             'units': '',
             'size': ['Nprod'],
         },
         'Mgamma': {
-            'func': lambda Gamma,p : Gamma*transpose(p)/p,
+            'func': lambda Gamma, p: Gamma * transpose(p) / p,
             'definition': 'weight of intermediate consumption from j',
             'units': '',
             'com': 'Matrix version',
-            'size': ['Nprod','Nprod'],
+            'size': ['Nprod', 'Nprod'],
         },
         'Mxi': {
-            'func': lambda Xi, p,nu,delta: nu*delta*Xi * transpose(p) / p,
+            'func': lambda Xi, p, nu, delta: nu * delta * Xi * transpose(p) / p,
             'definition': 'weight of capital destruction from j',
             'units': '',
             'com': 'Matrix version',
@@ -206,23 +221,23 @@ _LOGICS = {
             'units': r'$.Units^{-1}',
         },
 
-        ### Inflations
+        # Inflations
         'inflation': {
-            'func': lambda inflationMarkup,inflationdotV: inflationMarkup+inflationdotV,
+            'func': lambda inflationMarkup, inflationdotV: inflationMarkup + inflationdotV,
             'com': 'sum of inflation contributions',
             'size': ['Nprod'],
             'units': 'y^{-1}',
             'symbol': '$i$'
         },
         'inflationMarkup': {
-            'func': lambda p, eta, mu0, c,: eta * np.log(mu0 * c / p),
+            'func': lambda p, eta, mu0, c, : eta * np.log(mu0 * c / p),
             'com': 'log on markup',
             'size': ['Nprod'],
             'units': 'y^{-1}',
             'symbol': r'$i^{\mu}$'
         },
         'inflationdotV': {
-            #'func': lambda chi, dotV, V: - chi * dotV / V,
+            # 'func': lambda chi, dotV, V: - chi * dotV / V,
             'func': lambda chi, dotV, Y: - chi * dotV / Y,
             'com': 'price adjustment to demand-offer',
             'size': ['Nprod'],
@@ -245,22 +260,22 @@ _LOGICS = {
         },
 
 
-        ### PHYSICAL FLUXES
+        # PHYSICAL FLUXES
         'Ir': {
-            'func': lambda I,Xi,p: I/matmul(Xi,p),
+            'func': lambda I, Xi, p: I / matmul(Xi, p),
             'com': 'deduced from monetary investment',
             'units': 'Units.y^{-1}',
             'symbol': r'$I^R$',
             'size': ['Nprod'],
         },
         'C': {
-            'func': lambda W,Cpond,p: Cpond*W/p,
+            'func': lambda W, Cpond, p: Cpond * W / p,
             'com': 'Consumption as full salary',
             'definition': 'flux of goods for household',
             'units': 'Units.y^{-1}',
             'size': ['Nprod'],
         },
-        'dotV': { 
+        'dotV': {
             'func': lambda Y, Gamma, Ir, C, Xi: Y - matmul(transpose(Gamma), Y) - C - matmul(transpose(Xi), Ir),
             'com': 'stock-flow',
             'definition': 'temporal variation of inventory',
@@ -269,30 +284,30 @@ _LOGICS = {
             'symbol': r'$\dot{V}$'
         },
         'MGammaY': {
-            'func': lambda Y, Gamma : Gamma*transpose(Y),
+            'func': lambda Y, Gamma: Gamma * transpose(Y),
             'definition': 'intermediate physical flux from i to j',
-            'com' : 'Matrix version','units': 'Units.y^{-1}',
-            'size': ['Nprod','Nprod'],
+            'com': 'Matrix version', 'units': 'Units.y^{-1}',
+            'size': ['Nprod', 'Nprod'],
         },
         'MIrXi': {
-            'func': lambda Ir, Xi : Xi*transpose(Ir),
+            'func': lambda Ir, Xi: Xi * transpose(Ir),
             'definition': 'investment physical flux from i to j',
-            'com' : 'Matrix version',
+            'com': 'Matrix version',
             'units': 'Units.y^{-1}',
-            'size': ['Nprod','Nprod'],
+            'size': ['Nprod', 'Nprod'],
         },
 
 
-        ### MONETARY FLUXES
+        # MONETARY FLUXES
         'wL': {
-            'func': lambda w,L : w*L,
+            'func': lambda w, L: w * L,
             'com': 'wage bill per sector',
             'definition': 'wage bill per sector',
             'units': '$.y^{-1}',
             'size': ['Nprod'],
         },
         'pC': {
-            'func': lambda p,C: p *C,
+            'func': lambda p, C: p * C,
             'com': 'explicit monetary flux',
             'definition': 'monetary consumption',
             'units': '$.y^{-1}',
@@ -322,7 +337,7 @@ _LOGICS = {
             'symbol': r'$\mathcal{T}^I$'
         },
         'rD': {
-            'func': lambda r,D: r*D,
+            'func': lambda r, D: r * D,
             'com': 'explicit monetary flux',
             'definition': 'debt interests',
             'units': '$.y^{-1}',
@@ -337,22 +352,22 @@ _LOGICS = {
         },
 
 
-        ### HOUSEHOLD-SIDE THEORY
+        # HOUSEHOLD-SIDE THEORY
         'W': {
-            'func': lambda w, L, rDh, r,D, Sh,DeltaB: sprod(w, L)+Sh+DeltaB*(rDh+ssum(r*D))-rDh,
+            'func': lambda w, L, rDh, r, D, Sh, DeltaB: sprod(w, L) + Sh + DeltaB * (rDh + ssum(r * D)) - rDh,
             'definition': 'Total income of household',
             'com': 'With bank possession and shareholding',
             'units': '$.y^{-1}',
             'symbol': r'$\mathcal{W}$'
         },
         'Sh': {
-            'func': lambda p,Y,pi,divlinconst,divlinSlope: ssum(p*Y*(divlinconst+divlinSlope*pi)),
+            'func': lambda p, Y, pi, divlinconst, divlinSlope: ssum(p * Y * (divlinconst + divlinSlope * pi)),
             'com': 'affine coefficients',
-            'units':  '$.y^{-1}',
+            'units': '$.y^{-1}',
             'symbol': r'$\Delta \Pi $'
         },
-        'rDh':{
-            'func': lambda r,Dh : r*Dh,
+        'rDh': {
+            'func': lambda r, Dh: r * Dh,
             'definition': 'bank interests for household',
             'units': '$.y^{-1}',
         },
@@ -370,9 +385,9 @@ _LOGICS = {
             'symbol': r'$\Phi(\lambda)$',
         },
 
-        ### PROFITS AND INVESTMENTS
+        # PROFITS AND INVESTMENTS
         'kappa': {
-            'func': lambda pi, k0: np.maximum(k0 * pi,0),
+            'func': lambda pi, k0: np.maximum(k0 * pi, 0),
             'com': 'LINEAR KAPPA FUNCTION',
             'units': '',
             'size': ['Nprod'],
@@ -383,14 +398,14 @@ _LOGICS = {
             'size': ['Nprod'],
             'units': '',
         },
-        'rd': {'func': lambda r,D,p,Y : r*D/(p*Y),
+        'rd': {'func': lambda r, D, p, Y: r * D / (p * Y),
                'com': 'explicit form',
                'definition': 'relative weight debt',
                'size': ['Nprod'],
                'units': ''
-        },
+               },
         'ROC': {
-            'func': lambda pi, nu,Xi,p: pi/(nu*matmul(Xi,p)/p),
+            'func': lambda pi, nu, Xi, p: pi / (nu * matmul(Xi, p) / p),
             'definition': 'return on capital',
             'com': 'raw definition',
             'size': ['Nprod'],
@@ -398,68 +413,68 @@ _LOGICS = {
         },
     },
     'parameter': {
-        ### SCALARS
-        'alpha'  :{'value': 0.02 ,},
-        'n'      :{'value': 0.025,},
-        'phinull':{'value': 0.1  ,},
-        'r'      :{'value': 0.03 ,},
+        # SCALARS
+        'alpha': {'value': 0.02, },
+        'n': {'value': 0.025, },
+        'phinull': {'value': 0.1, },
+        'r': {'value': 0.03, },
 
-        ### VECTORS
-        'z': {'value':1,
+        # VECTORS
+        'z': {'value': 1,
               'definition': 'local wage ponderation',
               'size': ['Nprod']
               },
-        'b': {'value':1,
-                'definition': 'local productivity ponderation',
-                'size':['Nprod']
-                },
-        'nu0': {'value':3,
+        'b': {'value': 1,
+              'definition': 'local productivity ponderation',
+              'size': ['Nprod']
+              },
+        'nu0': {'value': 3,
                 'definition': 'characteristic capital-to-output',
-                'size':['Nprod']
+                'size': ['Nprod']
                 },
         'Cpond': {'value': .5,
-              'definition': 'part of salary into consumption of the product',
-              'size': ['Nprod']
-              },
+                  'definition': 'part of salary into consumption of the product',
+                  'size': ['Nprod']
+                  },
         'mu0': {'value': 1.3,
-              'definition': '',
-              'size': ['Nprod']
-              },
-        'DeltaB': {'value': 1,},
+                'definition': '',
+                'size': ['Nprod']
+                },
+        'DeltaB': {'value': 1, },
         'delta': {'value': 0.005,
                   'size': ['Nprod']
                   },
         'deltah': {'value': 0.1,
-                  'size': ['Nprod']
-                  },
+                   'size': ['Nprod']
+                   },
         'sigma': {'value': 1,
                   'size': ['Nprod']
                   },
-        'divlinconst':{'value': 0},
-        'divlinSlope':{'value': 0},
+        'divlinconst': {'value': 0},
+        'divlinSlope': {'value': 0},
         'gammai': {'value': 1,
-                  },
+                   },
         'eta': {'value': 0.5,
-               'size': ['Nprod']
-               },
+                'size': ['Nprod']
+                },
         'chi': {'value': 1,
-               'size': ['Nprod']
-               },
+                'size': ['Nprod']
+                },
         'b': {'value': 0.5,
               'size': ['Nprod']
               },
         'nu': {'value': 3,
                'size': ['Nprod']
                },
-        'epsinV' : {'value':0.05,
-                    'size':['Nprod']
-                    },
+        'epsinV': {'value': 0.05,
+                   'size': ['Nprod']
+                   },
 
-        ### MATRICES
+        # MATRICES
         'Gamma': {
             'value': 0.01,
             'size': ['Nprod', 'Nprod'],
-            'units':'',
+            'units': '',
         },
         'Xi': {
             'value': 0.01,
@@ -472,207 +487,206 @@ _LOGICS = {
     },
 }
 
+# 'Omega': {
+#    'func': lambda N,W,p,basket: (W/N)/(sprod(basket,p)) ,
+#    'definition': 'MONOSECTORAL Percieved purchasing power',
+#    'com': 'no shareholding, no bank possession',
+#    'units':'Units.Humans^{-1}.y^{-1}'
+# },
 
-        #'Omega': {
-        #    'func': lambda N,W,p,basket: (W/N)/(sprod(basket,p)) ,
-        #    'definition': 'MONOSECTORAL Percieved purchasing power',
-        #    'com': 'no shareholding, no bank possession',
-        #    'units':'Units.Humans^{-1}.y^{-1}'
-        #},
 
+dictMONOGOODWIN = {
+    # Numerical structural
+    'Tsim': 50,
+    'Nprod': ['Mono'],
+    'Tini': 0,
 
-dictMONOGOODWIN={
-# Numerical structural
-'Tmax'  : 50,
-'Nprod' : ['Mono'],
-'Tini'  : 0,
+    # Population
+    'n': 0.025,  # MONOSECT
+    'N': 1,  # MONOSECT
 
-# Population
-'n'     : 0.025, # MONOSECT
-'N'     : 1    , # MONOSECT
+    # PRODUCTION-MATERIAL FLUXES #######
+    'K': 2.7,
+    'Gamma': 0.05,
+    'Xi': 1,
+    'nu': 3,
+    'delta': 0.05,
+    'b': 3,
+    'a0': 1,  # MONOSECT
+    'alpha': 0.02,  # MONOSECT
+    'u': 1,
 
-# PRODUCTION-MATERIAL FLUXES #######
-'K'    : 2.7,
-'Gamma': 0.05,
-'Xi'   : 1,
-'nu'   : 3,
-'delta': 0.05,
-'b'    : 3,
-'a0'    : 1, # MONOSECT
-'alpha': 0.02, # MONOSECT
-'u'    : 1,
+    # Inventory-related dynamics
+    'V': 1,
+    'sigma': 0,  # use variation
+    'chi': 0,  # inflation variation
 
-# Inventory-related dynamics
-'V'     : 1,
-'sigma' : 0,  # use variation
-'chi'   : 0,  # inflation variation
+    # investment
+    'k0': 1.,
 
-# investment
-'k0': 1.,
+    # Debt-related
+    'Dh': 0,  # MONOSECT
+    'D': [0],
+    'r': 0.03,  # MONOSECT
 
-# Debt-related
-'Dh'    : 0, # MONOSECT
-'D'     : [0],
-'r'     : 0.03, # MONOSECT
+    # Wages-prices
+    'w0': 0.6,  # MONOSECT
+    'p': 1,
+    'z': 1,
+    'mu0': 1.3,
+    'eta': 0.0,
+    'gammai': 0,  # MONOSECT
+    'phinull': 0.1,  # MONOSECT
 
-# Wages-prices
-'w0'     : 0.6, # MONOSECT
-'p'     : 1,
-'z'     : 1,
-'mu0'   : 1.3,
-'eta'   : 0.0,
-'gammai': 0, # MONOSECT
-'phinull':0.1, # MONOSECT
-
-# Consumption theory
-'Cpond' : [1],
+    # Consumption theory
+    'Cpond': [1],
 }
 
 preset_basis = {
-'Tmax':50,
-'dt':0.1,
-'Nprod': ['Consumption','Capital'],
-'nx':1,
+    'Tsim': 50,
+    'dt': 0.1,
+    'Nprod': ['Consumption', 'Capital'],
+    'nx': 1,
 
-'alpha' : 0.02,
-'n'     : 0.025,
-'phinull':0.1,
+    'alpha': 0.02,
+    'n': 0.025,
+    'phinull': 0.1,
 
-'gammai':0,
-'r':0.03,
-'a':1,
-'N':1,
-'Dh':0,
-'w':0.8,
+    'gammai': 0,
+    'r': 0.03,
+    'a': 1,
+    'N': 1,
+    'Dh': 0,
+    'w': 0.8,
 
-'sigma':[1,5],
-'K': [2.,0.5],
-'D':[0,0],
-'u':[.95,.7],
-'p':[1.5,3],
-'V':[1,1],
-'z':[1,.3],
-'k0': 1.,
+    'sigma': [1, 5],
+    'K': [2., 0.5],
+    'D': [0, 0],
+    'u': [.95, .7],
+    'p': [1.5, 3],
+    'V': [1, 1],
+    'z': [1, .3],
+    'k0': 1.,
 
-'Cpond':[1,0],
+    'Cpond': [1, 0],
 
-'mu0':[1.2,1.2],
-'delta':0.05,
-'deltah':0.05,
-'eta':0.3,
-'chi':[1,1],
-'b':3,
-'nu':3,
+    'mu0': [1.2, 1.2],
+    'delta': 0.05,
+    'deltah': 0.05,
+    'eta': 0.3,
+    'chi': [1, 1],
+    'b': 3,
+    'nu': 3,
 
-## MATRICES
-'Gamma': [[0.05 ,0],
-          [0    ,0]],
-#'Xi': [['Consumption','Capital','Consumption','Capital'],
-#       ['Consumption','Capital','Capital','Consumption'],[0,.5,1,0]],
-'Xi': [[0.01,1],
-       [0.1,1]],
-'rho': np.eye(2),
+    # MATRICES
+    'Gamma': [[0.05, 0],
+              [0, 0]],
+    # 'Xi': [['Consumption','Capital','Consumption','Capital'],
+    #       ['Consumption','Capital','Capital','Consumption'],[0,.5,1,0]],
+    'Xi': [[0.01, 1],
+           [0.1, 1]],
+    'rho': np.eye(2),
 }
 
-preset_basis2=preset_basis.copy()
-preset_basis2['K'] = [2.3,0.5]
-preset_basis2['u'] = [1,1]
-preset_basis2['p'] = [1,1]
-preset_basis2['z'] = [1,1]
-#preset_basis2['Tmax'] = 50
+preset_basis2 = preset_basis.copy()
+preset_basis2['K'] = [2.3, 0.5]
+preset_basis2['u'] = [1, 1]
+preset_basis2['p'] = [1, 1]
+preset_basis2['z'] = [1, 1]
+# preset_basis2['Tsim'] = 50
 
 
 preset_TRI = {
-'Tmax':50,
-'dt':0.1,
-'Nprod': ['Consumption','Intermediate','Capital'],
-'nx':1,
+    'Tsim': 50,
+    'dt': 0.1,
+    'Nprod': ['Consumption', 'Intermediate', 'Capital'],
+    'nx': 1,
 
-'alpha' : 0.02,
-'n'     : 0.025,
-'phinull':0.1,
+    'alpha': 0.02,
+    'n': 0.025,
+    'phinull': 0.1,
 
-'gammai':0,
-'r':0.03,
-'a':1,
-'N':1,
-'Dh':0,
-'w':0.8,
+    'gammai': 0,
+    'r': 0.03,
+    'a': 1,
+    'N': 1,
+    'Dh': 0,
+    'w': 0.8,
 
-'sigma':[1,5,5],
-'K': [2.1,0.4,0.4],
-'D':[0,0,0],
-'u':[.95,.95,.95],
-'p':[1,1,1],
-'V':[1,1,1],
-'z':1,
-'k0': 1.,
-'Cpond':[1,0,0],
-'mu0':1.2,
-'delta':0.05,
-'deltah':0.05,
-'eta':0.3,
-'chi':1,
-'b':3,
-'nu':3,
+    'sigma': [1, 5, 5],
+    'K': [2.1, 0.4, 0.4],
+    'D': [0, 0, 0],
+    'u': [.95, .95, .95],
+    'p': [1, 1, 1],
+    'V': [1, 1, 1],
+    'z': 1,
+    'k0': 1.,
+    'Cpond': [1, 0, 0],
+    'mu0': 1.2,
+    'delta': 0.05,
+    'deltah': 0.05,
+    'eta': 0.3,
+    'chi': 1,
+    'b': 3,
+    'nu': 3,
 
-## MATRICES
-'Gamma': [[0.0,0.1 ,0],
-          [0  ,0.1 ,0],
-          [0.0,0.1 ,0]],
-#'Xi': [['Consumption','Capital','Consumption','Capital'],
-#       ['Consumption','Capital','Capital','Consumption'],[0,.5,1,0]],
-'Xi': [[0.0,0,1],
-       [0.0,0,1],
-       [0.0,0,1]],
-'rho': np.eye(3),
+    # MATRICES
+    'Gamma': [[0.0, 0.1, 0],
+              [0, 0.1, 0],
+              [0.0, 0.1, 0]],
+    # 'Xi': [['Consumption','Capital','Consumption','Capital'],
+    #       ['Consumption','Capital','Capital','Consumption'],[0,.5,1,0]],
+    'Xi': [[0.0, 0, 1],
+           [0.0, 0, 1],
+           [0.0, 0, 1]],
+    'rho': np.eye(3),
 }
 
-Nsect=4
-#A=np.diag([0.1 for i in range(Nsect-1)],1)
-#A[Nsect-2,Nsect-1]=0
+Nsect = 4
+# A=np.diag([0.1 for i in range(Nsect-1)],1)
+# A[Nsect-2,Nsect-1]=0
 
-A=np.diag([0.1 for i in range(Nsect-1)],-1)
-A[Nsect-1,Nsect-2]=0
+A = np.diag([0.1 for i in range(Nsect - 1)], -1)
+A[Nsect - 1, Nsect - 2] = 0
 
 preset_N = {
-'Tmax':8,
-'dt':0.1,
-'Nprod': ['Consumption']+['Inter'+str(i) for i in range(Nsect-2)]+['Capital'],
-'nx':1,
+    'Tsim': 8,
+    'dt': 0.1,
+    'Nprod': ['Consumption'] + ['Inter' + str(i) for i in range(Nsect - 2)] + ['Capital'],
+    'nx': 1,
 
-'alpha' : 0.02,
-'n'     : 0.025,
-'phinull':0.1,
+    'alpha': 0.02,
+    'n': 0.025,
+    'phinull': 0.1,
 
-'gammai':0,
-'r':0.03,
-'a':1,
-'N':4,
-'Dh':0,
-'w':0.8,
+    'gammai': 0,
+    'r': 0.03,
+    'a': 1,
+    'N': 4,
+    'Dh': 0,
+    'w': 0.8,
 
-'sigma':5,
-'K': [4]+[0.4 for i in range(Nsect-2)]+[5],
-'D':0,
-'u':.95,
-'p':1,
-'V':1,
-'z':1,
-'k0': 1.,
-'Cpond':[1]+[0 for i in range(Nsect-1)],
-'mu0':1.3,
-'delta':0.05,
-'deltah':0.05,
-'eta':0.3,
-'chi':1,
-'b':3,
-'nu':3,
+    'sigma': 5,
+    'K': [4] + [0.4 for i in range(Nsect - 2)] + [5],
+    'D': 0,
+    'u': .95,
+    'p': 1,
+    'V': 1,
+    'z': 1,
+    'k0': 1.,
+    'Cpond': [1] + [0 for i in range(Nsect - 1)],
+    'mu0': 1.3,
+    'delta': 0.05,
+    'deltah': 0.05,
+    'eta': 0.3,
+    'chi': 1,
+    'b': 3,
+    'nu': 3,
 
-## MATRICES
-'Gamma': A,
-'Xi':    [[0 for j in range(Nsect-1)]+[1] for i in range(Nsect)],
-'rho': np.eye(Nsect),
+    # MATRICES
+    'Gamma': A,
+    'Xi': [[0 for j in range(Nsect - 1)] + [1] for i in range(Nsect)],
+    'rho': np.eye(Nsect),
 }
 
 
@@ -689,7 +703,7 @@ _PRESETS = {
         'plots': {},
     },
     'SimpleBi': {
-        'fields': preset_basis2, 
+        'fields': preset_basis2,
         'com': ('Two sectors : one producing consumption good, one for capital goods.'
                 'Converging run starting close to equilibrium'),
         'plots': {},

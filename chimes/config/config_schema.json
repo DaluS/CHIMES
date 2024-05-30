@@ -1,0 +1,368 @@
+{
+    "$schema": "https://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "title": "Config",
+    "description": "Schema for Config file",
+    "properties": {
+        "_VERB": {
+            "type": "boolean",
+            "default": true
+        },
+        "__PRINTINTRO": {
+            "type": "boolean",
+            "default": false
+        },
+        "_FIELDS_EXPLOREMODEL": {
+            "type": "boolean",
+            "default": false
+        },
+        "_FROM_USER": {
+            "type": "boolean",
+            "default": false
+        },
+        "_MODEL_NAME_CONVENTION": {
+            "type": "string",
+            "default": "_model_"
+        },
+        "_MODEL_FOLDER_HIDDEN": {
+            "type": "string",
+            "default": "Hidden"
+        },
+        "_SAVE_FOLDER": {
+            "type": "string",
+            "default": "saves"
+        },
+        "_DMODEL_KEYS": {
+            "type": "object",
+            "default": {
+                "logics": {},
+                "presets": {},
+                "file": "",
+                "description": "",
+                "name": ""
+            },
+            "properties": {
+                "logics": {
+                    "type": "object"
+                },
+                "presets": {
+                    "type": "object"
+                },
+                "file": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false
+        },
+        "_LTYPES": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "int",
+                    "float"
+                ]
+            },
+            "default": [
+                "int",
+                "float"
+            ]
+        },
+        "_LTYPES_ARRAY": {
+            "type": "array",
+            "items": {
+                "type": "string",
+                "enum": [
+                    "list",
+                    "tuple"
+                ]
+            },
+            "default": [
+                "list",
+                "tuple"
+            ]
+        },
+        "_LEQTYPES": {
+            "type": "array",
+            "default": [
+                "differential",
+                "statevar",
+                "parameter",
+                "size"
+            ],
+            "items": {
+                "type": "string"
+            }
+        },
+        "_SOLVER": {
+            "type": "string",
+            "default": "rk4"
+        },
+        "_LEXTRAKEYS": {
+            "type": "array",
+            "default": [
+                "func",
+                "kargs",
+                "args",
+                "initial",
+                "source_exp",
+                "isneeded",
+                "analysis",
+                "size"
+            ],
+            "items": {
+                "type": "string"
+            }
+        },
+        "_LOCAL_MODEL": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "default": null
+        },
+        "_PATH_HERE": {
+            "type": "string",
+            "default": "Path toward chimes"
+        },
+        "_PATH_USER_HOME": {
+            "type": "string",
+            "default": ""
+        },
+        "_PATH_PRIVATE_MODELS": {
+            "type": [
+                "string",
+                "null"
+            ],
+            "default": null
+        },
+        "_PATH_MODELS": {
+            "type": "string",
+            "default": "models path"
+        },
+        "_DEFAULTSIZE": {
+            "type": "string",
+            "default": "__ONE__"
+        },
+        "__DEFAULTFIELDS": {
+            "type": "object",
+            "description": "Automatic filling of fields when the information is not given",
+            "properties": {
+                "value": {
+                    "type": "object",
+                    "properties": {
+                        "default": {
+                            "type": [
+                                "number",
+                                "array",
+                                "null"
+                            ]
+                        },
+                        "type": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "int",
+                                    "float",
+                                    "np.int_",
+                                    "np.float_",
+                                    "np.ndarray",
+                                    "list"
+                                ]
+                            }
+                        },
+                        "allowed": {
+                            "type": [
+                                "array",
+                                "null"
+                            ]
+                        }
+                    }
+                },
+                "definition": {
+                    "type": "object",
+                    "properties": {
+                        "default": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "str"
+                            ]
+                        },
+                        "allowed": {
+                            "type": [
+                                "null"
+                            ]
+                        }
+                    }
+                },
+                "com": {
+                    "type": "object",
+                    "properties": {
+                        "default": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "str"
+                            ]
+                        },
+                        "allowed": {
+                            "type": [
+                                "null"
+                            ]
+                        }
+                    }
+                },
+                "units": {
+                    "type": "object",
+                    "properties": {
+                        "default": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "str"
+                            ]
+                        },
+                        "allowed": {
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "enum": [
+                                    "Units",
+                                    "y",
+                                    "$",
+                                    "C",
+                                    "Tc",
+                                    "Humans",
+                                    "W",
+                                    "L",
+                                    ""
+                                ]
+                            }
+                        }
+                    }
+                },
+                "minmax": {
+                    "type": "object",
+                    "properties": {
+                        "default": {
+                            "type": "array",
+                            "items": {
+                                "type": "number"
+                            },
+                            "minItems": 2,
+                            "maxItems": 2
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "list"
+                            ]
+                        },
+                        "allowed": {
+                            "type": [
+                                "null"
+                            ]
+                        }
+                    }
+                },
+                "symbol": {
+                    "type": "object",
+                    "properties": {
+                        "default": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "str"
+                            ]
+                        },
+                        "allowed": {
+                            "type": [
+                                "null"
+                            ]
+                        }
+                    }
+                },
+                "group": {
+                    "type": "object",
+                    "properties": {
+                        "default": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "str"
+                            ]
+                        },
+                        "allowed": {
+                            "type": [
+                                "null"
+                            ]
+                        }
+                    }
+                },
+                "multisect": {
+                    "type": "object",
+                    "properties": {
+                        "default": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "str"
+                            ]
+                        },
+                        "allowed": {
+                            "type": [
+                                "null"
+                            ]
+                        }
+                    }
+                },
+                "size": {
+                    "type": "object",
+                    "properties": {
+                        "default": {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "minItems": 2,
+                            "maxItems": 2
+                        },
+                        "type": {
+                            "type": "string",
+                            "enum": [
+                                "list"
+                            ]
+                        },
+                        "allowed": {
+                            "type": [
+                                "null"
+                            ]
+                        }
+                    }
+                }
+            },
+            "additionalProperties": false
+        }
+    },
+    "additionalProperties": false
+}

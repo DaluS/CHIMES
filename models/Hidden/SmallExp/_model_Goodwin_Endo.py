@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 """Goodwin with endogenous kaldor-verdorn growth"""
+from chimes.libraries import Funcs, importmodel, merge_model
+import sys
+import numpy as np
+import chimes as pgm
+from IPython.display import display, HTML
 
 _DESCRIPTION = """
 DESCRIPTION :
 
-    This is a small modificaiton of Goodwin. Assume that labour productivity (parameter a in our basic model) is not exogenous 
+    This is a small modificaiton of Goodwin. Assume that labour productivity (parameter a in our basic model) is not exogenous
     but depends upon the growth rate of investment (in R & D). This leads to adding the following equation:
     dot(a) / a = alpha + beta * g
 
@@ -18,7 +23,6 @@ TYPICAL BEHAVIOR: Locally Unstable, the good equilibrium is an unstable focuse
 
 
 # ######################## PRELIMINARY ELEMENTS #########################
-from IPython.display import display, HTML
 
 display(HTML(data="""
 <style>
@@ -28,36 +32,25 @@ display(HTML(data="""
 </style>
 """))
 
-import sys 
 
-path = "/Users/zhu/Desktop/GEJP/GEMMES" 
+path = "/Users/zhu/Desktop/GEJP/GEMMES"
 sys.path.insert(0, path)
-import chimes as pgm
-
-import numpy as np
-from chimes._models import Funcs, importmodel,mergemodel
-
-
-
-
 
 
 # ######################## LOGICS #######################################
-_LOGICS,_PRESETS0,_SUPPLEMENTS_G= importmodel('Goodwin')
+_LOGICS, _PRESETS0, _SUPPLEMENTS_G = importmodel('Goodwin')
 
 _GE_LOGICS = {
     'differential': {
         # Endogenous Labor Productivity
         'a': {
-            'func': lambda a, alpha, beta, g: a*(alpha + beta * g),
+            'func': lambda a, alpha, beta, g: a * (alpha + beta * g),
             'com': 'Labor Productivity depends on investment', },
 
     }
 }
 
-_LOGICS = mergemodel(_LOGICS, _GE_LOGICS, verb=False) 
-
-
+_LOGICS = merge_model(_LOGICS, _GE_LOGICS, verb=False)
 
 
 # ####################### PRESETS #######################################
@@ -69,7 +62,7 @@ _PRESETS = {
             'N': 1.01,
             'K': 2.91,
             'D': 0.01,
-            'w': .5*1.19,
+            'w': .5 * 1.19,
             'alpha': 0.021,
             'n': 0.0251,
             'nu': 3,
@@ -85,13 +78,13 @@ _PRESETS = {
                         'y': [['employment', 'omega'],
                               ['K'],
                               ],
-                        'idx':0,
-                        'title':'',
-                        'lw':1}],
+                        'idx': 0,
+                        'title': '',
+                        'lw': 1}],
             'XY': [{'x': 'employment',
-                            'y': 'omega',
-                            'color': 'time',
-                            'idx': 0}],
+                    'y': 'omega',
+                    'color': 'time',
+                    'idx': 0}],
             '3D': [{'x': 'employment',
                     'y': 'omega',
                     'z': 'time',
@@ -104,13 +97,13 @@ _PRESETS = {
     },
     'many-orbits': {
         'fields': {
-            'nx':5,
+            'nx': 5,
             'dt': 0.01,
             'a': 1,
             'N': 1,
             'K': 2.9,
             'D': 0,
-            'w': [.5, .5*1.2, .5*1.3, .5*1.5, .5*1.7],
+            'w': [.5, .5 * 1.2, .5 * 1.3, .5 * 1.5, .5 * 1.7],
             'alpha': 0.02,
             'n': 0.025,
             'nu': 3,
@@ -123,8 +116,8 @@ _PRESETS = {
             'timetrace': [{'keys': ['employment', 'omega']}],
             'nyaxis': [],
             'XY': [{'x': 'employment',
-                           'y': 'omega',
-                            'idx': 0}],
+                    'y': 'omega',
+                    'idx': 0}],
             '3D': [],
             'byunits': [],
         },

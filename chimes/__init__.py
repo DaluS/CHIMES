@@ -17,22 +17,29 @@ If you change code and functionality in the chimes folder, please do:
 * Update the unit tests in `tests\test_00_BASIC.py`
 * Update the interface.ipynb  
 """
-from ._models import get_available_models, get_available_functions,get_model_documentation,get_available_operators
-from ._toolbox import *
+import os as _os
+from ._chm_get import get_available_plots
+from ._chm_get import get_plot_documentation
+from ._chm_get import get_available_fields
+from ._chm_get import get_available_config
+from ._chm_get import get_available_models
+from ._chm_get import get_available_functions
+from ._chm_get import get_available_operators
+from ._chm_get import get_model_documentation
+from ._chm_get import get_available_saves
+from ._toolbox import generate_dic_distribution, load_saved
 from ._core import Hub
-from . import _plots as plots
-from ._interface import Interface
+# from . import _plots as _plots
+from ._plot_class import Plots
+
+from ._config import config
+
 
 # MESSAGE LOGO ########################################
-from ._config import __PRINTINTRO
-import os as _os
-
-if __PRINTINTRO:
+if config.get_current('__PRINTINTRO'):
     print(__doc__)
-    __Add2 = _os.path.dirname(_os.path.realpath(__file__))+"\_config.py"
+    __Add2 = _os.path.dirname(_os.path.realpath(__file__)) + "\_config.py"
     __Add3 = _os.path.dirname(_os.path.realpath(__file__)) + "\doc\TUTORIALS\TUTORIAL.ipynb"
     print(
-f"""The ipythonNotebook is at : {__Add3}
+        f"""The ipythonNotebook is at : {__Add3}
 If you want to customize pyIDEE (advancer users) like removing this message, edit : {__Add2}""")
-
-

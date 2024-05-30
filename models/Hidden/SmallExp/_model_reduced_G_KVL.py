@@ -17,7 +17,7 @@ Created on Wed Jul 21 15:11:15 2021
 
 
 import numpy as np
-from chimes._models import Funcs
+from chimes.libraries import Funcs
 
 
 # ---------------------------
@@ -29,12 +29,12 @@ _LOGICS = {
     'differential': {
         # Exogenous entries in the model
         'employment': {
-            'func' : lambda employment, alphaKLV,n,g: employment*( g- n - alphaKLV ),
-            'com' : "reduced 2-var system",
+            'func': lambda employment, alphaKLV, n, g: employment * (g - n - alphaKLV),
+            'com': "reduced 2-var system",
         },
         'omega': {
-            'func' : lambda omega, phillips,alphaKLV: omega*(phillips-alphaKLV),
-            'com' : 'reduced 2-var system',
+            'func': lambda omega, phillips, alphaKLV: omega * (phillips - alphaKLV),
+            'com': 'reduced 2-var system',
         },
     },
 
@@ -43,22 +43,22 @@ _LOGICS = {
         'phillips': Funcs.Phillips.div,
 
         'alphaKLV': {
-            'func': lambda alpha, alpha0, alpha1, g, employment: alpha + alpha0*g + alpha1* employment,
+            'func': lambda alpha, alpha0, alpha1, g, employment: alpha + alpha0 * g + alpha1 * employment,
             'com': 'Kaldor Verdoorn + Learning by doing',
             'definition': 'Endogenous ,technical progress rate',
-            'units':'y^{-1}'},
+            'units': 'y^{-1}'},
         'g': {
-            'func': lambda omega, delta ,nu : (1-omega)/nu - delta,
+            'func': lambda omega, delta, nu: (1 - omega) / nu - delta,
             'com': 'explicit reduced formula',
         },
     },
     'parameter': {
         'alpha0': {'value': 0.0,
                    'definition': 'dependency to growth in technical progress',
-                   'units':''},
+                   'units': ''},
         'alpha1': {'value': 0.0,
                    'definition': 'dependency to employment in technical progress',
-                   'units':'y^{-1}'},
+                   'units': 'y^{-1}'},
     },
     'size': {},
 }
@@ -67,30 +67,30 @@ _LOGICS = {
 # ---------------------------
 # List of presets for specific interesting simulations
 
-plots= {
-    '3D': [{'x':'omega',
-           'y':'employment',
-           'z':'alphaKLV',
-           'color':'time',
-            'index':0}]
+plots = {
+    '3D': [{'x': 'omega',
+           'y': 'employment',
+            'z': 'alphaKLV',
+            'color': 'time',
+            'index': 0}]
 }
 Nplots = {
-    '3D': [{'x':'omega',
-           'y':'employment',
-           'z':'alphaKLV',
-           'color':'time',
-            'index':i} for i in range(5)],
-    'byunits':[{'idx':i,
-                'separate_variables':{'y^{-1}':'phillips'},
-                } for i in range(5)]
+    '3D': [{'x': 'omega',
+           'y': 'employment',
+            'z': 'alphaKLV',
+            'color': 'time',
+            'index': i} for i in range(5)],
+    'byunits': [{'idx': i,
+                'separate_variables': {'y^{-1}': 'phillips'},
+                 } for i in range(5)]
 }
 
 _PRESETS = {
-    'GoodwinLike':{
+    'GoodwinLike': {
         'fields': {
-            'alpha0':0,
-            'alpha1':0,
-    },
+            'alpha0': 0,
+            'alpha1': 0,
+        },
         'com': 'Behaves as a typical goodwin',
         'plots': plots,
     },
@@ -100,24 +100,23 @@ _PRESETS = {
             'alpha1': 0,
         },
         'com': 'Add Kaldor-Verdorn progress',
-        'plots':  plots,
+        'plots': plots,
     },
     'GoodwinL': {
         'fields': {
             'alpha0': 0,
             'alpha1': 0.05,
         },
-        'com':'Add learning by doing method',
-        'plots':  plots,
+        'com': 'Add learning by doing method',
+        'plots': plots,
     },
     'Both': {
         'fields': {
             'nx': 5,
-            'alpha0': np.linspace(0,0.5,5),
+            'alpha0': np.linspace(0, 0.5, 5),
             'alpha1': 0.06,
         },
         'com': 'Add learning by doing method',
         'plots': Nplots,
     },
 }
-

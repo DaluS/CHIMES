@@ -26,7 +26,7 @@ _FUNC_ORDER = None
 _LOGICS = {
     'ode': {
         'thetap': {
-            'func': lambda Final=1, itself=0, Omega=0, gamma=0, theta=0: -Omega**2*(theta-Final) - 2*gamma*itself,
+            'func': lambda Final=1, itself=0, Omega=0, gamma=0, theta=0: -Omega**2 * (theta - Final) - 2 * gamma * itself,
             'com': 'Exogenous technical progress as an exponential',
             'initial': 0,
         },
@@ -38,7 +38,7 @@ _LOGICS = {
     },
     'statevar': {
         'Energy': {
-            'func': lambda theta=0, thetap=0, Omega=0, Final=0: Omega*(theta-Final)**2+thetap**2,
+            'func': lambda theta=0, thetap=0, Omega=0, Final=0: Omega * (theta - Final)**2 + thetap**2,
             'com': 'Energy',
         },
     },
@@ -51,7 +51,7 @@ _LOGICS = {
 _PRESETS = {
     'Perfect Oscillations': {
         'fields': {
-            'nx':3,
+            'nx': 3,
             'thetap': [0, 0, 0],
             'theta': [1, 2, 0],
             'Final': [1, 0, 0],
@@ -63,7 +63,7 @@ _PRESETS = {
     },
     'FirstOrder': {
         'fields': {
-            'nx':3,
+            'nx': 3,
             'thetap': [0, 0, 0],
             'theta': [1, 2, 0],
             'Final': [1, 0, 0],
@@ -75,7 +75,7 @@ _PRESETS = {
     },
     "Overdamp": {
         'fields': {
-            'nx':3,
+            'nx': 3,
             'thetap': [0, 0, 0],
             'theta': [1, 2, 0],
             'Final': [1, 0, 0],
@@ -88,7 +88,7 @@ _PRESETS = {
 
     'Critical': {
         'fields': {
-            'nx':3,
+            'nx': 3,
             'thetap': [0, 0, 0],
             'theta': [1, 2, 0],
             'Final': [1, 0, 0],
@@ -100,7 +100,7 @@ _PRESETS = {
     },
     'Underdamped': {
         'fields': {
-            'nx':3,
+            'nx': 3,
             'thetap': [0, 0, 0],
             'theta': [1, 2, 0],
             'Final': [1, 0, 0],

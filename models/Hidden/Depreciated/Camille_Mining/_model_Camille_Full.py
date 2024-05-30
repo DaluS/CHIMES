@@ -13,8 +13,8 @@ import numpy as np
 
 # ----------------------------------------------------------------------------
 # We simply do a few modifications on two previous models : we load them as a basis
-from chimes._models._model_GK import _LOGICS as _LOGICS0
-from chimes._models._model_Camille_Mine import _LOGICS as _LOGICSMine
+from chimes.libraries._model_GK import _LOGICS as _LOGICS0
+from chimes.libraries._model_Camille_Mine import _LOGICS as _LOGICSMine
 from copy import deepcopy
 
 # The model is a start of a Goodwin-Keen model
@@ -35,10 +35,10 @@ _LOGICS_COUPLING = {
     'statevar': {
         # Definition of capital is slightly changed
         'Kstar': {
-            'func': lambda K=0, Y_R=0, theta=0: (K**theta)*(Y_R**(1-theta)),
+            'func': lambda K=0, Y_R=0, theta=0: (K**theta) * (Y_R**(1 - theta)),
             'com': 'capital boost from mining', },
         'Y': {
-            'func': lambda Kstar=0, nu=1: Kstar/nu,
+            'func': lambda Kstar=0, nu=1: Kstar / nu,
             'com': 'Leontief optimized production output', },
         'L': {
             'func': lambda Kstar=0, nu=1, a=1: Kstar / (nu * a),
@@ -46,7 +46,7 @@ _LOGICS_COUPLING = {
 
         # A flux of money is paying for ressources
         'Pi': {
-            'func': lambda GDP=0, w=0, L=0, varphi=0, p_R=0, M=0, r=0, D=0: GDP - w * L - r * D - (1-varphi)*p_R*M,
+            'func': lambda GDP=0, w=0, L=0, varphi=0, p_R=0, M=0, r=0, D=0: GDP - w * L - r * D - (1 - varphi) * p_R * M,
             'com': 'Profit for production-Salary-debt func', },
         'c': {
             'func': lambda omega=0, varphi=0, m=0: omega + (1 - varphi) * m,
@@ -75,11 +75,11 @@ _PRESETS = {
     'Nomining': {
         'fields': {},
         'com': '',
-        'plots': {'plotbyunits': [{'title': '',
-                                   'lw': 1,
-                                   'idx': 0,
-                                   'color': 'k'},
-                                  ],
+        'plots': {'byunits': [{'title': '',
+                               'lw': 1,
+                               'idx': 0,
+                               'color': 'k'},
+                              ],
                   },
     },
 }

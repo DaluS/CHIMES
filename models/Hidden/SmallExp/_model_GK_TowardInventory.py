@@ -17,10 +17,10 @@ Created on Wed Jul 21 15:11:15 2021
 
 
 import numpy as np
-from chimes._models import Funcs
+from chimes.libraries import Funcs
 # ----------------------------------------------------------------------------
 # We simply do a few modifications on a previous model : we load it as a basis
-from chimes._models._model_GK import _LOGICS as _LOGICS0
+from chimes.libraries._model_GK import _LOGICS as _LOGICS0
 from copy import deepcopy
 _LOGICS = deepcopy(_LOGICS0)
 
@@ -36,11 +36,11 @@ _INVENTORY = {
             'com': 'logic in statevar dotV',
         },
         'H': {
-            'func': lambda H, deltah, C: C - H*deltah,
+            'func': lambda H, deltah, C: C - H * deltah,
             'com': 'Goods-Consume-Deterioration'
         },
         'Dh': {
-            'func': lambda w, L, C, p: C*p - w*L,
+            'func': lambda w, L, C, p: C * p - w * L,
             'com': 'salary and consumption',
         },
         'M': {
@@ -55,7 +55,7 @@ _INVENTORY = {
             'definition': 'variation of inventory',
             'com': 'Output Conso Invest'},
         'C': {
-            'func': lambda Ir, Y: Y-Ir,
+            'func': lambda Ir, Y: Y - Ir,
             'com': 'Says law'},
         'm': Funcs.Definitions.m,
         'v': Funcs.Definitions.v,

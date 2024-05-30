@@ -11,12 +11,12 @@ Created on Fri Feb  18 2022
 """
 
 import numpy as np
-from chimes._models import Funcs
+from chimes.libraries import Funcs
 
 # ----------------------------------------------------------------------------
 # We simply do a few modifications on two previous models : we load them as a basis
-from chimes._models._model_GKCES import _LOGICS as _LOGICSCES
-from chimes._models._model_Camille_Mine import _LOGICS as _LOGICSMine
+from chimes.libraries._model_GKCES import _LOGICS as _LOGICSCES
+from chimes.libraries._model_Camille_Mine import _LOGICS as _LOGICSMine
 from copy import deepcopy
 
 # The model is a start of a Goodwin-Keen model with CES
@@ -41,12 +41,12 @@ _LOGICS_COUPLING = {
 
         # Definition of capital is slightly changed
         'K': {
-            'func': lambda K_0=0, Y_R=0, theta=0: (K_0**theta)*(Y_R**(1-theta)),
+            'func': lambda K_0=0, Y_R=0, theta=0: (K_0**theta) * (Y_R**(1 - theta)),
             'com': 'capital boost from mining', },
 
         # A flux of money is paying for ressources
         'Pi': {
-            'func': lambda GDP=0, w=0, L=0, varphi=0, p_R=0, M=0, r=0, D=0: GDP - w * L - r * D - (1-varphi)*p_R*M,
+            'func': lambda GDP=0, w=0, L=0, varphi=0, p_R=0, M=0, r=0, D=0: GDP - w * L - r * D - (1 - varphi) * p_R * M,
             'com': 'Profit for production-Salary-debt func', },
         'c': {
             'func': lambda omega=0, varphi=0, m=0: omega + (1 - varphi) * m,
@@ -78,11 +78,11 @@ _PRESETS = {
                    'D_R': 0.001,
                    'p_R': 0.1, },
         'com': '',
-        'plots': {'plotbyunits': [{'title': '',
-                                   'lw': 1,
-                                   'idx': 0,
-                                   'color': 'k'},
-                                  ],
+        'plots': {'byunits': [{'title': '',
+                               'lw': 1,
+                               'idx': 0,
+                               'color': 'k'},
+                              ],
                   },
     },
 }
