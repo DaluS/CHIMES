@@ -7,7 +7,8 @@
 
 ![image](https://img.shields.io/badge/this_is-a_test-green)
 
-[ Logo ]
+[LogoCHIMES.pdf](https://github.com/DaluS/CHIMES/files/15501925/LogoCHIMES.pdf)
+
 
 CHIMES is a library to explore, prototype, analyze and couple dynamical models in python.
 
