@@ -40,9 +40,12 @@ CHIMES is its own numerical environment, open on other structures. It has:
 ![image](https://github.com/DaluS/CHIMES/assets/11523050/a37b3b8b-2e9e-46cc-8c0e-51746c3590f4)
 *Some illustrations of CHIMES content*
 
+
 ## TL:DR USE 
 
-If you are not in a hurry, read the section "Exploring the content" rather than this 
+If you are not in a hurry, read the section "Exploring the content" rather than this. 
+If you already have the code, you can go in `docs/tutorial` and explore each ipynb that will show you the main properties
+You can also check `notebooks/` folder that contains notebooks of users willing to share them, with inspirations for your own !
  
 **To load and run a model**
 Always use `?` and `tab` (help and autocompletion) to know what is in each element. 
