@@ -150,4 +150,4 @@ chimes/loader/api.env
 *.todo.md
 
 # ignore Paul Netbooks
-notebooks/Paul
+# notebooks/Paul

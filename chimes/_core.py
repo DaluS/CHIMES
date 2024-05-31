@@ -221,6 +221,7 @@ class Hub(setM, getM, calculateM, saveM):
                     X = getattr(Plots, plotname)(self, returnFig=returnFig, **argl)
                     F.append(X)
                     description.append([plotname, argl])
+                    print()
         if returnFig:
             return F, description
 
