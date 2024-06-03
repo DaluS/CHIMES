@@ -32,7 +32,8 @@ The main difference with the standard library is that:
 ## **<div align="center">[There is a wiki that tells you everything about the library here!](https://github.com/DaluS/CHIMES/wiki/Home)</div>**
 
 ![image](https://github.com/DaluS/CHIMES/assets/11523050/a37b3b8b-2e9e-46cc-8c0e-51746c3590f4)
-*Some illustrations of CHIMES content*
+
+*Some illustrations of what you can do with CHIMES using just the library*
 
 ## Short tutorial 
 
