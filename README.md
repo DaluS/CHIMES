@@ -22,8 +22,17 @@ It is built for both beginners and advanced users and provides access to complex
 
 CHIMES means **C**ore for **H**olisitic **I**ntertwined **M**odel for **E**nvironmental **S**implexity. 
 
-It has been developed as a structure for the next generation of complexity-based integrated assessment models, but it can be used well beyond that.
+Developed initially as an internal tool for the Environmental Justice Program (EJP) at Georgetown, CHIMES has evolved into an open-source numerical environment with a range of features:
 
+- An ensemble of user-friendly methods to manipulate, run, explore, and save models and their simulations
+- A model base containing macroeconomic, climate, agent-based, circuits, and partial differential equation models. Each model includes logic, presets, explanations, and examples.
+- A field base (quantities relevant to describe the systems such as temperature, price and GDP) with definitions, symbols, and units that can be shared across models.
+- A Database that contains the value of the real world related to models (WIP)
+- A tensor-based resolution system with an RK4 solver, facilitating efficient parallel and complex structure modelling.
+- An ensemble of `get` and `set` methods for understanding and modifying model conditions.
+- Additional methods for sensitivity and stability analyses.
+- Easy-to-access plots for visualizing model outputs.
+- A methodology for coupling external models through an API.
 The main difference with the standard library is that:
 1. the operations are based on tensors (hence easy parallel run for sensitivity, multi-regions, multi-agents, multi-sector, multi-whatever)
 2. it uses model files written in Python (easy to do operations on models, easy to share)
