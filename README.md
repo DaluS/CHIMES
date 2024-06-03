@@ -29,7 +29,7 @@ The main difference with the standard library is that:
 2. it uses model files written in Python (easy to do operations on models, easy to share)
 3. It comes with many practical tools to make your life easy!
 
-[There is a wiki that tells you everything about the library here!](https://github.com/DaluS/CHIMES/wiki/Home)
+## **<div align="center">[There is a wiki that tells you everything about the library here!](https://github.com/DaluS/CHIMES/wiki/Home)</div>**
 
 ![image](https://github.com/DaluS/CHIMES/assets/11523050/a37b3b8b-2e9e-46cc-8c0e-51746c3590f4)
 *Some illustrations of CHIMES content*
