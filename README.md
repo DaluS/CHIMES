@@ -33,7 +33,9 @@ Developed initially as an internal tool for the Environmental Justice Program (E
 - Additional methods for sensitivity and stability analyses.
 - Easy-to-access plots for visualizing model outputs.
 - A methodology for coupling external models through an API.
-The main difference with the standard library is that:
+
+  
+The main difference with the standard dynamical system library are:
 1. the operations are based on tensors (hence easy parallel run for sensitivity, multi-regions, multi-agents, multi-sector, multi-whatever)
 2. it uses model files written in Python (easy to do operations on models, easy to share)
 3. It comes with many practical tools to make your life easy!
