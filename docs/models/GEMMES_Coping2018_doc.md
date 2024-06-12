@@ -1,11 +1,11 @@
 # Model: GEMMES_Coping2018
 
 
-* **Creation** : 
-* **Coder**    : 
-* **Article**  : 
-* **Keywords** : []
-
+    * **Creation** : 
+    * **Coder**    : 
+    * **Article**  : 
+    * **Keywords** : []
+    
 
 * **Date    :** 2023/08/21
 * **Article :** DOI: 10.1016/j.ecolecon.2018.01.034

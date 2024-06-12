@@ -1,11 +1,11 @@
 # Model: Climate_3Layers
 
 
-* **Creation** : 2021
-* **Coder**    : Paul Valcke
-* **Article**  :  
-* **Keywords** : ['Climate', 'Module', 'Emission', 'Temperature']
-
+    * **Creation** : 2021
+    * **Coder**    : Paul Valcke
+    * **Article**  :  
+    * **Keywords** : ['Climate', 'Module', 'Emission', 'Temperature']
+    
 
 ## Description
 

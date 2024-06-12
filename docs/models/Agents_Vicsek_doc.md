@@ -1,11 +1,11 @@
 # Model: Agents_Vicsek
 
 
-* **Creation** : 
-* **Coder**    : 
-* **Article**  : 
-* **Keywords** : []
-
+    * **Creation** : 
+    * **Coder**    : 
+    * **Article**  : 
+    * **Keywords** : []
+    
 
 
 * **Name :** Vicsek Agent-Based dynamics

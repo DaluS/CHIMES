@@ -1,11 +1,11 @@
 # Model: CHI
 
 
-* **Creation** : 
-* **Coder**    : 
-* **Article**  : 
-* **Keywords** : []
-
+    * **Creation** : 
+    * **Coder**    : 
+    * **Article**  : 
+    * **Keywords** : []
+    
 
 * **Article :** https://www.overleaf.com/read/bczdyhfqrdgh
 * **Author  :** Paul Valcke

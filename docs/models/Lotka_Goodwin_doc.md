@@ -1,11 +1,11 @@
 # Model: Lotka_Goodwin
 
 
-* **Creation** : 2024/06/11
-* **Coder**    : Paul Valcke
-* **Article**  : 
-* **Keywords** : ['Stability', 'Predatory-Prey', 'Lotka-Volterra', 'Goodwin']
-
+    * **Creation** : 2024/06/11
+    * **Coder**    : Paul Valcke
+    * **Article**  : 
+    * **Keywords** : ['Stability', 'Predatory-Prey', 'Lotka-Volterra', 'Goodwin']
+    
 
 ## What is this model ?
 

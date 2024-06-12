@@ -1,11 +1,11 @@
 # Model: ICED
 
 
-* **Creation** : 2023/12/07 model file creation
-* **Coder**    : Paul Valcke
-* **Article**  : https://www.overleaf.com/read/fxppgztffzph#6fa1cb
-* **Keywords** : ['module', 'capital', 'investment', 'decarbonation']
-
+    * **Creation** : 2023/12/07 model file creation
+    * **Coder**    : Paul Valcke
+    * **Article**  : https://www.overleaf.com/read/fxppgztffzph#6fa1cb
+    * **Keywords** : ['module', 'capital', 'investment', 'decarbonation']
+    
 
 ## Parameters added 
 

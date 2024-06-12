@@ -1,11 +1,11 @@
 # Model: PDE-Diffusion
 
 
-* **Creation** : 2024/01/22
-* **Coder**    : Paul Valcke
-* **Article**  : https://en.wikipedia.org/wiki/Heat_equation
-* **Keywords** : ['PDE', 'Phyics', 'Tutorial']
-
+    * **Creation** : 2024/01/22
+    * **Coder**    : Paul Valcke
+    * **Article**  : https://en.wikipedia.org/wiki/Heat_equation
+    * **Keywords** : ['PDE', 'Phyics', 'Tutorial']
+    
 
 CHIMES can Solve PDE, using regions as points on a grid similar to a finite difference method of resolution. 
 https://en.wikipedia.org/wiki/Finite_difference_method, using explicit schemas. 

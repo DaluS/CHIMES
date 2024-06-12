@@ -1,11 +1,11 @@
 # Model: Halvorsen_Attractor
 
 
-* **Creation** :  2024/04/23
-* **Coder**    : Paul Valcke
-* **Article**  : 
-* **Keywords** : ['stochastic', 'Documentation', 'chaos', 'attractor']
-
+    * **Creation** :  2024/04/23
+    * **Coder**    : Paul Valcke
+    * **Article**  : 
+    * **Keywords** : ['stochastic', 'Documentation', 'chaos', 'attractor']
+    
 
 3 Differential attractor. Nice symmetry.
 

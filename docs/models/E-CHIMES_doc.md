@@ -1,11 +1,11 @@
 # Model: E-CHIMES
 
 
-* **Creation** : 
-* **Coder**    : 
-* **Article**  : 
-* **Keywords** : []
-
+    * **Creation** : 
+    * **Coder**    : 
+    * **Article**  : 
+    * **Keywords** : []
+    
 
 # **E**CONOMIC **C**ORE for **H**OLISTIC **I**NTERDISCIPLINARY **M**ODEL assessing **E**COLOGICAL **S**USTAINABILITY
 

@@ -27,6 +27,7 @@ from ._chm_get import get_available_functions
 from ._chm_get import get_available_operators
 from ._chm_get import get_model_documentation
 from ._chm_get import get_available_saves
+from ._chm_get import create_models_readme
 from ._toolbox import generate_dic_distribution, load_saved
 from ._core import Hub
 # from . import _plots as _plots

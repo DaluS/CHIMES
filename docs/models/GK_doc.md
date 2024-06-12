@@ -1,11 +1,11 @@
 # Model: GK
 
 
-* **Creation** : 2021
-* **Coder**    : Paul Valcke
-* **Article**  :  
-* **Keywords** : ['Goodwin', 'Toy-model', 'Debt', 'Crises']
-
+    * **Creation** : 2021
+    * **Coder**    : Paul Valcke
+    * **Article**  :  
+    * **Keywords** : ['Goodwin', 'Toy-model', 'Debt', 'Crises']
+    
 
 ## What is this model ?
 

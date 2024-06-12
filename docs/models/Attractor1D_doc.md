@@ -1,11 +1,11 @@
 # Model: Attractor1D
 
 
-* **Creation** :  2023/12/14
-* **Coder**    : Paul Valcke
-* **Article**  : 
-* **Keywords** : ['stochastic', 'Documentation', '']
-
+    * **Creation** :  2023/12/14
+    * **Coder**    : Paul Valcke
+    * **Article**  : 
+    * **Keywords** : ['stochastic', 'Documentation', '']
+    
 
 # Tipping point in an independant landscape: 1D with no position feedback
 

@@ -1,11 +1,11 @@
 # Model: Goodwin_example
 
 
-* **Creation** : 2023/11/17
-* **Coder**    : Paul Valcke
-* **Article**  : https://link.springer.com/chapter/10.1007/978-1-349-05504-3_12
-* **Keywords** : ['Tutorial', 'Documentation', 'Goodwin', 'Economics', 'Oscillations', 'Monosectoral']
-
+    * **Creation** : 2023/11/17
+    * **Coder**    : Paul Valcke
+    * **Article**  : https://link.springer.com/chapter/10.1007/978-1-349-05504-3_12
+    * **Keywords** : ['Tutorial', 'Documentation', 'Goodwin', 'Economics', 'Oscillations', 'Monosectoral']
+    
 
 ## What is this model ?
 A Goodwin is a two-sector model of an economy : household and firms. 

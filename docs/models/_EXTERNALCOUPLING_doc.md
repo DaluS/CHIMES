@@ -1,11 +1,11 @@
 # Model: _EXTERNALCOUPLING
 
 
-* **Creation** : 
-* **Coder**    : 
-* **Article**  : 
-* **Keywords** : []
-
+    * **Creation** : 
+    * **Coder**    : 
+    * **Article**  : 
+    * **Keywords** : []
+    
 
 CHIMES can be coupled with external structures and models, with a simple API. THis is an example
 

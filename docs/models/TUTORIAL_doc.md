@@ -1,11 +1,11 @@
 # Model: TUTORIAL
 
 
-* **Creation** :  YYYY/MM/DD model file creation
-* **Coder**    :  Name of the coder
-* **Article**  :  a link to the published article if existing
-* **Keywords** : ['a list of relevant elements for classification', 'Documentation', 'Tutorial']
-
+    * **Creation** :  YYYY/MM/DD model file creation
+    * **Coder**    :  Name of the coder
+    * **Article**  :  a link to the published article if existing
+    * **Keywords** : ['a list of relevant elements for classification', 'Documentation', 'Tutorial']
+    
 A longer description in markdown format that explains: 
 ## What is this model ?
 ## Why is it interesting ? 

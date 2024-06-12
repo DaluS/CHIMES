@@ -1,11 +1,11 @@
 # Model: Spring_Network
 
 
-* **Creation** : 2024/06/04
-* **Coder**    : Paul Valcke
-* **Article**  : https://en.wikipedia.org/wiki/Spring_system
-* **Keywords** : ['Network', 'springs', 'mesh']
-
+    * **Creation** : 2024/06/04
+    * **Coder**    : Paul Valcke
+    * **Article**  : https://en.wikipedia.org/wiki/Spring_system
+    * **Keywords** : ['Network', 'springs', 'mesh']
+    
 
 ## What is this model ?
 

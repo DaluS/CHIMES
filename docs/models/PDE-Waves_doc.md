@@ -1,11 +1,11 @@
 # Model: PDE-Waves
 
 
-* **Creation** : 
-* **Coder**    : 
-* **Article**  : 
-* **Keywords** : []
-
+    * **Creation** : 
+    * **Coder**    : 
+    * **Article**  : 
+    * **Keywords** : []
+    
 
 Wave propagation with :
     * propagation speed 'c'

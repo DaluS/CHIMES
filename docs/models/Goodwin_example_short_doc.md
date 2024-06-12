@@ -1,11 +1,11 @@
 # Model: Goodwin_example_short
 
 
-* **Creation** : 
-* **Coder**    : 
-* **Article**  : 
-* **Keywords** : []
-
+    * **Creation** : 
+    * **Coder**    : 
+    * **Article**  : 
+    * **Keywords** : []
+    
 Goodwin model with minimal formalism
 
 ## Presets

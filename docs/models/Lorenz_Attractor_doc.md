@@ -1,11 +1,11 @@
 # Model: Lorenz_Attractor
 
 
-* **Creation** :  2023/08/21
-* **Coder**    : Paul Valcke
-* **Article**  : https://en.wikipedia.org/wiki/Lorenz_system
-* **Keywords** : ['stochastic', 'Documentation', 'chaos', 'attractor']
-
+    * **Creation** :  2023/08/21
+    * **Coder**    : Paul Valcke
+    * **Article**  : https://en.wikipedia.org/wiki/Lorenz_system
+    * **Keywords** : ['stochastic', 'Documentation', 'chaos', 'attractor']
+    
 
 Solving the famous 3-coupled ordinary differential system. Canonical case has the two equilibrium with the strange attraction
 

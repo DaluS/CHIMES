@@ -1,11 +1,11 @@
 # Model: Rossler_Attractor
 
 
-* **Creation** :  2024/04/23
-* **Coder**    : Paul Valcke
-* **Article**  : https://en.wikipedia.org/wiki/R%C3%B6ssler_attractor
-* **Keywords** : ['stochastic', 'Documentation', 'chaos', 'attractor']
-
+    * **Creation** :  2024/04/23
+    * **Coder**    : Paul Valcke
+    * **Article**  : https://en.wikipedia.org/wiki/R%C3%B6ssler_attractor
+    * **Keywords** : ['stochastic', 'Documentation', 'chaos', 'attractor']
+    
 
 3 Differential attractor. One equilibrium point
 
