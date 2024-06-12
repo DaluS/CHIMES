@@ -44,12 +44,6 @@ The main difference with the standard dynamical system library are:
 
 ![image](https://github.com/DaluS/CHIMES/assets/11523050/a37b3b8b-2e9e-46cc-8c0e-51746c3590f4)
 
-*Some illustrations of what you can do with CHIMES using just the library*
-
-## Short tutorial 
-
-Always use `?` and `tab` (help and autocompletion) to know what is in each element. The methods often use the same `get`, `set`, and `calculate` conventions for method names.
-
 ```
 import chimes as chm 
 chm.get_available_model() # See all available models

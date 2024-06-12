@@ -385,7 +385,7 @@ def merge_model(recipient, dict_to_add, override=True, verb=False):
     return recipient
 
 
-def fill_dimensions(logics, dimensions, dim=None):
+def fill_dimensions(logics, dimensions, dim=None, debug=False):
     '''Fill in sizes for fields based on dimensionality and complete missing categories.
 
     Parameters:
@@ -421,6 +421,12 @@ def fill_dimensions(logics, dimensions, dim=None):
     logics = fill_dimensions(logics, dimensions, dim)
     '''
 
+    # Autofills
+    logics = expandabbreviates({'logics': logics})['logics']
+
+    if debug:
+        print('### fill dimensions ###')
+
     # Set default dimensions if not provided
     if not dim:
         dim = {
@@ -433,23 +439,43 @@ def fill_dimensions(logics, dimensions, dim=None):
     all_fields = []
     for cat in logics.keys():
         all_fields += list(logics[cat].keys())
+    if debug:
+        print('All fields')
+        print('   ', all_fields)
 
     # Complete the missing dimension if less than 3 dimensions provided
     if len(dimensions) < 3:
+        if debug:
+            print('Reconstruct the third dimension')
         missing_dim = [d for d in ['scalar', 'vector', 'matrix'] if d not in dimensions.keys()]
+        if debug:
+            print('    missing:', missing_dim)
         setlist = set(all_fields)
         for k, v in dimensions.items():
             setlist -= set(v)
+        if debug:
+            print('    to add:', setlist)
         dimensions[missing_dim[0]] = list(setlist)
+        if debug:
+            print("Dimensions")
+            for k, v in dimensions.items():
+                print('   ', k, v)
 
     # Add sizes to logic dictionary
     added_vars = []
+    if debug:
+        print('adding variables')
     for category, variables in dimensions.items():
         for cat2, dicts in logics.items():
             for variable, properties in dicts.items():
                 if variable in variables:
+                    if debug:
+                        print('    ', category, cat2, variable)
                     properties['size'] = dim[category]
                     added_vars.append(variable)
+    if debug:
+        print("added vars")
+        print('    ', added_vars)
 
     # Complete logic dictionary with missing parameters
     all_vars = [v for sublist in dimensions.values() for v in sublist]

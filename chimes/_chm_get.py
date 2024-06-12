@@ -10,6 +10,7 @@ import inspect
 import pandas as pd
 import cloudpickle
 import os
+import glob
 
 from ._core import Hub
 from ._plot_class import Plots
@@ -341,6 +342,101 @@ def get_available_operators() -> pd.DataFrame:
     """
     dict = {F[0]: {'documentation': F[1].__doc__, 'function': inspect.getsource(F[1]).split('return')[1][:-1]} for F in inspect.getmembers(Operators) if '__' not in F[0]}
     return pd.DataFrame(dict).transpose()
+
+
+def write_markdown_file(df, hub0, model, output):
+
+    if output == 'doc':
+        current_path = os.path.dirname(config.get_current('_PATH_HERE'))
+        target_path = os.path.join(current_path, 'docs', 'models')
+        file_path = os.path.join(target_path, f'{model}_doc.md')
+    else:
+        file_path = f'{model}_doc.md'
+
+    #print(file_path)
+    try:
+        with open(file_path, 'w') as file:
+            # Header section
+            file.write(f'# Model: {df.loc[model].loc["name"]}\n\n')
+            file.write(f'''
+    * **Creation** : {str(df.loc[model].loc['date'])}
+    * **Coder**    : {str(df.loc[model].loc['Coder'])}
+    * **Article**  : {str(df.loc[model].loc['article'])}
+    * **Keywords** : {str(df.loc[model].loc['Keywords'])}
+    ''')
+
+            # Long description
+            file.write(f'\n{df.loc[model].loc["longDescription"]}\n')
+
+            # Presets
+            file.write('\n## Presets\n')
+            presets_df = hub0.get_presets().data
+            file.write(presets_df.to_markdown())
+
+            # Supplements
+            file.write('\n## Supplements\n')
+            d0 = {}
+            for k, v in hub0.supplements.items():
+                try:
+                    d0[k] = {'documentation': v.__doc__,
+                            'signature': inspect.signature(v)}
+                except BaseException:
+                    try:
+                        d0[k] = {'documentation': v.__doc__,
+                                'signature': f'type: {help(v)}'}
+                    except BaseException:
+                        d0[k] = {'documentation': type(v),
+                                'signature': 'no signature'}
+            supplements_df = pd.DataFrame(d0).transpose()
+            file.write(supplements_df.to_markdown())
+
+            # Todo
+            file.write('\n## Todo\n')
+            lis = df.loc[model].loc['Todo']
+            for l in lis:
+                file.write(f'* {l}\n')
+
+            # Equations
+            file.write('\n## Equations\n')
+            d = hub0.get_new_summary()
+            keys_to_exclude = ['Tsim', 'Tini', 'dt', 'nx', 'nr', 'Nprod', '__ONE__', 'time', 'nt']
+            equations_df = pd.DataFrame(d['Field Basic Properties'])[['eqtype', 'definition', 'source_exp', 'com']]
+            file.write(equations_df[~equations_df.index.isin(keys_to_exclude)].to_markdown())
+
+    except BaseException as e:
+        print(f'Model documentation not written for {model}. \n Error: {e}')
+
+
+def create_models_readme(model: str = 'all',
+                         output: str = 'doc',
+                         resetdoc: bool = False) -> None:
+    '''
+    For a given model, create a markdown file with the model's documentation and the model's readme file, generated from the model file
+    '''
+    if resetdoc:
+        current_path = os.path.dirname(config.get_current('_PATH_HERE'))
+        target_path = os.path.join(current_path, 'docs', 'models')
+      
+        # Get a list of all files ending in `_doc.md` in the target directory
+        files_to_remove = glob.glob(os.path.join(target_path, '*_doc.md'))
+
+        # Remove each file
+        for file_path in files_to_remove:
+            try:
+                os.remove(file_path)
+                print(f'Removed file: {file_path}')
+            except Exception as e:
+                print(f'Error removing file {file_path}: {e}')  
+
+    df = get_available_models(FULL=True)
+    modellist = list(get_available_models(Return=list))
+    if model == 'all':
+        models = modellist
+    else:
+        models = [model]
+    for model in models:
+        hub0 = Hub(model, verb=False)
+        write_markdown_file(df, hub0, model, output)
 
 
 def get_model_documentation(model: str) -> None:
