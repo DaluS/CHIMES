@@ -11,7 +11,7 @@ import plotly
 import inspect
 
 # Internal imports
-from chimes.plots.tools._plot_tools import _plotly_colors
+#from chimes.plots.tools._plot_tools import _plotly_colors
 
 # Matplotlib RCParams useful elements
 matplotlib.rc('xtick', labelsize=15)
@@ -25,6 +25,31 @@ SIZETICKS = 20
 SIZEFONT = 10
 LEGENDSIZE = 20
 LEGENDHANDLELENGTH = 2
+
+
+# Colors for plotly
+_plotly_colors = [
+    'rgba(31, 119, 180, 0.5)',    # Blue
+    'rgba(255, 127, 14, 0.5)',    # Orange
+    'rgba(44, 160, 44, 0.5)',     # Green
+    'rgba(214, 39, 40, 0.5)',     # Red
+    'rgba(148, 103, 189, 0.5)',   # Purple
+    'rgba(140, 86, 75, 0.5)',     # Brown
+    'rgba(227, 119, 194, 0.5)',   # Pinkish Purple
+    'rgba(127, 127, 127, 0.5)',   # Gray
+    'rgba(188, 189, 34, 0.5)',    # Olive Green
+    'rgba(23, 190, 207, 0.5)',    # Turquoise
+    'rgba(255, 0, 255, 0.5)',     # Magenta
+    'rgba(0, 255, 255, 0.5)',     # Cyan
+    'rgba(255, 255, 0, 0.5)',     # Yellow
+    'rgba(127, 255, 127, 0.5)',   # Light Green
+    'rgba(0, 0, 0, 0.5)',         # Black
+    'rgba(127, 255, 255, 0.5)',   # Light Blue
+    'rgba(255, 127, 255, 0.5)',   # Light Purple
+    'rgba(255, 200, 0, 0.5)',     # Orange
+    'rgba(200, 200, 0, 0.5)',     # Yellow-Green
+    'rgba(255, 182, 193, 0.5)',   # Pink
+]
 
 
 def Sankey(

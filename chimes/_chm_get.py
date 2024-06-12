@@ -343,6 +343,92 @@ def get_available_operators() -> pd.DataFrame:
     return pd.DataFrame(dict).transpose()
 
 
+def write_markdown_file(df, hub0, model, output):
+
+    if output == 'doc':
+        current_path = os.path.dirname(config.get_current('_PATH_HERE'))
+        target_path = os.path.join(current_path, 'docs', 'models')
+        file_path = os.path.join(target_path, f'{model}_doc.md')
+    else:
+        file_path = f'{model}_doc.md'
+
+    print(file_path)
+
+    with open(file_path, 'w') as file:
+        # Header section
+        file.write(f'# Model: {df.loc[model].loc["name"]}\n\n')
+        file.write(f'''
+* **Creation** : {str(df.loc[model].loc['date'])}
+* **Coder**    : {str(df.loc[model].loc['Coder'])}
+* **Article**  : {str(df.loc[model].loc['article'])}
+* **Keywords** : {str(df.loc[model].loc['Keywords'])}
+''')
+
+        # Long description
+        file.write(f'\n{df.loc[model].loc["longDescription"]}\n')
+
+        # Presets
+        file.write('\n## Presets\n')
+        presets_df = hub0.get_presets().data
+        file.write(presets_df.to_markdown())
+
+        # Supplements
+        file.write('\n## Supplements\n')
+        d0 = {}
+        for k, v in hub0.supplements.items():
+            try:
+                d0[k] = {'documentation': v.__doc__,
+                         'signature': inspect.signature(v)}
+            except BaseException:
+                try:
+                    d0[k] = {'documentation': v.__doc__,
+                             'signature': f'type: {help(v)}'}
+                except BaseException:
+                    d0[k] = {'documentation': type(v),
+                             'signature': 'no signature'}
+        supplements_df = pd.DataFrame(d0).transpose()
+        file.write(supplements_df.to_markdown())
+
+        # Todo
+        file.write('\n## Todo\n')
+        lis = df.loc[model].loc['Todo']
+        for l in lis:
+            file.write(f'* {l}\n')
+
+        # Equations
+        file.write('\n## Equations\n')
+        d = hub0.get_new_summary()
+        keys_to_exclude = ['Tsim', 'Tini', 'dt', 'nx', 'nr', 'Nprod', '__ONE__', 'time', 'nt']
+        equations_df = pd.DataFrame(d['Field Basic Properties'])[['eqtype', 'definition', 'source_exp', 'com']]
+        file.write(equations_df[~equations_df.index.isin(keys_to_exclude)].to_markdown())
+
+
+def create_models_readme(model: str = 'all',
+                         output: str = 'doc') -> None:
+    '''
+    For a given model, create a markdown file with the model's documentation and the model's readme file, generated from the model file
+    '''
+
+    df = get_available_models(FULL=True)
+    #try:
+    #    mess = '## Model: ' + df.loc[model].loc['name']
+    #except BaseException as E:
+    modellist = list(get_available_models(Return=list))
+    #    msg = f"""Your model {model} cannot be found!
+    #Available models are {modellist}."""
+    #    print(msg)
+    #    print(E)
+    #    raise Exception(msg)
+
+    if model == 'all':
+        models = modellist
+    else:
+        models = [model]
+    for model in models:
+        hub0 = Hub(model, verb=False)
+        write_markdown_file(df, hub0, model, output)
+
+
 def get_model_documentation(model: str) -> None:
     '''
     Gives the Markdown description located in the model file
