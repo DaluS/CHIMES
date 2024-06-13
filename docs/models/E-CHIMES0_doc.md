@@ -108,13 +108,13 @@ It is a platform for endogenisation.
 | Phi1          |              | Linear sensibility to employment in wage negociation |                                                         |                            |
 | kappaI        |              |                                                      |                                                         |                            |
 | kappaC        |              | Share of income spent in consumption                 |                                                         |                            |
-| phinull       |              | Unemployment rate with no salary increase            |                                                         |                            |
-| r             |              | Interest on debt                                     |                                                         |                            |
-| n             |              | Rate of population growth                            |                                                         |                            |
 | alpha         |              | Rate of productivity increase                        |                                                         |                            |
-| gammai        |              | inflation awareness                                  |                                                         |                            |
+| r             |              | Interest on debt                                     |                                                         |                            |
 | Gamma         |              | intermediate consumption coefficients                |                                                         |                            |
+| gammai        |              | inflation awareness                                  |                                                         |                            |
+| n             |              | Rate of population growth                            |                                                         |                            |
 | Xi            |              | capital recipe creation                              |                                                         |                            |
+| phinull       |              | Unemployment rate with no salary increase            |                                                         |                            |
 | delta         |              | Rate of capital depletion                            |                                                         |                            |
 | inflation     |              | inflation rate                                       |                                                         |                            |
 | sigma         |              | rate of use adjustment                               |                                                         |                            |

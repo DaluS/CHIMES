@@ -523,6 +523,10 @@ class calculateM:
             except BaseException as Err:
                 ERROR += f'You have a problem on your object sizes for {k0} (shape of kwargs:)\n {[(k,np.shape(v)) for k,v in kwdargs.items()]} \n {Err}\n'
         if len(ERROR):
+            for k0 in lstate:
+                print(k0, np.shape( self._dfields[k0]['value']))
+            for k0 in pstate:
+                print(k0, np.shape( self._dfields[k0]['value']))
             raise Exception('\n' + ERROR + '\nALLOCATION CANNOT BE DONE,CHECK YOUR MODEL FILE !')
 
         # set run to False

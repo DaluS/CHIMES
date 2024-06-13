@@ -119,8 +119,8 @@ def XY(
 
     # BEAUTY
     fig.colorbar(line, ax=ax, label=allvars[color]['symbol'][:-1] + '_{' + cname + '}$')
-    plt.xlabel(allvars[x]['symbol'][:-1] + '_{' + xname + '}$')
-    plt.ylabel(allvars[y]['symbol'][:-1] + '_{' + yname + '}$')
+    ax.set_xlabel(R[x]['symbol'][:-1] + '_{' + str(xname) + '}$' if xname else R[x]['symbol'])
+    ax.set_ylabel(R[y]['symbol'][:-1] + '_{' + str(yname) + '}$' if yname else R[y]['symbol'])
     plt.xlim([np.nanmin(xval), np.nanmax(xval)])
     plt.ylim([np.nanmin(yval), np.nanmax(yval)])
     if scaled:
@@ -195,10 +195,10 @@ def XYZ(
     line = ax.add_collection(lc)
 
     cbar = fig.colorbar(lc, ax=ax)
-    cbar.ax.set_ylabel(R[color]['symbol'][:-1] + '_{' + xname + '}$' if xname else R[color]['symbol'])
-    ax.set_xlabel(R[x]['symbol'][:-1] + '_{' + xname + '}$' if xname else R[x]['symbol'])
-    ax.set_ylabel(R[y]['symbol'][:-1] + '_{' + yname + '}$' if yname else R[y]['symbol'])
-    ax.set_zlabel(R[z]['symbol'][:-1] + '_{' + zname + '}$' if zname else R[z]['symbol'])
+    cbar.ax.set_ylabel(R[color]['symbol'][:-1] + '_{' + str(xname) + '}$' if xname else R[color]['symbol'])
+    ax.set_xlabel(R[x]['symbol'][:-1] + '_{' + str(xname) + '}$' if xname else R[x]['symbol'])
+    ax.set_ylabel(R[y]['symbol'][:-1] + '_{' + str(yname) + '}$' if yname else R[y]['symbol'])
+    ax.set_zlabel(R[z]['symbol'][:-1] + '_{' + str(zname) + '}$' if zname else R[z]['symbol'])
 
     # print(R[x]['symbol'][:-1]+'_{'+xname+'}$')
 

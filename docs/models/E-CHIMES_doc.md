@@ -125,14 +125,14 @@ It integrates :
 | inflation     |              | inflation rate                                       |                                                        |                            |
 | Phi0          |              | Wage negociation base level (no employment)          |                                                        |                            |
 | Phi1          |              | Linear sensibility to employment in wage negociation |                                                        |                            |
-| phinull       |              | Unemployment rate with no salary increase            |                                                        |                            |
-| r             |              | Interest on debt                                     |                                                        |                            |
-| n             |              | Rate of population growth                            |                                                        |                            |
 | alpha         |              | Rate of productivity increase                        |                                                        |                            |
-| flambda       |              | non-linear function of employment in wage            |                                                        |                            |
-| gammai        |              | inflation awareness                                  |                                                        |                            |
+| r             |              | Interest on debt                                     |                                                        |                            |
 | Gamma         |              | intermediate consumption coefficients                |                                                        |                            |
+| gammai        |              | inflation awareness                                  |                                                        |                            |
+| n             |              | Rate of population growth                            |                                                        |                            |
 | Xi            |              | capital recipe creation                              |                                                        |                            |
+| phinull       |              | Unemployment rate with no salary increase            |                                                        |                            |
+| flambda       |              | non-linear function of employment in wage            |                                                        |                            |
 | delta         |              | Rate of capital depletion                            |                                                        |                            |
 | sigma         |              | rate of use adjustment                               |                                                        |                            |
 | z             |              | local wage ponderation                               |                                                        |                            |

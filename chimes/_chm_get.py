@@ -378,11 +378,11 @@ def write_markdown_file(df, hub0, model, output):
             d0 = {}
             for k, v in hub0.supplements.items():
                 try:
-                    d0[k] = {'documentation': v.__doc__,
+                    d0[k] = {'documentation': v.__doc__.split('\n')[1],
                             'signature': inspect.signature(v)}
                 except BaseException:
                     try:
-                        d0[k] = {'documentation': v.__doc__,
+                        d0[k] = {'documentation': v.__doc__.split('\n')[1],
                                 'signature': f'type: {help(v)}'}
                     except BaseException:
                         d0[k] = {'documentation': type(v),
