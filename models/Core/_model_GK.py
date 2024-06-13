@@ -92,6 +92,8 @@ _LOGICS = dict(
 
 def ThreeDynamics(hub):
     """Draw three qualitatively different Dynamical phase-space associated with a Goodwin-Keen"""
+    
+    print('HAHQAHQAH')
     for preset in ['default', 'debtcrisis', 'debtstabilisation']:
         hub.set_preset(preset, verb=False)
         hub.run(verb=False)

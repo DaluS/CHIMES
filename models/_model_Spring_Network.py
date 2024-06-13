@@ -107,7 +107,7 @@ _LOGICS = dict(
         dvy=dict(func=lambda vy: vy - np.moveaxis(vy, -1, -2)),
         matspeed=dict(func=lambda dvx, dvy: (dvx**2 + dvy**2)**(1/2)),
         anglespeed=dict(func=lambda dvx, dvy: np.arctan2(dvy, dvx)),
-        
+
         # Forces in the system
         Fx=dict(func=lambda Kmat, distance, L0Mat, angle: O.ssum2(-Kmat*(distance-L0Mat)*np.cos(angle))),
         Fy=dict(func=lambda Kmat, distance, L0Mat, angle: O.ssum2(-Kmat*(distance-L0Mat)*np.sin(angle))),
@@ -133,9 +133,9 @@ _LOGICS = dict(
 )
 
 Dimensions = {
-    'scalar': ['Kinetic', 
-               'Potential', 
-               'momentumx', 
+    'scalar': ['Kinetic',
+               'Potential',
+               'momentumx',
                'momentumy',
                'Baricenterx',
                'Baricentery'],
@@ -148,7 +148,7 @@ Dimensions = {
                'dy',
                'angle',
                'distance',
-               
+
                'dvx',
                'dvy',
                'matspeed',
@@ -165,7 +165,7 @@ _LOGICS = fill_dimensions(_LOGICS, Dimensions, DIM)
 def Springlist_to_K_L0(Node1, Node2, Nnodes, k=0, L0=0, damp=0, **kwargs):
     """
     Give a weighted matrix representation of a network from a list approach.
- 
+
     Node1 and Node2 are the list of nodes at both extremity of the spring.
     k is the stiffness of the spring as a list.
     L0 is the length at which there is no force in the spring as a list.
@@ -549,3 +549,29 @@ _SUPPLEMENTS = {'Springlist_to_K_L0': Springlist_to_K_L0,
                 'plot_invariants': plot_invariants}
 
 # %% Presets
+_PRESETS = {
+    'OneOscillation': {
+        'com': 'One moving mass on a spring, one direction',
+        'fields': dictNode2SpringMat(dict(
+            Nnodes=2,
+            x=np.array([0., 1.]),  # initial positions
+            y=np.array([0., 0.]),
+            vx=np.array([0., 0.]),  # initial velocities
+            vy=np.array([0., 0.]),
+            m=np.array([10000., 1.]),  # masses
+
+            # Springs
+            Nsprings=1,  # number of springs
+            Node1=np.array([0]),  # first node index of the spring
+            Node2=np.array([1]),  # second node index of the spring
+            k=np.array([10.0]),  # stiffness
+            L0=np.array([1.4]),  # rest length
+            damp=np.array([0.0]),
+
+            dt=0.1,
+            Tsim=30
+        )) ,
+        'plots': {'plot_invariants': [{}],
+                  'plot_spring_network': [{'idx':0}]}
+    }
+}

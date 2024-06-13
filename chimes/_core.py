@@ -222,6 +222,16 @@ class Hub(setM, getM, calculateM, saveM):
                     F.append(X)
                     description.append([plotname, argl])
                     print()
+            for supplements in self.supplements.keys():
+                print(supplements)
+                for argl in tempd.get(supplements, []):
+                    X = self.supplements[supplements](self, returnFig=returnFig, **argl)
+                    #X0 = getattr(supplements, plotname)
+                    #print(X0)
+                    #X = getattr(supplements, plotname)(self, returnFig=returnFig, **argl)
+                    F.append(X)
+                    description.append([plotname, argl])
+                    print()
         if returnFig:
             return F, description
 
