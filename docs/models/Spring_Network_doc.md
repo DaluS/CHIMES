@@ -1,10 +1,10 @@
 # Model: Spring_Network
 
 
-    * **Creation** : 2024/06/04
-    * **Coder**    : Paul Valcke
-    * **Article**  : https://en.wikipedia.org/wiki/Spring_system
-    * **Keywords** : ['Network', 'springs', 'mesh']
+* **Creation** : 2024/06/04
+* **Coder**    : Paul Valcke
+* **Article**  : https://en.wikipedia.org/wiki/Spring_system
+* **Keywords** : ['Network', 'springs', 'mesh']
     
 
 ## What is this model?
@@ -14,30 +14,34 @@ A Spring Network is an ensemble of nodes that are linked by springs. Springs, de
 ## How can it be represented with vectors and matrices?
 
 In this model:
-* Each node \(i \in N_{nodes}\) has a position \((x_i, y_i)\), and a speed \((v^x_i, v^y_i)\).
+* Each node $i \in N_{nodes}$ has a position $(x_i, y_i)$, and a speed $(v^x_i, v^y_i)$.
 * The dynamics follow a classic equation: 
-\[ \dot{v}^x_i = rac{F^x_i - 	ext{damp} \cdot v^y_i}{m_i} \]
-where damp is fluid friction, and F is the force resulting from the spring network.
+$$ \dot{\vec{v}}_i = \frac{\vec{F}^{spring}_i + \vec{F}^{fluid}_i }{m_i} $$
+where $\eta$ is fluid friction, and $F^x_i$ is the force resulting from the spring network.
 
-Springs are represented by tensors, not as individuals. We consider \(N_{springs}\) springs with four characteristics:
-1. The index of their first node extremity \(I^1_j\)
-2. The index of their second node extremity \(I^2_j\)
-3. A stiffness \(k_j\)
-4. An unstretched length \(L^0_j\)
+Springs are represented by tensors, not as individuals. We consider $N_{springs}$ springs with four characteristics:
+1. The index of their first node extremity $I^1_j$
+2. The index of their second node extremity $I^2_j$
+3. A stiffness $k_j$
+4. An unstretched length $L^0_j$
 
 Instead of calculating each spring individually using loops, we use matrices. Each node is considered to be linked to every other node, but with a default stiffness of 0.
 
-Consequently, we define \(k_{ij}\) as the stiffness matrix of the network.
+Consequently, we define $k_{ij}$ as the stiffness matrix of the network.
 
 The dynamics are described by:
-\[ \dot{v}_i = - \sum_j k_{ij} \left( 	ext{dist}(x_i, x_j) - L0_{ij} ight) \cos(	heta_i) - \eta v_i \]
+$$ \vec{F}^{spring}_i = \sum_j k_{ij} \left( \text{dist}_{ij} - L0_{ij} \right) \begin{pmatrix} \cos(\theta_{ij}) \\ \sin(\theta_{ij}) \end{pmatrix} $$
+$$ \vec{F}^{fluid}_i =  \sum_j \eta_{ij} \text{vit}_{ij} \begin{pmatrix} \cos(\Theta_{ij}) \\ \sin(\Theta_{ij}) \end{pmatrix} $$
 
 with:
-\[ 	ext{dist}(x_i, x_j) = \sqrt{(x_i - x_j )^2 + (y_i - y_j )^2} \]
-\[ 	heta_i = 	ext{atan}\left( rac{(y_i - y_j)}{(x_i - x_j)} ight) \]
+$$ \text{dist}_{ij} = \sqrt{(x_i - x_j )^2 + (y_i - y_j )^2} $$
+$$ \text{vit}_{ij} = \sqrt{(v^x_i - v^x_j )^2 + (v^y_i - v^y_j )^2} $$
+$$ \Theta_{ij} = \text{atan}\left( \frac{v^y_i - v^y_j}{v^x_i - v^x_j} \right) $$
+$$ \theta_{ij} = \text{atan}\left( \frac{y_i - y_j}{x_i - x_j} \right) $$
 
-Matrices \(k\) and \(L^0\) represent the stiffness and unstretched lengths of the springs, respectively.
+Matrices $k$ and $L^0$ represent the stiffness and unstretched lengths of the springs, respectively.
 
+$k_{ij}$,$L^0_{ij}$,$\eta_{ij}$ are the properties of the spring between nodes i and j. If there is no spring between nodes i and j, they are each equal to zero.
 ## Why is it a great archetypal model?
 
 The Spring Network model is a great archetypal model for studying local wave propagation on a network structure. 
@@ -65,7 +69,9 @@ These functions allow you to create, analyze, and visualize the dynamics of a sp
 
 
 ## Presets
-
+|                | Description                                |
+|:---------------|:-------------------------------------------|
+| OneOscillation | One moving mass on a spring, one direction |
 ## Supplements
 |                     | documentation                                                                                                | signature                                                               |
 |:--------------------|:-------------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------|
@@ -75,8 +81,7 @@ These functions allow you to create, analyze, and visualize the dynamics of a sp
 | NodesKLfromMatKL    | Reconstruct the list of springs that composes the network represented in K and L0 matrices.                  | (K, L0)                                                                 |
 | plot_invariants     | Plot the invariants of the spring network system over time.                                                  | (hub, returnFig=False)                                                  |
 ## Todo
-* Nothing is done
-* that should be done
+* Preset transfert from 24-06-13 ipynb
 
 ## Equations
 |             | eqtype       | definition                     | source_exp                                                                  | com   |
@@ -93,10 +98,11 @@ These functions allow you to create, analyze, and visualize the dynamics of a sp
 | dvx         | statevar     |                                | dvx=vx - np.moveaxis(vx, -1, -2)),                                          |       |
 | dvy         | statevar     |                                | dvy=vy - np.moveaxis(vy, -1, -2)),                                          |       |
 | matspeed    | statevar     |                                | matspeed=(dvx**2 + dvy**2)**(1/2)),                                         |       |
+| anglespeed  | statevar     |                                | anglespeed=np.arctan2(dvy, dvx)),                                           |       |
 | Fx          | statevar     |                                | Fx=O.ssum2(-Kmat*(distance-L0Mat)*np.cos(angle))),                          |       |
 | Fy          | statevar     |                                | Fy=O.ssum2(-Kmat*(distance-L0Mat)*np.sin(angle))),                          |       |
-| Fdampx      | statevar     |                                | Fdampx=O.ssum2(-dampMat*matspeed*np.cos(angle))),                           |       |
-| Fdampy      | statevar     |                                | Fdampy=O.ssum2(-dampMat*matspeed*np.cos(angle))),                           |       |
+| Fdampx      | statevar     |                                | Fdampx=O.ssum2(-dampMat*matspeed*np.cos(anglespeed))),                      |       |
+| Fdampy      | statevar     |                                | Fdampy=O.ssum2(-dampMat*matspeed*np.sin(anglespeed))),                      |       |
 | Kinetic     | statevar     |                                | Kinetic=0.5*np.sum(O.ssum(m*(vx**2 + vy**2))), axis=-2),                    |       |
 | Potential   | statevar     |                                | Potential=0.25*np.sum(np.sum(Kmat*(distance-L0Mat)**2), axis=-1), axis=-2), |       |
 | Baricenterx | statevar     |                                | Baricenterx=np.sum(x*m, axis=-2)/np.sum(m, axis=-2)),                       |       |

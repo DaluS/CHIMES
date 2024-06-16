@@ -1,24 +1,50 @@
 # Model: PDE-Waves
 
 
-    * **Creation** : 
-    * **Coder**    : 
-    * **Article**  : 
-    * **Keywords** : []
+* **Creation** : 
+* **Coder**    : 
+* **Article**  : 
+* **Keywords** : []
     
+## What is this model?
 
-Wave propagation with :
-    * propagation speed 'c'
-    * Convection 'v'
-    * diffusion 'D'
+A 2D Periodic Convection-Diffusion model describes the transport and diffusion of a scalar field (e.g., temperature, concentration) in a 2D plane with periodic boundary conditions. This model combines the effects of convection (transport by fluid flow) and diffusion (spreading due to concentration gradients), and is widely used to simulate processes in fluid dynamics, meteorology, and environmental science.
 
-the system solves in 1D (if v=D=0) :
-    $d^2C/dt^2 - c**2 
-abla 
-abla C = 0 $
+## How can it be represented with vectors and matrices?
 
-It is more a proof of concept of what chimes can do in term of regions coupling.
-A big part is still a bit sloppy.
+In this model:
+* The scalar field $C(x, y, t)$ evolves over time according to the convection-diffusion equation.
+* The velocity field $ \mathbf{u}(x, y) = (u_x(x, y), u_y(x, y)) $ represents the fluid flow.
+* The dynamics follow the convection-diffusion equation: 
+$$
+\frac{\partial C}{\partial t} + \mathbf{u} \cdot \nabla C = D \nabla^2 C
+$$
+where $D$ is the diffusion coefficient.
+
+The finite difference method is used to discretize the spatial domain into a grid of points:
+* $X$ and $Y$ are 1D arrays representing the non-uniform grid points in the $x$ and $y$ directions.
+* The gradient and Laplacian operators are represented by sparse matrices, allowing efficient computation of spatial derivatives.
+
+### Gradient Operators:
+The gradient operators $ \nabla_x $ and $ \nabla_y $ are constructed to compute the spatial derivatives:
+$$
+\nabla_x C \approx \frac{C(x + \Delta x, y) - C(x, y)}{\Delta x}
+$$
+$$
+\nabla_y C \approx \frac{C(x, y + \Delta y) - C(x, y)}{\Delta y}
+$$
+
+### Laplacian Operator:
+The Laplacian operator $ \nabla^2 $ is constructed as:
+$$
+\nabla^2 C \approx \frac{C(x + \Delta x, y) - 2C(x, y) + C(x - \Delta x, y)}{\Delta x^2} + \frac{C(x, y + \Delta y) - 2C(x, y) + C(x, y - \Delta y)}{\Delta y^2}
+$$
+
+## Why is it a great archetypal model?
+
+The 2D Periodic Convection-Diffusion model is an excellent archetype for studying transport phenomena in fluid dynamics. It captures the essential physics of convection and diffusion, making it a versatile tool for understanding complex processes in natural and engineered systems. 
+The periodic boundary conditions simplify the computational domain while preserving key dynamic behaviors.
+
 
 
 ## Presets
@@ -26,11 +52,10 @@ A big part is still a bit sloppy.
 |:------|:------------------------------------------|
 | Basic | A diffusion on 100 elements of a gaussian |
 ## Supplements
-|          | documentation                                                                    | signature            |
-|:---------|:---------------------------------------------------------------------------------|:---------------------|
-| Plot     | Plot time-slices of the concentration (horizontal time, vertical spatial).       | (hub)                |
-|          |     First concentration, second time variation, third gradient, fourth laplacian |                      |
-| Generate | Generate all parameters for the simulation                                       | (diffcoeff, c, v, N) |
+|          | documentation                                                                | signature    |
+|:---------|:-----------------------------------------------------------------------------|:-------------|
+| Plot     | First concentration, second time variation, third gradient, fourth laplacian | (hub)        |
+| Generate | <class 'function'>                                                           | no signature |
 ## Todo
 
 ## Equations

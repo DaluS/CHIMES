@@ -7,37 +7,38 @@ from chimes.libraries import merge_model       # Merge two model logics into eac
 from chimes.libraries import Funcs            # Prewritten functions from CHIMES use `chm.get_available_Functions()`
 import numpy as np                          # if you need exponential, pi, log
 
-_DESCRIPTION = _DESCRIPTION = """
+_DESCRIPTION =  r"""
 ## What is this model?
 
-A Spring Network is an ensemble of nodes that are linked by springs. Springs, depending on their compression, will apply forces on the nodes they connect. These forces will then move the nodes, which changes the spring tensions. This model is a classic example of local wave propagation on a network structure.
+A Spring Network is an ensemble of nodes that are linked by springs. Springs, depending on their compression, will apply forces on the nodes they connect. 
+These forces will then move the nodes, which changes the spring tensions. This model is a classic example of local wave propagation on a network structure.
 
 ## How can it be represented with vectors and matrices?
 
 In this model:
-* Each node \(i \in N_{nodes}\) has a position \((x_i, y_i)\), and a speed \((v^x_i, v^y_i)\).
+* Each node $i \in N_{nodes}$ has a position $(x_i, y_i)$, and a speed $(v^x_i, v^y_i)$.
 * The dynamics follow a classic equation: 
-\[ \dot{v}^x_i = \frac{F^x_i - \text{damp} \cdot v^y_i}{m_i} \]
-where damp is fluid friction, and F is the force resulting from the spring network.
+$$ \dot{\vec{v}}_i = \frac{\vec{F}^{spring}_i + \vec{F}^{fluid}_i }{m_i} $$
+where $\eta$ is fluid friction, and $F^x_i$ is the force resulting from the spring network.
 
-Springs are represented by tensors, not as individuals. We consider \(N_{springs}\) springs with four characteristics:
-1. The index of their first node extremity \(I^1_j\)
-2. The index of their second node extremity \(I^2_j\)
-3. A stiffness \(k_j\)
-4. An unstretched length \(L^0_j\)
+Springs are represented by tensors, not as individuals. $k_{ij}$,$L^0_{ij}$,$\eta_{ij}$ are the properties of the spring between nodes i and j. If there is no spring between nodes i and j, they are each equal to zero.
 
 Instead of calculating each spring individually using loops, we use matrices. Each node is considered to be linked to every other node, but with a default stiffness of 0.
 
-Consequently, we define \(k_{ij}\) as the stiffness matrix of the network.
+Consequently, we define $k_{ij}$ as the stiffness matrix of the network.
 
 The dynamics are described by:
-\[ \dot{v}_i = - \sum_j k_{ij} \left( \text{dist}(x_i, x_j) - L0_{ij} \right) \cos(\theta_i) - \eta v_i \]
+$$ \vec{F}^{spring}_i = \sum_j k_{ij} \left( \text{dist}_{ij} - L0_{ij} \right) \begin{pmatrix} \cos(\theta_{ij}) \\ \sin(\theta_{ij}) \end{pmatrix} $$
+$$ \vec{F}^{fluid}_i =  \sum_j \eta_{ij} \text{vit}_{ij} \begin{pmatrix} \cos(\Theta_{ij}) \\ \sin(\Theta_{ij}) \end{pmatrix} $$
 
 with:
-\[ \text{dist}(x_i, x_j) = \sqrt{(x_i - x_j )^2 + (y_i - y_j )^2} \]
-\[ \theta_i = \text{atan}\left( \frac{(y_i - y_j)}{(x_i - x_j)} \right) \]
+$$ \text{dist}_{ij} = \sqrt{(x_i - x_j )^2 + (y_i - y_j )^2} $$
+$$ \text{vit}_{ij} = \sqrt{(v^x_i - v^x_j )^2 + (v^y_i - v^y_j )^2} $$
+$$ \Theta_{ij} = \text{atan}\left( \frac{v^y_i - v^y_j}{v^x_i - v^x_j} \right) $$
+$$ \theta_{ij} = \text{atan}\left( \frac{y_i - y_j}{x_i - x_j} \right) $$
 
-Matrices \(k\) and \(L^0\) represent the stiffness and unstretched lengths of the springs, respectively.
+Matrices $k$ and $L^0$ represent the stiffness and unstretched lengths of the springs, respectively.
+
 
 ## Why is it a great archetypal model?
 
@@ -65,7 +66,7 @@ Converts a dictionary containing node and spring information into matrices for s
 These functions allow you to create, analyze, and visualize the dynamics of a spring network efficiently and effectively.
 """
 
-_TODO = ['Nothing is done', 'that should be done']
+_TODO = ['Preset transfert from 24-06-13 ipynb']
 _ARTICLE = "https://en.wikipedia.org/wiki/Spring_system"
 _DATE = "2024/06/04"
 _CODER = "Paul Valcke"

@@ -17,6 +17,10 @@ Updated January 2024
 """
 
 
+def ifprint(verb,*args):
+    if verb:
+        print(*args)
+
 def _comparesubarray(M):
     """
     Check if a dimension in an N-dimensional array is a stack of identical subarrays.
@@ -150,25 +154,6 @@ def _set_fields(self, noreset=False, verb=config.get_current('_VERB'), **kwargs)
     -------
     self
         The updated data structure.
-
-    Notes
-    -----
-    The function first gets the list of parameters that might need a reshape. Then it determines where the value of each parameter is located. 
-    If `noreset` is `True`, it gets the old value of each parameter from the current run. Otherwise, it gets the old value of each parameter from the initial value or the value field.
-
-    For each parameter, if the new value is a numpy array, a list, or a dict, it changes the line of the parameter or deeply sets the fields in the data structure. 
-    Otherwise, it simply sets the new value to the parameter.
-
-    If `noreset` is `False`, it reinitializes the shapes and dimensions of the parameters, gets the arguments by reference, and resets the data structure. 
-    Otherwise, it sets the new value to the current run of the parameter.
-
-    Author
-    ------
-    Paul Valcke
-
-    Date
-    ----
-    OLD
     """
     # Get list of variables that might need a reshape
     # Exclude numerical parameters
@@ -189,50 +174,62 @@ def _set_fields(self, noreset=False, verb=config.get_current('_VERB'), **kwargs)
     # Otherwise, get the old value of each parameter from 'initial' or 'value'
     if noreset:
         it = self.dflags['run'][0]
-        oldvalue = {}
-        for kk in parametersandifferential:
-            if direct[kk] == 'initial':
-                oldvalue[kk] = self._dfields[kk]['value'][it, ...]
-            else:
-                oldvalue[kk] = self._dfields[kk]['value']
+        oldvalue = {k: self._dfields[k][direct[k]][it, ...] for k in parametersandifferential}  # Get the old value from the current run
     else:
-        oldvalue = {k: self._dfields[k][direct[k]] for k in parametersandifferential}
+        oldvalue = {k: self._dfields[k][direct[k]] for k in parametersandifferential}  # Get the old value from 'initial' or 'value'
 
     newvalue = {}
-    # Dissecate new value allocation
+    # Dissect new value allocation
     for kk in parametersandifferential:
         if kk in kwargs.keys():
             v = kwargs[kk]
             OLDVAL = oldvalue[kk]
-            # print(v,OLDVAL)
+            
+            # Check if the new value is a numpy array
             if type(v) in [np.ndarray]:
+                ifprint(verb, kk, 'Change Line')
+                print(kk,np.shape(OLDVAL),np.shape(v))
+                print()
                 newvalue[kk] = _change_line(self, kk, v)
+            
+            # Check if the new value is a list
             elif type(v) in [list]:
-                Ok = False
-                try:
-                    if np.prod([type(vv) in [float, int] for vv in v]):
-                        newvalue[kk] = _change_line(self, kk, v)
-                    elif np.shape(v) == np.shape(self._dfields[kk]['value'][0, 0, :, :]):
-                        newvalue[kk] = _change_line(self, kk, v)
-                    Ok = True
-                except BaseException:
-                    if verb:
-                        print('issue on ', kk, v, 'strong interpreter used')
-                if not Ok:
+                # Check if all elements in the list are floats or integers
+                if np.prod([type(vv) in [float, int] for vv in v]):
+                    newvalue[kk] = _change_line(self, kk, v)
+                
+                # Check if the shape of the list matches the shape of the 'value' field of the parameter
+                elif np.shape(v) == np.shape(self._dfields[kk]['value'][0, 0, :, :]):
+                    ifprint(kk, 'Change Line')
+                    newvalue[kk] = _change_line(self, kk, v)
+                
+                # If none of the above conditions are met, deep set the fields
+                else:
+                    ifprint(verb, kk, 'Deep')
                     newvalue[kk] = __deep_set_fields(self, OLDVAL, v, kk)
+            
+            # Check if the new value is a dictionary
             elif type(v) in [dict]:
+                ifprint(verb, kk, 'Deep')
                 newvalue[kk] = __deep_set_fields(self, OLDVAL, v, kk)
+            
+            # If the new value does not meet any of the above criteria, set it to the old value with a zero-valued addition
             else:
+                ifprint(verb, kk, 'Force change')
                 newvalue[kk] = kwargs[kk] + 0 * OLDVAL
         else:
+            ifprint(verb, kk, 'Old')
             newvalue[kk] = oldvalue[kk]
 
-    # REINTIIALIZE SHAPES AND DIMENSIONS
+    for k, v in newvalue.items():
+        ifprint(verb, k, np.shape(v))
+
+    # REINITIALIZE SHAPES AND DIMENSIONS
     if not noreset:
         for kk in parametersandifferential:
             if kk in kwargs.keys():
                 self._dfields[kk][direct[kk]] = newvalue[kk]
-        self._dfields = _hub_set.set_shapes_values(self._dfields, self._dmisc['dfunc_order'])
+        self._dfields = _hub_set.set_shapes_values(self._dfields, self._dmisc['dfunc_order'])  # Reinitialize shapes and dimensions
         self._dargs = _hub_set.get_dargs_by_reference(self._dfields, self._dmisc['dfunc_order'])
         self.reset()
     else:
@@ -245,6 +242,11 @@ def _set_fields(self, noreset=False, verb=config.get_current('_VERB'), **kwargs)
                     self._dfields[kk]['value'] = newvalue[kk]
     return self
 
+def _change_line2(self,kk,v):
+    R= self.dfields(kk)
+    
+    print(kk)
+    print(np.shape(kk))
 
 def _change_line(self, kk, v):
     """
@@ -280,13 +282,19 @@ def _change_line(self, kk, v):
     OLD
     """
     if self._dfields[kk]['size'][0] == '__ONE__':
+        ifprint('Here')
         newv = np.array(v)
         while len(np.shape(newv)) < 4:
             newv = newv[:, np.newaxis] + 0
     elif self._dfields[kk]['size'][1] == '__ONE__':
+        ifprint('Here 2')
+        
         newv = np.array(v)
         newv = newv[np.newaxis, np.newaxis, :, np.newaxis] + 0
+        ifprint(np.shape(newv))
+        print()
     else:
+        ifprint('Here 3')
         newv = np.array(v)
         newv = newv[np.newaxis, np.newaxis, :, :] + 0
     return newv

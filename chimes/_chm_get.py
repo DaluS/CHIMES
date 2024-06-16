@@ -359,10 +359,10 @@ def write_markdown_file(df, hub0, model, output):
             # Header section
             file.write(f'# Model: {df.loc[model].loc["name"]}\n\n')
             file.write(f'''
-    * **Creation** : {str(df.loc[model].loc['date'])}
-    * **Coder**    : {str(df.loc[model].loc['Coder'])}
-    * **Article**  : {str(df.loc[model].loc['article'])}
-    * **Keywords** : {str(df.loc[model].loc['Keywords'])}
+* **Creation** : {str(df.loc[model].loc['date'])}
+* **Coder**    : {str(df.loc[model].loc['Coder'])}
+* **Article**  : {str(df.loc[model].loc['article'])}
+* **Keywords** : {str(df.loc[model].loc['Keywords'])}
     ''')
 
             # Long description

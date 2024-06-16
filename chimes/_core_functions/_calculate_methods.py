@@ -524,9 +524,9 @@ class calculateM:
                 ERROR += f'You have a problem on your object sizes for {k0} (shape of kwargs:)\n {[(k,np.shape(v)) for k,v in kwdargs.items()]} \n {Err}\n'
         if len(ERROR):
             for k0 in lstate:
-                print(k0, np.shape( self._dfields[k0]['value']))
+                print(k0, np.shape(self._dfields[k0]['value']))
             for k0 in pstate:
-                print(k0, np.shape( self._dfields[k0]['value']))
+                print(k0, np.shape(self._dfields[k0]['value']))
             raise Exception('\n' + ERROR + '\nALLOCATION CANNOT BE DONE,CHECK YOUR MODEL FILE !')
 
         # set run to False
@@ -588,14 +588,21 @@ class calculateM:
         # KEEPING THE STATE OF THE SYSTEM
         Base = self.Extract_preset(t=0)  # The state of the system
         Base = {k: v for k, v in Base.items() if k in self.dmisc['dfunc_order']['differential'] +
-                list(set(self.dmisc['dfunc_order']['parameters']) - set(['Tsim', 'Tini', 'dt', 'nx', 'nr', 'Nprod', '__ONE__']))}
+                list(set(self.dmisc['dfunc_order']['parameters']) - set(list(self.dmodel['logics'].get('size').keys())) - set(['Tsim', 'Tini', 'dt', 'nx', 'nr', 'Nprod', '__ONE__']))}
 
         # GENERATING THE DISTRIBUTIONS
-        Newdict = {k: {'mu': v,
-                       'sigma': uncertainty * 0.01 * v,
-                       'type': distribution,
-                       } for k, v in Base.items()}
-        self.set_fields(**_generate_dic_distribution(Newdict, dictpreset={}, N=N), verb=False)
+        # for k, v in Base.items():
+        #    print(k,v)
+        Newdict = {}
+        for k, v in Base.items():
+            try:
+                Newdict[k] = {'mu': v,
+                              'sigma': uncertainty * 0.01 * v,
+                              'type': distribution, }
+            except BaseException as E:
+                print(f"Error on distribution generation for {k} (values : {v})", E)
+        print('#############################')
+        self.set_fields(**_generate_dic_distribution(Newdict, dictpreset={}, N=N), verb=True)
         self.run(NtimeOutput=NtimeOutput, verb=verb)
         self.calculate_StatSensitivity()
 
