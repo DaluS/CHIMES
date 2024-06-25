@@ -17,9 +17,10 @@ Updated January 2024
 """
 
 
-def ifprint(verb,*args):
+def ifprint(verb, *args):
     if verb:
         print(*args)
+
 
 def _comparesubarray(M):
     """
@@ -174,6 +175,10 @@ def _set_fields(self, noreset=False, verb=config.get_current('_VERB'), **kwargs)
     # Otherwise, get the old value of each parameter from 'initial' or 'value'
     if noreset:
         it = self.dflags['run'][0]
+        print(it)
+        print('####')
+        for k in parametersandifferential:
+            print(k, np.shape(self._dfields[k][direct[k]]))
         oldvalue = {k: self._dfields[k][direct[k]][it, ...] for k in parametersandifferential}  # Get the old value from the current run
     else:
         oldvalue = {k: self._dfields[k][direct[k]] for k in parametersandifferential}  # Get the old value from 'initial' or 'value'
@@ -184,35 +189,41 @@ def _set_fields(self, noreset=False, verb=config.get_current('_VERB'), **kwargs)
         if kk in kwargs.keys():
             v = kwargs[kk]
             OLDVAL = oldvalue[kk]
-            
+
             # Check if the new value is a numpy array
             if type(v) in [np.ndarray]:
-                ifprint(verb, kk, 'Change Line')
-                print(kk,np.shape(OLDVAL),np.shape(v))
-                print()
-                newvalue[kk] = _change_line(self, kk, v)
-            
+                ifprint(verb, kk, 'Change Line 1')
+                ifprint(verb, kk, np.shape(OLDVAL), np.shape(v))
+
+                if len(np.shape(v)) == len(np.shape(OLDVAL)):
+                    if v.shape == OLDVAL.shape:
+                        newvalue[kk] = v
+                    else:
+                        newvalue[kk] = _change_line(self, kk, v)
+                else:
+                    newvalue[kk] = _change_line(self, kk, v)
+
             # Check if the new value is a list
             elif type(v) in [list]:
                 # Check if all elements in the list are floats or integers
                 if np.prod([type(vv) in [float, int] for vv in v]):
                     newvalue[kk] = _change_line(self, kk, v)
-                
+
                 # Check if the shape of the list matches the shape of the 'value' field of the parameter
                 elif np.shape(v) == np.shape(self._dfields[kk]['value'][0, 0, :, :]):
                     ifprint(kk, 'Change Line')
                     newvalue[kk] = _change_line(self, kk, v)
-                
+
                 # If none of the above conditions are met, deep set the fields
                 else:
                     ifprint(verb, kk, 'Deep')
                     newvalue[kk] = __deep_set_fields(self, OLDVAL, v, kk)
-            
+
             # Check if the new value is a dictionary
             elif type(v) in [dict]:
                 ifprint(verb, kk, 'Deep')
                 newvalue[kk] = __deep_set_fields(self, OLDVAL, v, kk)
-            
+
             # If the new value does not meet any of the above criteria, set it to the old value with a zero-valued addition
             else:
                 ifprint(verb, kk, 'Force change')
@@ -242,13 +253,15 @@ def _set_fields(self, noreset=False, verb=config.get_current('_VERB'), **kwargs)
                     self._dfields[kk]['value'] = newvalue[kk]
     return self
 
-def _change_line2(self,kk,v):
-    R= self.dfields(kk)
-    
-    print(kk)
-    print(np.shape(kk))
 
-def _change_line(self, kk, v):
+def _change_line2(self, kk, v):
+    R = self.dfields(kk)
+
+    print(kk)
+    print('shape', np.shape(v))
+
+
+def _change_line(self, kk, v, verb=False):
     """
     Change the line of a parameter in the data structure.
 
@@ -282,19 +295,19 @@ def _change_line(self, kk, v):
     OLD
     """
     if self._dfields[kk]['size'][0] == '__ONE__':
-        ifprint('Here')
+        ifprint(verb, 'Here',)
         newv = np.array(v)
         while len(np.shape(newv)) < 4:
             newv = newv[:, np.newaxis] + 0
     elif self._dfields[kk]['size'][1] == '__ONE__':
         ifprint('Here 2')
-        
+
         newv = np.array(v)
         newv = newv[np.newaxis, np.newaxis, :, np.newaxis] + 0
-        ifprint(np.shape(newv))
-        print()
+        ifprint(verb, np.shape(newv))
+        ifprint(verb,)
     else:
-        ifprint('Here 3')
+        ifprint(verb, 'Here 3')
         newv = np.array(v)
         newv = newv[np.newaxis, np.newaxis, :, :] + 0
     return newv
@@ -802,4 +815,5 @@ class setM:
         # SEND IT TO THE PIPE ###################
         if len(dimtochange  .keys()):
             _set_dimensions(self, verb, **dimtochange)
+            
         _set_fields(self, noreset, verb, **fieldtochange)

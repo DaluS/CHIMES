@@ -388,9 +388,9 @@ _plotly_dashstyle = ['solid',
 # Colors for plotly
 _plotly_colors = [
     'rgba(31, 119, 180, 0.5)',    # Blue
+    'rgba(214, 39, 40, 0.5)',     # Red
     'rgba(255, 127, 14, 0.5)',    # Orange
     'rgba(44, 160, 44, 0.5)',     # Green
-    'rgba(214, 39, 40, 0.5)',     # Red
     'rgba(148, 103, 189, 0.5)',   # Purple
     'rgba(140, 86, 75, 0.5)',     # Brown
     'rgba(227, 119, 194, 0.5)',   # Pinkish Purple

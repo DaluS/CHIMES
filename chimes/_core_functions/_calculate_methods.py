@@ -601,8 +601,11 @@ class calculateM:
                               'type': distribution, }
             except BaseException as E:
                 print(f"Error on distribution generation for {k} (values : {v})", E)
-        print('#############################')
-        self.set_fields(**_generate_dic_distribution(Newdict, dictpreset={}, N=N), verb=True)
+
+        distrib = _generate_dic_distribution(Newdict, dictpreset={}, N=N)
+
+        
+        self.set_fields(**distrib, verb=False)
         self.run(NtimeOutput=NtimeOutput, verb=verb)
         self.calculate_StatSensitivity()
 

@@ -52,28 +52,21 @@ This model serves as a foundational tool in astrophysics, cosmology, and computa
 *  
 
 ## Equations
-|             | eqtype       | definition                   | source_exp                                                                   | com   |
-|:------------|:-------------|:-----------------------------|:-----------------------------------------------------------------------------|:------|
-| Nbody       | size         | Number of interacting bodies |                                                                              |       |
-| vx          | differential | horizontal velocity          | dvx/dt=Fx/m,                                                                 |       |
-| vy          | differential | vertical velocity            | dvy/dt=Fy/m,                                                                 |       |
-| x           | differential | horizontal position          | dx/dt=vx,                                                                    |       |
-| y           | differential | vertical position            | dy/dt=vy,                                                                    |       |
-| dx          | statevar     |                              | dx=x - np.moveaxis(x, -1, -2)),                                              |       |
-| dy          | statevar     |                              | dy=y - np.moveaxis(y, -1, -2)),                                              |       |
-| heavi       | statevar     |                              | heavi=np.heaviside(distance-0.01, 0),                                        |       |
-| distance    | statevar     |                              | distance=(dx**2 + 0.000001 + dy**2)**(1/2)),                                 |       |
-| rm2         | statevar     |                              | rm2=np.heaviside(distance-0.01, 0) * distance**(-2)),                        |       |
-| angle       | statevar     |                              | angle=np.arctan2(dy, dx)),                                                   |       |
-| Fx          | statevar     |                              | Fx=O.ssum2(-m*np.moveaxis(m, -1, -2)*rm2*np.cos(angle))),                    |       |
-| Fy          | statevar     |                              | Fy=O.ssum2(-m*np.moveaxis(m, -1, -2)*rm2*np.sin(angle))),                    |       |
-| Kinetic     | statevar     |                              | Kinetic=0.5*np.sum(O.ssum(m*(vx**2 + vy**2))), axis=-2),                     |       |
-| Potential   | statevar     |                              | Potential=0.25*np.sum(np.sum(-m*np.moveaxis(m, -1, -2)), axis=-1), axis=-2), |       |
-| Baricenterx | statevar     |                              | Baricenterx=np.sum(x*m, axis=-2)/np.sum(m, axis=-2)),                        |       |
-| Baricentery | statevar     |                              | Baricentery=np.sum(y*m, axis=-2)/np.sum(m, axis=-2)),                        |       |
-| momentumx   | statevar     |                              | momentumx=np.sum(vx*m, axis=-2)),                                            |       |
-| momentumy   | statevar     |                              | momentumy=np.sum(vy*m, axis=-2)),                                            |       |
-| L0Mat       |              |                              |                                                                              |       |
-| Kmat        |              |                              |                                                                              |       |
-| m           |              |                              |                                                                              |       |
-| dampMat     |              |                              |                                                                              |       |
+|           | eqtype       | definition                   | source_exp                                                                   | com   |
+|:----------|:-------------|:-----------------------------|:-----------------------------------------------------------------------------|:------|
+| Nbody     | size         | Number of interacting bodies |                                                                              |       |
+| vx        | differential | horizontal velocity          | dvx/dt=Fx/m,                                                                 |       |
+| vy        | differential | vertical velocity            | dvy/dt=Fy/m,                                                                 |       |
+| x         | differential | horizontal position          | dx/dt=vx,                                                                    |       |
+| y         | differential | vertical position            | dy/dt=vy,                                                                    |       |
+| dx        | statevar     |                              | dx=x - np.moveaxis(x, -1, -2)),                                              |       |
+| dy        | statevar     |                              | dy=y - np.moveaxis(y, -1, -2)),                                              |       |
+| heavi     | statevar     |                              | heavi=np.heaviside(distance-0.01, 0),                                        |       |
+| distance  | statevar     |                              | distance=(dx**2 + 0.000001 + dy**2)**(1/2)),                                 |       |
+| rm2       | statevar     |                              | rm2=np.heaviside(distance-0.01, 0) * distance**(-2)),                        |       |
+| angle     | statevar     |                              | angle=np.arctan2(dy, dx)),                                                   |       |
+| Fx        | statevar     |                              | Fx=O.ssum2(-m*np.moveaxis(m, -1, -2)*rm2*np.cos(angle))),                    |       |
+| Fy        | statevar     |                              | Fy=O.ssum2(-m*np.moveaxis(m, -1, -2)*rm2*np.sin(angle))),                    |       |
+| Kinetic   | statevar     |                              | Kinetic=0.5*np.sum(O.ssum(m*(vx**2 + vy**2))), axis=-2),                     |       |
+| Potential | statevar     |                              | Potential=0.25*np.sum(np.sum(-m*np.moveaxis(m, -1, -2)), axis=-1), axis=-2), |       |
+| m         |              |                              |                                                                              |       |

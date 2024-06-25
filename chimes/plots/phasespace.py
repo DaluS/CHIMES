@@ -189,7 +189,7 @@ def XYZ(
     ax.plot(vx,
             vy,
             vz, lw=0.01, c='k')
-    lc = Line3DCollection(segments, cmap='jet', norm=norm)
+    lc = Line3DCollection(segments, cmap='viridis', norm=norm)
     lc.set_array(vc)
     lc.set_linewidth(2)
     line = ax.add_collection(lc)

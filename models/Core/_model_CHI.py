@@ -30,7 +30,7 @@ omega0 = 0.4969697
 pieq = 0.15151515
 
 
-__KEENLIKE = True
+__KEENLIKE = False
 __KAPPACDrive = False
 _LOGICS = {
     'differential': {
@@ -70,6 +70,7 @@ _LOGICS = {
         'd': {'func': lambda D, p, Y: D / (p * Y)},
         'pi': {'func': lambda Pi, p, Y: Pi / (p * Y)},
         'productivity': {'func': lambda Y, L: Y / L},
+        'v': lambda V,Y: V / Y,
         'g': {'func': lambda I, delta, K: I / K - delta},
         'ROC': {'func': lambda Pi, K, Xi, p: Pi / (p * Xi * K)},
         'Solvability': {'func': lambda D, K, Xi, p: 1 - D / (K * Xi * p)},
@@ -127,6 +128,13 @@ if __KAPPACDrive:
     _LOGICS['statevar']['kappaI'] = {'func': lambda p, delta, Xi, K, Delta, In, Pi: (In - p * delta * Xi * K) / ((1 - Delta) * Pi),
                                      'com': "KappC OVERRIDE"}
 
+__Randomnoize=False
+if __Randomnoize:
+
+    del _LOGICS['parameter']['kappaI']   
+    del _LOGICS['parameter']['kappaC']
+    _LOGICS['statevar']['kappaI'] = lambda nx,nr: 1+ 0.15*np.random.normal(size=(nx, nr, 1, 1))
+    _LOGICS['statevar']['kappaC'] = lambda nx,nr: 1+ 0.15*np.random.normal(size=(nx, nr, 1, 1))
 
 #########################################################################
 

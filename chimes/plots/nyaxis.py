@@ -76,11 +76,8 @@ def nyaxis(
     -------------
     Date: 2024-01-19
     """
-    print(hub)
-    print(y)
-
     if len(y) > 5:
-        return "ERROR: too many axes for readibility ! Please do multiple figu"
+        return "ERROR: too many axes for readibility ! Please do multiple figures"
 
     # Input cleaning
     hub, idx, Region, idt0, idt1 = _indexes(hub, idx, Region, tini, tend)
@@ -134,16 +131,23 @@ def nyaxis(
                 symbol = name[:-1] + '_{' + sectorname + '}$'
 
             if sensitivity and ('sensitivity' in hub.dfields[name].keys()):
-                stdy = R[name]['sensitivity'][Region]['']['stdv'][idt0:idt1]
-                vy[ii][yyy] = R[name]['sensitivity'][Region]['']['mean'][idt0:idt1]
+                
+                try:
+                    values = R[name]['sensitivity'][Region][sectornumber]
 
+                except BaseException as E:
+                    print(E)
+                    values = R[name]['sensitivity'][Region]['']
+                stdy = values['stdv'][idt0:idt1]
+                meany = values['mean'][idt0:idt1]                    
+                    
             else:
-                vy[ii][yyy] = value(R, name, idt0, idt1, idx, Region, sectornumber)
-                stdy = vy[ii][yyy]*0
+                meany = value(R, name, idt0, idt1, idx, Region, sectornumber)
+                stdy = meany*0
 
             fig.add_trace(go.Scatter(
                 x=vx,
-                y=vy[ii][yyy],
+                y=meany,
                 name=symbol,
                 legendgroup=ii,
                 legendgrouptitle_text='$'+R[name]['units']+'$' if R[name]['units'] != '' else 'dimensionless',
@@ -153,7 +157,7 @@ def nyaxis(
                 yaxis='y'+str(ii+1) if ii != 0 else 'y'))
             fig.add_trace(go.Scatter(
                 x=np.concatenate([vx, vx[::-1]]),
-                y=np.concatenate([vy[ii][yyy]-stdy, vy[ii][yyy][::-1]+stdy[::-1]]),
+                y=np.concatenate([meany-stdy, meany[::-1]+stdy[::-1]]),
                 fill='toself',  # This fills the area between the curves
                 fillcolor=str(_plotly_colors[ii]),  # Adjust the color and opacity as needed
                 line=dict(color='rgba(255,255,255,0)'),  # Make the line invisible
@@ -220,7 +224,9 @@ def nyaxis(
         ),
     )
 
-    fig.update_layout(legend=dict(groupclick="toggleitem"))
+    fig.update_layout(legend=dict(groupclick="toggleitem"),
+                      #template='plotly_dark',
+                      )
     if returnFig:
         return fig
     else:

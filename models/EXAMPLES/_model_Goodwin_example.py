@@ -1,6 +1,13 @@
 """A Goodwin model of an economy. Independant model file"""
 
-import numpy as np
+from chimes.libraries import importmodel      # Import another model _LOGICS, _PRESETS
+from chimes.libraries import Operators as O   # Prewritten operators for multisectoral and multiregional coupling. `chm.get_available_Operators()`
+from chimes.libraries import fill_dimensions   # When using multisectoral dynamics, fill automatically the sizes of fields
+from chimes.libraries import merge_model       # Merge two model logics into each others
+from chimes.libraries import Funcs            # Prewritten functions from CHIMES use `chm.get_available_Functions()`
+import numpy as np                    
+
+
 _DESCRIPTION = """
 ## What is this model ?
 A Goodwin is a two-sector model of an economy : household and firms. 
