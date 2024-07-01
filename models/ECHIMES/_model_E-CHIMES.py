@@ -123,7 +123,8 @@ _LOGICS = {
         'Y': {'func': lambda u, nu, K: u * K / nu, },
         'Ir': {'func': lambda I, Xi, p: I / O.matmul(Xi, p), },
         'C': {'func': lambda W, Cpond, p: Cpond * W / p, },
-        'v': {'func': lambda epsilonV, Y, V: epsilonV * Y / V},
+        'v': {'func': lambda epsilonV, Y, V: epsilonV * Y / V,
+              'symbol': '$\dot{v} $'},
         'Kdelta': {'func': lambda K, delta: delta * K, },
         'GammaY': {'func': lambda Gamma, Y: O.matmul(O.transpose(Gamma), Y),
                    'definition': 'flux to intermediate consumption',
@@ -158,6 +159,7 @@ _LOGICS = {
 
         'kappa': {'func': lambda pi, k0, k1: k0 + k1 * pi,
                   'com': 'AFFINE KAPPA FUNCTION'},
+        'omegaAGG': {'func': lambda w, L, p, Y : O.sprod(w, L)/O.sprod(p, Y)},
 
         # PROFITS AND INVESTMENTS
         'g': {'func': lambda Ir, K, delta: Ir / K - delta},
@@ -182,7 +184,7 @@ _LOGICS = {
 
 ##########################################################################
 Dimensions = {
-    'scalar': ['r', 'phinull', 'N', 'employmentAGG', 'w0', 'W',
+    'scalar': ['r', 'phinull', 'N', 'employmentAGG', 'w0', 'W','omegaAGG',
                'alpha', 'Nprod', 'Phillips', 'rDh', 'gammai',
                'n', 'ibasket', 'Dh', 'flambda', 'Phi0', 'Phi1'],
     'matrix': ['Gamma', 'Xi', 'Mgamma', 'Mxi', 'Minter',
@@ -255,6 +257,7 @@ def generategoodwin(Nsect, gamma=0.1, xi=1):
         # Multisectoral ponderation
         'z': 1.,     # On wage
         'apond': 1.,  # On productivity
+        
 
         # Characteristic frequencies
         'alpha': 0.025, 'n': 0.02, 'delta': 0.005,

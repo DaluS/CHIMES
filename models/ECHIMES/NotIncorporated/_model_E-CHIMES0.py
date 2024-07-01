@@ -251,7 +251,10 @@ def generategoodwin(Nsect, gamma=0.1, xi=1):
 
         # Multisectoral ponderation
         'zw': 1.,     # On wage
-        'za': 1.,  # On productivity
+        'za': 1.,  # On productivity       
+        'z': 1.,     # On wage
+        'apond': 1.,  # On productivity
+        
 
         # Characteristic frequencies
         'alpha': 0.025, 'n': 0.02, 'delta': 0.005,

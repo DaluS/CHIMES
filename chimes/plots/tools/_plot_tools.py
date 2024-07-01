@@ -417,7 +417,7 @@ def value(R: dict,
           idx: Union[int, np.array, Tuple, bool] = 0,
           region: Union[int, np.array, Tuple, bool] = 0,
           ms1: Union[int, np.array, Tuple, list, bool] = 0,
-          ms2: Union[int, np.array, Tuple, list, bool] = 0
+          ms2: Union[int, np.array, Tuple, list, bool] = 0,
           ) -> np.ndarray:
     """
     Fetch values from the 'dfields' dictionary 'R' and return the values of 'key'.
@@ -485,8 +485,24 @@ def value(R: dict,
 
     if dic.get('eqtype', None) is None:
         t = R['time']['value'][tini:tend, 0, 0, 0, 0]
-        V = np.expand_dims(dic['value'], axis=0)
-        V2 = np.tile(V, (len(t),) + (1,) * len(np.shape(dic['value'])))
+        if not 'shocks' in dic.keys():
+            V = np.expand_dims(dic['value'], axis=0)
+            V2 = np.tile(V, (len(t),) + (1,) * len(np.shape(dic['value'])))
+        else:
+            newshape = list(np.shape(dic['value']))
+            newshape = [len(t)]+newshape
+            result = np.zeros(newshape)
+
+            # Fill the result array based on the dictionary values and iteration ranges
+            keys = sorted(dic['shocks'].keys())
+            for i in range(len(keys) - 1):
+                start = keys[i]
+                end = keys[i + 1]
+                result[start:end] = dic['shocks'][start]
+
+            # Handle the last range separately
+            result[end:] = dic['shocks'][keys[-1]]
+            V2=result
         return V2[tini:tend, idx, region, ms1, ms2]
     else:
         return dic['value'][tini:tend, idx, region, ms1, ms2]

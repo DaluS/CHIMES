@@ -131,7 +131,7 @@ def nyaxis(
                     sectorname = str(yyy[1])
                     sectornumber = yyy[1]
 
-                symbol = name[:-1] + '_{' + sectorname + '}$'
+                symbol = name + '_{' + sectorname + '}$'
 
             if sensitivity and ('sensitivity' in hub.dfields[name].keys()):
                 stdy = R[name]['sensitivity'][Region]['']['stdv'][idt0:idt1]

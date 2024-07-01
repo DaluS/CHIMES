@@ -100,7 +100,8 @@ class Hub(setM, getM, calculateM, saveM):
             'multisectoral': False,  # Structure: multiple sectors/agents
             'multiregional': False,  # Structure: multiple regions in interaction 'nr'>1
             'Parrallel': False,  # Structure: multiple runs in parrallel      'nx'>1
-            'reinterpolated': False  # Structure: reinterpolated for less points
+            'reinterpolated': False,  # Structure: reinterpolated for less points
+            'noreset':{},       # Structure: values changed in the middle of a run
         }
 
         # Contains miscellaneous, static practical informations

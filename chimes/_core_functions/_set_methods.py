@@ -150,25 +150,7 @@ def _set_fields(self, noreset=False, verb=config.get_current('_VERB'), **kwargs)
     -------
     self
         The updated data structure.
-
-    Notes
-    -----
-    The function first gets the list of parameters that might need a reshape. Then it determines where the value of each parameter is located. 
-    If `noreset` is `True`, it gets the old value of each parameter from the current run. Otherwise, it gets the old value of each parameter from the initial value or the value field.
-
-    For each parameter, if the new value is a numpy array, a list, or a dict, it changes the line of the parameter or deeply sets the fields in the data structure. 
-    Otherwise, it simply sets the new value to the parameter.
-
-    If `noreset` is `False`, it reinitializes the shapes and dimensions of the parameters, gets the arguments by reference, and resets the data structure. 
-    Otherwise, it sets the new value to the current run of the parameter.
-
-    Author
-    ------
-    Paul Valcke
-
-    Date
-    ----
-    OLD
+    """
     """
     # Get list of variables that might need a reshape
     # Exclude numerical parameters
@@ -196,7 +178,40 @@ def _set_fields(self, noreset=False, verb=config.get_current('_VERB'), **kwargs)
             else:
                 oldvalue[kk] = self._dfields[kk]['value']
     else:
+        oldvalue = {k: self._dfields[k][direct[k]] for k in parametersandifferential}  # Get the old value from 'initial' or 'value'
+    """
+
+    # Get list of variables that might need a reshape
+    # Exclude numerical parameters
+    parametersandifferential = list(set(self.get_dfields(eqtype=['differential', None]))
+                                    - set(['__ONE__', 'time'])
+                                    - set(['nr', 'nx', 'dt', 'Tini', 'Tsim'] + list(self.get_dfields(eqtype=['size']))))
+
+    # Determine where the value of each parameter is located
+    # If the parameter is of type 'differential', its value is located in 'initial'
+    # Otherwise, its value is located in 'value'
+    direct = {k: 'initial' if self._dfields[k].get('eqtype', '') == 'differential'
+              else 'value' for k in parametersandifferential}
+
+    # Get the dimensions of each parameter
+    dimname = {kk: [self._dfields[k2]['value'] for k2 in ['nx', 'nr'] + self._dfields[kk]['size']] for kk in parametersandifferential}
+
+    # If 'noreset' is True, get the old value of each parameter from the current run
+    # Otherwise, get the old value of each parameter from 'initial' or 'value'
+    if noreset:
+        it = self.dflags['run'][0]
+        self._dflags['noreset'][it]={}
+        oldvalue = {}
+        for kk in parametersandifferential:
+            if direct[kk] == 'initial':
+                oldvalue[kk] = self._dfields[kk]['value'][it, ...]
+            else:
+                oldvalue[kk] = self._dfields[kk]['value']
+        
+    else:
         oldvalue = {k: self._dfields[k][direct[k]] for k in parametersandifferential}
+
+
 
     newvalue = {}
     # Dissecate new value allocation
@@ -227,7 +242,14 @@ def _set_fields(self, noreset=False, verb=config.get_current('_VERB'), **kwargs)
         else:
             newvalue[kk] = oldvalue[kk]
 
-    # REINTIIALIZE SHAPES AND DIMENSIONS
+    for k, v in newvalue.items():
+        ifprint(verb, k, np.shape(v))
+        if noreset:
+            self._dflags['noreset'][it]={k:v}
+            prev = self._dfields[k].get('shocks',{0:OLDVAL})
+            self._dfields[k]['shocks']=prev
+            self._dfields[k]['shocks'][it]=v
+    # REINITIALIZE SHAPES AND DIMENSIONS
     if not noreset:
         for kk in parametersandifferential:
             if kk in kwargs.keys():

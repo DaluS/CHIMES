@@ -584,7 +584,7 @@ class calculateM:
         # KEEPING THE STATE OF THE SYSTEM
         Base = self.Extract_preset(t=0)  # The state of the system
         Base = {k: v for k, v in Base.items() if k in self.dmisc['dfunc_order']['differential'] +
-                list(set(self.dmisc['dfunc_order']['parameters']) - set(['Tsim', 'Tini', 'dt', 'nx', 'nr', 'Nprod', '__ONE__']))}
+                list(set(self.dmisc['dfunc_order']['parameters']) - set(list(self.dmodel['logics'].get('size',{}).keys())) - set(['Tsim', 'Tini', 'dt', 'nx', 'nr', 'Nprod', '__ONE__']))}
 
         # GENERATING THE DISTRIBUTIONS
         Newdict = {k: {'mu': v,

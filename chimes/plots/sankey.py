@@ -130,6 +130,7 @@ def Sankey(
             textposition='bottom center',  # Adjust text position
             xaxis='x2',  # Associate with the second x-axis
             yaxis='y2',  # Associate with the second y-axis
+            node=Nodes, 
         )
 
     # LINKS UPDATE FOR NEGATIVE VALUES
@@ -163,6 +164,7 @@ def Sankey(
     # CREATE FRAMES ############################
     frames = [go.Frame(
         data=[go.Sankey(node=Nodes, link=link(i),),
+              
               go.Scatter(**scalescatter(i))] if Scale else [go.Sankey(node=Nodes, link=link(i),)],
         name=f'{time:.2f}'
     ) for i, time in enumerate(time)]
@@ -175,7 +177,23 @@ def Sankey(
                 'method': 'animate',
             } for f in frames],
             'transition': {'duration': 10, 'easing': 'cubic-in-out'},
-        }],)
+        }],
+        updatemenus=[{
+            'buttons': [{
+                'args': [None, {'frame': {'duration': 500, 'redraw': True}, 'fromcurrent': True, 'transition': {'duration': 300, 'easing': 'quadratic-in-out'}}],
+                'label': 'Play',
+                'method': 'animate'
+            }],
+            'direction': 'left',
+            'pad': {'r': 10, 't': 87},
+            'showactive': False,
+            'type': 'buttons',
+            'x': 0.1,
+            'xanchor': 'right',
+            'y': 0,
+            'yanchor': 'top'
+        }],
+    )
 
     # Annotations ##############################
     if Scale:
