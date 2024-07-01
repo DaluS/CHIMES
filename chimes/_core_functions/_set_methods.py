@@ -15,6 +15,9 @@ Date
 ----
 Updated January 2024
 """
+def ifprint(verb,*args):
+    if verb:
+        print(*args)
 
 
 def _comparesubarray(M):

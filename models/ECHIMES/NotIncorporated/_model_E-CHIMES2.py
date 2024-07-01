@@ -24,7 +24,8 @@ _TODO = ['Debugging']
 _ARTICLE = "https://link.springer.com/chapter/10.1007/978-1-349-05504-3_12"
 _DATE = "2024/07/01"
 _CODER = "Paul Valcke"
-_KEYWORDS = ['Economic','Multisectoral','Core']
+_KEYWORDS = ['Economic', 'Multisectoral', 'Core']
+
 
 def dotD(MtransactI, MtransactY, wL, rD, pC, Shareholding):
     return rD \
@@ -42,149 +43,89 @@ def dotV(Y, Gamma, I, C, Xi):
         - O.matmul(O.transpose(Xi), I)
 
 
-_LOGICS = {
-    'size': {'Nprod': {'list': ['MONO']}},
+_LOGICS = dict(
+    size={'Nprod': {'list': ['MONO']}},
     ###################################################################
-    'differential': {
+    differential=dict(
         # MONETARY STOCK-FLOW CONSISTENCY
-        'D': {'func': lambda dotD: dotD},
-        'Dh': {'func': lambda W, p, C, Shareholding: -W + O.sprod(p, C) - O.ssum(Shareholding)},
+        D=lambda dotD: dotD,
+        Dh=lambda W, p, C: -W + O.sprod(p, C),
 
         # PHYSICAL STOCK-FLOW CONSISTENCY
-        'V': {'func': lambda dotV: dotV},
-        'K': {'func': lambda I, delta, K: I - delta * K},
+        V=lambda dotV: dotV,
+        K=lambda I, delta, K: I - delta * K,
 
         # PRICES AND WAGES
-        'p': {'func': lambda p, inflation: p * inflation},
-        'w0': {'func': lambda Phillips, w0, gammai, ibasket: w0 * (Phillips + gammai * ibasket)},
-
-        # BEHAVIOR
-        # 'u0'            :{'func': lambda u0, sigma, V, dotV: -sigma * (1 - u0) * (dotV / V),},
-        #                  'com': 'On dotV/V',},
-        # 'u0'            :{'func': lambda u0, sigma, Y, dotV: -sigma * (1 - u0) * (dotV / Y),},
-        'u0': {'func': lambda u0, sigma, v: sigma * (1 - u0) * (1 - v), },
-        # 'func': lambda u: 0,
+        p=lambda p, inflation: p * inflation,
+        w0=lambda Phillips, w0, gammai, ibasket: w0 * (Phillips + gammai * ibasket),
 
         # EXOGENOUS SCALING
-        'a0': {'func': lambda a0, alpha: a0 * alpha,
-               'definition': 'Capital unit per worker'},
-        'N': {'func': lambda N, n: N * n},
-    },
-    'statevar': {
+        a0=lambda a0, alpha: a0 * alpha,
+        N=lambda N, n: N * n,
+    ),
+    statevar=dict(
         # BY-SECTOR PRODUCTIVITY AND WAGE
-        'w': {'func': lambda w0, zw: w0 * zw},
-        'a': {'func': lambda a0, za: a0 * za},
-
-        # PROFITS AND COSTS
-        'xi': {'func': lambda delta, nu, Mxi: (delta * nu) * O.ssum2(Mxi)},
-        'omega': {'func': lambda L, Y, w, p: w * L / (p * Y)},
-        'gamma': {'func': lambda Mgamma: O.ssum2(Mgamma)},
-        'rd': {'func': lambda r, D, p, Y: r * D / (p * Y)},
-        'pi': {'func': lambda omega, gamma, xi, rd: 1 - omega - gamma - xi - rd},
-
-        #'ROC': {'func': lambda pi, nu, Xi, p: pi / (nu * O.matmul(Xi, p) / p)},
-        #'c': {'func': lambda omega, gamma, xi, p: p * (omega + gamma + xi)},
-        #'mu': {'func': lambda p, c: p / c,
-        #       'units': ''},
-
-        # USE AND ACCESSIBILITY
-        'u': {'func': lambda u0: u0,
-              'com': 'just u0'},
-
-        # COST COMPONENTS
-        'Mgamma': {'func': lambda Gamma, p: Gamma * O.transpose(p) / p},
-        'Mxi': {'func': lambda Xi, p, nu, delta: nu * delta * Xi * O.transpose(p) / p},
-
-        # Inflations
-        # 'inflation'     :{'func': lambda inflationMarkup,inflationdotVv,inflationdotVY,inflationdotVV: inflationMarkup+inflationdotVY+inflationdotVv+inflationdotVV,},
-        # 'inflationMarkup':{'func': lambda eta, mu0, mu: eta* np.log(mu0/mu),},#eta * (mu0/mu -1 )},#
-        # 'inflationdotVv' :{'func': lambda chiv,v: chiv *(v-1),
-        #            'com': 'V0/V'},
-        # 'inflationdotVY' :{'func': lambda chiY, dotV, Y: - chiY *( dotV / Y),
-        #                  'com': 'dotV/Y'},
-        # 'inflationdotVV' :{'func': lambda chiV, dotV, V: - chiV *( dotV / V),
-        #                  'com': 'dotV/V'},
-
-        'basket': {'func': lambda p, C: p * C / O.sprod(p, C)},
-        'ibasket': {'func': lambda inflation, basket: O.sprod(inflation, basket)},
-        'L': {'func': lambda u, K, a: u * K / a},
-
-        # PHYSICAL FLUXES
-        'dotV': {'func': dotV},
-        'Y': {'func': lambda u, nu, K: u * K / nu, },
-        'I': {'func': lambda In, Xi, p: In / O.matmul(Xi, p), },
-        'C': {'func': lambda W, kappaC, p: kappaC * W / p, },
-        'v': {'func': lambda Y, V: Y / V},
-        #'Kdelta': {'func': lambda K, delta: delta * K, },
-        #'GammaY': {'func': lambda Gamma, Y: O.matmul(O.transpose(Gamma), Y),
-        #          'definition': 'flux to intermediate consumption',
-        #           'units': 'Units.y^{-1}',
-        #           'symbol': '$(\Gamma^T Y)$'},
-        #'TakenforI': {'func': lambda Xi, I: O.matmul(O.transpose(Xi), I),
-        #              'units': 'Units.y^{-1}',
-        #              'symbol': '$(\Xi^T I^r)$'},
-
-        # Matrix approach
-        #'Minter': {'func': lambda Y, Gamma: O.transpose(Gamma * Y)},
-        #'Minvest': {'func': lambda I, Xi: O.transpose(Xi * I)},
-        'MtransactY': {'func': lambda p, Y, Gamma: Y * Gamma * O.transpose(p)},
-        'MtransactI': {'func': lambda In, Xi, p: In * Xi * O.transpose(p) / (O.matmul(Xi, p))},
+        w=lambda w0, zw: w0 * zw,
+        a=lambda a0, za: a0 * za,
 
         # MONETARY FLUXES
-        'wL': {'func': lambda w, L: w * L},
-        'Shareholding': {'func': lambda Delta, p, Y, pi: Delta * p * Y * pi},
-        'pC': {'func': lambda p, C: p * C},
-        'Idelta': {'func': lambda xi, p, Y: p * Y * xi},
-        'Ilever': {'func': lambda Pi, kappaI: Pi * kappaI},
-        'In': {'func': lambda Idelta, Ilever: Idelta + Ilever},
-        'rD': {'func': lambda r, D: r * D},
-        'dotD': {'func': dotD},
-        'Pi': {'func': lambda p, Y, pi: p * Y * pi},
+        wL=lambda w, L: O.ssum(w * L),
+        W=lambda wL, r, Dh, Shareholding: wL - r * Dh + O.ssum(Shareholding),
+        rD=lambda r, D: r * D,
+        Pi=lambda p, Y, Gamma, Idelta, r, D, wL: p*Y - r*D - wL - Y*O.matmul(Gamma, p) -Idelta,
+        # Pi=lambda p, Y, pi: p * Y * pi,
+        Shareholding=lambda Delta, Pi: Delta * Pi,
+        pC=lambda p, C: p * C,
+        Ilever=lambda Pi, kappaI: Pi * kappaI,
+        In=lambda Idelta, Ilever: Idelta + Ilever,
+        Idelta=lambda delta, K, Xi, p: delta*K*O.matmul(Xi, p),
+        dotD=dotD,
 
-        # LABOR-SIDE THEORY
-        'W': {'func': lambda w, L, r, Dh, Shareholding: O.sprod(w, L) - r * Dh + O.ssum(Shareholding)},
-        #'rDh': {'func': lambda r, Dh: r * Dh, },
-        'employmentAGG': {'func': lambda employment: O.ssum(employment), },
-        'Phillips': {'func': lambda Phi0, Phi1, employmentAGG: Phi0 + Phi1 / (1 - employmentAGG)**2,
-                     'com': 'DIVERGING'},
+        # PHYSICAL FLUXES
+        Y=lambda u, nu, K: u * K / nu,
+        I=lambda In, Xi, p: In / O.matmul(Xi, p),
+        C=lambda W, kappaC, p: kappaC * W / p,
+
+        # PROFITS AND COSTS
+        omega=lambda Y, wL, p: wL / (p * Y),
+        rd=lambda r, D, p, Y: r * D / (p * Y),
+        pi=lambda p, Y, Pi: Pi/(p*Y),
 
 
-        # PROFITS AND INVESTMENTS
-        #'g': {'func': lambda I, K, delta: I / K - delta},
-        'employment': {'func': lambda L, N: L / N},
-        #'reldotv': {'func': lambda dotV, Y, p, c: (c - p) * dotV / (p * Y)},  # 'com': 'calculated as inventorycost on production',
-        #'reloverinvest': {'func': lambda kappaI, pi: pi - kappaI},  # 'com': 'difference between kappaI and pi',
-    },
-    'parameter': {
-        'za': {'value': 1,
-               'definition': 'sector-ponderation of labor efficiency',
-               'units': ''},
-        'zw': {'value': 1,
-               'definition': 'sector ponderation of wage',
-               'units': ''},
-        # 'CESexp':   { 'value' : 1000},
-        # 'b':        { 'value' : 0.5 },
-        # 'epsilonV': { 'value' : 0.1 },
-        # 'chiv' :    { 'value' : 0   },
-        # 'chiV' :    { 'value' : 0   },
-        # 'chiY' :    { 'value' : 0   },
-        # 'inflation':{ 'value' : 0   },
-        'Phi0': {'value': -0.1010101,
-                 'units': 'y^{-1}'},
-        'Phi1': {'value': 0.0010101,
-                 'units': 'y^{-1}'},
-        'kappaI': {'value': 1,
-                   'units': ''},
-        'kappaC': {'value': 1,
-                   'units': ''},
-    },
-}
+        MtransactY=lambda p, Y, Gamma: Y * Gamma * O.transpose(p),
+        MtransactI=lambda In, Xi, p: In * Xi * O.transpose(p) / (O.matmul(Xi, p)),
+
+        # LABOR-SIDE
+        L=lambda u, K, a: u * K / a,
+        employmentAGG=lambda employment: O.ssum(employment),
+        omegaAGG=lambda wL, p, Y: wL/O.ssum(p*Y),
+        Phillips=lambda Phi0, Phi1, employmentAGG: Phi0 + Phi1 / (1 - employmentAGG)**2,
+        employment=lambda L, N: L / N,
+    ),
+    parameter=dict(
+        za=1,
+        zw=1,
+        ibasket=0,
+        u=1,
+        # 'CESexp':   { 'value' : 1000,
+        # 'b':        { 'value' : 0.5 ,
+        # 'epsilonV': { 'value' : 0.1 ,
+        # 'chiv' :    { 'value' : 0   ,
+        # 'chiV' :    { 'value' : 0   ,
+        # 'chiY' :    { 'value' : 0   ,
+        # 'inflation':{ 'value' : 0   ,
+        Phi0=-0.1010101,
+        Phi1=0.0010101,
+        kappaI=1,
+        kappaC=1,
+    ),
+)
 
 ##########################################################################
 Dimensions = {
     'scalar': ['r', 'phinull', 'N', 'employmentAGG', 'w0', 'W',
                'alpha', 'Nprod', 'Phillips', 'rDh', 'gammai',
-               'n', 'ibasket', 'Dh', 'Phi0', 'Phi1'],
+               'n', 'ibasket', 'Dh', 'Phi0', 'Phi1','wL'],
     'matrix': ['Gamma', 'Xi', 'Mgamma', 'Mxi', 'Minter',
                'Minvest', 'MtransactY', 'MtransactI']
     # 'vector': will be deduced by fill_dimensions
@@ -255,10 +196,10 @@ def generategoodwin(Nsect, gamma=0.1, xi=1):
 
         # Multisectoral ponderation
         'zw': 1.,     # On wage
-        'za': 1.,  # On productivity       
+        'za': 1.,  # On productivity
         'z': 1.,     # On wage
         'apond': 1.,  # On productivity
-        
+
 
         # Characteristic frequencies
         'alpha': 0.025, 'n': 0.02, 'delta': 0.005,
@@ -419,12 +360,12 @@ preset_TRI = {
     'Dh': 0,
     'w': 0.8,
 
-    'sigma': [1, 5, 5],
+    #'sigma': [1, 5, 5],
     'K': [2.1, 0.4, 0.4],
     'D': [0, 0, 0],
-    'u': [.95, .95, .95],
+    #'u': [.95, .95, .95],
     'p': [1, 1, 1],
-    'V': [1, 1, 1],
+    #'V': [1, 1, 1],
     'zw': 1,
     'k0': 1.,
     'kappaC': [1, 0, 0],

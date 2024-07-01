@@ -27,6 +27,10 @@ from .._config import config
 # ############                  MAIN FUNCTION                      #############
 ###############################################################################
 
+def ifprint(verb,*args):
+    if verb:
+        print(*args)
+
 # %% MAIN FUNCTION : LOAD MODEL
 
 
