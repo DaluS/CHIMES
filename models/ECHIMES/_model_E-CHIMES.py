@@ -255,7 +255,7 @@ def generategoodwin(Nsect, gamma=0.1, xi=1):
         'Phi0': -1,     # "Almost" rate of wage decrease without employment
 
         # Multisectoral ponderation
-        'z': 1.,     # On wage
+        
         'apond': 1.,  # On productivity
         
 
@@ -301,6 +301,16 @@ def generategoodwin(Nsect, gamma=0.1, xi=1):
         return 1 - np.sqrt(x)
     GOODWIN_N['employment'] = fm1(-GOODWIN_N['Phi1'] / (GOODWIN_N['Phi0'] + GOODWIN_N['alpha'] + GOODWIN_N['inflation'] * (1 - GOODWIN_N['gammai'])))
 
+    Mgrowth = np.identity(Nsect) \
+        - GOODWIN_N['Gamma'] \
+        - np.diag(GOODWIN_N['nu'])\
+        - GOODWIN_N['Xi']*np.matmul(
+        GOODWIN_N['Xi'],
+        ( np.diag(GOODWIN_N['delta'])+
+        (GOODWIN_N['alpha']+
+        GOODWIN_N['n'])*np.ones_like(GOODWIN_N['Gamma'])) )
+
+
     GOODWIN_N['w0'] = 1 - GOODWIN_N['Gamma'] - (1 / GOODWIN_N['A']) * GOODWIN_N['Xi'] * (GOODWIN_N['alpha'] + GOODWIN_N['n'] + GOODWIN_N['delta'])
 
     # Matrices and sectorial stuff
@@ -311,8 +321,8 @@ def generategoodwin(Nsect, gamma=0.1, xi=1):
     GOODWIN_N['Cpond'] = 1 / Nsect
 
     # useful statevar for calculation that will not be loaded in set_fields
-    GOODWIN_N['a'] = GOODWIN_N['a0'] * GOODWIN_N['apond']
-    GOODWIN_N['w'] = GOODWIN_N['w0'] * GOODWIN_N['z']
+    GOODWIN_N['a'] = GOODWIN_N['a0'] * GOODWIN_N['zw']
+    GOODWIN_N['w'] = GOODWIN_N['w0'] * GOODWIN_N['za']
 
     # Capital scaling
     K = Kfor0dotV(GOODWIN_N)
@@ -328,7 +338,7 @@ def pForROC(dic):
 
     def ecart(p, dic):
         nu = 1 / dic['A']
-        omega = dic['w0'] * dic['z'] * nu / (dic['a0'] * dic['apond'] * p)
+        omega = dic['w0'] * dic['zw'] * nu / (dic['a0'] * dic['apond'] * p)
         gamma = O.matmul(dic['Gamma'], p) / p
         xi = O.matmul(dic['Xi'], p) / p
 

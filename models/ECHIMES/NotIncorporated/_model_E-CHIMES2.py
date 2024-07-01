@@ -69,10 +69,10 @@ _LOGICS = dict(
         a=lambda a0, za: a0 * za,
 
         # MONETARY FLUXES
-        wL=lambda w, L: O.ssum(w * L),
-        W=lambda wL, r, Dh, Shareholding: wL - r * Dh + O.ssum(Shareholding),
+        wL=lambda w, L: w * L,
+        W=lambda wL, r, Dh, Shareholding: O.ssum(wL) - r * Dh + O.ssum(Shareholding),
         rD=lambda r, D: r * D,
-        Pi=lambda p, Y, Gamma, Idelta, r, D, wL: p*Y - r*D - wL - Y*O.matmul(Gamma, p) -Idelta,
+        Pi=lambda p, Y, Gamma, Idelta, r, D, wL: p*Y - r*D - wL - Y*O.matmul(Gamma, p) - Idelta,
         # Pi=lambda p, Y, pi: p * Y * pi,
         Shareholding=lambda Delta, Pi: Delta * Pi,
         pC=lambda p, C: p * C,
@@ -82,6 +82,7 @@ _LOGICS = dict(
         dotD=dotD,
 
         # PHYSICAL FLUXES
+        dotV=dotV,
         Y=lambda u, nu, K: u * K / nu,
         I=lambda In, Xi, p: In / O.matmul(Xi, p),
         C=lambda W, kappaC, p: kappaC * W / p,
@@ -98,7 +99,7 @@ _LOGICS = dict(
         # LABOR-SIDE
         L=lambda u, K, a: u * K / a,
         employmentAGG=lambda employment: O.ssum(employment),
-        omegaAGG=lambda wL, p, Y: wL/O.ssum(p*Y),
+        omegaAGG=lambda wL, p, Y: O.ssum(wL)/O.ssum(p*Y),
         Phillips=lambda Phi0, Phi1, employmentAGG: Phi0 + Phi1 / (1 - employmentAGG)**2,
         employment=lambda L, N: L / N,
     ),
@@ -107,6 +108,8 @@ _LOGICS = dict(
         zw=1,
         ibasket=0,
         u=1,
+        nu=3,
+        delta=0.025,
         # 'CESexp':   { 'value' : 1000,
         # 'b':        { 'value' : 0.5 ,
         # 'epsilonV': { 'value' : 0.1 ,
@@ -125,7 +128,7 @@ _LOGICS = dict(
 Dimensions = {
     'scalar': ['r', 'phinull', 'N', 'employmentAGG', 'w0', 'W',
                'alpha', 'Nprod', 'Phillips', 'rDh', 'gammai',
-               'n', 'ibasket', 'Dh', 'Phi0', 'Phi1','wL'],
+               'n', 'ibasket', 'Dh', 'Phi0', 'Phi1'],
     'matrix': ['Gamma', 'Xi', 'Mgamma', 'Mxi', 'Minter',
                'Minvest', 'MtransactY', 'MtransactI']
     # 'vector': will be deduced by fill_dimensions
@@ -137,42 +140,8 @@ _LOGICS = fill_dimensions(_LOGICS, Dimensions, DIM)
 #########################################################################
 
 
-def Kfor0dotV(params):
-    '''
-    Given the value of parameters (Gamma,Xi,kappaC,delta,nu,p,a,w),
-    Find the vector of capital that ensure dotV=0 at the first iteration, only for a GOODWIN.
-    You can then multiply it in order to have the right GDP or employment
-    '''
-    from scipy.optimize import fsolve
 
-    def dotV(K, params):
-        Gamma = np.array(params['Gamma'])
-        Xi = np.array(params['Xi'])
-        kappaC = np.array(params['kappaC'])
-        delta = np.array(params['delta']) + 0 * K
-        A = np.array(params['A']) + 0 * K
-        p = np.array(params['p']) + 0 * K
-        a = np.array(params['a']) + 0 * K
-        w = np.array(params['w']) + 0 * K
-
-        # Deriving equations
-        Y = K * A
-        L = K / a
-        Inter = np.matmul(np.transpose(Gamma), Y)
-        C = kappaC * sum(w * L) / p
-        Pi = p * Y
-        Pi -= w * L
-        Pi -= Y * np.matmul(Gamma, p)
-        Pi -= delta * K * np.matmul(Xi, p)
-        I = Pi / (np.matmul(Xi, p)) + K * delta
-
-        # Returning dotV
-        return Y - Inter - C - np.matmul(np.transpose(Xi), I)
-    K = fsolve(dotV, np.array([1.] * len(params['Nprod'])), args=params)
-    return K
-
-
-def generategoodwin(Nsect, gamma=0.1, xi=1):
+def generategoodwin(Nsect, dictin={}):
     '''Generate a dfields to generate N Goodwin in parrallel'''
     GOODWIN_PRESET = {
         # Numerical values
@@ -184,6 +153,7 @@ def generategoodwin(Nsect, gamma=0.1, xi=1):
         'N': 1,
         'w0': 0.7,
         'a0': 3.,
+
         # Initial multisectoral
         'D': 0.,
         'Dh': 0.,
@@ -197,8 +167,6 @@ def generategoodwin(Nsect, gamma=0.1, xi=1):
         # Multisectoral ponderation
         'zw': 1.,     # On wage
         'za': 1.,  # On productivity
-        'z': 1.,     # On wage
-        'apond': 1.,  # On productivity
 
 
         # Characteristic frequencies
@@ -218,50 +186,115 @@ def generategoodwin(Nsect, gamma=0.1, xi=1):
         'A': 1 / 3, 'CESexp': 1000., 'b': .5,
 
         # MATRICES
-        'Xi': xi, 'Gamma': gamma,
+        'Xi': 1, 'Gamma': 0.1,
 
         'kappaC': 1.,
         'sigma': 0,
 
         # ACCESSIBILITY AND INVENTORY
-        'V': 100000,
+        'V': 1,
         # 'kY': 1000,
         # 'kI': 1000,
         # 'kC': 1000,
         # 'softmin':1000,
         # 'epsilonV': 0.1,
-
-
     }
 
+
     GOODWIN_N = GOODWIN_PRESET.copy()
-
-    # Closing the Phillips curve
-    GOODWIN_N['Phi1'] = -GOODWIN_N['Phi0'] * (GOODWIN_N['Phinull'])**2
-
-    def fm1(x):
-        return 1 - np.sqrt(x)
-    GOODWIN_N['employment'] = fm1(-GOODWIN_N['Phi1'] / (GOODWIN_N['Phi0'] + GOODWIN_N['alpha'] + GOODWIN_N['inflation'] * (1 - GOODWIN_N['gammai'])))
-
-    GOODWIN_N['w0'] = 1 - GOODWIN_N['Gamma'] - (1 / GOODWIN_N['A']) * GOODWIN_N['Xi'] * (GOODWIN_N['alpha'] + GOODWIN_N['n'] + GOODWIN_N['delta'])
-
     # Matrices and sectorial stuff
+    GOODWIN_N['nu'] = 1/GOODWIN_N['A']
     GOODWIN_N['Nprod'] = [str(i) for i in range(Nsect)]
-    GOODWIN_N['Gamma'] = np.eye(Nsect) * gamma
-    GOODWIN_N['Xi'] = np.eye(Nsect) * xi
+    GOODWIN_N['Gamma'] = np.eye(Nsect) * GOODWIN_N['Gamma']
+    GOODWIN_N['Xi'] = np.eye(Nsect) * GOODWIN_N['Xi']
     GOODWIN_N['N'] *= Nsect
     GOODWIN_N['kappaC'] = 1 / Nsect
 
-    # useful statevar for calculation that will not be loaded in set_fields
+    for k, v in dictin.items():
+        GOODWIN_N[k] = v
+
+    if 'A' not in GOODWIN_N.keys():
+        GOODWIN_N['A'] = 1 / GOODWIN_N['nu']
+    if 'nu' not in GOODWIN_N.keys():
+        GOODWIN_N['nu'] = np.array( 1 / GOODWIN_N['A'])
+
+    # Shapes management
+    
+    if type(GOODWIN_N['delta']) in [float, int]:
+        delta = np.identity(Nsect)*GOODWIN_N['delta']
+    else:
+        delta = GOODWIN_N['delta']
+    if type(GOODWIN_N['nu']) in [float, int]:
+        nu = np.identity(Nsect)*GOODWIN_N['nu']
+    else: 
+        nu = GOODWIN_N['nu']
+
+    # Creation of Mgrowth Matrix
+    Mgrowth = np.identity(Nsect)
+    Mgrowth -= GOODWIN_N['Gamma']
+    Mattemp = GOODWIN_N['delta'] * np.identity(Nsect)
+    Mattemp += (GOODWIN_N['alpha'] + GOODWIN_N['n'])*np.identity(Nsect)
+    Mgrowth -= GOODWIN_N['nu']*np.matmul(GOODWIN_N['Xi'], Mattemp)
+
+    GOODWIN_N['w0'] = np.mean(np.linalg.eigvals(Mgrowth))
     GOODWIN_N['a'] = GOODWIN_N['a0'] * GOODWIN_N['za']
     GOODWIN_N['w'] = GOODWIN_N['w0'] * GOODWIN_N['zw']
+
+    # Closing the Phillips curve, employment for calculations
+    GOODWIN_N['Phi1'] = -GOODWIN_N['Phi0'] * (GOODWIN_N['Phinull'])**2
+
+    def fm1(x):
+        # Diverging shape
+        return 1-np.sqrt(x)
+    GOODWIN_N['employment'] = fm1(GOODWIN_N['Phi1'] / (-GOODWIN_N['Phi0'] + GOODWIN_N['alpha'] + GOODWIN_N['inflation'] * (1 - GOODWIN_N['gammai'])))
+
+
+    # Price scaling
+    GOODWIN_N['p'] = pForROC(GOODWIN_N)
 
     # Capital scaling
     K = Kfor0dotV(GOODWIN_N)
     GOODWIN_N['K'] = K * GOODWIN_N['employment'] * GOODWIN_N['N'] / np.sum(K / GOODWIN_N['a'])  # homotetic scaling for employment and N
-    GOODWIN_N['p'] = pForROC(GOODWIN_N)
+
     return {k: np.array([v]) if type(v) not in [np.array, np.ndarray, list] else v for k, v in GOODWIN_N.items()}
 
+
+
+
+def Kfor0dotV(params):
+    '''
+    Given the value of parameters (Gamma,Xi,kappaC,delta,nu,p,a,w),
+    Find the vector of capital that ensure dotV=0 at the first iteration, only for a GOODWIN.
+    You can then multiply it in order to have the right GDP or employment
+    '''
+    from scipy.optimize import fsolve
+
+    def dotV(K, params):
+        Gamma = np.array(params['Gamma'])
+        Xi = np.array(params['Xi'])
+        kappaC = np.array(params['kappaC'])
+        delta = np.array(params['delta']) + 0 * K
+        nu = np.array(params['nu']) + 0 * K
+        p = np.array(params['p']) + 0 * K
+        a = np.array(params['a']) + 0 * K
+        w = np.array(params['w']) + 0 * K
+
+        # Deriving equations
+        Y = K / nu
+        L = K / a
+        Inter = np.matmul(np.transpose(Gamma), Y)
+        C = kappaC * sum(w * L) / p
+        Pi = p * Y
+        Pi -= w * L
+        Pi -= Y * np.matmul(Gamma, p)
+        Pi -= delta * K * np.matmul(Xi, p)
+        I = Pi / (np.matmul(Xi, p)) + K * delta
+
+        # Returning dotV
+        return Y - Inter - C - np.matmul(np.transpose(Xi), I)
+    
+    K = fsolve(dotV, np.array([1.] * len(params['Nprod'])), args=params)
+    return K
 
 def pForROC(dic):
     '''Find the price vector so that the natural return on capital is the growth rate of society
@@ -269,14 +302,21 @@ def pForROC(dic):
     from scipy.optimize import fsolve
 
     def ecart(p, dic):
-        nu = 1 / dic['A']
-        omega = dic['w0'] * dic['zw'] * nu / (dic['a0'] * dic['za'] * p)
+        #N = np.shape(dic['Xi'])[0]
+        
+        alpha =  0*p+dic['alpha']
+        n =   0*p+dic['n']
+        nu = dic['nu']
+        omega = dic['w'] * nu / (dic['a'] * p)
         gamma = O.matmul(dic['Gamma'], p) / p
         xi = O.matmul(dic['Xi'], p) / p
+        delta = dic['delta']   
 
-        return 1 - gamma - omega - nu * xi * (dic['alpha'] + dic['n'] + dic['delta'])
+        return 1 - gamma - omega - nu * xi * (alpha + n + delta)
 
     p = fsolve(ecart, np.array([1.] * len(dic['Nprod'])), args=dic)
+    for k in ['Gamma', 'Xi', 'nu', 'w', 'a','delta']:
+        print(k,dic[k])
     return p
 
 
@@ -358,14 +398,15 @@ preset_TRI = {
     'a': 3,
     'N': 1,
     'Dh': 0,
+    'Dh': 0,
     'w': 0.8,
 
-    #'sigma': [1, 5, 5],
+    # 'sigma': [1, 5, 5],
     'K': [2.1, 0.4, 0.4],
     'D': [0, 0, 0],
-    #'u': [.95, .95, .95],
+    # 'u': [.95, .95, .95],
     'p': [1, 1, 1],
-    #'V': [1, 1, 1],
+    # 'V': [1, 1, 1],
     'zw': 1,
     'k0': 1.,
     'kappaC': [1, 0, 0],
@@ -409,7 +450,6 @@ preset_basis = {
     'D': [0,],  # 0],
     'V': [1000],  # ,  1000],
 
-    'b': .5,
     'A': 1 / 3,
     'CESexp': 10,
 
@@ -443,7 +483,8 @@ preset_basis = {
 preset_basis2 = preset_basis.copy()
 preset_basis2['K'] = [2]  # .3,0.5]
 
-_PRESETS = {
+_PRESETS = {}
+"""
     'Goodwin': {
         'fields': {'K': 5,
                    'N': 1},  # _SUPPLEMENTS['generateNgoodwin'](1),
@@ -473,3 +514,4 @@ _PRESETS = {
         'plots': {}
     }
 }
+"""
