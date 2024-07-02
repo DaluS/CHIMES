@@ -99,9 +99,19 @@ _LOGICS = dict(
         # LABOR-SIDE
         L=lambda u, K, a: u * K / a,
         employmentAGG=lambda employment: O.ssum(employment),
-        omegaAGG=lambda wL, p, Y: O.ssum(wL)/O.ssum(p*Y),
+        omegaAGG={'func': lambda wL, p, Y: O.ssum(wL)/O.ssum(p*Y),
+                  'units': ''},
         Phillips=lambda Phi0, Phi1, employmentAGG: Phi0 + Phi1 / (1 - employmentAGG)**2,
         employment=lambda L, N: L / N,
+        d=lambda D, p, Y: D/(p*Y),
+        v=lambda V, Y: V/Y,
+        dAGG={'func': lambda D, p, Y: O.ssum(D)/O.ssum(p*Y),
+              'units': 'y'},
+        vAGG=lambda V, p, Y: O.ssum(V*p)/O.ssum(Y*p),
+
+        # SANKEY SIDE
+        rDh=lambda r, Dh: r * Dh,
+        Kdelta=lambda K, delta: delta * K,
     ),
     parameter=dict(
         za=1,
@@ -127,8 +137,8 @@ _LOGICS = dict(
 ##########################################################################
 Dimensions = {
     'scalar': ['r', 'phinull', 'N', 'employmentAGG', 'w0', 'W',
-               'alpha', 'Nprod', 'Phillips', 'rDh', 'gammai',
-               'n', 'ibasket', 'Dh', 'Phi0', 'Phi1'],
+               'alpha', 'Nprod', 'Phillips',  'gammai',
+               'n', 'ibasket', 'Dh', 'Phi0', 'Phi1', 'omegaAGG', 'dAGG'],
     'matrix': ['Gamma', 'Xi', 'Mgamma', 'Mxi', 'Minter',
                'Minvest', 'MtransactY', 'MtransactI']
     # 'vector': will be deduced by fill_dimensions
@@ -138,7 +148,6 @@ DIM = {'scalar': ['__ONE__'],
        'matrix': ['Nprod', 'Nprod']}
 _LOGICS = fill_dimensions(_LOGICS, Dimensions, DIM)
 #########################################################################
-
 
 
 def generategoodwin(Nsect, dictin={}):
@@ -200,7 +209,6 @@ def generategoodwin(Nsect, dictin={}):
         # 'epsilonV': 0.1,
     }
 
-
     GOODWIN_N = GOODWIN_PRESET.copy()
     # Matrices and sectorial stuff
     GOODWIN_N['nu'] = 1/GOODWIN_N['A']
@@ -216,18 +224,7 @@ def generategoodwin(Nsect, dictin={}):
     if 'A' not in GOODWIN_N.keys():
         GOODWIN_N['A'] = 1 / GOODWIN_N['nu']
     if 'nu' not in GOODWIN_N.keys():
-        GOODWIN_N['nu'] = np.array( 1 / GOODWIN_N['A'])
-
-    # Shapes management
-    
-    if type(GOODWIN_N['delta']) in [float, int]:
-        delta = np.identity(Nsect)*GOODWIN_N['delta']
-    else:
-        delta = GOODWIN_N['delta']
-    if type(GOODWIN_N['nu']) in [float, int]:
-        nu = np.identity(Nsect)*GOODWIN_N['nu']
-    else: 
-        nu = GOODWIN_N['nu']
+        GOODWIN_N['nu'] = np.array(1 / GOODWIN_N['A'])
 
     # Creation of Mgrowth Matrix
     Mgrowth = np.identity(Nsect)
@@ -248,7 +245,6 @@ def generategoodwin(Nsect, dictin={}):
         return 1-np.sqrt(x)
     GOODWIN_N['employment'] = fm1(GOODWIN_N['Phi1'] / (-GOODWIN_N['Phi0'] + GOODWIN_N['alpha'] + GOODWIN_N['inflation'] * (1 - GOODWIN_N['gammai'])))
 
-
     # Price scaling
     GOODWIN_N['p'] = pForROC(GOODWIN_N)
 
@@ -257,8 +253,6 @@ def generategoodwin(Nsect, dictin={}):
     GOODWIN_N['K'] = K * GOODWIN_N['employment'] * GOODWIN_N['N'] / np.sum(K / GOODWIN_N['a'])  # homotetic scaling for employment and N
 
     return {k: np.array([v]) if type(v) not in [np.array, np.ndarray, list] else v for k, v in GOODWIN_N.items()}
-
-
 
 
 def Kfor0dotV(params):
@@ -292,9 +286,10 @@ def Kfor0dotV(params):
 
         # Returning dotV
         return Y - Inter - C - np.matmul(np.transpose(Xi), I)
-    
+
     K = fsolve(dotV, np.array([1.] * len(params['Nprod'])), args=params)
     return K
+
 
 def pForROC(dic):
     '''Find the price vector so that the natural return on capital is the growth rate of society
@@ -302,21 +297,17 @@ def pForROC(dic):
     from scipy.optimize import fsolve
 
     def ecart(p, dic):
-        #N = np.shape(dic['Xi'])[0]
-        
-        alpha =  0*p+dic['alpha']
-        n =   0*p+dic['n']
+        alpha = 0*p+dic['alpha']
+        n = 0*p+dic['n']
         nu = dic['nu']
         omega = dic['w'] * nu / (dic['a'] * p)
         gamma = O.matmul(dic['Gamma'], p) / p
         xi = O.matmul(dic['Xi'], p) / p
-        delta = dic['delta']   
+        delta = dic['delta']
 
         return 1 - gamma - omega - nu * xi * (alpha + n + delta)
-
     p = fsolve(ecart, np.array([1.] * len(dic['Nprod'])), args=dic)
-    for k in ['Gamma', 'Xi', 'nu', 'w', 'a','delta']:
-        print(k,dic[k])
+
     return p
 
 
@@ -338,6 +329,53 @@ def PiRepartition(hub, tini=False, tend=False):
                                   title=f'Expected relative budget $\pi$ for sector {sector}',
                                   tini=tini,
                                   tend=tend)
+
+
+def Generate_LinksNodes_CHIMES(hub, Matrices, Vectors, Scalars, idt0=0, idt1=-1, coloroffset=0):
+    from chimes.plots.tools._plot_tools import value
+
+    R = hub.get_dfields()
+    Nodes = []
+    Links0 = []
+    color = coloroffset
+    for m in Matrices:
+        for i, sect1 in enumerate(R[R[m]['size'][0]]['list']):
+            V = value(R, m, idt0, idt1, ms1=i, ms2=True)
+            for j, sect2 in enumerate(R[R[m]['size'][1]]['list']):
+                Links0.append([m, V[:, j], sect1, sect2, color])
+                if sect2 not in Nodes:
+                    Nodes.append(sect2)
+            if sect1 not in Nodes:
+                Nodes.append(sect1)
+        color += 1
+
+    for v in Vectors:
+        V = value(R, v[0], idt0, idt1, ms1=True, ms2=0)
+        if v[-1]:
+            V *= -1
+        for i, sect in enumerate(R[R[v[0]]['size'][0]]['list']):
+            Links0.append([v[1], V[:, i], sect, v[2], color])
+            if sect not in Nodes:
+                Nodes.append(sect)
+            if v[2] not in Nodes:
+                Nodes.append(v[2])
+        color += 1
+
+    for s in Scalars:
+        V = value(R, s[0], idt0, idt1)
+        if s[-1]:
+            V *= -1
+        Links0.append([s[3], V, s[1], s[2], color])
+        if s[1] not in Nodes:
+            Nodes.append(s[1])
+        if s[2] not in Nodes:
+            Nodes.append(s[2])
+        color += 1
+
+    Nodes = {k: i for i, k in enumerate(Nodes)}
+
+    Links0 = [[L[0], L[1], Nodes[L[2]], Nodes[L[3]], L[4]] for L in Links0]
+    return Nodes, Links0
 
 
 def PhysicalFluxes(hub, tini=False, tend=False):
@@ -380,6 +418,7 @@ _SUPPLEMENTS = {
     'PiRepartition': PiRepartition,
     'PhysicalFluxes': PhysicalFluxes,
     'MonetaryFluxes': MonetaryFluxes,
+    'Generate_LinksNodes_CHIMES': Generate_LinksNodes_CHIMES,
 }
 
 

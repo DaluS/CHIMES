@@ -76,8 +76,6 @@ def nyaxis(
     -------------
     Date: 2024-01-19
     """
-    print(hub)
-    print(y)
 
     if len(y) > 5:
         return "ERROR: too many axes for readibility ! Please do multiple figu"
@@ -111,9 +109,11 @@ def nyaxis(
 
     vy = {}
     for ii, vlist in enumerate(y):
+        print(ii,vlist)
         # PREPARE DATA AND SYMBOLS
         vy[ii] = {}
         for iii, yyy in enumerate(vlist):
+            print(iii,yyy)
             # Monosectorial entry
             if type(yyy) is str:
                 name = yyy
@@ -132,7 +132,6 @@ def nyaxis(
                     sectornumber = yyy[1]
 
                 symbol = name + '_{' + sectorname + '}$'
-
             if sensitivity and ('sensitivity' in hub.dfields[name].keys()):
                 stdy = R[name]['sensitivity'][Region]['']['stdv'][idt0:idt1]
                 vy[ii][yyy] = R[name]['sensitivity'][Region]['']['mean'][idt0:idt1]
