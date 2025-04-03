@@ -126,7 +126,29 @@ const ModelDetailPage = () => {
         }
       } catch (err) {
         console.error('Error fetching model details:', err);
-        setError(`Impossible de charger les détails du modèle ${modelName}.`);
+        
+        // Construire un message d'erreur détaillé
+        let errorMessage = `Impossible de charger les détails du modèle ${modelName}.`;
+        
+        if (err.response) {
+          errorMessage += `\n\nStatut HTTP: ${err.response.status}`;
+          if (err.response.data) {
+            errorMessage += `\n\nDétails de l'erreur: ${JSON.stringify(err.response.data, null, 2)}`;
+          }
+        } else if (err.request) {
+          // La requête a été faite mais pas de réponse reçue
+          errorMessage += `\n\nAucune réponse reçue du serveur. Vérifiez que le serveur est en cours d'exécution sur ${API_URL}.`;
+        } else {
+          // Quelque chose s'est passé lors de la configuration de la requête
+          errorMessage += `\n\nErreur de configuration de la requête: ${err.message}`;
+        }
+        
+        // Ajouter des informations de débogage supplémentaires
+        errorMessage += `\n\nInformations de débogage:`;
+        errorMessage += `\n- URL appelée: ${API_URL}/models/${modelName}`;
+        errorMessage += `\n- Navigateur: ${navigator.userAgent}`;
+        
+        setError(errorMessage);
       } finally {
         setLoading(false);
       }
@@ -176,22 +198,36 @@ const ModelDetailPage = () => {
         <Alert 
           severity="error" 
           sx={{ 
-            maxWidth: 600, 
+            maxWidth: 800, 
             mx: 'auto',
             mb: 3,
             bgcolor: 'rgba(248, 114, 114, 0.1)',
             border: '1px solid rgba(248, 114, 114, 0.2)',
+            textAlign: 'left',
+            whiteSpace: 'pre-wrap',
+            '& .MuiAlert-message': {
+              fontFamily: 'monospace',
+            }
           }}
         >
           {error || `Le modèle ${modelName} n'a pas pu être chargé.`}
         </Alert>
-        <Button 
-          variant="contained" 
-          onClick={() => navigate('/models')}
-          startIcon={<ArrowBackIcon />}
-        >
-          Retour aux modèles
-        </Button>
+        <Box sx={{ mt: 3 }}>
+          <Button 
+            variant="contained" 
+            onClick={() => navigate('/models')}
+            startIcon={<ArrowBackIcon />}
+            sx={{ mr: 2 }}
+          >
+            Retour aux modèles
+          </Button>
+          <Button
+            variant="outlined"
+            onClick={() => window.location.reload()}
+          >
+            Réessayer
+          </Button>
+        </Box>
       </Box>
     );
   }
@@ -360,62 +396,70 @@ const ModelDetailPage = () => {
                   
                   <Paper sx={{ p: 2, bgcolor: 'background.default', borderRadius: 2 }}>
                     <List>
-                      {Object.entries(modelDetails.fields || {})
-                        .filter(([key, field]) => field.eqtype === 'parameter')
-                        .map(([key, field]) => (
-                          <ListItem 
-                            key={key} 
-                            sx={{ 
-                              borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-                              py: 2 
-                            }}
-                          >
-                            <Grid container spacing={2}>
-                              <Grid item xs={12} sm={4}>
-                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                  <Typography variant="subtitle2" fontFamily="monospace">
-                                    {key}
-                                  </Typography>
-                                  {field.units && (
-                                    <Chip 
-                                      label={field.units} 
-                                      size="small" 
-                                      variant="outlined"
-                                      sx={{ ml: 1 }}
-                                    />
-                                  )}
-                                </Box>
-                                {field.type && (
-                                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                                    Type: <span style={{ fontFamily: 'monospace' }}>{field.type}</span>
-                                  </Typography>
-                                )}
-                              </Grid>
-                              <Grid item xs={12} sm={8}>
-                                <Typography variant="body2">
-                                  {field.definition || "Aucune définition disponible"}
-                                </Typography>
-                                {field.range && (
-                                  <Box sx={{ mt: 1, display: 'flex', alignItems: 'center' }}>
-                                    <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
-                                      Plage: {field.range[0]} - {field.range[1]}
+                      {modelDetails.fields ? (
+                        Object.entries(modelDetails.fields || {})
+                          .filter(([key, field]) => field.eqtype === 'parameter')
+                          .map(([key, field]) => (
+                            <ListItem 
+                              key={key} 
+                              sx={{ 
+                                borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
+                                py: 2 
+                              }}
+                            >
+                              <Grid container spacing={2}>
+                                <Grid item xs={12} sm={4}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <Typography variant="subtitle2" fontFamily="monospace">
+                                      {key}
                                     </Typography>
-                                    <LinearProgress 
-                                      variant="determinate" 
-                                      value={50} 
-                                      sx={{ flexGrow: 1, height: 8, borderRadius: 4 }}
-                                    />
+                                    {field.units && (
+                                      <Chip 
+                                        label={field.units} 
+                                        size="small" 
+                                        variant="outlined"
+                                        sx={{ ml: 1 }}
+                                      />
+                                    )}
                                   </Box>
-                                )}
-                                {field.default !== undefined && (
-                                  <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                                    Valeur par défaut: <span style={{ fontFamily: 'monospace' }}>{field.default}</span>
+                                  {field.type && (
+                                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                                      Type: <span style={{ fontFamily: 'monospace' }}>{field.type}</span>
+                                    </Typography>
+                                  )}
+                                </Grid>
+                                <Grid item xs={12} sm={8}>
+                                  <Typography variant="body2">
+                                    {field.definition || "Aucune définition disponible"}
                                   </Typography>
-                                )}
+                                  {field.range && (
+                                    <Box sx={{ mt: 1, display: 'flex', alignItems: 'center' }}>
+                                      <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
+                                        Plage: {field.range[0]} - {field.range[1]}
+                                      </Typography>
+                                      <LinearProgress 
+                                        variant="determinate" 
+                                        value={50} 
+                                        sx={{ flexGrow: 1, height: 8, borderRadius: 4 }}
+                                      />
+                                    </Box>
+                                  )}
+                                  {field.default !== undefined && (
+                                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                                      Valeur par défaut: <span style={{ fontFamily: 'monospace' }}>{field.default}</span>
+                                    </Typography>
+                                  )}
+                                </Grid>
                               </Grid>
-                            </Grid>
-                          </ListItem>
-                        ))}
+                            </ListItem>
+                          ))
+                      ) : (
+                        <ListItem>
+                          <Typography color="text.secondary">
+                            Aucun paramètre disponible pour ce modèle.
+                          </Typography>
+                        </ListItem>
+                      )}
                     </List>
                   </Paper>
                 </TabPanel>
